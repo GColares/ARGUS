@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Validar Termos - ARGUS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold text-primary">Validação de Importação de Termos de Doação</h2>
+            <p class="text-muted">Análise técnica de conformidade: Instrumento de Doação vs. Notas Fiscais.</p>
+        </div>
+    </div>
+
+    <div class="card p-5 mb-4 shadow-sm" style="border: 2px dashed var(--inova-azul); background-color: #f8f9fa;">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <label for="origem_termo" class="form-label h6 fw-bold">1. Qual a origem do documento?</label>
+                    <select class="form-select form-select-lg" id="origem_termo" name="origem_termo" required>
+                        <!-- <option value="" selected disabled>Selecione a instituição...</option> -->
+                        <option value="FAEPI">FAEPI - Fundação de Apoio (Padrão Atual)</option>
+                        <option value="OUTROS" disabled>Outras Instituições (Em breve)</option>
+                    </select>
+                    <div class="form-text text-muted">Define o algoritmo de leitura estrutural que será aplicado ao PDF.</div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <label for="pdf_termo" class="form-label h6 fw-bold">2. Selecione o PDF do Termo de Doação</label>
+                    <input class="form-control form-control-lg" type="file" id="pdf_termo" name="pdf_termo" accept="application/pdf" required>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <button type="submit" class="btn btn-primary btn-lg px-5">Iniciar Verificação Inteligente</button>
+            </div>
+        </form>
+    </div>
+
+    {% if sucesso %}
+    <div class="card shadow-sm border-0 mt-5">
+        <div class="card-header bg-white py-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0 fw-bold text-primary">
+                    <i class="bi bi-pencil-square me-2"></i>Revisão de Conformidade
+                </h5>
+                <span class="badge px-3 py-2 fs-6 {% if tudo_ok %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                    Status: {{ verificacao.get_status_display }}
+                </span>
+            </div>
+            <p class="text-muted small mb-0">Faça ajustes manuais se a leitura do PDF não foi perfeita e vincule ao projeto correto.</p>
+        </div>
+        
+        <form method="post" action="{% url 'detalhe_verificacao' verificacao.id %}">
+            {% csrf_token %}
+            <div class="card-body bg-light pb-4 border-bottom">
+                
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <label for="projeto_id" class="form-label fw-bold text-dark mb-1">Vincular Bens a qual Projeto PDI?</label>
+                        <select name="projeto_id" id="projeto_id" class="form-select border-primary" required>
+                            <option value="" disabled selected>Selecione um Convênio/Projeto...</option>
+                            {% for proj in projetos %}
+                                <option value="{{ proj.id }}" {% if verificacao.projeto_extenso == proj.codigo %}selected{% endif %}>
+                                    {{ proj.convenio.instituicao.sigla }} ({{ proj.convenio.numero_convenio }}) -> {{ proj.codigo }} - {{ proj.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-secondary">
+                            <tr>
+                                <th width="15%">Nº Patrimônio</th>
+                                <th width="40%">Descrição do Equipamento</th>
+                                <th width="15%">Valor (R$)</th>
+                                <th width="15%">Nota Fiscal</th>
+                                <th width="15%" class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in itens %}
+                            <tr>
+                                <td>
+                                    <input type="text" name="patrimonio_{{ item.id }}" class="form-control form-control-sm" value="{{ item.patrimonio_origem|default:'' }}" placeholder="Ex: 3344">
+                                </td>
+                                
+                                <td>
+                                    <input type="text" name="descricao_{{ item.id }}" class="form-control form-control-sm fw-bold" value="{{ item.descricao }}" required>
+                                </td>
+                                
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">R$</span>
+                                        <input type="number" step="0.01" name="valor_{{ item.id }}" class="form-control form-control-sm text-success fw-bold" value="{{ item.valor|stringformat:'f' }}" required>
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    <input type="text" name="nf_{{ item.id }}" class="form-control form-control-sm" value="{{ item.nota_fiscal|default:'' }}" placeholder="Nº NF">
+                                </td>
+
+                                <td class="text-center">
+                                    {% if item.nf_encontrada %}
+                                        <span class="badge bg-success rounded-pill px-3 py-1">OK ✅</span>
+                                    {% else %}
+                                        <span class="badge bg-danger rounded-pill px-3 py-1">Falta NF ❌</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-footer bg-white d-flex justify-content-between py-3">
+                <button type="submit" name="acao" value="atualizar" class="btn btn-outline-primary px-4">
+                    <i class="bi bi-arrow-repeat me-2"></i>Salvar Ajustes Manuais
+                </button>
+                
+                <button type="submit" name="acao" value="incorporar" class="btn btn-success px-5 fw-bold" onclick="return confirm('Confirmar a incorporação destes bens ao patrimônio do IFAM?');">
+                    <i class="bi bi-check2-circle me-2"></i>Confirmar Incorporação no IFAM
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

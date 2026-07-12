@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'cadastros:home' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar para Projetos
+            </a>
+            <h4 class="fw-bold text-info"><i class="fas fa-university me-2"></i> Contas Bancárias: {{ projeto.convenio }}</h4>
+            <p class="text-muted mb-0">Projeto: {{ projeto.nome }}</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-top border-info border-3">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 fw-bold">Vincular Nova Conta</h6>
+                </div>
+                <div class="card-body bg-light">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Banco</label>
+                            {{ form.banco }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Agência</label>
+                            {{ form.agencia }}
+                        </div>
+                        
+                        <div class="row g-2 mb-4">
+                            <div class="col-8">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Nº da Conta</label>
+                                {{ form.conta }}
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Dígito</label>
+                                {{ form.dv }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-info text-white w-100 fw-bold shadow-sm">
+                            <i class="fas fa-plus-circle me-1"></i> ADICIONAR CONTA
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 fw-bold">Contas Vinculadas a este Projeto</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Banco</th>
+                                <th>Agência</th>
+                                <th>Conta / DV</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in contas %}
+                            <tr>
+                                <td class="fw-bold">{{ c.banco }}</td>
+                                <td>{{ c.agencia|default:"-" }}</td>
+                                <td class="text-primary fw-bold">{{ c.conta }} - {{ c.dv }}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class="fas fa-piggy-bank fa-3x mb-3 opacity-25"></i>
+                                    <p>Nenhuma conta vinculada a este projeto ainda.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

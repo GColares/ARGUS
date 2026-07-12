@@ -1,0 +1,272 @@
+<!-- argus/almoxarifado/templates/almoxarifado/modais_inclusos.html -->
+{% load l10n %}
+
+<div class="modal fade" id="modalEditarNota" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light border-bottom">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-edit me-2 text-primary"></i>Retificar Dados da Nota Fiscal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'almoxarifado:editar_nota' nota.id %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Número da NF-e</label>
+                            <input type="text" class="form-control" name="numero" value="{{ nota.numero }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Série</label>
+                            <input type="text" class="form-control" name="serie" value="{{ nota.serie }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Data de Emissão</label>
+                            <input type="date" class="form-control" name="data_emissao" value="{{ nota.data_emissao|date:'Y-m-d' }}" required>
+                        </div>
+                        
+                        <div class="col-12"><hr class="my-2 opacity-25"></div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Total Produtos (R$)</label>
+                            <input type="number" step="0.01" class="form-control text-secondary" name="valor_total_produtos" value="{{ nota.valor_total_produtos|unlocalize }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Descontos (R$)</label>
+                            <input type="number" step="0.01" class="form-control text-success" name="valor_desconto" value="{{ nota.valor_desconto|unlocalize }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Valor Líquido NF (R$)</label>
+                            <input type="number" step="0.01" class="form-control fw-bold text-danger" name="valor_total_nota" value="{{ nota.valor_total_nota|unlocalize }}" required>
+                        </div>
+                        
+                        <div class="col-12"><hr class="my-2 opacity-25"></div>
+                        
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Fornecedor / fornecedor</label>
+                            <input type="text" class="form-control" name="fornecedor_nome" value="{{ nota.fornecedor_nome }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">CNPJ Fornecedor</label>
+                            <input type="text" class="form-control" name="fornecedor_cnpj" value="{{ nota.fornecedor_cnpj }}" required>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Destinatário</label>
+                            <input type="text" class="form-control" name="destinatario_nome" value="{{ nota.destinatario_nome }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">CNPJ Destinatário</label>
+                            <input type="text" class="form-control" name="destinatario_cnpj" value="{{ nota.destinatario_cnpj }}" required>
+                        </div>
+
+                        <div class="col-12"><hr class="my-2 opacity-25"></div>
+                        <h6 class="text-danger fw-bold mb-2"><i class="fas fa-clipboard-check me-2"></i>Dados de Recebimento Físico (Auditoria)</h6>
+
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Chave de Acesso Sefaz</label>
+                            <input type="text" class="form-control font-monospace" name="chave_acesso" value="{{ nota.chave_acesso|default:'' }}" maxlength="54" placeholder="0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Data da Entrega</label>
+                            <input type="date" class="form-control" name="data_recebimento" value="{{ nota.data_recebimento|date:'Y-m-d' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Colaborador que Recebeu</label>
+                            <select class="form-select" name="usuario_recebedor_id">
+                                <option value="">Selecione quem assinou o papel...</option>
+                                {% for usuario in usuarios_cadastrados %}
+                                    <option value="{{ usuario.id }}" {% if nota.usuario_recebedor.id == usuario.id %}selected{% endif %}>
+                                        {{ usuario.get_full_name|default:usuario.username }} 
+                                        {% if usuario.perfil %}
+                                            {% if usuario.perfil.vinculo == 'SERVIDOR' and usuario.perfil.siape %}
+                                                (SIAPE: {{ usuario.perfil.siape }})
+                                            {% elif usuario.perfil.vinculo == 'TERCEIRIZADO' %}
+                                                (Terceirizado)
+                                            {% endif %}
+                                        {% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12"><hr class="my-2 opacity-25"></div>
+                        <h6 class="text-primary fw-bold mb-2"><i class="fas fa-project-diagram me-2"></i>Gestão Financeira e Projetos</h6>
+
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Vincular a Projeto PDI (Opcional)</label>
+                            <select class="form-select border-primary" name="projeto_vinculado_id">
+                                <option value="">Selecione o projeto correspondente à compra...</option>
+                                {% for proj in projetos %}
+                                    <option value="{{ proj.id }}" {% if nota.projeto_vinculado and nota.projeto_vinculado.id == proj.id %}selected{% endif %}>
+                                        Convênio nº {{ proj.convenio }} - {{ proj.projeto }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>    
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger px-4 fw-bold shadow-sm">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% for item in nota.produtos.all %}
+
+    <div class="modal fade" id="modalEditarProduto_{{ item.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-light border-bottom">
+                    <h5 class="modal-title fw-bold text-dark"><i class="fas fa-box me-2 text-primary"></i>Editar Insumo #{{ item.numero_item }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'almoxarifado:editar_produto' item.id %}">
+                    {% csrf_token %}
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-9">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Descrição do Produto</label>
+                                <input type="text" class="form-control fw-medium" name="descricao" value="{{ item.descricao }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Classificação</label>
+                                <select class="form-select fw-bold {% if item.categoria == 'CONSUMO' %}text-warning{% elif item.categoria == 'PERMANENTE' %}text-info{% else %}text-secondary{% endif %}" name="categoria" required>
+                                    <option value="CONSUMO" {% if item.categoria == 'CONSUMO' %}selected{% endif %}>Consumo</option>
+                                    <option value="PERMANENTE" {% if item.categoria == 'PERMANENTE' %}selected{% endif %}>Bem Permanente</option>
+                                    <option value="SERVICO" {% if item.categoria == 'SERVICO' %}selected{% endif %}>Serviço / Outros</option>
+                                </select>
+                            </div>
+                            <div class="col-12"><hr class="my-2 opacity-25"></div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Unidade Comercial</label>
+                                <input type="text" class="form-control text-center" name="unidade_comercial" value="{{ item.unidade_comercial }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Quantidade</label>
+                                <input type="number" step="0.0001" class="form-control text-center fw-bold" name="quantidade" value="{{ item.quantidade|unlocalize }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Valor Unitário</label>
+                                <input type="number" step="0.0001" class="form-control text-center text-secondary" name="valor_unitario" value="{{ item.valor_unitario|unlocalize }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Valor Total</label>
+                                <input type="number" step="0.01" class="form-control text-center fw-bold text-danger" name="valor_total" value="{{ item.valor_total|unlocalize }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light border-top-0">
+                        <button type="button" class="btn btn-link text-muted text-decoration-none fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">Salvar Retificação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalFotosProduto_{{ item.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-light border-bottom">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="fas fa-camera me-2 text-primary"></i>Fotos do Insumo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small fw-bold text-secondary mb-3">{{ item.descricao }}</p>
+                    <div class="row g-2 mb-4">
+                        {% for foto in item.fotos.all %}
+                            <div class="col-4 position-relative">
+                                <a href="{{ foto.imagem.url }}" target="_blank" class="d-block border rounded p-1 text-center bg-light" title="Clique para ampliar">
+                                    <img src="{{ foto.imagem.url }}" class="img-fluid rounded" style="height: 80px; object-fit: cover; width: 100%;" alt="{{ foto.descricao|default:'Foto' }}">
+                                    {% if foto.descricao %}
+                                        <div class="mt-1 small text-muted text-truncate" style="font-size: 0.7rem;">{{ foto.descricao }}</div>
+                                    {% endif %}
+                                </a>
+                                <form method="POST" action="{% url 'almoxarifado:excluir_foto_produto' foto.id %}" class="position-absolute top-0 end-0 m-1" onsubmit="return confirm('Tem certeza que deseja excluir esta foto permanentemente?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm rounded-circle shadow-sm" style="width: 24px; height: 24px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Excluir foto">
+                                        <i class="fas fa-times" style="font-size: 0.7rem;"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        {% empty %}
+                            <div class="col-12 text-center text-muted small py-2 bg-light rounded border border-dashed">
+                                <i class="fas fa-images fs-4 mb-1 text-opacity-50"></i><br>
+                                Nenhuma fotografia registrada.
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <hr class="opacity-25 my-3">
+                    <form method="POST" enctype="multipart/form-data" action="{% url 'almoxarifado:upload_foto_produto' item.id %}">
+                        {% csrf_token %}
+                        <h6 class="fw-bold text-dark small mb-2 text-uppercase"><i class="fas fa-upload me-1"></i>Adicionar Nova Foto</h6>
+                        <div class="mb-3">
+                            <input class="form-control form-control-sm" type="file" name="foto" accept="image/*" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control form-control-sm" name="descricao_foto" placeholder="Breve descrição (ex: Foto da etiqueta, avaria...)">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-sm fw-bold">Salvar Imagem</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+<div class="modal fade" id="modalAnexarTermo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white border-bottom-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-file-signature me-2"></i>Arquivar Termo Assinado</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="{% url 'almoxarifado:anexar_termo' nota.id %}">
+                {% csrf_token %}
+                <div class="modal-body p-4 text-center">
+                    <p class="text-muted small mb-3">Faça o upload do Termo de Recebimento após ele ter sido conferido e assinado pelo Servidor e pela DAF. <strong>Isso bloqueará a geração de novos termos em Word para esta nota.</strong></p>
+                    <input class="form-control" type="file" name="termo_pdf" accept=".pdf" required>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success fw-bold shadow-sm">Arquivar PDF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalExcluirNota" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Excluir Nota Fiscal</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'almoxarifado:excluir_nota' nota.id %}">
+                {% csrf_token %}
+                <div class="modal-body p-4 text-center">
+                    <p class="mb-2 text-muted">Você tem certeza que deseja excluir permanentemente a NF-e abaixo?</p>
+                    <h3 class="fw-bold text-dark mb-3">#{{ nota.numero }}</h3>
+                    <div class="alert alert-warning border-0 shadow-sm text-start small mb-0">
+                        <i class="fas fa-info-circle me-1"></i><strong>Atenção:</strong> Esta ação é irreversível e excluirá todos os produtos desta nota.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger fw-bold shadow-sm">Confirmar Exclusão</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

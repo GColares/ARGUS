@@ -1,0 +1,151 @@
+{% load static %}
+{% load l10n %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>{% block title %}ARGUS - Polo de Inovação{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* Ajuste simples para o botão de Sair parecer um link do menu */
+        .btn-logout-menu {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+        .btn-logout-menu:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-institucional shadow-sm sticky-top">
+        <div class="container-fluid px-4 py-1">
+            
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home_geral' %}">
+                <img src="{% static 'img/ARGUS1-LOGO-editado.png' %}" alt="Logo ARGUS" height="48" class="object-fit-contain">
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto gap-2 mt-2 mt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'cadastros' in request.path %}active{% endif %}" href="{% url 'cadastros:home_cadastros' %}">
+                            <i class="fas fa-database me-1"></i> Cadastros
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'incorporacao' in request.path %}active{% endif %}" href="{% url 'incorporacao:home_incorporacao' %}">
+                            <i class="fas fa-file-import me-1"></i> Incorporação
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'patrimonio' in request.path %}active{% endif %}" href="{% url 'patrimonio:home_patrimonio' %}">
+                            <i class="fas fa-boxes me-1"></i> Patrimônio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'almoxarifado' in request.path %}active{% endif %}" href="{% url 'almoxarifado:home_almoxarifado' %}">
+                            <i class="fas fa-dolly me-1"></i> Almoxarifado
+                        </a>
+                    </li>
+                    
+                </ul>
+
+                <div class="d-none d-lg-flex align-items-center ms-3 border-start border-2 ps-3">
+                    <img src="{% static 'img/logo-inova-para-fundo-branco-editado.png' %}" alt="Polo de Inovação IFAM" height="35" class="object-fit-contain">
+                </div>
+
+                <ul class="navbar-nav ms-lg-3">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle fw-bold" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle fs-5 me-1 align-middle text-muted"></i> 
+                                {{ user.username|upper }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                
+                                {% if user.is_superuser or user.is_staff %}
+                                    <li><a class="dropdown-item py-2" href="/admin/"><i class="fas fa-cogs me-2 text-muted"></i> Painel Django</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                
+                                <li>
+                                    <form method="POST" action="{% url 'logout' %}" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item py-2 text-danger fw-bold btn-logout-menu">
+                                            <i class="fas fa-sign-out-alt me-2"></i> Sair
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a href="{% url 'login' %}" class="btn btn-outline-success btn-sm ms-2 fw-bold">
+                                <i class="fas fa-sign-in-alt me-1"></i> Entrar
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+                </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0" role="alert">
+                    {% if message.tags == 'success' %}<i class="fas fa-check-circle me-2 fs-5 align-middle"></i>{% endif %}
+                    {% if message.tags == 'error' or message.tags == 'danger' %}<i class="fas fa-exclamation-circle me-2 fs-5 align-middle"></i>{% endif %}
+                    {% if message.tags == 'warning' %}<i class="fas fa-exclamation-triangle me-2 fs-5 align-middle"></i>{% endif %}
+                    {% if message.tags == 'info' %}<i class="fas fa-info-circle me-2 fs-5 align-middle"></i>{% endif %}
+                    <span class="align-middle">{{ message }}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <main class="content-wrapper">
+        <div class="container-fluid px-4 mt-4"> 
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer-institucional mt-5 py-4 shadow-inner">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+            
+            <div class="mb-3 mb-md-0 text-center text-md-start">
+                <span class="fw-bold fs-5" style="color: var(--inova-verde);">Sistema ARGUS</span> &copy; 2026<br>
+                <small class="text-muted fw-semibold">Gabinete do Polo de Inovação | Instituto Federal do Amazonas (IFAM)</small>
+            </div>
+            
+            <div class="d-flex align-items-center gap-4 bg-white p-2 px-3 rounded shadow-sm border">
+                <img src="{% static 'img/logo ifam.png' %}" alt="Logo IFAM" height="40" class="object-fit-contain">
+                <div class="vr"></div>
+                <img src="{% static 'img/logo-inova-para-fundo-branco-editado.png' %}" alt="Logo INOVA" height="40" class="object-fit-contain">
+            </div>
+
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

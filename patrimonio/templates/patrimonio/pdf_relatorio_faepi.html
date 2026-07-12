@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page {
+            size: a4 landscape;
+            margin: 1cm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 8px; /* Fonte pequena para as 16 colunas */
+        }
+        table { width: 100%; border: 0.5pt solid #000; }
+        th, td { 
+            border: 0.5pt solid #ccc; 
+            padding: 2px; 
+            text-align: left;
+        }
+        .header { text-align: center; font-size: 14px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Relatório de Conferência de Patrimônio - FAEPI</h2>
+    <p>Projeto: {{ verificacao.projeto_pdi }} | Data: {% now "d/m/Y" %}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="col-ativo">Ativo</th>
+                <th class="col-desc">Descrição</th>
+                <th>Proc. Compra</th>
+                <th>Proc. Pgto</th>
+                <th>CNPJ/CPF</th>
+                <th>Fornecedor</th>
+                <th>NF</th>
+                <th>Data NF</th>
+                <th>Valor</th>
+                <th>Conta</th>
+                <th>DV</th>
+                <th>Proj.</th>
+                <th>Local</th>
+                <th>Situação</th>
+                <th>Data</th>
+                <th>Doc.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in itens %}
+            <tr>
+                <td>{{ item.numero_ativo }}</td>
+                <td>{{ item.descricao|truncatechars:100 }}</td>
+                <td>{{ item.processo_compra }}</td>
+                <td>{{ item.processo_pagamento }}</td>
+                <td>{{ item.cnpj_cpf_fornecedor }}</td>
+                <td>{{ item.nome_fornecedor }}</td>
+                <td>{{ item.nota_fiscal }}</td>
+                <td>{{ item.data_nf }}</td>
+                <td class="text-end">R$ {{ item.valor_bem }}</td>
+                <td>{{ item.conta }}</td>
+                <td>{{ item.dv }}</td>
+                <td>{{ item.projeto }}</td>
+                <td>{{ item.localizacao }}</td>
+                <td>{{ item.situacao }}</td>
+                <td>{{ item.data_movimentacao }}</td>
+                <td>{{ item.documento }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

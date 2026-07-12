@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Termo de Doação - ARGUS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+        <a href="{% url 'incorporacao:home' %}" class="btn btn-sm btn-outline-secondary me-3">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+        <div>
+            <h2 class="mb-0 fw-bold text-dark">Cadastrar Termo de Doação</h2>
+            <p class="text-muted small mb-0">Insira as informações macro do documento. Os processos de execução serão vinculados individualmente em cada item.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="formCadastroTermo">
+                        {% csrf_token %}
+
+                        <h5 class="text-success fw-bold mb-3 border-bottom pb-1">
+                            <i class="fas fa-project-diagram me-2"></i>Vínculo Institucional
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_projeto" class="form-label fw-bold small text-secondary">Projeto PDI</label>
+                                <select name="projeto" id="id_projeto" class="form-select" required>
+                                    <option value="">Selecione o Projeto...</option>
+                                    {% for projeto in projetos %}
+                                        <option value="{{ projeto.id }}">CV nº {{ projeto.convenio }} - {{ projeto.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="id_origem" class="form-label fw-bold small text-secondary">Origem da Doação</label>
+                                <select name="origem" id="id_origem" class="form-select" required>
+                                    <option value="">Selecione a Origem...</option>
+                                    {% for origem in origens %}
+                                        <option value="{{ origem.id }}">{{ origem.sigla }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <h5 class="text-success fw-bold mt-4 mb-3 border-bottom pb-1">
+                            <i class="fas fa-file-invoice me-2"></i>Identificação do Documento
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_numero" class="form-label fw-bold small text-secondary">Número do Termo</label>
+                                <input type="text" name="numero" id="id_numero" class="form-control" placeholder="Ex: 01" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="id_ano" class="form-label fw-bold small text-secondary">Ano de Emissão</label>
+                                <input type="number" name="ano" id="id_ano" class="form-control" min="2000" max="2100" placeholder="Ex: 2026" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="id_data" class="form-label fw-bold small">Data de Doação/Formalização</label>
+                                <input type="date" name="data" id="id_data" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <h5 class="text-success fw-bold mt-4 mb-3 border-bottom pb-1">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>Arquivo Digital
+                        </h5>
+
+                        <div class="mb-4">
+                            <label for="id_arquivo_pdf" class="form-label fw-bold small text-secondary">Documento do Termo (Formato PDF)</label>
+                            <input type="file" name="arquivo_pdf" id="id_arquivo_pdf" class="form-control" accept="application/pdf" required>
+                            <div class="form-text small text-muted">Aviso: O robô ARGUS iniciará a extração textual do objeto do arquivo imediatamente após o envio.</div>
+                        </div>
+
+                        <div class="mt-4 border-top pt-3 text-end">
+                            <a href="{% url 'incorporacao:home' %}" class="btn btn-light fw-bold px-3 me-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm" id="btnSalvar">
+                                <i class="fas fa-save me-2"></i>Salvar e Avançar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Bloqueia duplo envio do formulário e sinaliza o processamento do PDF pelo ARGUS
+    document.getElementById('formCadastroTermo').onsubmit = function() {
+        const btn = document.getElementById('btnSalvar');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processando PDF com ARGUS...';
+    };
+</script>
+{% endblock %}

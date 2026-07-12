@@ -1,0 +1,103 @@
+[
+  {
+    "model": "cadastros.tipoprocesso",
+    "pk": 1,
+    "fields": { "nome": "Compra" }
+  },
+  {
+    "model": "cadastros.tipoprocesso",
+    "pk": 2,
+    "fields": { "nome": "Pagamento" }
+  },
+  {
+    "model": "cadastros.tipoprocesso",
+    "pk": 3,
+    "fields": { "nome": "Contratação" }
+  },
+  {
+    "model": "cadastros.tipoprocesso",
+    "pk": 4,
+    "fields": { "nome": "Importação" }
+  },
+  {
+    "model": "cadastros.projetopdi",
+    "pk": 1,
+    "fields": {
+      "nome": "Capacitar 4.0",
+      "convenio": "0013/2022",
+      "convenente": "IFAM",
+      "interveniente": "FAEPI",
+      "financiadores": "FLEX IMPORTAÇÃO EXPORTAÇÃO IND E COM DE MÁQUINAS E MOTORES LTDA",
+      "vigencia_inicio": "2022-01-01",
+      "vigencia_fim": "2026-12-31",
+      "plano_inicio": "2022-02-01",
+      "plano_fim": "2026-11-30",
+      "data_cadastro": "2026-05-14T20:00:00Z"
+    }
+  },
+  {
+    "model": "cadastros.origemdoacao",
+    "pk": 1,
+    "fields": {
+      "nome": "Fundação de Apoio ao Ensino, Pesquisa e Extensão e Interiorização do IFAM",
+      "sigla": "FAEPI",
+      "cnpj": "04.623.300/0001-88"
+    }
+  },
+  {
+    "model": "cadastros.localizacao",
+    "pk": 1,
+    "fields": {
+      "nome": "Polo de Inovação Manaus",
+      "sigla": "INOVA",
+      "responsavel": "Responsável Técnico"
+    }
+  },
+  {
+    "model": "cadastros.localizacao",
+    "pk": 2,
+    "fields": {
+      "nome": "IFAM Campus Manaus Distrito Industrial",
+      "sigla": "IFAM/CMDI",
+      "responsavel": "Responsável Técnico"
+    }
+  },
+  {
+    "model": "cadastros.localizacao",
+    "pk": 3,
+    "fields": {
+      "nome": "IFAM Campus Manaus Centro",
+      "sigla": "IFAM/CMC",
+      "responsavel": "Responsável Técnico"
+    }
+  },
+  {
+    "model": "cadastros.localizacao",
+    "pk": 4,
+    "fields": {
+      "nome": "IFAM Campus Manaus Zona Leste",
+      "sigla": "IFAM/CMZL",
+      "responsavel": "Responsável Técnico"
+    }
+  },
+  {
+    "model": "cadastros.localizacao",
+    "pk": 5,
+    "fields": {
+      "nome": "IFAM Reitoria",
+      "sigla": "IFAM/Reitoria",
+      "responsavel": "Responsável Técnico"
+    }
+  },
+  {
+    "model": "cadastros.processo",
+    "pk": 1,
+    "fields": {
+      "projeto": 1,
+      "tipo": 3,
+      "numero": "23443.000123/2022-12",
+      "origem": "IFAM Reitoria",
+      "descricao": "Processo de Contratação do Projeto Capacitar 4.0"
+    }
+  }
+]

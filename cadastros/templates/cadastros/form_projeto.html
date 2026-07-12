@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="mb-3">
+                <a href="{% url 'cadastros:home' %}" class="text-decoration-none text-muted fw-bold">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar para Cadastros
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-4 border-bottom border-info border-3">
+                    <h4 class="mb-0 fw-bold text-info"><i class="fas fa-folder-plus me-2"></i> Cadastrar Novo Projeto PDI</h4>
+                    <p class="text-muted small mb-0 mt-1">Preencha os dados oficiais do convênio para a "Espinha Dorsal" do ARGUS.</p>
+                </div>
+                
+                <div class="card-body p-4 bg-light">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row g-4">
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Nº do Convênio <span class="text-danger">*</span></label>
+                                {{ form.convenio }}
+                                {% if form.convenio.errors %}
+                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.convenio.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-7">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Nome do Projeto <span class="text-danger">*</span></label>
+                                {{ form.nome }}
+                                {% if form.nome.errors %}
+                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.nome.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Interveniente <span class="text-danger">*</span></label>
+                                {{ form.interveniente }}
+                                <div class="form-text small"><i class="fas fa-info-circle"></i> O padrão institucional é FAEPI.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Financiadores</label>
+                                {{ form.financiadores }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'cadastros:home' %}" class="btn btn-light btn-lg border fw-bold">Cancelar</a>
+                            <button type="submit" class="btn btn-info btn-lg text-white fw-bold shadow-sm">
+                                <i class="fas fa-save me-2"></i> Salvar Projeto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

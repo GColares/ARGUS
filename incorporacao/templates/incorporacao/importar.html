@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Importar Termo - ARGUS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto text-center">
+            <div class="mb-3">
+                <i class="fas fa-file-import fa-3x text-success opacity-50"></i>
+            </div>
+            <h2 class="fw-bold">Importar Novo Termo</h2>
+            <p class="text-muted">Inicie o processo de incorporação enviando o Termo de Doação assinado.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4 p-md-5">
+                    
+                    <form method="post" enctype="multipart/form-data" action="{% url 'incorporacao:novo_termo' %}">
+                        {% csrf_token %}
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-8">
+                                <label for="numero" class="form-label fw-bold small text-muted text-uppercase">Número do Termo</label>
+                                <input type="text" name="numero" id="numero" class="form-control form-control-lg border-2" placeholder="Ex: 001" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="ano" class="form-label fw-bold small text-muted text-uppercase">Ano</label>
+                                <input type="number" name="ano" id="ano" class="form-control form-control-lg border-2" value="2026" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="projeto" class="form-label fw-bold small text-muted text-uppercase">Projeto de Pesquisa / Convênio</label>
+                            <select name="projeto" id="projeto" class="form-select form-control-lg border-2" required>
+                                <option value="" selected disabled>Selecione o Projeto...</option>
+                                {% for projeto in projetos %}
+                                    <option value="{{ projeto.id }}">{{ projeto.convenio }} - {{ projeto.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="origem" class="form-label fw-bold small text-muted text-uppercase">Origem (Entidade Doadora)</label>
+                            <select name="origem" id="origem" class="form-select form-control-lg border-2" required>
+                                <option value="" selected disabled>Selecione a Origem...</option>
+                                {% for origem in origens %}
+                                    <option value="{{ origem.id }}">{{ origem.nome }} ({{ origem.sigla }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-5 p-4 border border-2 border-dashed rounded-3 bg-light text-center">
+                            <label for="arquivo_pdf" class="form-label fw-bold d-block mb-3">
+                                <i class="fas fa-cloud-upload-alt fs-2 text-success d-block mb-2"></i>
+                                Selecione o arquivo PDF do Termo
+                            </label>
+                            <input type="file" name="arquivo_pdf" id="arquivo_pdf" class="form-control border-2" accept=".pdf" required>
+                            <div class="form-text mt-2 text-muted">
+                                <i class="fas fa-info-circle me-1"></i> 
+                                O ARGUS usará este arquivo para extrair as cláusulas automaticamente.
+                            </div>
+                        </div>
+
+                        <hr class="my-4 opacity-10">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'incorporacao:home' %}" class="btn btn-link text-muted fw-bold text-decoration-none">
+                                <i class="fas fa-arrow-left me-1"></i> Voltar para a Fila
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg px-5 fw-bold shadow">
+                                <i class="fas fa-save me-2"></i> SALVAR E AVANÇAR
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 bg-info-subtle border border-info-subtle rounded-3 text-info-emphasis small">
+                <i class="fas fa-lightbulb me-2"></i>
+                <strong>Dica:</strong> Após salvar, o sistema levará você para a tela de conferência, onde poderá acionar o robô para ler o conteúdo do documento.
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilo para simular borda tracejada de drag and drop */
+    .border-dashed {
+        border-style: dashed !important;
+        border-color: #dee2e6 !important;
+    }
+</style>
+{% endblock %}

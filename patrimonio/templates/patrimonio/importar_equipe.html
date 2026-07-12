@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Importar Equipa de Projetos - ARGUS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold text-primary"><i class="bi bi-people-fill me-2"></i>Gestão e Importação de Equipes</h2>
+            <p class="text-muted">Faça o upload do ficheiro CSV para alocar equipes aos projetos. O ARGUS validará automaticamente os limites da Resolução 015/CONSUP.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'warning' %}warning{% else %}success{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+                    {% if message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>{% else %}<i class="bi bi-check-circle-fill me-2"></i>{% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark">Upload de Ficheiro CSV</h5>
+                </div>
+                <div class="card-body bg-light p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="arquivo_csv" class="form-label fw-bold">Selecione a folha de cálculo (.csv)</label>
+                            <input class="form-control form-control-lg border-primary" type="file" id="arquivo_csv" name="arquivo_csv" accept=".csv" required>
+                            <div class="form-text mt-2 text-muted">
+                                O ficheiro deve estar delimitado por vírgulas e conter o cabeçalho exato.
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
+                            <i class="bi bi-cloud-arrow-up-fill me-2"></i>Processar e Auditar Equipa
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100 border-start border-4 border-warning">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-warning me-2"></i>Formato Exigido</h5>
+                    <p class="small text-muted mb-3">A primeira linha do seu ficheiro Excel/CSV deve conter **exatamente** os seguintes títulos:</p>
+                    
+                    <div class="bg-dark text-light p-2 rounded mb-3 small font-monospace">
+                        cpf,nome_pessoa,email,nome_projeto,funcao,tipo_bolsa,carga_horaria,data_inicio
+                    </div>
+
+                    <h6 class="fw-bold mt-4">Dicionário de Siglas (Res. 015/CONSUP)</h6>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-1"><span class="badge bg-secondary me-2">funcao</span> <strong>CPO</strong> (Coordenador), <strong>GPO</strong> (Gestor), <strong>PEQ</strong> (Pesquisador), <strong>EST</strong> (Estudante), <strong>CLE</strong> (Externo).</li>
+                        <li class="mb-1"><span class="badge bg-secondary me-2">tipo_bolsa</span> <strong>BP</strong> (Bolsa Parceria), <strong>BI</strong> (Institucional), <strong>SB</strong> (Sem Bolsa).</li>
+                        <li class="mb-1"><span class="badge bg-secondary me-2">data_inicio</span> Formato AAAA-MM-DD (Ex: 2024-05-15).</li>
+                    </ul>
+
+                    <div class="alert alert-info py-2 mb-0 mt-3 small">
+                        <i class="bi bi-shield-check me-2"></i><strong>Auditoria Automática:</strong> O sistema bloqueará estudantes com mais de 20h e acumulação superior a 2 Bolsas (BP).
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

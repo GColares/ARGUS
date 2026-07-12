@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load l10n humanize static %}
+
+{% block title %}Termo de Recebimento - NF-e {{ nota.numero }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilo de Folha A4 para visualização em tela e impressão */
+    .a4-container {
+        background-color: white;
+        max-width: 21cm;
+        min-height: 29.7cm;
+        margin: 0 auto;
+        padding: 0.2cm 0.75cm 0.2cm 0.75cm;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border: 1px solid #ddd;
+        font-family: 'Times New Roman', Times, serif;
+        color: #000;
+        line-height: 1.0;
+    }
+
+    .termo-title {
+        font-size: 14pt;
+        font-weight: bold;
+        text-align: center;
+        text-transform: uppercase;
+        margin-top: 0.5cm;
+        margin-bottom: 0.5cm;
+    }
+
+    .termo-section {
+        margin-bottom: 0.3cm;
+    }
+
+    .termo-section h5 {
+        font-size: 11pt;
+        font-weight: bold;
+        border-bottom: 1px solid #A0A0A0;
+        padding-bottom: 2px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+    }
+
+    .termo-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10pt;
+        margin-bottom: 0.3cm;
+    }
+
+    .termo-table th, .termo-table td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: left;
+    }
+
+    .termo-table th {
+        background-color: #f0f0f0;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .assinatura-box {
+        margin-top: 2cm;
+        text-align: center;
+    }
+
+    .linha-assinatura {
+        width: 60%;
+        border-top: 1px solid #000;
+        margin: 0 auto;
+        margin-bottom: 5px;
+    }
+
+    /* Impressão Otimizada */
+    @media print {
+        body {
+            background: white;
+            margin: 0;
+            padding: 0;
+        }
+        .no-print, .navbar, .btn, .sidebar, footer, .breadcrumb {
+            display: none !important;
+        }
+        .a4-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+        }
+        /* Garantir que as linhas da tabela e as fotos não quebrem no meio da página */
+        tr, .foto-item {
+            page-break-inside: avoid;
+        }
+        @page {
+            margin: 0.2cm 0.1cm 0.1cm 0.75cm;
+            padding: 0 auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4 no-print">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'almoxarifado:home_almoxarifado' %}" class="text-decoration-none text-danger">Almoxarifado</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'almoxarifado:lista_notas' %}" class="text-decoration-none text-danger">Histórico</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'almoxarifado:detalhe_nota' nota.id %}" class="text-decoration-none text-danger">NF-e {{ nota.numero }}</a></li>
+                    <li class="breadcrumb-item active">Termo RME</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold mb-0 text-dark"><i class="fas fa-file-signature text-danger me-2"></i>Termo de Recebimento de Material</h4>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-dark fw-bold shadow-sm">
+                <i class="fas fa-print me-2"></i>Imprimir Termo
+            </button>
+            <a href="{% url 'almoxarifado:gerar_termo_docx' nota.id %}" class="btn btn-outline-primary fw-bold shadow-sm" title="Baixar histórico em Word">
+                <i class="fas fa-file-word me-2"></i>Baixar Docx
+            </a>
+            
+            {% if not nota.termo_recebimento_assinado %}
+            <button type="button" class="btn btn-outline-success fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAnexarTermoRME">
+                <i class="fas fa-upload me-2"></i>Anexar Termo Assinado
+            </button>
+            {% else %}
+            <a href="{{ nota.termo_recebimento_assinado.url }}" target="_blank" class="btn btn-success fw-bold shadow-sm">
+                <i class="fas fa-check-circle me-2"></i>Termo Arquivado
+            </a>
+            {% endif %}
+            
+            <a href="{% url 'almoxarifado:detalhe_nota' nota.id %}" class="btn btn-outline-secondary shadow-sm">
+                Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="a4-container">
+    <!-- Cabeçalho Institucional -->
+    <div class="text-center" style="font-family: Cambria, 'Times New Roman', serif; font-size: 9pt; padding-bottom: 10px; border-bottom: 1.0px solid #000; margin-bottom: 1.0px;">
+        <img src="{% static 'img/brasao_republica.png' %}" alt="Brasão da República" style="height: 2.35cm; margin-bottom: 1px;">
+        <div style="line-height: 1.2; color: #000;">
+            REPÚBLICA FEDERATIVA DO BRASIL<br>
+            MINISTÉRIO DA EDUCAÇÃO<br>
+            INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA DO AMAZONAS<br>
+            REITORIA DO IFAM<br>
+            <strong>POLO DE INOVAÇÃO MANAUS</strong>
+        </div>
+    </div>
+
+    <!-- Título -->
+    <div class="termo-title">
+        RECEBIMENTO DE MATERIAIS E EQUIPAMENTOS<br>
+        <span style="font-size: 11pt; font-weight: normal; text-transform: none;">(Ref. NF-e nº {{ nota.numero }})</span>
+    </div>
+
+    <!-- Seção 1: IDENTIFICAÇÃO -->
+    <div class="termo-section">
+        <h5>IDENTIFICAÇÃO</h5>
+        <div style="font-size: 10pt; line-height: 1.6; margin-bottom: 0.5cm;">
+            <strong>Objeto:</strong>
+            <div style="margin-left: 20px; margin-top: 1.0px; margin-bottom: 1.0px;">
+                {% for item in nota.produtos.all %}
+                    • {{ item.quantidade|floatformat:"-4" }} {{ item.unidade_comercial }} - {{ item.descricao }}<br>
+                {% endfor %}
+            </div>
+            <strong>Quantidade Total:</strong> {{ nota.produtos.count }} item(ns) discriminado(s)
+        </div>
+    </div>
+
+    <!-- Seção 2: DOCUMENTO FISCAL -->
+    <div class="termo-section">
+        <h5>DOCUMENTO FISCAL</h5>
+        <div style="font-size: 10pt; line-height: 1.8; margin-bottom: 0.5cm;">
+            <strong>Documento:</strong> NF-e Nº {{ nota.numero }} - Série {{ nota.serie }}<br>
+            <strong>Emitente:</strong> {{ nota.fornecedor.nome|default:"Não identificado" }} (CNPJ: {{ nota.fornecedor.cnpj|default:"--" }})<br>
+            <strong>Destinatário:</strong> {{ nota.destinatario_nome }} (CNPJ: {{ nota.destinatario_cnpj }})<br>
+            <strong>Centro de Custo:</strong> 
+            {% if nota.projeto_vinculado %}
+                {{ nota.projeto_vinculado.nome }}
+                {% if nota.projeto_vinculado.processo %} (Processo: {{ nota.projeto_vinculado.processo }}){% endif %}
+            {% else %}
+                Não vinculado
+            {% endif %}<br>
+            <strong>Chave de Acesso:</strong> {{ nota.chave_acesso|default:"Não informada" }}
+        </div>
+    </div>
+
+    <!-- Seção 3: DECLARAÇÃO E ASSINATURAS -->
+    <div class="termo-section">
+        <h5>DECLARAÇÃO</h5>
+        <p style="text-indent: 1.5cm; text-align: justify; font-size: 10pt; line-height: 1.6; margin-bottom: 1.5cm;">
+            {{ declaracao }}
+        </p>
+
+        <!-- Tabela de Assinaturas Dupla (Servidor + Diretor) -->
+        <table style="width: 100%; border: none; margin-top: 1.5cm; text-align: center; font-size: 9pt; line-height: 1.5;">
+            <tr style="border: none;">
+                <td style="width: 50%; border: none; padding: 10px; vertical-align: top;">
+                    <div style="width: 80%; border-top: 1px solid #000; margin: 0 auto; margin-bottom: 5px;"></div>
+                    <strong>{{ servidor_verificador.get_full_name|default:servidor_verificador.username|upper }}</strong><br>
+                    {% if servidor_verificador and servidor_verificador.perfil %}
+                        {% if servidor_verificador.perfil.siape %}
+                            SIAPE: {{ servidor_verificador.perfil.siape }}<br>
+                        {% endif %}
+                        {{ servidor_verificador.perfil.cargo|default:"" }}
+                    {% else %}
+                        SIAPE: _______________________<br>
+                        Cargo: _______________________
+                    {% endif %}
+                </td>
+                <td style="width: 50%; border: none; padding: 10px; vertical-align: top;">
+                    <div style="width: 80%; border-top: 1px solid #000; margin: 0 auto; margin-bottom: 5px;"></div>
+                    <strong>ALEXANDRE LOPES MARTINIANO</strong><br>
+                    Diretor Administrativo e Financeiro<br>
+                    Polo de Inovação Manaus<br>
+                    Portaria n.º 1.682/2026-GR/IFAM
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Seção 5: Anexo Visual (Opcional, se houver fotos) -->
+    {% if tem_fotos %}
+    <div style="page-break-before: always;"></div>
+    <div class="termo-section">
+        <h5>Anexo I - Registro Fotográfico de Recebimento</h5>
+        <p style="font-size: 10pt; color: #555;">Imagens coletadas no ato da conferência atestando o estado físico dos materiais.</p>
+        
+        <div class="row g-3 mt-3">
+            {% for item in nota.produtos.all %}
+                {% for foto in item.fotos.all %}
+                <div class="col-4 foto-item text-center mb-4">
+                    <div style="border: 1px solid #ccc; padding: 5px; background: #fff;">
+                        <img src="{{ foto.imagem.url }}" alt="Foto do Item {{ item.numero_item }}" style="max-width: 100%; height: 180px; object-fit: contain;">
+                        <div style="font-size: 8pt; margin-top: 5px; font-weight: bold;">
+                            Item {{ item.numero_item }} - NF {{ nota.numero }}<br>
+                            <span style="font-weight: normal; color: #666;">Registrado em {{ foto.data_upload|date:"d/m/Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="text-align: right; font-size: 8pt; color: #999; margin-top: 2cm;">
+        Impresso pelo sistema ARGUS em {{ agora|date:"d/m/Y H:i" }}
+    </div>
+</div>
+
+<!-- Modal para Anexar Termo Assinado -->
+<div class="modal fade no-print" id="modalAnexarTermoRME" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success bg-opacity-10">
+                <h5 class="modal-title fw-bold text-success"><i class="fas fa-file-signature me-2"></i>Arquivar Termo Assinado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="{% url 'almoxarifado:anexar_termo' nota.id %}">
+                <div class="modal-body p-4">
+                    {% csrf_token %}
+                    <p class="text-muted small mb-3">
+                        Faça o upload do Termo de Recebimento após ele ter sido impresso, conferido e assinado fisicamente (ou via gov.br). 
+                        <strong>Isto selará o fluxo desta entrada de material.</strong>
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Arquivo PDF</label>
+                        {{ form_upload.termo_recebimento_assinado }}
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success fw-bold">Salvar e Arquivar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Adiciona a classe form-control ao input file do formulário
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.classList.add('form-control');
+    }
+});
+</script>
+{% endblock %}

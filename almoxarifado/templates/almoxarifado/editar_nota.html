@@ -1,0 +1,231 @@
+<!-- argus/almoxarifado/templates/almoxarifado/editar_nota.html -->
+{% extends 'base.html' %}
+{% load l10n humanize %}
+
+{% block title %}Editar NF-e - ARGUS Almoxarifado{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'almoxarifado:home_almoxarifado' %}" class="text-decoration-none text-danger">Almoxarifado</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'almoxarifado:lista_notas' %}" class="text-decoration-none text-danger">Histórico</a></li>
+            <li class="breadcrumb-item active">NF-e {{ nota.numero }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'almoxarifado:lista_notas' %}" class="btn btn-light border-secondary border-opacity-25 shadow-sm text-secondary" title="Voltar ao Histórico de Entradas">
+                <i class="fas fa-arrow-left"></i>
+            </a>        
+            <div>
+                <h2 class="fw-bold m-0">
+                    <i class="fas fa-file-invoice text-danger me-2"></i>Nota Fiscal Eletrônica <span class="text-danger">#{{ nota.numero }}</span>
+                </h2>
+                <p class="text-muted small mb-0 mt-1">Série: {{ nota.serie }} | Emissão: {{ nota.data_emissao|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportarNfeDetalhe">
+                <i class="fas fa-file-upload me-2"></i>Importar Nova NF-e
+            </button>
+
+            <button type="button" class="btn btn-outline-dark fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEditarNota">
+                <i class="fas fa-edit me-2 text-primary"></i>Editar Capa
+            </button>
+
+            {% if nota.arquivo_pdf %}
+            <a href="{{ nota.arquivo_pdf.url }}" target="_blank" class="btn btn-outline-danger fw-bold shadow-sm" title="Ver PDF Original">
+                <i class="fas fa-file-pdf"></i>
+            </a>
+            {% endif %}
+            
+            <button type="button" class="btn btn-danger fw-bold shadow-sm ms-2" data-bs-toggle="modal" data-bs-target="#modalExcluirNota">
+                <i class="fas fa-trash-alt me-2"></i>Excluir Nota
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-danger border-opacity-25 shadow-sm mb-4 bg-white">
+        <div class="card-header bg-danger bg-opacity-10 py-3 border-bottom-0">
+            <h6 class="card-title mb-0 fw-bold text-danger text-uppercase"><i class="fas fa-truck me-2"></i>Dados de Logística e Faturamento</h6>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <div class="col-md-6 border-md-end">
+                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Fornecedor / fornecedor</span>
+                    <h6 class="fw-bold text-dark mb-0">{{ nota.fornecedor_nome }}</h6>
+                    <span class="text-muted font-monospace small">CNPJ: {{ nota.fornecedor_cnpj }}</span>
+                </div>
+                
+                <div class="col-md-6">
+                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Destinatário (IFAM / FAEPI)</span>
+                    <h6 class="fw-bold text-dark mb-0">{{ nota.destinatario_nome }}</h6>
+                    <span class="text-muted font-monospace small">CNPJ: {{ nota.destinatario_cnpj }}</span>
+                </div>
+
+                <div class="col-12"><hr class="text-muted opacity-25 my-1"></div>
+
+                <div class="col-md-4 text-md-end ms-auto">
+                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Valor Total da Nota</span>
+                    <h3 class="fw-bold text-danger mb-0">R$ {{ nota.valor_total|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
+            <h5 class="card-title mb-0 fw-bold text-dark"><i class="fas fa-boxes me-2 text-danger"></i>Lista de Materiais e Insumos</h5>
+            <span class="badge bg-danger bg-opacity-10 text-danger fs-6 px-3 py-2 fw-semibold">{{ nota.produtos.count }} itens</span>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="min-width: 1000px;">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4 py-3 text-center">Num</th>
+                        <th class="py-3">Descrição do Produto</th>
+                        <th class="py-3 text-center">Unid.</th>
+                        <th class="py-3 text-center">Qtd.</th>
+                        <th class="py-3 text-center">Valor Unit.</th>
+                        <th class="py-3 text-center">Valor Total</th>
+                        <th class="py-3 text-center">Fotos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in nota.produtos.all %}
+                    <tr>
+                        <td class="ps-4 text-center"><span class="badge bg-light text-secondary border">{{ item.numero_item }}</span></td>
+                        <td><div class="small fw-medium text-dark">{{ item.descricao }}</div></td>
+                        <td class="text-center text-muted">{{ item.unidade_comercial }}</td>
+                        <td class="text-center fw-bold">{{ item.quantidade|floatformat:4 }}</td>
+                        <td class="text-center text-secondary">R$ {{ item.valor_unitario|floatformat:4 }}</td>
+                        <td class="text-center fw-bold text-danger">R$ {{ item.valor_total|floatformat:2 }}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalFotosProduto" 
+                                    onclick="prepararModalFotos('{{ item.id }}', '{{ item.descricao|escapejs }}')">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalImportarNfeDetalhe" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-primary"><i class="fas fa-robot me-2"></i>Leitura por IA</h5>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="{% url 'almoxarifado:importar_nfe' %}" id="formImportarNfeDetalhe">
+                {% csrf_token %}
+                <div class="modal-body p-4 text-center">
+                    <input class="form-control" type="file" name="arquivo_pdf" accept=".pdf, .xml" required id="inputPdfNfeDetalhe">
+                    <div id="loader_ia_detalhe" class="d-none my-3">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2 text-primary fw-bold">ARGUS minerando...</p>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none fw-bold" data-bs-dismiss="modal" id="btnCancelarNFDetalhe">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm" id="btnSubmeterNFDetalhe">Iniciar Mineração</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditarNota" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light border-bottom">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-edit me-2 text-primary"></i>Retificar Dados da Nota Fiscal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'almoxarifado:editar_nota' nota.id %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Número da NF-e</label>
+                            <input type="text" class="form-control" name="numero" value="{{ nota.numero }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Série</label>
+                            <input type="text" class="form-control" name="serie" value="{{ nota.serie }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Data de Emissão</label>
+                            <input type="date" class="form-control" name="data_emissao" value="{{ nota.data_emissao|date:'Y-m-d' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Valor Total Nota (R$)</label>
+                            <input type="number" step="0.01" class="form-control" name="valor_total" value="{{ nota.valor_total|unlocalize }}" required>
+                        </div>
+                        
+                        <div class="col-12"><hr class="my-2 opacity-25"></div>
+                        
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Fornecedor / fornecedor</label>
+                            <input type="text" class="form-control" name="fornecedor_nome" value="{{ nota.fornecedor_nome }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">CNPJ Fornecedor</label>
+                            <input type="text" class="form-control" name="fornecedor_cnpj" value="{{ nota.fornecedor_cnpj }}" required>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Destinatário</label>
+                            <input type="text" class="form-control" name="destinatario_nome" value="{{ nota.destinatario_nome }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">CNPJ Destinatário</label>
+                            <input type="text" class="form-control" name="destinatario_cnpj" value="{{ nota.destinatario_cnpj }}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger px-4 fw-bold shadow-sm">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% include 'almoxarifado/modais_inclusos.html' %} 
+
+<script>
+function prepararModalFotos(produtoId, produtoDescricao) {
+    document.getElementById('modalFotoDescricaoProduto').textContent = produtoDescricao;
+    document.getElementById('formUploadFoto').action = `/almoxarifado/produto/${produtoId}/foto/adicionar/`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const formImportar = document.getElementById('formImportarNfeDetalhe');
+    if (formImportar) {
+        formImportar.addEventListener('submit', function() {
+            document.getElementById('inputPdfNfeDetalhe').classList.add('d-none');
+            document.getElementById('loader_ia_detalhe').classList.remove('d-none');
+            
+            const btnSubmeter = document.getElementById('btnSubmeterNFDetalhe');
+            if (btnSubmeter) {
+                btnSubmeter.classList.add('disabled');
+                btnSubmeter.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Lendo PDF...';
+            }
+            
+            const btnCancelar = document.getElementById('btnCancelarNFDetalhe');
+            if (btnCancelar) btnCancelar.classList.add('disabled');
+        });
+    }
+});
+</script>
+{% endblock %}

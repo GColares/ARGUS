@@ -1,0 +1,15 @@
+# Ambientes Virtuais
+.venv/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Banco de dados local e Variáveis de Ambiente
+db.sqlite3
+.env
+
+# Arquivos de mídia (PDFs que você faz upload nos testes)
+media/

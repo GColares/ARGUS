@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold text-dark">Sistema ARGUS</h1>
+            <p class="lead text-muted">Gestão Integrada e Incorporação Tecnológica - Polo de Inovação IFAM</p>
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        {% for modulo in modulos %}
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100 bg-white">
+                <div class="card-body p-4 text-center">
+                    <div class="bg-{{ modulo.cor }} bg-opacity-10 text-{{ modulo.cor }} rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                        <i class="fas {{ modulo.icone }} fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">{{ modulo.nome }}</h5>
+                    <a href="{% url modulo.url %}" class="btn btn-outline-{{ modulo.cor }} fw-bold w-100 mt-3">Acessar Módulo</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

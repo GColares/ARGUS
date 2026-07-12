@@ -1,0 +1,64 @@
+/* =========================================
+   PALETA DE CORES INSTITUCIONAL - INOVA
+   ========================================= */
+:root {
+    --inova-verde: #7EC247;
+    --inova-vermelho: #B72D25;
+    --inova-grafite: #1A1A1A;
+    --inova-cinza-claro: #F1F1F2;
+}
+
+body {
+    background-color: #fafbfa;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--inova-grafite);
+}
+
+.content-wrapper {
+    flex: 1;
+}
+
+/* =========================================
+   NAVBAR INSTITUCIONAL
+   ========================================= */
+.navbar-institucional {
+    background-color: #ffffff;
+    border-bottom: 4px solid var(--inova-verde);
+}
+
+.navbar-institucional .nav-link {
+    color: var(--inova-grafite);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: color 0.2s;
+}
+
+.navbar-institucional .nav-link:hover {
+    color: var(--inova-verde);
+}
+
+.navbar-institucional .nav-link.active {
+    color: var(--inova-verde) !important;
+    background-color: rgba(126, 194, 71, 0.1);
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+/* =========================================
+   RODAPÉ INSTITUCIONAL
+   ========================================= */
+.footer-institucional {
+    background-color: var(--inova-cinza-claro);
+    color: var(--inova-grafite);
+    border-top: 1px solid #e0e0e0;
+}
+
+/* =========================================
+   AJUSTES GERAIS E ANIMAÇÕES
+   ========================================= */
+.btn, .card, .alert { 
+    transition: all 0.2s ease-in-out; 
+}

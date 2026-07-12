@@ -1,0 +1,551 @@
+{% extends 'base.html' %}
+{% load l10n humanize %}
+
+{% block title %}Detalhes do Termo - ARGUS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'incorporacao:home' %}" class="text-decoration-none">Fila de Incorporação</a></li>
+            <li class="breadcrumb-item active">Termo {{ termo.numero }}/{{ termo.ano }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold m-0">
+            Termo de Doação <span class="text-success">#{{ termo.numero }}</span>
+            <span class="badge bg-dark bg-opacity-75 fs-6 ms-2 align-middle fw-semibold">
+                {{ termo.itens_patrimoniais.count }} {% if termo.itens_patrimoniais.count == 1 %}item adicionado{% else %}itens adicionados{% endif %}
+            </span>
+        </h2>
+        <span class="badge {% if termo.objeto %}bg-success{% else %}bg-warning text-dark{% endif %} fs-6 px-3 py-2">
+            {% if termo.objeto %}Processado{% else %}Aguardando Processamento{% endif %}
+        </span>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm mb-3" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card border-0 shadow-sm mb-4 bg-light">
+        <div class="card-body p-3">
+            <div class="row align-items-center text-dark g-3">
+                <div class="col-md-2 border-md-end">
+                    <span class="text-muted small d-block fw-bold text-uppercase">Identificação</span>
+                    <h5 class="mb-0 fw-bold text-primary">{{ termo.numero }}/{{ termo.ano }}</h5>
+                </div>
+                <div class="col-md-3 border-md-end">
+                    <span class="text-muted small d-block fw-bold text-uppercase">Projeto PDI</span>
+                    <span class="fw-semibold text-wrap small">{{ termo.projeto.nome }}</span>
+                </div>
+                <div class="col-md-3 border-md-end">
+                    <span class="text-muted small d-block fw-bold text-uppercase">Origem / Doador</span>
+                    <span class="fw-semibold text-wrap small">{{ termo.origem.sigla }}</span>
+                </div>
+                <div class="col-md-2 border-md-end">
+                    <span class="text-muted small d-block fw-bold text-uppercase">Formalização</span>
+                    <span class="fw-semibold small"><i class="fas fa-calendar-alt text-secondary me-1"></i>{{ termo.data|date:"d/m/Y" }}</span>
+                </div>
+                <div class="col-md-2 text-md-end d-flex d-md-block gap-2 justify-content-between">
+                    <a href="{{ termo.arquivo_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-danger fw-bold me-md-1 mb-md-0" style="width: 90px;" title="Visualizar Documento Original">
+                        <i class="fas fa-file-pdf me-1"></i> PDF
+                    </a>
+                    <button class="btn btn-sm btn-outline-secondary fw-bold" type="button" style="width: 90px;"
+                            data-bs-toggle="collapse" data-bs-target="#collapseObjeto" 
+                            aria-expanded="false" aria-controls="collapseObjeto">
+                        <i class="fas fa-file-alt me-1"></i> Objeto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="collapse mb-4" id="collapseObjeto">
+        <div class="card border-primary border-opacity-25 shadow-sm bg-white">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-secondary small text-uppercase"><i class="fas fa-robot me-1 text-success"></i> Texto do Objeto Extraído pelo ARGUS</span>
+                <a href="{% url 'incorporacao:executar_extracao_argus' termo.id %}" class="btn btn-xs btn-link p-0 text-decoration-none fw-bold small">
+                    <i class="fas fa-sync-alt me-1"></i>Reexecutar Extração
+                </a>
+            </div>
+            <div class="card-body p-3">
+                {% if termo.objeto %}
+                    <div class="p-3 bg-light rounded border border-light-subtle">
+                        <p class="mb-0 text-dark small" style="white-space: pre-wrap; line-height: 1.5;">{{ termo.objeto }}</p>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3 text-muted small">Nenhum texto do objeto extraído até o momento.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
+            <div>
+                <h5 class="card-title mb-0 fw-bold text-dark"><i class="fas fa-tasks me-2 text-primary"></i>Conferência dos Itens Vinculados</h5>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'incorporacao:extrair_itens_automaticos' termo.id %}" 
+                   class="btn btn-sm btn-outline-primary fw-bold"
+                   onclick="this.innerHTML='<i class=\'fas fa-robot fa-spin me-1\'></i> ARGUS Analisando...'; this.classList.add('disabled');">
+                    <i class="fas fa-robot me-1"></i> Extrair Itens por IA
+                </a>
+                <button class="btn btn-sm btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNovoItem">
+                    <i class="fas fa-plus me-1"></i> Adicionar Item
+                </button>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="min-width: 1400px;">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4 py-3" style="width: 150px;">Patrimônio {{ termo.origem.sigla }}</th>
+                            <th class="py-3" style="width: 280px;">Descrição do Bem</th>
+                            <th class="py-3" style="width: 220px;">Fornecedor</th>
+                            <th class="py-3 text-center">Proc. Compra</th>
+                            <th class="py-3 text-center">Proc. Pagamento</th>
+                            <th class="py-3 text-center">Nota Fiscal</th>
+                            <th class="py-3 text-center">Data NF</th>
+                            <th class="py-3 text-center">Valor (R$)</th>
+                            <th class="py-3">Localização</th>
+                            <th class="pe-4 py-3 text-center" style="width: 130px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in termo.itens_patrimoniais.all %}
+                        <tr>
+                            <td class="ps-4"><div class="fw-bold text-dark">#{{ item.numero_ativo|default:"---" }}</div></td>
+                            <td><div class="text-wrap small fw-medium">{{ item.descricao }}</div></td>
+                            <td><div class="text-wrap small">{{ item.fornecedor_nome|default:"-" }}</div></td>
+                            
+                            <td class="text-center">
+                                <span class="badge bg-light text-primary border fw-normal">{{ item.processo_compra.numero|default:"-" }}</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex flex-wrap justify-content-center gap-1">
+                                    {% for p in item.processos_pagamento.all %}
+                                        <span class="badge bg-light text-primary border fw-normal">{{ p.numero }}</span>
+                                    {% empty %}
+                                        <span class="text-muted small">-</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+
+                            <td class="text-center"><span class="badge bg-light text-primary border fw-normal">{{ item.nota_fiscal|default:"-" }}</span></td>
+                            <td class="small text-center">{{ item.data_nota_fiscal|date:"d/m/Y"|default:"-" }}</td>
+                            <td class="fw-bold text-primary text-center">{{ item.valor_bem|intcomma }}</td>
+                            <td><div class="small text-muted"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ item.localizacao|default:"-" }}</div></td>
+                            <td class="pe-4 text-center">
+                                <button type="button" class="btn btn-xs btn-outline-primary me-1" 
+                                        data-bs-toggle="modal" data-bs-target="#modalEditarItem"
+                                        data-id="{{ item.id }}"
+                                        data-ativo="{{ item.numero_ativo }}"
+                                        data-descricao="{{ item.descricao }}"
+                                        data-valor="{{ item.valor_bem }}"
+                                        data-cnpj="{{ item.fornecedor_cnpj }}"
+                                        data-nome="{{ item.fornecedor_nome }}"
+                                        data-nf="{{ item.nota_fiscal }}"
+                                        data-nfdata="{{ item.data_nota_fiscal|date:'Y-m-d' }}"
+                                        data-compra="{{ item.processo_compra_id|default:'' }}"
+                                        data-localization="{{ item.localizacao_id|default:'' }}"
+                                        data-pagamento="{% for p in item.processos_pagamento.all %}{{ p.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                                <button type="button" class="btn btn-xs btn-outline-danger"
+                                        data-bs-toggle="modal" data-bs-target="#modalExcluirItem"
+                                        data-id="{{ item.id }}"
+                                        data-ativo="{{ item.numero_ativo }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-muted">
+                                <i class="fas fa-box-open d-block fs-2 mb-2 text-light"></i>
+                                Nenhum bem patrimonial processado ou vinculado a este termo.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNovoItem" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light py-3 border-bottom-0">
+                <h5 class="modal-title fw-bold text-primary"><i class="fas fa-plus-circle me-2"></i>Novo Item ao Termo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" id="formNovoItem" action="{% url 'incorporacao:detalhe_termo' termo.id %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    
+                    <div id="alerta_novo_fornecedor" class="alert alert-warning d-none mb-3 shadow-sm py-2 small d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-exclamation-triangle me-2"></i> Fornecedor não cadastrado. Deseja incluir nas tabelas do sistema?</span>
+                        <a href="{% url 'cadastros:cadastrar_fornecedor' %}?retorno_termo={{ termo.id }}" id="link_add_fornecedor" class="btn btn-sm btn-warning fw-bold text-dark">
+                            <i class="fas fa-plus me-1"></i>Cadastrar
+                        </a>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Patrimônio ({{ termo.origem.sigla }})</label>
+                            <input type="text" name="numero_ativo" class="form-control border-2 limpar-input" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Descrição do Bem</label>
+                            <textarea name="descricao" class="form-control border-2 limpar-input" rows="1" required style="resize: none;"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="id_processo_compra" class="form-label fw-bold small text-secondary">Processo de Compra (FAEPI)</label>
+                            <div class="input-group">
+                                <select name="processo_compra" id="id_processo_compra" class="form-select border-2">
+                                    <option value="">Selecione o processo de compra...</option>
+                                    {% for proc in processos_compra %}
+                                        <option value="{{ proc.id }}">{{ proc.numero }}</option>
+                                    {% empty %}
+                                        <option value="">Nenhum processo de compra encontrado</option>
+                                    {% endfor %}
+                                </select>
+                                <a href="{% url 'cadastros:cadastrar_processo' %}?projeto={{ termo.projeto.id }}&tipo=compra&retorno_termo={{ termo.id }}" 
+                                   class="btn btn-outline-success fw-bold border-2" 
+                                   title="Cadastrar Novo Processo de Compra">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_processo_pagamento" class="form-label fw-bold small text-secondary">Processo de Pagamento (FAEPI)</label>
+                            <div class="input-group">
+                                <select name="processo_pagamento" id="id_processo_pagamento" class="form-select border-2" multiple size="3">
+                                    {% for proc in processos_pagamento %}
+                                        <option value="{{ proc.id }}">{{ proc.numero }}</option>
+                                    {% endfor %}
+                                </select>
+                                <a href="{% url 'cadastros:cadastrar_processo' %}?projeto={{ termo.projeto.id }}&tipo=pagamento&retorno_termo={{ termo.id }}" 
+                                class="btn btn-outline-success fw-bold border-2 d-flex align-items-center" 
+                                title="Cadastrar Novo Processo de Pagamento">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </div>
+                            <div class="form-text small text-muted mt-1">
+                                <i class="fas fa-info-circle me-1"></i>Segure <strong>Ctrl</strong> (Windows) ou <strong>Cmd</strong> (Mac) para selecionar mais de um processo.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">CNPJ Fornecedor</label>
+                            <div class="input-group">
+                                <input type="text" id="cnpj_busca" name="fornecedor_cnpj" class="form-control border-2" placeholder="00.000.000/0000-00">
+                                <button class="btn btn-outline-secondary border-2" type="button" id="btn_buscar_cnpj">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Nome do Fornecedor</label>
+                            <input type="text" id="fornecedor_nome" name="fornecedor_nome" class="form-control border-2 bg-light limpar-input">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Nota Fiscal</label>
+                            <input type="text" name="nota_fiscal" class="form-control border-2 limpar-input">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Data NF</label>
+                            <input type="date" name="data_nota_fiscal" class="form-control border-2">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Valor Unitário</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-2">R$</span>
+                                <input type="text" name="valor_bem" class="form-control border-2 mascara-dinheiro" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Localização de Destino</label>
+                            <select name="localizacao" class="form-select border-2" required>
+                                <option value="">--- Selecione ---</option>
+                                {% for local in localizacoes %}
+                                    <option value="{{ local.id }}">{{ local.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">Salvar Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalExcluirItem" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Remover Item</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formExcluirItem" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body p-4 text-center">
+                    <p class="mb-1 text-muted">Você tem certeza que deseja remover o seguinte item patrimonial?</p>
+                    <h4 class="fw-bold text-dark my-3" id="excluir_item_identificador"></h4>
+                    <p class="small text-danger mb-0"><i class="fas fa-info-circle me-1"></i>Esta ação é irreversível e desvinculará o bem deste termo.</p>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger fw-bold shadow-sm">Confirmar Exclusão</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditarItem" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Editar Item Patrimonial</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEditarItem" method="post" action="">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Nº do Ativo</label>
+                            <input type="text" name="numero_ativo" id="edit_numero_ativo" class="form-control border-2" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Descrição do Bem</label>
+                            <textarea name="descricao" id="edit_descricao" class="form-control border-2" rows="1" required style="resize: none;"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Processo de Compra</label>
+                            <select name="processo_compra" id="edit_processo_compra" class="form-select border-2">
+                                <option value="">Selecione...</option>
+                                {% for pc in processos_compra %}
+                                    <option value="{{ pc.id }}">{{ pc.numero }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Processo de Pagamento</label>
+                            <select name="processo_pagamento" id="edit_processo_pagamento" class="form-select border-2" multiple size="3">
+                                {% for pp in processos_pagamento %}
+                                    <option value="{{ pp.id }}">{{ pp.numero }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text small text-muted mt-1">
+                                <i class="fas fa-info-circle me-1"></i>Segure <strong>Ctrl</strong> (Windows) ou <strong>Cmd</strong> (Mac) para atualizar a seleção.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted text-uppercase">CNPJ do Fornecedor</label>
+                            <input type="text" name="fornecedor_cnpj" id="edit_fornecedor_cnpj" class="form-control bg-light border-2" readonly>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Razão Social</label>
+                            <input type="text" name="fornecedor_nome" id="edit_fornecedor_nome" class="form-control bg-light border-2" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Nota Fiscal</label>
+                            <input type="text" name="nota_fiscal" id="edit_nota_fiscal" class="form-control border-2">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Data da NF</label>
+                            <input type="date" name="data_nota_fiscal" id="edit_data_nota_fiscal" class="form-control border-2">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Valor Unitário</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-2">R$</span>
+                                <input type="text" name="valor_bem" id="edit_valor_bem" class="form-control border-2 mascara-dinheiro" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Localização de Destino</label>
+                            <select name="localizacao" id="edit_localizacao" class="form-select border-2" required>
+                                <option value="">Selecione...</option>
+                                {% for loc in localizacoes %}
+                                    <option value="{{ loc.id }}">{{ loc.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold shadow-sm"><i class="fas fa-save me-2"></i>Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Limpeza de caracteres fantasmas oriundos de cópias de arquivos digitais (PDF)
+    const inputs = document.querySelectorAll('.limpar-input');
+    const limpar = (v) => v.replace(/[\n\r\t]/g, ' ').replace(/\s\s+/g, ' ').trim();
+    inputs.forEach(input => {
+        input.addEventListener('paste', function() { setTimeout(() => { this.value = limpar(this.value); }, 10); });
+        input.addEventListener('blur', function() { this.value = limpar(this.value); });
+    });
+
+    // 2. Consulta de CNPJ Assíncrona Inteligente vinculada à API do ARGUS
+    document.getElementById('btn_buscar_cnpj').addEventListener('click', function() {
+        const cnpjValue = document.getElementById('cnpj_busca').value.trim();
+        const inputNome = document.getElementById('fornecedor_nome');
+        const alertaFornecedor = document.getElementById('alerta_novo_fornecedor');
+        const btnBusca = this;
+
+        if (!cnpjValue) {
+            alert('Por favor, insira um CNPJ para efetuar a busca.');
+            return;
+        }
+
+        btnBusca.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        inputNome.value = "Consultando base de dados...";
+
+        fetch(`/incorporacao/api/buscar-fornecedor/?cnpj=${encodeURIComponent(cnpjValue)}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Falha na resposta.');
+                return response.json();
+            })
+            .then(data => {
+                btnBusca.innerHTML = '<i class="fas fa-search"></i>';
+                
+                if (data.sucesso) {
+                    if (data.existe) {
+                        inputNome.value = data.nome;
+                        inputNome.classList.remove('bg-light');
+                        inputNome.classList.add('is-valid');
+                        alertaFornecedor.classList.add('d-none');
+                    } else {
+                        inputNome.value = "";
+                        inputNome.classList.remove('is-valid', 'bg-light');
+                        alertaFornecedor.classList.remove('d-none');
+                        document.getElementById('link_add_fornecedor').href = `{% url 'cadastros:cadastrar_fornecedor' %}?cnpj=${encodeURIComponent(cnpjValue)}&retorno_termo={{ termo.id }}`;
+                    }
+                }
+            })
+            .catch(error => {
+                btnBusca.innerHTML = '<i class="fas fa-search"></i>';
+                inputNome.value = "";
+                console.error('Erro na requisição assíncrona do CNPJ:', error);
+                alert('Erro de comunicação com o servidor ao consultar o CNPJ.');
+            });
+    });
+
+    // 3. Controle Automático de Reabertura do Modal Baseado em Flags de URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('abrir_modal') === '1') {
+        const meuModal = new bootstrap.Modal(document.getElementById('modalNovoItem'));
+        meuModal.show();
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // 4. Configuração do Modal de Exclusão de Itens
+    const modalExcluir = document.getElementById('modalExcluirItem');
+    modalExcluir.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const itemId = button.getAttribute('data-id');
+        const itemAtivo = button.getAttribute('data-ativo');
+        
+        document.getElementById('excluir_item_identificador').textContent = `Ativo Nº ${itemAtivo}`;
+        document.getElementById('formExcluirItem').action = `/incorporacao/item/excluir/${itemId}/`;
+    });
+
+    // 5. Configuração do Modal de Edição de Itens (Preenchimento Reversivo)
+    const modalEditar = document.getElementById('modalEditarItem');
+    modalEditar.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const itemId = button.getAttribute('data-id');
+        
+        document.getElementById('formEditarItem').action = `/incorporacao/item/editar/${itemId}/`;
+        
+        document.getElementById('edit_numero_ativo').value = button.getAttribute('data-ativo');
+        document.getElementById('edit_valor_bem').value = formatarMoeda(button.getAttribute('data-valor'));
+        document.getElementById('edit_descricao').value = button.getAttribute('data-descricao');
+        document.getElementById('edit_fornecedor_cnpj').value = button.getAttribute('data-cnpj');
+        document.getElementById('edit_fornecedor_nome').value = button.getAttribute('data-nome');
+        document.getElementById('edit_nota_fiscal').value = button.getAttribute('data-nf');
+        document.getElementById('edit_data_nota_fiscal').value = button.getAttribute('data-nfdata');
+        document.getElementById('edit_localizacao').value = button.getAttribute('data-localization');
+        document.getElementById('edit_processo_compra').value = button.getAttribute('data-compra');
+        
+        const pagamentosStr = button.getAttribute('data-pagamento');
+        const pagamentosArray = pagamentosStr ? pagamentosStr.split(',') : [];
+        const selectPagamento = document.getElementById('edit_processo_pagamento');
+        
+        Array.from(selectPagamento.options).forEach(option => {
+            option.selected = pagamentosArray.includes(option.value);
+        });
+    });
+
+    // 6. MÁSCARA DE MOEDA (Formato: 1.500,00)
+    const inputsMoeda = document.querySelectorAll('.mascara-dinheiro');
+    
+    const formatarMoeda = (valor) => {
+        if (!valor) return "";
+        let nums = valor.toString().replace(/\D/g, '');
+        if (nums === "") return "";
+        let floatValue = (parseInt(nums, 10) / 100).toFixed(2);
+        let stringValue = floatValue.replace('.', ',');
+        return stringValue.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+    };
+
+    inputsMoeda.forEach(input => {
+        input.addEventListener('input', function() {
+            this.value = formatarMoeda(this.value);
+        });
+    });
+});
+</script>
+{% endblock %}

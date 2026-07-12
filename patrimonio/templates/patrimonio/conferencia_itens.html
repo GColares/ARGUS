@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid mt-3 mb-5">
+    <div class="row">
+        <div class="col-lg-5 col-md-12 mb-3">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2">
+                    <span class="fw-bold"><i class="fas fa-file-alt me-2"></i> Conteúdo Bruto (Slice)</span>
+                    <div>
+                        <span class="badge bg-secondary me-2">Linha: {{ verificacao.linha_atual }}</span>
+                        <a href="{% url 'patrimonio:resetar_conferencia' verificacao.id %}" 
+                           class="btn btn-xs btn-danger" 
+                           onclick="return confirm('Isso apagará o progresso desta conferência e voltará ao início. Confirmar?')"
+                           style="font-size: 0.7rem; padding: 2px 5px;">
+                            <i class="fas fa-undo"></i> Resetar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body bg-light">
+                    <pre class="p-3 border rounded bg-white text-dark" style="white-space: pre-wrap; font-size: 0.85rem; height: 550px; overflow-y: auto;">{{ texto_fatia }}</pre>
+                    
+                    <form method="get" class="d-flex align-items-center mt-3 p-2 bg-white border rounded shadow-sm">
+                        <label class="small fw-bold text-muted me-2">Tamanho do Bloco:</label>
+                        <input type="number" name="slice" value="{{ tamanho_slice }}" class="form-control form-control-sm text-center fw-bold" style="width: 70px;" min="1" max="15">
+                        <button type="submit" class="btn btn-sm btn-outline-primary ms-2"><i class="fas fa-sync-alt me-1"></i> Atualizar Visão</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 col-md-12">
+            <form method="post" id="form-validacao" class="card shadow-sm">
+                {% csrf_token %}
+
+                <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center px-4">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-list-check me-2"></i> Conferência de Atributos</h5>
+                    <div class="text-end">
+                        <span class="badge bg-warning text-dark fs-6 shadow-sm border border-dark border-opacity-25 rounded-pill px-3 py-2">
+                            <i class="fas fa-box-open me-1"></i> Item {{ item_atual }}
+                        </span>
+                        <div class="small mt-1 opacity-75" style="font-size: 0.65rem;">
+                            Já validados: {{ itens_salvos }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body bg-white px-4">
+                    <div class="vstack gap-3">
+                        
+                        {% for campo in campos_validacao %}
+                        <div class="field-container">
+                            <label class="form-label fw-bold small text-muted mb-1">{{ campo.label }}</label>
+                            <div class="input-group shadow-sm">
+                                
+                                {% if campo.is_textarea %}
+                                    <textarea name="{{ campo.key }}" id="field_{{ campo.key }}" 
+                                        class="form-control {% if campo.value == 'pendente' or campo.value == '0' or campo.value == '' %}border-danger text-danger fw-bold{% endif %}" 
+                                        rows="2">{{ campo.value }}</textarea>
+                                {% else %}
+                                    <input type="text" name="{{ campo.key }}" id="field_{{ campo.key }}" 
+                                        class="form-control {% if campo.value == 'pendente' or campo.value == '0' or campo.value == '' %}border-danger text-danger fw-bold{% elif campo.key == 'valor' %}text-success fw-bold{% endif %}" 
+                                        value="{{ campo.value }}">
+                                {% endif %}
+                                
+                                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="limparCampo('field_{{ campo.key }}')">
+                                    <i class="fas fa-eraser"></i> Limpar
+                                </button>
+                                <button class="btn btn-outline-success btn-sm" type="button" onclick="confirmarCampo('field_{{ campo.key }}')">
+                                    <i class="fas fa-check"></i> OK
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+
+                <div class="card-footer bg-light d-flex justify-content-between p-4 border-top sticky-bottom" style="bottom: 0;">
+                    <button type="submit" name="pular" class="btn btn-outline-danger px-4 fw-bold">
+                        <i class="fas fa-forward me-1"></i> Pular Sujeira
+                    </button>
+                    <button type="button" onclick="abrirPreview()" class="btn btn-success btn-lg fw-bold shadow transition-all">
+                        <i class="fas fa-check me-2"></i>FINALIZAR ITEM
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRevisao" tabindex="-1" aria-labelledby="modalRevisaoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered"> 
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="modalRevisaoLabel">
+                    <i class="fas fa-clipboard-check me-2"></i>Revisão Final - Item {{ item_atual }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <div class="alert alert-info py-2 small mb-4">
+                    <i class="fas fa-info-circle me-2"></i>Confirme se os dados extraídos pelo motor genérico estão corretos.
+                </div>
+                
+                <div class="row g-3" id="grid-revisao">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">VOLTAR E EDITAR</button>
+                <button type="button" id="btnConfirmarFinal" class="btn btn-primary btn-lg fw-bold px-5 shadow">
+                    <i class="fas fa-database me-2"></i>GRAVAR NO PATRIMÔNIO
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- FUNÇÕES DE INTERFACE DOS CAMPOS ---
+    function limparCampo(id) {
+        const campo = document.getElementById(id);
+        campo.value = "";
+        campo.classList.remove('border-danger', 'text-danger', 'fw-bold');
+        campo.style.borderColor = ""; 
+        campo.focus();
+    }
+
+    function confirmarCampo(id) {
+        const campo = document.getElementById(id);
+        const val = campo.value.trim().toLowerCase();
+        
+        if(val !== "" && val !== "pendente" && val !== "0") {
+            campo.classList.remove('border-danger', 'text-danger');
+            campo.style.borderColor = "#198754";
+            campo.style.backgroundColor = "#f8fff9";
+            campo.classList.add('is-valid');
+        } else {
+            alert("Este campo ainda está pendente ou zerado. Por favor, preencha corretamente.");
+            campo.classList.add('border-danger', 'text-danger');
+            campo.focus();
+        }
+    }
+
+    // --- EVENTOS PRINCIPAIS (DOM LOADED) ---
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // 1. BLINDAGEM CONTRA O CTRL+V DO PDF
+        const camposInput = document.querySelectorAll('#form-validacao input[type="text"], #form-validacao textarea');
+        camposInput.forEach(campo => {
+            campo.addEventListener('paste', function(e) {
+                e.preventDefault();
+                let textoColado = (e.clipboardData || window.clipboardData).getData('text');
+                let textoLimpo = textoColado.replace(/\r?\n|\r/g, ' ').replace(/\s+/g, ' ').trim();
+
+                if (!document.execCommand("insertText", false, textoLimpo)) {
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    this.value = this.value.substring(0, start) + textoLimpo + this.value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + textoLimpo.length;
+                }
+                
+                if (this.value.trim() !== "pendente" && this.value.trim() !== "0" && this.value.trim() !== "") {
+                    this.classList.remove('border-danger', 'text-danger');
+                }
+            });
+        });
+
+        // 2. LÓGICA DO MODAL DE REVISÃO E SUBMISSÃO SEGURA
+        const btnConfirmarFinal = document.getElementById('btnConfirmarFinal');
+        const formValidacao = document.getElementById('form-validacao'); // ID Corrigido
+
+        // Função global para abrir o modal
+        window.abrirPreview = function() {
+            const gridRevisao = document.getElementById('grid-revisao');
+            gridRevisao.innerHTML = ''; 
+
+            const campos = [
+                { label: 'Nº DO ATIVO', name: 'ativo' },
+                { label: 'SITUAÇÃO', name: 'sit' },
+                { label: 'PROCESSO COMPRA', name: 'proc_c' },
+                { label: 'PROCESSO PAGAMENTO', name: 'proc_p' },
+                { label: 'CNPJ FORNECEDOR', name: 'cnpj' },
+                { label: 'NOME FORNECEDOR', name: 'forn' },
+                { label: 'NOTA FISCAL', name: 'nf' },
+                { label: 'DATA NF', name: 'dnf' },
+                { label: 'VALOR DO BEM', name: 'valor' },
+                { label: 'DATA MOVIMENTAÇÃO', name: 'data' },
+                { label: 'CONTA', name: 'conta' },
+                { label: 'DV', name: 'dv' },
+                { label: 'PROJETO', name: 'proj' },
+                { label: 'LOCALIZAÇÃO', name: 'loc' },
+                { label: 'DOCUMENTO (TERMO)', name: 'doc' },
+                { label: 'DESCRIÇÃO', name: 'descricao', fullWidth: true }
+            ];
+
+            campos.forEach(campo => {
+                const input = document.querySelector(`[name="${campo.name}"]`);
+                if (input) {
+                    const valor = input.value || '<span class="text-danger">Não identificado</span>';
+                    const colSize = campo.fullWidth ? 'col-12' : 'col-md-6';
+                    
+                    const itemHtml = `
+                        <div class="${colSize}">
+                            <div class="card border-0 shadow-sm p-3 h-100">
+                                <label class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">${campo.label}</label>
+                                <div class="text-dark fw-bold">${valor}</div>
+                            </div>
+                        </div>
+                    `;
+                    gridRevisao.innerHTML += itemHtml;
+                }
+            });
+
+            const modal = new bootstrap.Modal(document.getElementById('modalRevisao'));
+            modal.show();
+        };
+
+        // Evento de Gravação (Injetando a variável 'proximo' para o views.py)
+        btnConfirmarFinal.addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-sync fa-spin me-2"></i>PROCESSANDO...';
+            
+            // Injeta o comando silencioso que o views.py espera
+            const inputOculto = document.createElement('input');
+            inputOculto.type = 'hidden';
+            inputOculto.name = 'proximo';
+            inputOculto.value = 'true';
+            formValidacao.appendChild(inputOculto);
+
+            formValidacao.submit();
+        });
+    });
+</script>
+
+<style>
+    .border-danger {
+        border-width: 2px !important;
+    }
+    textarea.form-control {
+        resize: none;
+    }
+    .sticky-bottom {
+        z-index: 1020;
+    }
+</style>
+{% endblock %}

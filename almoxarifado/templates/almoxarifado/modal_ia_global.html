@@ -1,0 +1,183 @@
+<style>
+    /* Estilo adicional para garantir o tracejado e o cursor no modal de upload */
+    .border-dashed { border-style: dashed !important; }
+    .cursor-pointer { cursor: pointer; }
+    .upload-box:hover { background-color: #e9ecef !important; transition: 0.3s; }
+</style>
+
+<div class="modal fade" id="modalImportarNfeGlobal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-primary"><i class="fas fa-robot me-2"></i>Leitura por IA</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="btnFecharModalGlobal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="{% url 'almoxarifado:importar_nfe' %}" id="formImportarNfeGlobal">
+                {% csrf_token %}
+                <div class="modal-body p-4 text-center">
+                    
+                    <div id="area_input_global" class="mb-3">
+                        <p class="small text-muted mb-3">Selecione o arquivo PDF ou XML da Nota Fiscal. O ARGUS extrairá todos os insumos automaticamente.</p>
+                        
+                        <input type="file" name="arquivo_pdf" accept=".pdf, .xml" required id="inputPdfNfeGlobal" class="d-none">
+                        
+                        <div class="upload-box d-flex flex-column align-items-center justify-content-center p-4 border border-2 border-primary border-dashed rounded bg-light cursor-pointer" onclick="document.getElementById('inputPdfNfeGlobal').click();">
+                            
+                            <label for="inputPdfNfeGlobal" class="btn btn-primary px-4 py-2 mb-2 shadow-sm fw-bold cursor-pointer" onclick="event.stopPropagation();">
+                                <i class="fas fa-file-upload me-2"></i> Selecionar Arquivo
+                            </label>
+                            
+                            <span id="nome-arquivo-global" class="text-muted small fst-italic mt-2">Nenhum arquivo selecionado.</span>
+                        </div>
+                    </div>
+                    <div id="loader_ia_global" class="d-none my-2">
+                        
+                        <span id="badge_tentativa_ia_global" class="badge bg-primary mb-3 px-3 py-2 rounded-pill shadow-sm text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="fas fa-satellite-dish me-1"></i> Tentativa 1 de 3
+                        </span>
+                        <br>
+
+                        <div class="spinner-border text-primary mb-3" id="spinner_ia_global" style="width: 3.5rem; height: 3.5rem; border-width: 0.35rem;"></div>
+                        
+                        <h5 class="text-primary fw-bold mb-2" id="status_texto_ia_global">ARGUS minerando dados...</h5>
+                        
+                        <div id="container_timer_ia_global" class="d-inline-flex align-items-center bg-light border border-primary border-opacity-25 rounded-pill px-3 py-1 mb-3 shadow-sm transition-all">
+                            <i class="fas fa-stopwatch text-primary me-2" id="icone_timer_ia_global"></i>
+                            <span class="text-dark fw-bold font-monospace fs-5" id="cronometro_ia_global">00:00</span>
+                        </div>
+                        
+                        <p class="small text-muted mb-0 px-4" id="substatus_texto_ia_global">Iniciando a leitura estruturada do documento.</p>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none fw-bold" data-bs-dismiss="modal" id="btnCancelarNFGlobal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm" id="btnSubmeterNFGlobal">Iniciar Mineração</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // --- LÓGICA DO NOME DO ARQUIVO CUSTOMIZADO ---
+    const inputPdf = document.getElementById('inputPdfNfeGlobal');
+    const nomeArquivoSpan = document.getElementById('nome-arquivo-global');
+
+    if (inputPdf && nomeArquivoSpan) {
+        inputPdf.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                nomeArquivoSpan.textContent = e.target.files[0].name;
+                // Muda a cor para verde e tira o itálico para indicar sucesso
+                nomeArquivoSpan.className = "text-success small fw-bold mt-2";
+            } else {
+                nomeArquivoSpan.textContent = "Nenhum arquivo selecionado.";
+                nomeArquivoSpan.className = "text-muted small fst-italic mt-2";
+            }
+        });
+    }
+    // ---------------------------------------------
+
+    const formImportarGlobal = document.getElementById('formImportarNfeGlobal');
+    let intervaloCronometroGlobal;
+    let segundosPassadosGlobal = 0;
+
+    function atualizarCronometroGlobal() {
+        segundosPassadosGlobal++;
+        
+        const minutos = Math.floor(segundosPassadosGlobal / 60);
+        const segundos = segundosPassadosGlobal % 60;
+        document.getElementById('cronometro_ia_global').innerText = String(minutos).padStart(2, '0') + ':' + String(segundos).padStart(2, '0');
+
+        // Elementos da Interface
+        const statusTexto = document.getElementById('status_texto_ia_global');
+        const substatusTexto = document.getElementById('substatus_texto_ia_global');
+        const spinner = document.getElementById('spinner_ia_global');
+        const badge = document.getElementById('badge_tentativa_ia_global');
+        const timerContainer = document.getElementById('container_timer_ia_global');
+        const timerIcone = document.getElementById('icone_timer_ia_global');
+
+        // ==========================================
+        // TENTATIVA 1 (0 a 65 Segundos)
+        // ==========================================
+        if (segundosPassadosGlobal < 65) {
+            if (segundosPassadosGlobal === 5) {
+                statusTexto.innerText = "Classificando Insumos..."; 
+                substatusTexto.innerText = "A Inteligência Artificial está categorizando os itens da nota fiscal.";
+            } else if (segundosPassadosGlobal === 15) {
+                statusTexto.innerText = "Auditoria Financeira..."; 
+                substatusTexto.innerText = "Cruzando valores de produtos, descontos e totais líquidos.";
+            } else if (segundosPassadosGlobal === 30) {
+                statusTexto.innerText = "Processamento Estendido..."; 
+                substatusTexto.innerText = "A rede neural está sob alta carga ou a nota possui muitos itens. Aguarde.";
+            } else if (segundosPassadosGlobal === 60) {
+                statusTexto.innerText = "Limite atingido pelo Google..."; 
+                substatusTexto.innerText = "Preparando nova requisição de bypass...";
+            }
+        } 
+        // ==========================================
+        // TENTATIVA 2 (65 a 130 Segundos)
+        // Backend executou time.sleep(65) e tentou de novo
+        // ==========================================
+        else if (segundosPassadosGlobal < 130) {
+            if (segundosPassadosGlobal === 65) {
+                // Muda layout para Alerta (Amarelo)
+                badge.innerText = "Tentativa 2 de 3";
+                badge.className = "badge bg-warning text-dark mb-3 px-3 py-2 rounded-pill shadow-sm text-uppercase";
+                statusTexto.className = "text-warning fw-bold mb-2";
+                spinner.className = "spinner-border text-warning mb-3";
+                timerContainer.className = "d-inline-flex align-items-center bg-light border border-warning border-opacity-50 rounded-pill px-3 py-1 mb-3 shadow-sm";
+                timerIcone.className = "fas fa-stopwatch text-warning me-2";
+
+                statusTexto.innerText = "Retomando Mineração..."; 
+                substatusTexto.innerText = "Conexão com a IA restabelecida. Reiniciando a leitura.";
+            } else if (segundosPassadosGlobal === 125) {
+                statusTexto.innerText = "Novo bloqueio de API..."; 
+                substatusTexto.innerText = "Aguardando janela final de liberação...";
+            }
+        } 
+        // ==========================================
+        // TENTATIVA 3 (130+ Segundos)
+        // Última rodada do backend
+        // ==========================================
+        else {
+            if (segundosPassadosGlobal === 130) {
+                // Muda layout para Crítico (Vermelho)
+                badge.innerText = "Tentativa 3 de 3";
+                badge.className = "badge bg-danger mb-3 px-3 py-2 rounded-pill shadow-sm text-uppercase";
+                statusTexto.className = "text-danger fw-bold mb-2";
+                spinner.className = "spinner-border text-danger mb-3";
+                timerContainer.className = "d-inline-flex align-items-center bg-light border border-danger border-opacity-50 rounded-pill px-3 py-1 mb-3 shadow-sm";
+                timerIcone.className = "fas fa-stopwatch text-danger me-2";
+
+                statusTexto.innerText = "Última Chamada de Rede..."; 
+                substatusTexto.innerText = "Tentativa final de extração. Se falhar, o processo será abortado.";
+            }
+        }
+    }
+
+    if (formImportarGlobal) {
+        formImportarGlobal.addEventListener('submit', function() {
+            // UI Reset
+            document.getElementById('area_input_global').classList.add('d-none');
+            document.getElementById('loader_ia_global').classList.remove('d-none');
+            
+            const btnSubmeter = document.getElementById('btnSubmeterNFGlobal');
+            if (btnSubmeter) {
+                btnSubmeter.classList.add('disabled');
+                btnSubmeter.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Lendo Documento...';
+            }
+            
+            const btnCancelar = document.getElementById('btnCancelarNFGlobal');
+            if (btnCancelar) btnCancelar.classList.add('disabled');
+            
+            const btnFechar = document.getElementById('btnFecharModalGlobal');
+            if (btnFechar) btnFechar.classList.add('d-none'); 
+
+            segundosPassadosGlobal = 0;
+            intervaloCronometroGlobal = setInterval(atualizarCronometroGlobal, 1000);
+        });
+    }
+});
+</script>

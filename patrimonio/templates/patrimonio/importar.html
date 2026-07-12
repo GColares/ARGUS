@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-9 col-lg-10">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white py-3 px-4 border-0">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-file-import fa-2x me-3"></i>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Importação de Termos FAEPI</h5>
+                            <p class="mb-0 small opacity-75">Estágio 1: Configuração e Leitura Bruta</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <div class="alert alert-light border-start border-primary border-4 shadow-sm mb-5">
+                        <div class="d-flex">
+                            <i class="fas fa-robot text-primary fs-3 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark">Como funciona o Estágio 1?</h6>
+                                <p class="mb-0 text-muted small">
+                                    O <strong>ARGUS</strong> fará a varredura completa do intervalo de páginas selecionado. 
+                                    Defina os parâmetros abaixo para garantir que o motor de busca ignore cabeçalhos e organize os itens corretamente para a validação.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-5">
+                            <div class="col-12 mb-4">
+                                <h6 class="text-uppercase fw-bold text-primary small ls-1 mb-3">1. Fonte de Dados</h6>
+                                <label class="form-label fw-bold">Selecionar Arquivo (PDF)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-primary text-primary"><i class="fas fa-file-pdf"></i></span>
+                                    <input type="file" name="arquivo_pdf" class="form-control border-primary" accept=".pdf" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 text-center">
+                                <label class="form-label fw-bold small text-center">Página de Início do Termo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-play text-muted"></i></span>
+                                    <input type="number" name="pagina_inicio" class="form-control text-center" value="4" min="1">
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <label class="form-label fw-bold small text-center">Página de Fim do Termo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-stop text-muted"></i></span>
+                                    <input type="number" name="pagina_fim" class="form-control text-center" value="5" min="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-12 mb-3">
+                                <h6 class="text-uppercase fw-bold text-danger small ls-1 mb-3">2. Calibração do Motor</h6>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="p-3 border border-danger border-opacity-25 rounded-3 bg-light h-100">
+                                    <label class="form-label fw-bold text-danger">
+                                        <i class="fas fa-eraser me-1"></i>Salto de Cabeçalho
+                                    </label>
+                                    <input type="number" name="linhas_cabecalho" class="form-control border-danger fw-bold text-center fs-5" value="5" min="0" aria-hidden="true">
+                                    <div class="form-text text-danger opacity-75">Quantas linhas o ARGUS deve pular no topo da página inicial?</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="p-3 border border-primary border-opacity-25 rounded-3 bg-light h-100">
+                                    <label class="form-label fw-bold text-primary">
+                                        <i class="fas fa-layer-group me-1"></i>Tamanho do Bloco (Slice)
+                                    </label>
+                                    <input type="number" name="tamanho_slice" class="form-control border-primary text-center fw-bold fs-5" value="3" min="1" max="10">
+                                    <div class="form-text text-primary opacity-75">Média de linhas físicas que formam um único item patrimonial.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow py-3 transition-all">
+                                <i class="fas fa-rocket me-2"></i> INICIAR LEITURA E IR PARA VALIDAÇÃO
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer bg-light border-0 text-center py-3">
+                    <a href="{% url 'patrimonio:home' %}" class="text-decoration-none text-secondary small fw-bold hover-link">
+                        <i class="fas fa-arrow-left me-1"></i> Voltar para o Painel Inicial
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ls-1 { letter-spacing: 1px; }
+    .transition-all { transition: all 0.3s ease; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3); }
+    .hover-link:hover { color: var(--inova-azul) !important; text-decoration: underline !important; }
+    
+    /* Melhoria visual no input de número */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+        opacity: 0.5;
+    }
+    .form-control:focus {
+        border-color: var(--inova-azul);
+        box-shadow: 0 0 0 0.25rem rgba(10, 61, 110, 0.15); /* Sombra usando o azul do tema */
+    }
+
+    /* ===================================================
+       CORREÇÃO DO INPUT FILE (Alinhamento perfeito à esquerda)
+       =================================================== */
+    input[type="file"].form-control {
+        padding-left: 0; /* Remove o espaço em branco na lateral esquerda */
+    }
+    input[type="file"]::file-selector-button {
+        margin: -0.375rem 1rem -0.375rem 0; /* Compensa o padding superior/inferior e dá margem direita */
+        padding: 0.375rem 1.25rem;
+        border: none;
+        border-right: 1px solid var(--inova-azul); /* Linha divisória com a cor do tema */
+        background-color: rgba(10, 61, 110, 0.05); /* Fundo sutil do Inova Azul */
+        color: var(--inova-azul);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    input[type="file"]::file-selector-button:hover {
+        background-color: var(--inova-azul);
+        color: #ffffff;
+    }
+</style>
+{% endblock %}

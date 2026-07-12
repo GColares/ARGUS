@@ -1,0 +1,2499 @@
+[
+{
+    "model": "admin.logentry",
+    "pk": 1,
+    "fields": {
+        "action_time": "2026-05-20T21:09:20.257Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "2",
+        "object_repr": "teste1",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 2,
+    "fields": {
+        "action_time": "2026-05-20T21:25:16.446Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "3",
+        "object_repr": "Rui_Pinto_de_Jesus",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 3,
+    "fields": {
+        "action_time": "2026-05-20T21:25:43.838Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "3",
+        "object_repr": "Rui_Pinto_de_Jesus",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"First name\", \"Last name\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 4,
+    "fields": {
+        "action_time": "2026-05-20T22:13:59.360Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "3",
+        "object_repr": "RuiJesus",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Username\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 5,
+    "fields": {
+        "action_time": "2026-05-20T22:14:12.701Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "4",
+        "object_repr": "ElianaSilva",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 6,
+    "fields": {
+        "action_time": "2026-05-20T22:14:32.224Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "4",
+        "object_repr": "ElianaSilva",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"First name\", \"Last name\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 7,
+    "fields": {
+        "action_time": "2026-05-20T22:14:57.701Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "4",
+        "object_repr": "EFSilva",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Username\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 8,
+    "fields": {
+        "action_time": "2026-05-20T22:15:17.501Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "3",
+        "object_repr": "RPJesus",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Username\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 9,
+    "fields": {
+        "action_time": "2026-05-20T22:24:37.684Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "5",
+        "object_repr": "Emanuelle",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 10,
+    "fields": {
+        "action_time": "2026-05-20T22:26:13.255Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "5",
+        "object_repr": "Emanuelle",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"First name\", \"Last name\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 11,
+    "fields": {
+        "action_time": "2026-05-20T22:26:34.266Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "4",
+        "object_repr": "EFLima",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Username\", \"Last name\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 12,
+    "fields": {
+        "action_time": "2026-05-20T22:28:14.823Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "6",
+        "object_repr": "STSouza",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 13,
+    "fields": {
+        "action_time": "2026-05-20T22:28:42.092Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "6",
+        "object_repr": "STSouza",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"First name\", \"Last name\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 14,
+    "fields": {
+        "action_time": "2026-05-20T22:31:42.560Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "7",
+        "object_repr": "LLemos",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 15,
+    "fields": {
+        "action_time": "2026-05-20T22:31:54.465Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "7",
+        "object_repr": "LLemos",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"First name\", \"Last name\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 16,
+    "fields": {
+        "action_time": "2026-05-20T23:10:25.269Z",
+        "user": 1,
+        "content_type": 13,
+        "object_id": "2",
+        "object_repr": "0001/2026 - Sistema Inteligente para Análise Preditiva e Dashboards Adaptativos na Gestão de Performance de Redes AMI",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 17,
+    "fields": {
+        "action_time": "2026-05-20T23:31:45.770Z",
+        "user": 1,
+        "content_type": 13,
+        "object_id": "2",
+        "object_repr": "0001/2026 - Sistema Inteligente para Análise Preditiva e Dashboards Adaptativos na Gestão de Performance de Redes AMI",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Processo de Contrata\\u00e7\\u00e3o do Projeto (IFAM)\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 18,
+    "fields": {
+        "action_time": "2026-05-20T23:35:48.571Z",
+        "user": 1,
+        "content_type": 13,
+        "object_id": "2",
+        "object_repr": "0001/2026 - Sistema Inteligente para Análise Preditiva e Dashboards Adaptativos na Gestão de Performance de Redes AMI",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Projeto\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 19,
+    "fields": {
+        "action_time": "2026-05-20T23:36:31.537Z",
+        "user": 1,
+        "content_type": 13,
+        "object_id": "1",
+        "object_repr": "0013/2022 - Capacitar 4.0",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Projeto\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 20,
+    "fields": {
+        "action_time": "2026-05-20T23:45:14.642Z",
+        "user": 1,
+        "content_type": 13,
+        "object_id": "3",
+        "object_repr": "9999/9999 - Fundo de Reserva",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 21,
+    "fields": {
+        "action_time": "2026-05-20T23:50:03.689Z",
+        "user": 1,
+        "content_type": 4,
+        "object_id": "4",
+        "object_repr": "EFLima",
+        "action_flag": 2,
+        "change_message": "[{\"changed\": {\"fields\": [\"Last name\"]}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 22,
+    "fields": {
+        "action_time": "2026-05-21T19:26:43.181Z",
+        "user": 1,
+        "content_type": 13,
+        "object_id": "4",
+        "object_repr": "0005/2025 - Projeto “AX Academy - Digital Transformation”",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 23,
+    "fields": {
+        "action_time": "2026-05-29T22:10:52.730Z",
+        "user": 1,
+        "content_type": 33,
+        "object_id": "1",
+        "object_repr": " (SIAPE: 2230023)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 24,
+    "fields": {
+        "action_time": "2026-05-29T22:11:22.922Z",
+        "user": 1,
+        "content_type": 33,
+        "object_id": "2",
+        "object_repr": "Eliana Ferreira de Lima (Terceirizado)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 25,
+    "fields": {
+        "action_time": "2026-05-29T22:13:38.104Z",
+        "user": 1,
+        "content_type": 33,
+        "object_id": "3",
+        "object_repr": "Emanuelle Lemos (Terceirizado)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 26,
+    "fields": {
+        "action_time": "2026-05-29T22:14:06.608Z",
+        "user": 1,
+        "content_type": 33,
+        "object_id": "4",
+        "object_repr": "Sofia Torres de Souza (Terceirizado)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 27,
+    "fields": {
+        "action_time": "2026-05-29T22:14:30.300Z",
+        "user": 1,
+        "content_type": 33,
+        "object_id": "5",
+        "object_repr": "Letícia Lemos (Terceirizado)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 28,
+    "fields": {
+        "action_time": "2026-06-04T00:01:04.120Z",
+        "user": 1,
+        "content_type": 13,
+        "object_id": "5",
+        "object_repr": "0000/0000 - Identificação Pendente",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 29,
+    "fields": {
+        "action_time": "2026-06-11T23:54:09.341Z",
+        "user": 1,
+        "content_type": 34,
+        "object_id": "1",
+        "object_repr": "IPI (Federal)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 30,
+    "fields": {
+        "action_time": "2026-06-11T23:54:25.546Z",
+        "user": 1,
+        "content_type": 34,
+        "object_id": "2",
+        "object_repr": "ICMS (Estadual)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 31,
+    "fields": {
+        "action_time": "2026-06-11T23:54:43.817Z",
+        "user": 1,
+        "content_type": 34,
+        "object_id": "3",
+        "object_repr": "ISS (Municipal)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 32,
+    "fields": {
+        "action_time": "2026-06-11T23:54:50.471Z",
+        "user": 1,
+        "content_type": 34,
+        "object_id": "4",
+        "object_repr": "COFINS (Federal)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 33,
+    "fields": {
+        "action_time": "2026-06-11T23:55:39.324Z",
+        "user": 1,
+        "content_type": 34,
+        "object_id": "5",
+        "object_repr": "ICMS_ST (Estadual)",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$RZqNykgNaMwuuFOnnnwMxf$lKpwEgUH9/mjVeW8E9GLrJdJW0VzRjIcNWhwRHW41cM=",
+        "last_login": "2026-06-11T22:24:53.005Z",
+        "is_superuser": true,
+        "username": "admin",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-05-19T22:24:03.736Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+        "password": "!MVkQPUT03b4JuwsEXBrn6El144V1KpNbrLlKphEZ",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "teste1",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-05-20T21:09:20.253Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+        "password": "!yWAsjp6Y5doZUNI9ogWR9PkYftQCuBwnw0hRkfFO",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "RPJesus",
+        "first_name": "Rui",
+        "last_name": "Pinto de Jesus",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-05-20T21:25:16Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+        "password": "!UUqMEEX5UMVBGVnQvXzOJJwQqzuBm7IQ4peojhOR",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "EFLima",
+        "first_name": "Eliana",
+        "last_name": "Ferreira de Lima",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-05-20T22:14:12Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 5,
+    "fields": {
+        "password": "!pKkLSsF7eSVqi2e9H9oWbd7aqH4QXFTvs2UDVTqc",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "Emanuelle",
+        "first_name": "Emanuelle",
+        "last_name": "Lemos",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-05-20T22:24:37Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 6,
+    "fields": {
+        "password": "!Ez4M6DSGknPWWyCSITRFRv9COGuIUTTQWDiBJO4e",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "STSouza",
+        "first_name": "Sofia",
+        "last_name": "Torres de Souza",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-05-20T22:28:14Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 7,
+    "fields": {
+        "password": "!E0HnUpVOX8mqfHcV5IG08Zl8LPLINzpM5vk9eb5o",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "LLemos",
+        "first_name": "Letícia",
+        "last_name": "Lemos",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-05-20T22:31:42Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 8,
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$IVksWWzxY4VpVTVU41vb3D$4EZTxerlRXexN+GNEHfC6sC2LA7EaXoY5qtkfDT0OPM=",
+        "last_login": null,
+        "is_superuser": true,
+        "username": "ifam",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-06-15T20:08:01.679Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "82ith23cbui0w7ap8yrjtmkka8y04kml",
+    "fields": {
+        "session_data": ".eJxVjMsOgjAQAP9lz6bZAl0KR-98A9lHtaiBhMLJ-O-GhINeZybzhpH3LY97Ses4GfTg4fLLhPWZ5kPYg-f74nSZt3USdyTutMUNi6XX9Wz_BplLhh7IUuw0kG-8tRxqjYiVsFdF8jW20gXjTpVEKhWLRJKQbgEtMDYVwucL4UE34g:1wXnpV:gDODx2QUEdGaGpxm169zCj3iWeq2ADdMySOGuTYCzZc",
+        "expire_date": "2026-06-25T22:24:53.020Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "jsj60ywhwm77fowp0tt3s859k1xld887",
+    "fields": {
+        "session_data": "e30:1wSl58:Hvbm1KrDDHRYAQyjgOqca1O5lrcDN4j7lBtIcE85QNg",
+        "expire_date": "2026-06-12T00:28:10.525Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "q2lb9kjl3btqfljem7j7y00yeuurvrm4",
+    "fields": {
+        "session_data": ".eJxVjMsOgjAQAP9lz6bZAl0KR-98A9lHtaiBhMLJ-O-GhINeZybzhpH3LY97Ses4GfTg4fLLhPWZ5kPYg-f74nSZt3USdyTutMUNi6XX9Wz_BplLhh7IUuw0kG-8tRxqjYiVsFdF8jW20gXjTpVEKhWLRJKQbgEtMDYVwucL4UE34g:1wSlC0:ed_cn3N9uyMOanKRiNFxlspwNXuoaMRJPylbNsMGZoY",
+        "expire_date": "2026-06-12T00:35:16.028Z"
+    }
+},
+{
+    "model": "cadastros.projetopdi",
+    "pk": 1,
+    "fields": {
+        "projeto": "Capacitar 4.0",
+        "nome": "Capacitar 4.0",
+        "convenio": "0013/2022",
+        "Processo": null,
+        "termo_de_convenio": "",
+        "convenente": "IFAM",
+        "interveniente": "FAEPI",
+        "financiadores": "FLEX IMPORTAÇÃO EXPORTAÇÃO IND E COM DE MÁQUINAS E MOTORES LTDA",
+        "vigencia_inicio": "2022-01-01",
+        "vigencia_fim": "2026-12-31",
+        "plano_inicio": "2022-02-01",
+        "plano_fim": "2026-11-30",
+        "data_cadastro": "2026-05-14T20:00:00Z"
+    }
+},
+{
+    "model": "cadastros.projetopdi",
+    "pk": 2,
+    "fields": {
+        "projeto": "Projeto INOC",
+        "nome": "Sistema Inteligente para Análise Preditiva e Dashboards Adaptativos na Gestão de Performance de Redes AMI",
+        "convenio": "0001/2026",
+        "Processo": "23443.013707/2025-39",
+        "termo_de_convenio": "",
+        "convenente": "IFAM",
+        "interveniente": "FAEPI",
+        "financiadores": "NANSEN INSTRUMENTOS DE PRECISÃO LTDA",
+        "vigencia_inicio": "2026-02-09",
+        "vigencia_fim": "2027-02-09",
+        "plano_inicio": "2026-02-09",
+        "plano_fim": "2027-01-09",
+        "data_cadastro": "2026-05-20T23:10:25.265Z"
+    }
+},
+{
+    "model": "cadastros.projetopdi",
+    "pk": 3,
+    "fields": {
+        "projeto": "Fundo de Reserva",
+        "nome": "Fundo de Reserva",
+        "convenio": "9999/9999",
+        "Processo": null,
+        "termo_de_convenio": "",
+        "convenente": "IFAM",
+        "interveniente": "FAEPI",
+        "financiadores": "FUNDO DE RESERVA",
+        "vigencia_inicio": "2026-01-01",
+        "vigencia_fim": "2026-12-31",
+        "plano_inicio": "2026-01-01",
+        "plano_fim": "2026-12-31",
+        "data_cadastro": "2026-05-20T23:45:14.640Z"
+    }
+},
+{
+    "model": "cadastros.projetopdi",
+    "pk": 4,
+    "fields": {
+        "projeto": "AX Academy",
+        "nome": "Projeto “AX Academy - Digital Transformation”",
+        "convenio": "0005/2025",
+        "Processo": "23443.011345/2025-41",
+        "termo_de_convenio": "",
+        "convenente": "IFAM",
+        "interveniente": "FAEPI",
+        "financiadores": "LG Electronics do Brasil LTDA",
+        "vigencia_inicio": "2025-11-15",
+        "vigencia_fim": "2026-11-15",
+        "plano_inicio": "2025-11-15",
+        "plano_fim": "2026-11-15",
+        "data_cadastro": "2026-05-21T19:26:43.179Z"
+    }
+},
+{
+    "model": "cadastros.projetopdi",
+    "pk": 5,
+    "fields": {
+        "projeto": "Identificação Pendente",
+        "nome": "Identificação Pendente",
+        "convenio": "0000/0000",
+        "Processo": null,
+        "termo_de_convenio": "",
+        "convenente": "IFAM",
+        "interveniente": "FAEPI",
+        "financiadores": "NA",
+        "vigencia_inicio": "2015-01-01",
+        "vigencia_fim": "2070-01-01",
+        "plano_inicio": "2015-01-01",
+        "plano_fim": "2070-01-01",
+        "data_cadastro": "2026-06-04T00:01:04.118Z"
+    }
+},
+{
+    "model": "cadastros.tipoprocesso",
+    "pk": 1,
+    "fields": {
+        "nome": "Compra"
+    }
+},
+{
+    "model": "cadastros.tipoprocesso",
+    "pk": 2,
+    "fields": {
+        "nome": "Pagamento"
+    }
+},
+{
+    "model": "cadastros.tipoprocesso",
+    "pk": 3,
+    "fields": {
+        "nome": "Contratação"
+    }
+},
+{
+    "model": "cadastros.tipoprocesso",
+    "pk": 4,
+    "fields": {
+        "nome": "Importação"
+    }
+},
+{
+    "model": "cadastros.processo",
+    "pk": 1,
+    "fields": {
+        "projeto": 1,
+        "tipo": 3,
+        "numero": "23443.000123/2022-12",
+        "descricao": "Processo de Contratação do Projeto Capacitar 4.0",
+        "origem": "IFAM Reitoria"
+    }
+},
+{
+    "model": "cadastros.origemdoacao",
+    "pk": 1,
+    "fields": {
+        "nome": "Fundação de Apoio ao Ensino, Pesquisa e Extensão e Interiorização do IFAM",
+        "sigla": "FAEPI",
+        "cnpj": "04.623.300/0001-88"
+    }
+},
+{
+    "model": "cadastros.localizacao",
+    "pk": 1,
+    "fields": {
+        "nome": "Polo de Inovação Manaus",
+        "sigla": "INOVA",
+        "responsavel": "Responsável Técnico"
+    }
+},
+{
+    "model": "cadastros.localizacao",
+    "pk": 2,
+    "fields": {
+        "nome": "IFAM Campus Manaus Distrito Industrial",
+        "sigla": "IFAM/CMDI",
+        "responsavel": "Responsável Técnico"
+    }
+},
+{
+    "model": "cadastros.localizacao",
+    "pk": 3,
+    "fields": {
+        "nome": "IFAM Campus Manaus Centro",
+        "sigla": "IFAM/CMC",
+        "responsavel": "Responsável Técnico"
+    }
+},
+{
+    "model": "cadastros.localizacao",
+    "pk": 4,
+    "fields": {
+        "nome": "IFAM Campus Manaus Zona Leste",
+        "sigla": "IFAM/CMZL",
+        "responsavel": "Responsável Técnico"
+    }
+},
+{
+    "model": "cadastros.localizacao",
+    "pk": 5,
+    "fields": {
+        "nome": "IFAM Reitoria",
+        "sigla": "IFAM/Reitoria",
+        "responsavel": "Responsável Técnico"
+    }
+},
+{
+    "model": "almoxarifado.perfilusuario",
+    "pk": 1,
+    "fields": {
+        "user": 1,
+        "vinculo": "SERVIDOR",
+        "siape": "2230023",
+        "cpf": "83403876268",
+        "cargo": "Assistente em Administração",
+        "lotacao": "Polo de Inovação Manaus"
+    }
+},
+{
+    "model": "almoxarifado.perfilusuario",
+    "pk": 2,
+    "fields": {
+        "user": 4,
+        "vinculo": "TERCEIRIZADO",
+        "siape": null,
+        "cpf": null,
+        "cargo": "Auxiliar Administrativo",
+        "lotacao": "Polo de Inovação Manaus"
+    }
+},
+{
+    "model": "almoxarifado.perfilusuario",
+    "pk": 3,
+    "fields": {
+        "user": 5,
+        "vinculo": "TERCEIRIZADO",
+        "siape": null,
+        "cpf": null,
+        "cargo": "Auxiliar Administrativo",
+        "lotacao": "Polo de Inovação Manaus"
+    }
+},
+{
+    "model": "almoxarifado.perfilusuario",
+    "pk": 4,
+    "fields": {
+        "user": 6,
+        "vinculo": "TERCEIRIZADO",
+        "siape": null,
+        "cpf": null,
+        "cargo": "Auxiliar Administrativo",
+        "lotacao": "Polo de Inovação Manaus"
+    }
+},
+{
+    "model": "almoxarifado.perfilusuario",
+    "pk": 5,
+    "fields": {
+        "user": 7,
+        "vinculo": "TERCEIRIZADO",
+        "siape": null,
+        "cpf": null,
+        "cargo": "Auxiliar Administrativo",
+        "lotacao": "Polo de Inovação Manaus"
+    }
+},
+{
+    "model": "almoxarifado.imposto",
+    "pk": 1,
+    "fields": {
+        "sigla": "IPI",
+        "descricao": null,
+        "esfera": "FEDERAL"
+    }
+},
+{
+    "model": "almoxarifado.imposto",
+    "pk": 2,
+    "fields": {
+        "sigla": "ICMS",
+        "descricao": null,
+        "esfera": "ESTADUAL"
+    }
+},
+{
+    "model": "almoxarifado.imposto",
+    "pk": 3,
+    "fields": {
+        "sigla": "ISS",
+        "descricao": null,
+        "esfera": "MUNICIPAL"
+    }
+},
+{
+    "model": "almoxarifado.imposto",
+    "pk": 4,
+    "fields": {
+        "sigla": "COFINS",
+        "descricao": null,
+        "esfera": "FEDERAL"
+    }
+},
+{
+    "model": "almoxarifado.imposto",
+    "pk": 5,
+    "fields": {
+        "sigla": "ICMS_ST",
+        "descricao": null,
+        "esfera": "ESTADUAL"
+    }
+},
+{
+    "model": "almoxarifado.imposto",
+    "pk": 6,
+    "fields": {
+        "sigla": "PIS",
+        "descricao": "Imposto PIS extraído automaticamente",
+        "esfera": "FEDERAL"
+    }
+},
+{
+    "model": "almoxarifado.impostonota",
+    "pk": 1,
+    "fields": {
+        "nota": 80,
+        "imposto": 2,
+        "valor": "17989.3000"
+    }
+},
+{
+    "model": "almoxarifado.impostonota",
+    "pk": 2,
+    "fields": {
+        "nota": 81,
+        "imposto": 2,
+        "valor": "4327.5300"
+    }
+},
+{
+    "model": "almoxarifado.impostonota",
+    "pk": 3,
+    "fields": {
+        "nota": 91,
+        "imposto": 2,
+        "valor": "2604.8900"
+    }
+},
+{
+    "model": "almoxarifado.impostonota",
+    "pk": 4,
+    "fields": {
+        "nota": 91,
+        "imposto": 1,
+        "valor": "1756.5600"
+    }
+},
+{
+    "model": "almoxarifado.impostonota",
+    "pk": 5,
+    "fields": {
+        "nota": 91,
+        "imposto": 6,
+        "valor": "198.6500"
+    }
+},
+{
+    "model": "almoxarifado.impostonota",
+    "pk": 6,
+    "fields": {
+        "nota": 91,
+        "imposto": 4,
+        "valor": "914.9800"
+    }
+},
+{
+    "model": "almoxarifado.impostonota",
+    "pk": 7,
+    "fields": {
+        "nota": 94,
+        "imposto": 2,
+        "valor": "16.8000"
+    }
+},
+{
+    "model": "almoxarifado.impostonota",
+    "pk": 8,
+    "fields": {
+        "nota": 96,
+        "imposto": 2,
+        "valor": "273.4900"
+    }
+},
+{
+    "model": "almoxarifado.impostonota",
+    "pk": 9,
+    "fields": {
+        "nota": 97,
+        "imposto": 2,
+        "valor": "5.6000"
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 80,
+    "fields": {
+        "numero": "65",
+        "serie": "16",
+        "data_emissao": "2026-03-11",
+        "data_importacao": "2026-06-12T22:41:56.205Z",
+        "valor_total_produtos": "256990.00",
+        "valor_desconto": "76990.00",
+        "valor_total_nota": "180000.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "A. DOS A. MAIA & CIA LTDA",
+        "emitente_cnpj": "36.675.513/0001-40",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZ",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF65.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": "",
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 81,
+    "fields": {
+        "numero": "68",
+        "serie": "16",
+        "data_emissao": "2026-03-20",
+        "data_importacao": "2026-06-12T22:43:03.208Z",
+        "valor_total_produtos": "64200.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "64200.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "A. DOS A. MAIA & CIA LTDA",
+        "emitente_cnpj": "36.675.513/0001-40",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZ",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF68.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": "",
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 82,
+    "fields": {
+        "numero": "100",
+        "serie": "001",
+        "data_emissao": "2026-02-16",
+        "data_importacao": "2026-06-12T22:43:38.560Z",
+        "valor_total_produtos": "482.10",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "482.10",
+        "valor_frete": "0.0000",
+        "emitente_nome": "LEONIDAS DE LIMA AMORIM",
+        "emitente_cnpj": "46.803.181/0001-95",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZ",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF100.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": "",
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 83,
+    "fields": {
+        "numero": "108",
+        "serie": "0",
+        "data_emissao": "2026-04-06",
+        "data_importacao": "2026-06-12T22:44:14.789Z",
+        "valor_total_produtos": "1210.70",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "1210.70",
+        "valor_frete": "0.0000",
+        "emitente_nome": "RGA LTDA",
+        "emitente_cnpj": "45.847.529/0001-83",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO PESQUISA EXTENSAO E INTERIORIZAC",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF108.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 84,
+    "fields": {
+        "numero": "115",
+        "serie": "001",
+        "data_emissao": "2026-05-11",
+        "data_importacao": "2026-06-12T22:44:53.272Z",
+        "valor_total_produtos": "483.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "483.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "LEONIDAS DE LIMA AMORIM",
+        "emitente_cnpj": "46.803.181/0001-95",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZ",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF115.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 85,
+    "fields": {
+        "numero": "237",
+        "serie": "55",
+        "data_emissao": "2026-05-15",
+        "data_importacao": "2026-06-12T22:45:22.818Z",
+        "valor_total_produtos": "945.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "945.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "BRUNO PESSOA CAVALCANTI EIRELI",
+        "emitente_cnpj": "34.574.086/0001-88",
+        "destinatario_nome": "FUNDAÇÃO DE APOIO AO ENSINO, PESQ EXT E INTERIORIZAÇÃO IFAM",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF237.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": "",
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 86,
+    "fields": {
+        "numero": "2228",
+        "serie": "001",
+        "data_emissao": "2026-04-27",
+        "data_importacao": "2026-06-12T22:51:04.793Z",
+        "valor_total_produtos": "176.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "176.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "MJ REPRESENTACAO COMERCIAL LTDA",
+        "emitente_cnpj": "08.680.155/0001-28",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF2228.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": "",
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 87,
+    "fields": {
+        "numero": "2229",
+        "serie": "0",
+        "data_emissao": "2026-03-16",
+        "data_importacao": "2026-06-12T22:51:40.301Z",
+        "valor_total_produtos": "8900.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "8900.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "CHAYANNE APARECIDA VIEIRA MOL E SILVA",
+        "emitente_cnpj": "39.691.544/0001-82",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZACAO DO IFAM",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF2229.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": "",
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 88,
+    "fields": {
+        "numero": "10007",
+        "serie": "1",
+        "data_emissao": "2026-04-30",
+        "data_importacao": "2026-06-12T22:52:36.502Z",
+        "valor_total_produtos": "6800.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "6800.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "ALIANCA CONSTRUCAO E COMERCIO DE MATERIAIS DE CONSTRUCAO LTD",
+        "emitente_cnpj": "60.455.543/0001-25",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO PESQUISA EXTENSAO E INTERIORIZAC",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF10007.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 89,
+    "fields": {
+        "numero": "19330",
+        "serie": "001",
+        "data_emissao": "2026-05-13",
+        "data_importacao": "2026-06-12T22:53:36.796Z",
+        "valor_total_produtos": "348.88",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "348.88",
+        "valor_frete": "0.0000",
+        "emitente_nome": "JTS CORDEIRO LTDA",
+        "emitente_cnpj": "06.293.461/0001-86",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSÃO E INTERIORIZ",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF19330.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": "",
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 90,
+    "fields": {
+        "numero": "26780",
+        "serie": "1",
+        "data_emissao": "2026-04-28",
+        "data_importacao": "2026-06-12T22:54:20.381Z",
+        "valor_total_produtos": "130.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "130.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "FERNORTE FERRAGENS DO NORTE LTDA",
+        "emitente_cnpj": "34.571.851/0001-06",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZ",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF26780.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 91,
+    "fields": {
+        "numero": "39711",
+        "serie": "001",
+        "data_emissao": "2026-03-25",
+        "data_importacao": "2026-06-12T22:55:05.902Z",
+        "valor_total_produtos": "57984.00",
+        "valor_desconto": "8511.69",
+        "valor_total_nota": "61128.81",
+        "valor_frete": "9899.9400",
+        "emitente_nome": "Lebenz Multimarcas Ltda",
+        "emitente_cnpj": "26.210.416/0001-28",
+        "destinatario_nome": "FAEPI - Fundacao de Apoio ao Ensino, Pesquisa, Extensao e In",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF39711.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": "",
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 92,
+    "fields": {
+        "numero": "51171",
+        "serie": "1",
+        "data_emissao": "2026-03-12",
+        "data_importacao": "2026-06-12T22:55:41.924Z",
+        "valor_total_produtos": "1216.50",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "1216.50",
+        "valor_frete": "0.0000",
+        "emitente_nome": "Distrel Distribuidora Elétrica Ltda - Epp",
+        "emitente_cnpj": "00803629000170",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO PESQUISA EXTENSAO E INTERIORIZAO",
+        "destinatario_cnpj": "04623300000188",
+        "arquivo_pdf": "almoxarifado/nfe/NF51171.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 93,
+    "fields": {
+        "numero": "51477",
+        "serie": "1",
+        "data_emissao": "2026-04-06",
+        "data_importacao": "2026-06-12T22:56:07.425Z",
+        "valor_total_produtos": "3400.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "3400.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "Distrel Distribuidora Elétrica Ltda - Epp",
+        "emitente_cnpj": "00803629000170",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO PESQUISA EXTENSAO E INTERIORIZAO DO IFAM-FAEPI",
+        "destinatario_cnpj": "04623300000188",
+        "arquivo_pdf": "almoxarifado/nfe/NF51477.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 94,
+    "fields": {
+        "numero": "109639",
+        "serie": "1",
+        "data_emissao": "2026-04-27",
+        "data_importacao": "2026-06-12T22:56:32.847Z",
+        "valor_total_produtos": "140.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "140.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "VEDAM COMERCIO DE FERRAGENS E FERRAMENTAS LTDA EPP",
+        "emitente_cnpj": "84486943000166",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZ",
+        "destinatario_cnpj": "04623300000188",
+        "arquivo_pdf": "almoxarifado/nfe/NF109639.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 95,
+    "fields": {
+        "numero": "111177",
+        "serie": "1",
+        "data_emissao": "2026-05-27",
+        "data_importacao": "2026-06-12T22:57:05.667Z",
+        "valor_total_produtos": "266.00",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "266.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "VEDAM COMERCIO DE FERRAGENS E FERRAMENTAS LTDA EPP",
+        "emitente_cnpj": "84486943000166",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZ",
+        "destinatario_cnpj": "04623300000188",
+        "arquivo_pdf": "almoxarifado/nfe/NF111177.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 96,
+    "fields": {
+        "numero": "822744",
+        "serie": "2",
+        "data_emissao": "2026-05-11",
+        "data_importacao": "2026-06-12T23:12:22.395Z",
+        "valor_total_produtos": "2743.87",
+        "valor_desconto": "274.38",
+        "valor_total_nota": "2469.49",
+        "valor_frete": "0.0000",
+        "emitente_nome": "LJ GUERRA E CIA LTDA",
+        "emitente_cnpj": "04.501.136/0001-36",
+        "destinatario_nome": "FUNDACAO DE APOIO AO PESQ EXT E INTERIOR DO IFAM-006144",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF822744.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 97,
+    "fields": {
+        "numero": "793828",
+        "serie": "2",
+        "data_emissao": "2026-03-03",
+        "data_importacao": "2026-06-12T23:14:09.205Z",
+        "valor_total_produtos": "3816.92",
+        "valor_desconto": "0.00",
+        "valor_total_nota": "3816.92",
+        "valor_frete": "0.0000",
+        "emitente_nome": "JEMNA LUIA LIDA",
+        "emitente_cnpj": "04.501.136/0001-36",
+        "destinatario_nome": "DORIA",
+        "destinatario_cnpj": "04.623.300/0001-88",
+        "arquivo_pdf": "almoxarifado/nfe/NF793828.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": "",
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 98,
+    "fields": {
+        "numero": "111287",
+        "serie": "1",
+        "data_emissao": "2026-05-29",
+        "data_importacao": "2026-06-12T23:15:47.054Z",
+        "valor_total_produtos": "499.00",
+        "valor_desconto": "99.00",
+        "valor_total_nota": "400.00",
+        "valor_frete": "0.0000",
+        "emitente_nome": "VEDAM COMERCIO DE FERRAGENS E FERRAMENTAS LTDA EPP",
+        "emitente_cnpj": "84486943000166",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZ",
+        "destinatario_cnpj": "04623300000188",
+        "arquivo_pdf": "almoxarifado/nfe/NF111287.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.notafiscalalmoxarifado",
+    "pk": 99,
+    "fields": {
+        "numero": "111191",
+        "serie": "1",
+        "data_emissao": "2026-05-27",
+        "data_importacao": "2026-06-12T23:16:23.571Z",
+        "valor_total_produtos": "2259.00",
+        "valor_desconto": "270.99",
+        "valor_total_nota": "1988.01",
+        "valor_frete": "0.0000",
+        "emitente_nome": "VEDAM COMERCIO DE FERRAGENS E FERRAMENTAS LTDA EPP",
+        "emitente_cnpj": "84486943000166",
+        "destinatario_nome": "FUNDACAO DE APOIO AO ENSINO, PESQUISA, EXTENSAO E INTERIORIZ",
+        "destinatario_cnpj": "04623300000188",
+        "arquivo_pdf": "almoxarifado/nfe/NF111191.pdf",
+        "termo_recebimento_assinado": "",
+        "chave_acesso": null,
+        "data_recebimento": null,
+        "usuario_recebedor": null,
+        "projeto_vinculado": null
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 235,
+    "fields": {
+        "nota_fiscal": 80,
+        "numero_item": 1,
+        "descricao": "CNT AI 4-GPU Server 2x Xeon 4410Y 128GB DDR5 RTX A6000 SSD 4TB HDD 40TB 2x 2200w platinum",
+        "categoria": "PERMANENTE",
+        "quantidade": "1.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "180000.00",
+        "valor_total": "180000.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 236,
+    "fields": {
+        "nota_fiscal": 80,
+        "numero_item": 2,
+        "descricao": "GPU NV QUADRO RTX PRO 6000 BLACKWELL MAXQ WORKSTATION EDITION 96GB GDDR7 ECC 512BITS PNY VCNRTXPRO60",
+        "categoria": "PERMANENTE",
+        "quantidade": "1.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "76990.00",
+        "valor_total": "76990.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 237,
+    "fields": {
+        "nota_fiscal": 81,
+        "numero_item": 1,
+        "descricao": "PROCESSADOR AMD 100-100001590BOX (AMD RYZEN 17 8700F 4.1GHZ)-0119223-01",
+        "categoria": "PERMANENTE",
+        "quantidade": "6.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "1816.66",
+        "valor_total": "11079.96"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 238,
+    "fields": {
+        "nota_fiscal": 81,
+        "numero_item": 2,
+        "descricao": "Placa Mae MSI Pro B840M-P WiFi6E, DDR5, Socket AMD AM5, M-ATX, Chipset AMD B840, PRO-B840M-P-WIFI6E",
+        "categoria": "PERMANENTE",
+        "quantidade": "6.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "1588.38",
+        "valor_total": "9530.28"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 239,
+    "fields": {
+        "nota_fiscal": 81,
+        "numero_item": 3,
+        "descricao": "MEMORIA GAMER PCYES UDIMM 16GB DDR5 5600MHZ WHITE COM RGB-PM165600D5WR",
+        "categoria": "PERMANENTE",
+        "quantidade": "12.00",
+        "unidade_comercial": "PC",
+        "valor_unitario": "1191.04",
+        "valor_total": "14292.48"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 240,
+    "fields": {
+        "nota_fiscal": 81,
+        "numero_item": 4,
+        "descricao": "SSD INTERNO M.2 1TB G38 (2400M/NVME) KINGDIAN",
+        "categoria": "PERMANENTE",
+        "quantidade": "6.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "1290.37",
+        "valor_total": "7742.22"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 241,
+    "fields": {
+        "nota_fiscal": 81,
+        "numero_item": 5,
+        "descricao": "FONTE ATX 750W 80 PLUS BRONZE AIGO",
+        "categoria": "PERMANENTE",
+        "quantidade": "6.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "396.35",
+        "valor_total": "2378.10"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 242,
+    "fields": {
+        "nota_fiscal": 81,
+        "numero_item": 6,
+        "descricao": "PLACA DE VIDEO PALIT GEFORCE RTX 5060 8GB OC 128BITS GDDR7 INFINITY 3 NE75060T19P1-GB20635",
+        "categoria": "PERMANENTE",
+        "quantidade": "6.00",
+        "unidade_comercial": "PC",
+        "valor_unitario": "2979.08",
+        "valor_total": "17874.48"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 243,
+    "fields": {
+        "nota_fiscal": 81,
+        "numero_item": 7,
+        "descricao": "Gabinete Gamer Darkflash DK352 Plus M-ATX Lateral em Vidro Temperado",
+        "categoria": "PERMANENTE",
+        "quantidade": "6.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "217.08",
+        "valor_total": "1302.48"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 244,
+    "fields": {
+        "nota_fiscal": 82,
+        "numero_item": 1,
+        "descricao": "LONA PRETA 4MX100M 13KG 100MICRAS RB LONA",
+        "categoria": "CONSUMO",
+        "quantidade": "2.00",
+        "unidade_comercial": "RL",
+        "valor_unitario": "241.05",
+        "valor_total": "482.10"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 245,
+    "fields": {
+        "nota_fiscal": 83,
+        "numero_item": 1,
+        "descricao": "Tampa cega 4/2 branca linha Pial Plus+",
+        "categoria": "CONSUMO",
+        "quantidade": "15.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "7.38",
+        "valor_total": "110.70"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 246,
+    "fields": {
+        "nota_fiscal": 83,
+        "numero_item": 2,
+        "descricao": "Lampada led com calha de 60cm 10W Tubular T5 Fosca",
+        "categoria": "CONSUMO",
+        "quantidade": "10.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "32.50",
+        "valor_total": "325.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 247,
+    "fields": {
+        "nota_fiscal": 83,
+        "numero_item": 3,
+        "descricao": "Fotocelula rele bivolt",
+        "categoria": "PERMANENTE",
+        "quantidade": "10.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "30.00",
+        "valor_total": "300.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 248,
+    "fields": {
+        "nota_fiscal": 83,
+        "numero_item": 4,
+        "descricao": "Refletor externo 200w Branco Frio",
+        "categoria": "PERMANENTE",
+        "quantidade": "10.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "47.50",
+        "valor_total": "475.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 249,
+    "fields": {
+        "nota_fiscal": 84,
+        "numero_item": 1,
+        "descricao": "CORDA POLISTER ALTA TENACIDADE 12MM PARA TRAVA QUEDAS 100M S",
+        "categoria": "PERMANENTE",
+        "quantidade": "100.00",
+        "unidade_comercial": "MT",
+        "valor_unitario": "4.83",
+        "valor_total": "483.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 250,
+    "fields": {
+        "nota_fiscal": 85,
+        "numero_item": 1,
+        "descricao": "Lavadora De Alta Pressão Ousada Plus 2200 1750 PSI 1500W 127V",
+        "categoria": "PERMANENTE",
+        "quantidade": "1.00",
+        "unidade_comercial": "UND",
+        "valor_unitario": "945.00",
+        "valor_total": "945.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 251,
+    "fields": {
+        "nota_fiscal": 86,
+        "numero_item": 1,
+        "descricao": "TINTA DIAPISO AMARELO DEMARCACAO C/ 3,6 L IQUINE",
+        "categoria": "CONSUMO",
+        "quantidade": "2.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "88.00",
+        "valor_total": "176.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 252,
+    "fields": {
+        "nota_fiscal": 87,
+        "numero_item": 1,
+        "descricao": "Smart TV 4K 75\"LG UHD 75UA85",
+        "categoria": "PERMANENTE",
+        "quantidade": "1.00",
+        "unidade_comercial": "UND",
+        "valor_unitario": "8900.00",
+        "valor_total": "8900.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 253,
+    "fields": {
+        "nota_fiscal": 88,
+        "numero_item": 1,
+        "descricao": "Tinta semi brilho externo verde escuro classica",
+        "categoria": "CONSUMO",
+        "quantidade": "2.00",
+        "unidade_comercial": "LT",
+        "valor_unitario": "450.00",
+        "valor_total": "900.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 254,
+    "fields": {
+        "nota_fiscal": 88,
+        "numero_item": 2,
+        "descricao": "Tinta semi brilho externo cinza escuro",
+        "categoria": "CONSUMO",
+        "quantidade": "3.00",
+        "unidade_comercial": "LT",
+        "valor_unitario": "535.00",
+        "valor_total": "1605.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 255,
+    "fields": {
+        "nota_fiscal": 88,
+        "numero_item": 3,
+        "descricao": "Tinta semi brilho externo - branco",
+        "categoria": "CONSUMO",
+        "quantidade": "7.00",
+        "unidade_comercial": "LT",
+        "valor_unitario": "310.00",
+        "valor_total": "2170.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 256,
+    "fields": {
+        "nota_fiscal": 88,
+        "numero_item": 4,
+        "descricao": "Tinta semi brilho iterno - branco",
+        "categoria": "CONSUMO",
+        "quantidade": "5.00",
+        "unidade_comercial": "LT",
+        "valor_unitario": "310.00",
+        "valor_total": "1550.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 257,
+    "fields": {
+        "nota_fiscal": 88,
+        "numero_item": 5,
+        "descricao": "Tinta Acrilica Semibrilho 3,6 litros gelo pantone",
+        "categoria": "CONSUMO",
+        "quantidade": "5.00",
+        "unidade_comercial": "GL",
+        "valor_unitario": "115.00",
+        "valor_total": "575.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 258,
+    "fields": {
+        "nota_fiscal": 89,
+        "numero_item": 1,
+        "descricao": "SELANTE MULTIUSO PU CALHAS 400GR",
+        "categoria": "CONSUMO",
+        "quantidade": "6.00",
+        "unidade_comercial": "UND",
+        "valor_unitario": "50.99",
+        "valor_total": "305.94"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 259,
+    "fields": {
+        "nota_fiscal": 89,
+        "numero_item": 2,
+        "descricao": "MARTELO UNHA S/VERNIZ 25 MM.",
+        "categoria": "CONSUMO",
+        "quantidade": "1.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "42.94",
+        "valor_total": "42.94"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 260,
+    "fields": {
+        "nota_fiscal": 90,
+        "numero_item": 1,
+        "descricao": "PINCEL TRINCHA N.2",
+        "categoria": "PERMANENTE",
+        "quantidade": "5.00",
+        "unidade_comercial": "UNID",
+        "valor_unitario": "8.00",
+        "valor_total": "40.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 261,
+    "fields": {
+        "nota_fiscal": 90,
+        "numero_item": 2,
+        "descricao": "PINCEL TRINCHA N.3",
+        "categoria": "PERMANENTE",
+        "quantidade": "5.00",
+        "unidade_comercial": "UNID",
+        "valor_unitario": "12.00",
+        "valor_total": "60.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 262,
+    "fields": {
+        "nota_fiscal": 90,
+        "numero_item": 3,
+        "descricao": "CABO P/ ROLO DE LA",
+        "categoria": "PERMANENTE",
+        "quantidade": "5.00",
+        "unidade_comercial": "UNID",
+        "valor_unitario": "6.00",
+        "valor_total": "30.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 263,
+    "fields": {
+        "nota_fiscal": 91,
+        "numero_item": 1,
+        "descricao": "Estrutura de Mesa GenioDesk PLUS - Preto",
+        "categoria": "PERMANENTE",
+        "quantidade": "8.00",
+        "unidade_comercial": "Unidade",
+        "valor_unitario": "3699.00",
+        "valor_total": "29592.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 264,
+    "fields": {
+        "nota_fiscal": 91,
+        "numero_item": 2,
+        "descricao": "Tampo GenioDesk MDP (Avulso) - 140 x 70 cm - Amendola Rustica",
+        "categoria": "PERMANENTE",
+        "quantidade": "8.00",
+        "unidade_comercial": "Unidade",
+        "valor_unitario": "650.00",
+        "valor_total": "5200.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 265,
+    "fields": {
+        "nota_fiscal": 91,
+        "numero_item": 3,
+        "descricao": "Cadeira Ergonomica ERGOCHAIR 3.0 - Preto",
+        "categoria": "PERMANENTE",
+        "quantidade": "8.00",
+        "unidade_comercial": "Unidade",
+        "valor_unitario": "2899.00",
+        "valor_total": "23192.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 266,
+    "fields": {
+        "nota_fiscal": 92,
+        "numero_item": 35335,
+        "descricao": "FITA ISOLANTE DE ALTAFUSÃO (5METROS)",
+        "categoria": "CONSUMO",
+        "quantidade": "10.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "18.00",
+        "valor_total": "180.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 267,
+    "fields": {
+        "nota_fiscal": 92,
+        "numero_item": 37795,
+        "descricao": "FITA ISOLANTE -10M",
+        "categoria": "CONSUMO",
+        "quantidade": "5.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "4.50",
+        "valor_total": "22.50"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 268,
+    "fields": {
+        "nota_fiscal": 92,
+        "numero_item": 44398,
+        "descricao": "TAMPA CEGA 4X4BRNCA COM TECLA",
+        "categoria": "CONSUMO",
+        "quantidade": "10.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "7.50",
+        "valor_total": "75.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 269,
+    "fields": {
+        "nota_fiscal": 92,
+        "numero_item": 397,
+        "descricao": "KIT TOMADA 20A CONDULETE 3X4",
+        "categoria": "CONSUMO",
+        "quantidade": "20.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "30.00",
+        "valor_total": "600.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 270,
+    "fields": {
+        "nota_fiscal": 92,
+        "numero_item": 44412,
+        "descricao": "TOMADA 1P+ 10A 250V PI/BR",
+        "categoria": "CONSUMO",
+        "quantidade": "10.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "7.50",
+        "valor_total": "75.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 271,
+    "fields": {
+        "nota_fiscal": 92,
+        "numero_item": 44412,
+        "descricao": "TOMADA 2P+T 10A 250V PI/BR",
+        "categoria": "CONSUMO",
+        "quantidade": "10.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "7.50",
+        "valor_total": "75.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 272,
+    "fields": {
+        "nota_fiscal": 92,
+        "numero_item": 44414,
+        "descricao": "TOMADA 1P +T10A 250V PI/BR",
+        "categoria": "CONSUMO",
+        "quantidade": "11.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "9.00",
+        "valor_total": "99.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 273,
+    "fields": {
+        "nota_fiscal": 92,
+        "numero_item": 44414,
+        "descricao": "TOMADA 2P+ T 20A 250V PI/BR",
+        "categoria": "CONSUMO",
+        "quantidade": "10.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "9.00",
+        "valor_total": "90.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 274,
+    "fields": {
+        "nota_fiscal": 93,
+        "numero_item": 1,
+        "descricao": "PAINEL LED EMB 45W 62 X 62-4000K",
+        "categoria": "PERMANENTE",
+        "quantidade": "20.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "170.00",
+        "valor_total": "3400.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 275,
+    "fields": {
+        "nota_fiscal": 94,
+        "numero_item": 1,
+        "descricao": "GARFO P/ROLO 5 A 23 ROMA",
+        "categoria": "CONSUMO",
+        "quantidade": "8.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "7.00",
+        "valor_total": "56.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 276,
+    "fields": {
+        "nota_fiscal": 94,
+        "numero_item": 2,
+        "descricao": "ROLO DE LA SEM RESPINGO 23CM S/CABO ROMA",
+        "categoria": "CONSUMO",
+        "quantidade": "8.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "10.50",
+        "valor_total": "84.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 277,
+    "fields": {
+        "nota_fiscal": 95,
+        "numero_item": 1,
+        "descricao": "MANGUEIRA P/JARDIM TRANCADA VERDE 300MT FAMASTIL",
+        "categoria": "PERMANENTE",
+        "quantidade": "100.00",
+        "unidade_comercial": "METRO",
+        "valor_unitario": "2.66",
+        "valor_total": "266.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 278,
+    "fields": {
+        "nota_fiscal": 96,
+        "numero_item": 1,
+        "descricao": "* ESPONJA P/PEDREIRO 180MMX120MMX50MM 0131 METACK",
+        "categoria": "CONSUMO",
+        "quantidade": "1.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "3.02",
+        "valor_total": "3.02"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 279,
+    "fields": {
+        "nota_fiscal": 96,
+        "numero_item": 2,
+        "descricao": "CAIXA PLASTICA RETANGULAR PARA MASSA 40 LITROS VONDER",
+        "categoria": "CONSUMO",
+        "quantidade": "1.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "49.29",
+        "valor_total": "49.29"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 280,
+    "fields": {
+        "nota_fiscal": 96,
+        "numero_item": 3,
+        "descricao": "COLHER DE PEDREIRO 9 REDONDA 77358/095 TRAMONTI",
+        "categoria": "PERMANENTE",
+        "quantidade": "1.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "29.05",
+        "valor_total": "29.05"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 281,
+    "fields": {
+        "nota_fiscal": 96,
+        "numero_item": 4,
+        "descricao": "DESEMPENADEIRA DE MADEIRA 854 17X30 CONDOR",
+        "categoria": "PERMANENTE",
+        "quantidade": "2.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "21.00",
+        "valor_total": "42.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 282,
+    "fields": {
+        "nota_fiscal": 96,
+        "numero_item": 5,
+        "descricao": "FITA MULTIUSO VEDA TUDO IMTX90CM VEDACIT",
+        "categoria": "CONSUMO",
+        "quantidade": "20.00",
+        "unidade_comercial": "MT",
+        "valor_unitario": "27.32",
+        "valor_total": "546.40"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 283,
+    "fields": {
+        "nota_fiscal": 96,
+        "numero_item": 6,
+        "descricao": "MANTA LIQUIDA BRANCA 18KG QUARTZOLIT",
+        "categoria": "CONSUMO",
+        "quantidade": "3.00",
+        "unidade_comercial": "BD",
+        "valor_unitario": "391.07",
+        "valor_total": "1173.21"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 284,
+    "fields": {
+        "nota_fiscal": 96,
+        "numero_item": 7,
+        "descricao": "TELA SINTETICA POLIESTER IMTX50MT MANTEX VIAPOL",
+        "categoria": "CONSUMO",
+        "quantidade": "2.00",
+        "unidade_comercial": "RL",
+        "valor_unitario": "418.95",
+        "valor_total": "837.90"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 285,
+    "fields": {
+        "nota_fiscal": 96,
+        "numero_item": 8,
+        "descricao": "BROXA MEDIA 1199-03 TIGRE",
+        "categoria": "PERMANENTE",
+        "quantidade": "4.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "15.75",
+        "valor_total": "63.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 286,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 1,
+        "descricao": "SACO C/42,5KG",
+        "categoria": "CONSUMO",
+        "quantidade": "4.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "63.00",
+        "valor_total": "252.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 287,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 2,
+        "descricao": "2 (3,2X22) REBITOP",
+        "categoria": "CONSUMO",
+        "quantidade": "0.20",
+        "unidade_comercial": "MIL",
+        "valor_unitario": "107.53",
+        "valor_total": "21.50"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 288,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 3,
+        "descricao": "X50MT USO GERAL BRANCA 423 ADERE",
+        "categoria": "CONSUMO",
+        "quantidade": "5.00",
+        "unidade_comercial": "RL",
+        "valor_unitario": "15.80",
+        "valor_total": "79.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 289,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 4,
+        "descricao": "EXTERNA EXTRA SACO 20KG ELIANE",
+        "categoria": "CONSUMO",
+        "quantidade": "2.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "54.11",
+        "valor_total": "108.22"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 290,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 5,
+        "descricao": "DO VINILICO 4KG UNIPEGA",
+        "categoria": "CONSUMO",
+        "quantidade": "1.00",
+        "unidade_comercial": "GL",
+        "valor_unitario": "149.99",
+        "valor_total": "149.99"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 291,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 6,
+        "descricao": "603/03 P/PORTA DE ALUMINIO STAM",
+        "categoria": "CONSUMO",
+        "quantidade": "10.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "75.11",
+        "valor_total": "751.10"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 292,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 7,
+        "descricao": "ANCO 400GR BRASCOLA",
+        "categoria": "CONSUMO",
+        "quantidade": "4.00",
+        "unidade_comercial": "UN",
+        "valor_unitario": "23.00",
+        "valor_total": "92.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 293,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 8,
+        "descricao": "EDA TUDO 1MTX90CM VEDACIT",
+        "categoria": "CONSUMO",
+        "quantidade": "20.00",
+        "unidade_comercial": "MT",
+        "valor_unitario": "26.02",
+        "valor_total": "520.40"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 294,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 9,
+        "descricao": "00MT MEXICHEM",
+        "categoria": "CONSUMO",
+        "quantidade": "36.00",
+        "unidade_comercial": "MT",
+        "valor_unitario": "18.28",
+        "valor_total": "658.08"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 295,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 10,
+        "descricao": "CA ACQUA 18LTS QUARTZOLIT",
+        "categoria": "CONSUMO",
+        "quantidade": "1.00",
+        "unidade_comercial": "BD",
+        "valor_unitario": "269.99",
+        "valor_total": "269.99"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 296,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 11,
+        "descricao": "MPERTECH 3X1 BASE A 14KG HM RUBBER",
+        "categoria": "CONSUMO",
+        "quantidade": "2.00",
+        "unidade_comercial": "BD",
+        "valor_unitario": "449.99",
+        "valor_total": "899.98"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 297,
+    "fields": {
+        "nota_fiscal": 97,
+        "numero_item": 12,
+        "descricao": "8 (3,2X8) REBITOP",
+        "categoria": "CONSUMO",
+        "quantidade": "0.20",
+        "unidade_comercial": "MIL",
+        "valor_unitario": "73.34",
+        "valor_total": "14.66"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 298,
+    "fields": {
+        "nota_fiscal": 98,
+        "numero_item": 1,
+        "descricao": "CABO FLEXIVEL 450/750V 4,00MM VERMELHO PECA FLEXCABOS",
+        "categoria": "CONSUMO",
+        "quantidade": "1.00",
+        "unidade_comercial": "PC",
+        "valor_unitario": "499.00",
+        "valor_total": "499.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 299,
+    "fields": {
+        "nota_fiscal": 99,
+        "numero_item": 1,
+        "descricao": "CABO FLEXIVEL 450/750V 2,5MM PRETO PECA FLEXCABOS",
+        "categoria": "CONSUMO",
+        "quantidade": "1.00",
+        "unidade_comercial": "PC",
+        "valor_unitario": "310.00",
+        "valor_total": "310.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 300,
+    "fields": {
+        "nota_fiscal": 99,
+        "numero_item": 2,
+        "descricao": "CABO FLEXIVEL 450/750V 6,00MM PRETO PECA FLEXCABOS",
+        "categoria": "CONSUMO",
+        "quantidade": "1.00",
+        "unidade_comercial": "PC",
+        "valor_unitario": "726.00",
+        "valor_total": "726.00"
+    }
+},
+{
+    "model": "almoxarifado.produtoalmoxarifado",
+    "pk": 301,
+    "fields": {
+        "nota_fiscal": 99,
+        "numero_item": 3,
+        "descricao": "CABO FLEXIVEL 450/750V 10,00MM PRETO PECA FLEXCABOS",
+        "categoria": "CONSUMO",
+        "quantidade": "1.00",
+        "unidade_comercial": "PC",
+        "valor_unitario": "1223.00",
+        "valor_total": "1223.00"
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 1,
+    "fields": {
+        "data": "2026-05-20",
+        "requisicoes_feitas": 0,
+        "limite_diario": 120
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 2,
+    "fields": {
+        "data": "2026-05-21",
+        "requisicoes_feitas": 1,
+        "limite_diario": 100
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 3,
+    "fields": {
+        "data": "2026-05-26",
+        "requisicoes_feitas": 0,
+        "limite_diario": 100
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 4,
+    "fields": {
+        "data": "2026-05-29",
+        "requisicoes_feitas": 2,
+        "limite_diario": 100
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 5,
+    "fields": {
+        "data": "2026-06-01",
+        "requisicoes_feitas": 21,
+        "limite_diario": 100
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 6,
+    "fields": {
+        "data": "2026-06-02",
+        "requisicoes_feitas": 1,
+        "limite_diario": 100
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 7,
+    "fields": {
+        "data": "2026-06-03",
+        "requisicoes_feitas": 21,
+        "limite_diario": 100
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 8,
+    "fields": {
+        "data": "2026-06-08",
+        "requisicoes_feitas": 0,
+        "limite_diario": 100
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 9,
+    "fields": {
+        "data": "2026-06-11",
+        "requisicoes_feitas": 0,
+        "limite_diario": 100
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 10,
+    "fields": {
+        "data": "2026-06-12",
+        "requisicoes_feitas": 20,
+        "limite_diario": 100
+    }
+},
+{
+    "model": "almoxarifado.cotadiariaia",
+    "pk": 11,
+    "fields": {
+        "data": "2026-06-13",
+        "requisicoes_feitas": 0,
+        "limite_diario": 100
+    }
+}
+]

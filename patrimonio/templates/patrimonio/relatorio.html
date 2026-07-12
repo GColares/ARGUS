@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Relatório Consolidado - ARGUS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos específicos dos cartões do relatório, herdando as variáveis de tema globais */
+    .card-stat-green { border-left: 5px solid var(--inova-verde); }
+    .card-stat-red { border-left: 5px solid #cd191e; }
+    .card-stat-blue { border-left: 5px solid var(--inova-azul); }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-primary">Relatório Patrimonial Consolidado</h2>
+        <p class="text-muted mb-0">Visão geral do acervo de bens móveis e convênios ativos do INOVA.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card card-stat-green bg-white shadow-sm h-100 p-3 border-0">
+            <h6 class="text-muted text-uppercase mb-2 fw-bold small">Total de Equipamentos</h6>
+            <h3 class="fw-bold mb-0 text-dark">{{ total_equipamentos|default:"0" }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stat-red bg-white shadow-sm h-100 p-3 border-0">
+            <h6 class="text-muted text-uppercase mb-2 fw-bold small">Valor Total do Acervo</h6>
+            <h3 class="fw-bold mb-0 text-danger">R$ {{ valor_total|floatformat:2|default:"0,00" }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stat-blue bg-white shadow-sm h-100 p-3 border-0">
+            <h6 class="text-muted text-uppercase mb-2 fw-bold small">Projetos Atendidos</h6>
+            <h3 class="fw-bold mb-0 text-dark">{{ total_projetos|default:"0" }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 border-bottom">
+        <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-list-columns-reverse me-2"></i>Inventário Geral</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-light text-secondary">
+                    <tr>
+                        <th>Patrimônio Origem</th>
+                        <th>Patrimônio IFAM</th>
+                        <th>Equipamento / Descrição</th>
+                        <th>Valor Unitário</th>
+                        <th>Projeto Vinculado</th>
+                        <th>Termo de Doação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bem in bens %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-secondary px-2 py-1">{{ bem.patrimonio_doador|default:"-" }}</span>
+                        </td>
+                        <td>
+                            {% if bem.patrimonio_ifam %}
+                                <span class="badge bg-success px-2 py-1">{{ bem.patrimonio_ifam }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark px-2 py-1">Pendente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong class="text-dark">{{ bem.produto_categoria }}</strong><br>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">{{ bem.descricao }}</small>
+                        </td>
+                        <td class="fw-bold text-success">R$ {{ bem.valor|floatformat:2 }}</td>
+                        <td class="text-muted">{{ bem.projeto.codigo|default:"Sem Projeto" }}</td>
+                        <td>
+                            {% if bem.termo_doacao %}
+                                <span class="text-danger fw-bold"><i class="bi bi-file-earmark-pdf-fill me-1"></i> {{ bem.termo_doacao.numero }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            Nenhum bem patrimonial cadastrado até o momento.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

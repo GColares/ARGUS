@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-info"><i class="fas fa-database me-2"></i> Gestão de Cadastros</h3>
+            <p class="text-muted small mb-0">Configuração de Projetos PDI, Contas Bancárias e Processos</p>
+        </div>
+        <a href="{% url 'cadastros:novo_projeto' %}" class="btn btn-info text-white fw-bold shadow-sm">
+            <i class="fas fa-plus me-2"></i> NOVO PROJETO
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 fw-bold">PROJETOS PDI CADASTRADOS</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Convênio</th>
+                                <th>Projeto</th>
+                                <th>Financiador</th>
+                                <th class="text-center">Contas</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for projeto in projetos %}
+                            <tr>
+                                <td class="fw-bold">{{ projeto.convenio }}</td>
+                                <td>{{ projeto.nome }}</td>
+                                <td class="small">{{ projeto.financiadores }}</td>
+                                
+                                <td class="text-center">
+                                    <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-sm btn-outline-info rounded-pill fw-bold" title="Gerenciar Contas do Projeto">
+                                        <i class="fas fa-university me-1"></i> {{ projeto.contas.count }} Contas
+                                    </a>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <a href="{% url 'cadastros:gerenciar_processos' projeto.id %}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" title="Gerenciar Processos de Compra e Pagamento">
+                                        <i class="fas fa-file-signature me-1"></i> Processos
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
+                                    <p class="mb-0">Nenhum projeto cadastrado até ao momento.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

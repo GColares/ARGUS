@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Processo - ARGUS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+        <button onclick="window.history.back();" class="btn btn-sm btn-outline-secondary me-3">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <div>
+            <h2 class="mb-0 fw-bold text-dark">Cadastrar Novo Processo</h2>
+            <p class="text-muted small mb-0">Insira a numeração oficial. O sistema validará a máscara com base no órgão emissor (IFAM ou FAEPI).</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" action="?projeto={{ projeto_sugerido_id|default:'' }}&tipo={{ tipo_sugerido_id|default:'' }}&retorno_termo={{ retorno_termo_id|default:'' }}">
+                        {% csrf_token %}
+
+                        <h5 class="text-success fw-bold mb-3 border-bottom pb-1">
+                            <i class="fas fa-landmark me-2"></i>Vínculo e Procedência
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_projeto" class="form-label fw-bold small text-secondary">Projeto PDI</label>
+                                <select name="projeto" id="id_projeto" class="form-select" required>
+                                    <option value="">Selecione o Projeto...</option>
+                                    {% for proj in projetos %}
+                                        <option value="{{ proj.id }}" {% if proj.id == projeto_sugerido_id %}selected{% endif %}>
+                                            CV nº {{ proj.convenio }} - {{ proj.nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="id_origem" class="form-label fw-bold small text-secondary">Órgão Emissor / Origem</label>
+                                <select name="origem" id="id_origem" class="form-select" required>
+                                    {% for chave, valor in origens %}
+                                        <option value="{{ chave }}" {% if chave == 'FAEPI' %}selected{% endif %}>{{ valor }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <h5 class="text-success fw-bold mt-3 mb-3 border-bottom pb-1">
+                            <i class="fas fa-file-signature me-2"></i>Dados do Processo
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_tipo" class="form-label fw-bold small text-secondary">Tipo de Procedimento</label>
+                                <select name="tipo" id="id_tipo" class="form-select" required>
+                                    <option value="">Selecione o Tipo...</option>
+                                    {% for t in tipos %}
+                                        <option value="{{ t.id }}" {% if t.id == tipo_sugerido_id %}selected{% endif %}>
+                                            {{ t.nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="id_numero" class="form-label fw-bold small text-secondary">Número do Processo</label>
+                                <input type="text" name="numero" id="id_numero" class="form-control" required placeholder="Aguardando seleção do órgão...">
+                                <div id="helper_mascara" class="form-text small text-muted">Selecione o órgão emissor para ver o padrão exigido.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="id_descricao" class="form-label fw-bold small text-secondary">Descrição Resumida (Opcional)</label>
+                            <input type="text" name="descricao" id="id_descricao" class="form-control" placeholder="Ex: Aquisição de Computadores do Projeto Capacitar 4.0">
+                        </div>
+
+                        <div class="mt-4 border-top pt-3 text-end">
+                            <button type="button" onclick="window.history.back();" class="btn btn-light fw-bold px-3 me-2">Cancelar</button>
+                            <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm">
+                                <i class="fas fa-check me-2"></i>Salvar Processo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const selectOrigem = document.getElementById('id_origem');
+    const inputNumero = document.getElementById('id_numero');
+    const helperMascara = document.getElementById('helper_mascara');
+
+    function ajustarDicaMascara() {
+        if (selectOrigem.value === 'IFAM') {
+            inputNumero.placeholder = 'Ex: 23443.000123/2022-12';
+            helperMascara.textContent = 'Padrão SEI/IFAM obrigatório: 23443.XXXXXX/ANO-XX';
+        } else if (selectOrigem.value === 'FAEPI') {
+            inputNumero.placeholder = 'Ex: 00001/2022';
+            helperMascara.textContent = 'Padrão FAEPI obrigatório: XXXXX/ANO';
+        } else {
+            inputNumero.placeholder = 'Digite a numeração oficial';
+            helperMascara.textContent = 'Sem validação rígida de máscara para outras PJs.';
+        }
+    }
+
+    // Monitora a mudança para atualizar o placeholder e orientar o usuário
+    selectOrigem.addEventListener('change', ajustarDicaMascara);
+    window.addEventListener('DOMContentLoaded', ajustarDicaMascara);
+</script>
+{% endblock %}
