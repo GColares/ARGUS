@@ -50,10 +50,32 @@ def montar_contexto_relatorio(relatorio_id):
     # Dicionário mapeando rigorosamente as seções do documento oficial
     total_parcelas = termo.quantidade_parcelas if termo else relatorio.bolsista.total_parcelas_previstas
     
+    conta_final = relatorio.conta_pagamento
+    
+    if not conta_final and termo:
+        # Se for um relatório antigo sem a conta gravada, tenta achar dinamicamente
+        from cadastros.models import DistribuicaoContaCota
+        dist = DistribuicaoContaCota.objects.filter(
+            cota_pt=termo.cota_pt,
+            parcela_inicio__lte=relatorio.parcela,
+            parcela_fim__gte=relatorio.parcela
+        ).first()
+        if dist:
+            conta_final = dist.conta_pagamento
+
+    if not conta_final:
+        # Fallback de segurança: pega a primeira conta do projeto
+        conta_final = projeto.contas.first()
+        
+    if conta_final:
+        projeto_conta = f"{conta_final.conta}-{conta_final.dv}: Conta {conta_final.fonte_recurso}"
+    else:
+        projeto_conta = 'N/I'
+        
     contexto = {
         # Seção 1: Identificação do Projeto
         'convenio_numero': projeto.convenio,
-        'projeto_conta': getattr(projeto, 'conta_bancaria', 'N/I'),
+        'projeto_conta': projeto_conta,
         'projeto_nome': projeto.nome,
         
         # Seção 3: Identificação do Período e Parcela
@@ -324,10 +346,9 @@ def excluir_relatorio(request, relatorio_id):
     if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
         return HttpResponseForbidden("Acesso negado: Você não possui permissão neste projeto.")
         
-    # Trava de Auditoria
-    if relatorio.status == 'CONCLUIDO':
-        messages.error(request, "Falha de segurança: Relatórios concluídos e atestados não podem ser excluídos do sistema.")
-        return redirect('gestao_projetos:listar_relatorios')
+    # Trava de Auditoria removida temporariamente a pedido da gestão,
+    # pois o status "Concluído" ainda se refere à geração do DOCX, 
+    # e não ao upload do PDF assinado.
 
     if request.method == 'POST':
         relatorio.delete()
@@ -538,6 +559,17 @@ def gerar_relatorios_lote(request):
                     
 
                     
+                # Resolve a conta de pagamento
+                conta_pagamento = None
+                from cadastros.models import DistribuicaoContaCota
+                dist = DistribuicaoContaCota.objects.filter(
+                    cota_pt=termo.cota_pt,
+                    parcela_inicio__lte=p,
+                    parcela_fim__gte=p
+                ).first()
+                if dist:
+                    conta_pagamento = dist.conta_pagamento
+
                 RelatorioAtividade.objects.create(
                     termo_bolsa=termo,
                     parcela=p,
@@ -547,7 +579,8 @@ def gerar_relatorios_lote(request):
                     carga_horaria_periodo=carga_horaria,
                     macroentrega="Geral",
                     status='RASCUNHO',
-                    criado_por=request.user
+                    criado_por=request.user,
+                    conta_pagamento=conta_pagamento
                 )
                 relatorios_criados += 1
                 
@@ -578,6 +611,17 @@ def gerar_relatorios_lote(request):
                     
 
                     
+                # Resolve a conta de pagamento
+                conta_pagamento = None
+                from cadastros.models import DistribuicaoContaCota
+                dist = DistribuicaoContaCota.objects.filter(
+                    cota_pt=termo.cota_pt,
+                    parcela_inicio__lte=parcela_num,
+                    parcela_fim__gte=parcela_num
+                ).first()
+                if dist:
+                    conta_pagamento = dist.conta_pagamento
+
                 RelatorioAtividade.objects.create(
                     termo_bolsa=termo,
                     parcela=parcela_num,
@@ -587,7 +631,8 @@ def gerar_relatorios_lote(request):
                     carga_horaria_periodo=carga_horaria,
                     macroentrega="Geral",
                     status='RASCUNHO',
-                    criado_por=request.user
+                    criado_por=request.user,
+                    conta_pagamento=conta_pagamento
                 )
                 relatorios_criados += 1
 
@@ -770,3 +815,66 @@ def exportar_rascunhos_zip(request):
     response = HttpResponse(zip_buffer, content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="Rascunhos_Argus.zip"'
     return response
+
+from django.db.models import Sum
+
+@login_required
+def relatorio_orcamento_financeiro(request):
+    from cadastros.models import ProjetoPDI, MembroEquipe, CotaBolsaPT, DistribuicaoContaCota
+    
+    projetos_permitidos = MembroEquipe.objects.filter(
+        usuario=request.user
+    ).values_list('projeto_id', flat=True)
+    
+    projetos = ProjetoPDI.objects.filter(id__in=projetos_permitidos)
+    
+    projeto_id = request.GET.get('projeto_id')
+    projeto_selecionado = None
+    cotas_dados = []
+    contas_projeto = []
+    
+    if projeto_id:
+        projeto_selecionado = get_object_or_404(ProjetoPDI, id=projeto_id, id__in=projetos_permitidos)
+        contas_projeto = projeto_selecionado.contas.all()
+        cotas = CotaBolsaPT.objects.filter(projeto=projeto_selecionado)
+        
+        for cota in cotas:
+            distribuicoes = DistribuicaoContaCota.objects.filter(cota_pt=cota).order_by('parcela_inicio')
+            
+            # Organiza as distribuições por conta
+            mapa_por_conta = {conta.id: [] for conta in contas_projeto}
+            parcelas_mapeadas = 0
+            
+            for d in distribuicoes:
+                parcelas_mapeadas += (d.parcela_fim - d.parcela_inicio + 1)
+                texto = f"{d.parcela_inicio} a {d.parcela_fim}" if d.parcela_inicio != d.parcela_fim else f"{d.parcela_inicio}"
+                if d.conta_pagamento_id in mapa_por_conta:
+                    mapa_por_conta[d.conta_pagamento_id].append(texto)
+                    
+            # Constrói a lista paralela às contas do projeto para fácil iteração no template
+            colunas_contas = []
+            for conta in contas_projeto:
+                textos = mapa_por_conta.get(conta.id, [])
+                colunas_contas.append(", ".join(textos) if textos else "")
+                
+            status = 'OK'
+            if parcelas_mapeadas < cota.parcelas_previstas:
+                status = 'ALERTA'
+            elif parcelas_mapeadas > cota.parcelas_previstas:
+                status = 'ERRO'
+                
+            cotas_dados.append({
+                'cota': cota,
+                'colunas_contas': colunas_contas,
+                'mapeadas': parcelas_mapeadas,
+                'status': status
+            })
+            
+    context = {
+        'projetos': projetos,
+        'projeto_selecionado': projeto_selecionado,
+        'contas_projeto': contas_projeto,
+        'cotas_dados': cotas_dados
+    }
+    
+    return render(request, 'gestao_projetos/relatorio_orcamento_financeiro.html', context)

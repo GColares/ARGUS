@@ -23,6 +23,16 @@ class RelatorioAtividade(models.Model):
         null=True,  # Para manter compatibilidade durante a migração
         blank=True
     )
+    
+    conta_pagamento = models.ForeignKey(
+        'cadastros.ContaBancaria',
+        on_delete=models.SET_NULL,
+        related_name='relatorios_pagos',
+        null=True,
+        blank=True,
+        verbose_name="Conta Pagadora / Fonte de Recurso"
+    )
+    
     # BolsistaProjeto mantido temporariamente apenas por compatibilidade (será descontinuado)
     bolsista = models.ForeignKey(
         'cadastros.BolsistaProjeto', 

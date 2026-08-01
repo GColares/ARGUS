@@ -35,16 +35,18 @@
             </div>
         </div>
 
-        <!-- Espaço reservado para futuras telas do módulo (ex: Alocação de Equipe, Cronograma) -->
+        <!-- Card: Orçamento e Financeiro -->
         <div class="col">
-            <div class="card h-100 shadow-sm border-0 bg-light">
-                <div class="card-body p-4 text-muted">
-                    <div class="mb-3">
-                        <i class="fas fa-users-cog fs-1 opacity-50"></i>
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="text-success mb-3">
+                        <i class="fas fa-coins fs-1"></i>
                     </div>
-                    <h5 class="card-title fw-bold">Equipes e Alocações</h5>
-                    <p class="card-text small">Controle de membros, vigências e termos de outorga vinculados aos projetos do PDI.</p>
-                    <button class="btn btn-outline-secondary btn-sm" disabled>Em Breve</button>
+                    <h5 class="card-title fw-bold">Orçamento e Financeiro</h5>
+                    <p class="card-text text-muted small">Acompanhamento e visão gerencial das distribuições orçamentárias e mapeamento de contas de pagamento das bolsas.</p>
+                    <a href="{% url 'gestao_projetos:orcamento_financeiro' %}" class="btn btn-outline-success btn-sm">
+                        Acessar Painel
+                    </a>
                 </div>
             </div>
         </div>

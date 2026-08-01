@@ -346,6 +346,44 @@ class CotaBolsaPT(models.Model):
     def __str__(self):
         return f"{self.perfil_funcao} ({self.quantidade_vagas} vaga/s) - {self.projeto.convenio}"
 
+class DistribuicaoContaCota(models.Model):
+    """
+    Mapeia qual conta bancária fará o pagamento de quais parcelas para um perfil de cota.
+    Isso automatiza o preenchimento da fonte de recurso nos relatórios.
+    """
+    cota_pt = models.ForeignKey(CotaBolsaPT, on_delete=models.CASCADE, related_name='distribuicoes_contas')
+    parcela_inicio = models.PositiveIntegerField(verbose_name="Da Parcela")
+    parcela_fim = models.PositiveIntegerField(verbose_name="Até a Parcela")
+    conta_pagamento = models.ForeignKey(ContaBancaria, on_delete=models.PROTECT, verbose_name="Conta Pagadora")
+
+    class Meta:
+        verbose_name = "Distribuição de Pagamento"
+        verbose_name_plural = "Distribuições de Pagamento"
+        ordering = ['parcela_inicio']
+
+    def clean(self):
+        super().clean()
+        if self.parcela_inicio and self.parcela_fim:
+            if self.parcela_inicio > self.parcela_fim:
+                raise ValidationError("A 'Parcela Início' não pode ser maior que a 'Parcela Fim'.")
+            if self.cota_pt_id and self.parcela_fim > self.cota_pt.parcelas_previstas:
+                raise ValidationError(f"A parcela {self.parcela_fim} excede o limite de {self.cota_pt.parcelas_previstas} parcelas da Cota.")
+                
+            # Verifica sobreposição
+            if self.cota_pt_id:
+                sobreposicoes = DistribuicaoContaCota.objects.filter(
+                    cota_pt=self.cota_pt,
+                    parcela_inicio__lte=self.parcela_fim,
+                    parcela_fim__gte=self.parcela_inicio
+                )
+                if self.pk:
+                    sobreposicoes = sobreposicoes.exclude(pk=self.pk)
+                if sobreposicoes.exists():
+                    raise ValidationError("Existe sobreposição de parcelas com outra distribuição cadastrada para esta cota.")
+
+    def __str__(self):
+        return f"Parcelas {self.parcela_inicio} a {self.parcela_fim} -> {self.conta_pagamento.fonte_recurso}"
+
 class TermoBolsa(models.Model):
     """
     Representa o contrato ativo ou inativo de um bolsista ocupando uma fração da CotaBolsaPT.

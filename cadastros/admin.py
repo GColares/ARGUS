@@ -37,7 +37,7 @@ class FornecedorAdmin(admin.ModelAdmin):
     search_fields = ('cnpj', 'nome', 'sigla')
     list_filter = ('cnpj', 'nome', 'sigla')
 
-from .models import CotaBolsaPT, TermoBolsa, PlanoTrabalho, RubricaOrcamentariaPT
+from .models import CotaBolsaPT, TermoBolsa, PlanoTrabalho, RubricaOrcamentariaPT, DistribuicaoContaCota
 
 class RubricaOrcamentariaPTInline(admin.TabularInline):
     model = RubricaOrcamentariaPT
@@ -73,11 +73,17 @@ class PlanoTrabalhoAdmin(admin.ModelAdmin):
 
     inlines = [RubricaOrcamentariaPTInline, MacroentregaInline]
 
+class DistribuicaoContaCotaInline(admin.TabularInline):
+    model = DistribuicaoContaCota
+    extra = 1
+
 @admin.register(CotaBolsaPT)
 class CotaBolsaPTAdmin(admin.ModelAdmin):
-    list_display = ('perfil_funcao', 'quantidade_vagas', 'parcelas_previstas', 'valor_global_previsto', 'projeto')
+    list_display = ('perfil_funcao', 'projeto', 'quantidade_vagas', 'parcelas_previstas', 'valor_global_previsto')
     list_filter = ('projeto',)
-    search_fields = ('perfil_funcao', 'projeto__nome')
+    search_fields = ('perfil_funcao', 'projeto__nome', 'projeto__convenio')
+    autocomplete_fields = ['projeto']
+    inlines = [DistribuicaoContaCotaInline]
     filter_horizontal = ('atividades_vinculadas',)
 
 @admin.register(TermoBolsa)

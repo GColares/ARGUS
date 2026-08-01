@@ -5,7 +5,6 @@ from . import views
 app_name = 'gestao_projetos'
 
 urlpatterns = [
-
     #home do módulo
     path('', views.home_gestao_projetos, name='home_gestao_projetos'),
     
@@ -14,9 +13,9 @@ urlpatterns = [
     
     # Geração em lote
     path('relatorios/gerar-lote/', views.gerar_relatorios_lote, name='gerar_relatorios_lote'),
-
-    # Rota de elaboração (a que já criamos)
-    path('relatorio/<int:relatorio_id>/elaborar/', views.elaborar_relatorio, name='elaborar_relatorio'),
+    
+    # Orçamento e Financeiro
+    path('orcamento-financeiro/', views.relatorio_orcamento_financeiro, name='orcamento_financeiro'),
 
     path('relatorio/novo/', views.criar_relatorio, name='criar_relatorio'), # CREATE
     path('relatorio/<int:relatorio_id>/elaborar/', views.elaborar_relatorio, name='elaborar_relatorio'), # UPDATE
@@ -30,5 +29,4 @@ urlpatterns = [
     path('poc-extracao/', views.extrair_tabelas_docx_poc, name='poc_extracao'),
 
     path('projeto/<int:projeto_id>/importar-cronograma/', views.importar_cronograma_projeto, name='importar_cronograma'),
-
 ]
