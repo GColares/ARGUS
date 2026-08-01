@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0 text-dark fw-bold">
+                <i class="fas fa-eye text-primary me-2"></i>Pré-visualização do Relatório
+            </h4>
+            <p class="text-muted small mb-0">Confira os dados antes de gerar o documento final no Word.</p>
+        </div>
+        <div>
+            <a href="{% url 'gestao_projetos:elaborar_relatorio' relatorio_obj.id %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i> Voltar e Editar
+            </a>
+            <a href="{% url 'gestao_projetos:baixar_relatorio_docx' relatorio_obj.id %}" class="btn btn-primary fw-bold px-4">
+                <i class="fas fa-download me-1"></i> Baixar Apenas (.docx)
+            </a>
+            <a href="{% url 'gestao_projetos:baixar_relatorio_docx' relatorio_obj.id %}?concluir=1" class="btn btn-success fw-bold px-4 ms-2" onclick="return confirm('Ao concluir, o relatório será travado para edição e atestado como final. Deseja prosseguir?');">
+                <i class="fas fa-check-circle me-1"></i> Concluir e Baixar (.docx)
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow" style="max-width: 900px; margin: 0 auto;">
+        <div class="card-body p-5 bg-white" style="border: 1px solid #e0e0e0; min-height: 800px;">
+            
+            <div class="text-center mb-5">
+                <h5 class="fw-bold text-uppercase">RASCUNHO DO RELATÓRIO DE ATIVIDADES DO BOLSISTA - PREVIEW</h5>
+                <p class="mb-0 text-muted">{{ projeto_nome }}</p>
+            </div>
+
+            <h6 class="fw-bold text-uppercase mb-2 border-bottom pb-2">1. Identificação do Projeto</h6>
+            <table class="table table-bordered table-sm mb-4" style="font-size: 0.9rem;">
+                <tbody>
+                    <tr>
+                        <th class="bg-light" style="width: 25%;">Convênio:</th>
+                        <td>{{ convenio_numero }}</td>
+                        <th class="bg-light" style="width: 20%;">Conta/Centro Custo:</th>
+                        <td>{{ projeto_conta }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Projeto:</th>
+                        <td colspan="3">{{ projeto_nome }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6 class="fw-bold text-uppercase mb-2 border-bottom pb-2">2. Identificação do Bolsista</h6>
+            <table class="table table-bordered table-sm mb-4" style="font-size: 0.9rem;">
+                <tbody>
+                    <tr>
+                        <th class="bg-light" style="width: 25%;">Nome Completo:</th>
+                        <td colspan="3">{{ bolsista_nome }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">CPF:</th>
+                        <td>{{ bolsista_cpf }}</td>
+                        <th class="bg-light">RG:</th>
+                        <td>{{ bolsista_rg }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">E-mail:</th>
+                        <td>{{ bolsista_email }}</td>
+                        <th class="bg-light">Telefone:</th>
+                        <td>{{ bolsista_fone }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Função:</th>
+                        <td>{{ bolsista_funcao }}</td>
+                        <th class="bg-light">Termo de Bolsa:</th>
+                        <td>{{ bolsista_termodebolsa }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Período Contratação:</th>
+                        <td>{{ bolsista_contratacao }}</td>
+                        <th class="bg-light">Carga Horária Total:</th>
+                        <td>{{ bolsista_ch }}h</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6 class="fw-bold text-uppercase mb-2 border-bottom pb-2">3. Identificação do Período e Parcela</h6>
+            <table class="table table-bordered table-sm mb-4" style="font-size: 0.9rem;">
+                <tbody>
+                    <tr>
+                        <th class="bg-light" style="width: 25%;">Parcela / Referência:</th>
+                        <td colspan="3">{{ parcela }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Período de Execução:</th>
+                        <td>{{ periodo_inicio }} a {{ periodo_fim }}</td>
+                        <th class="bg-light">Carga Horária do Período:</th>
+                        <td>{{ carga_horaria_total }}h</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Macroentrega Associada:</th>
+                        <td colspan="3">{{ macroentrega_numero }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6 class="fw-bold text-uppercase mt-5 mb-3 border-bottom pb-2">Atividades Executadas</h6>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 70%;">Descrição da Atividade/Tarefa</th>
+                            <th class="text-center">Carga Horária Alocada</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for atv in atividades_html %}
+                        <tr>
+                            <td>
+                                <strong>{{ atv.titulo }}</strong><br>
+                                {% for item in atv.itens %}
+                                    - {{ item.descricao }}<br>
+                                {% empty %}
+                                    <span class="text-muted fst-italic">Nenhuma tarefa detalhada no rascunho ainda.</span>
+                                {% endfor %}
+                            </td>
+                            <td class="text-center align-middle">
+                                {% for item in atv.itens %}
+                                    {{ item.carga }}<br>
+                                {% empty %}
+                                    -
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted py-3">Nenhuma atividade registrada para este período.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <h6 class="fw-bold text-uppercase mt-5 mb-3 border-bottom pb-2">Ocorrências / Não Conformidades</h6>
+            <div class="p-3 bg-light border rounded">
+                {% if ocorrencias %}
+                    {{ ocorrencias|linebreaks }}
+                {% else %}
+                    <span class="text-muted fst-italic">Sem ocorrências registradas neste período.</span>
+                {% endif %}
+            </div>
+
+            <div class="mt-5 pt-5 text-center">
+                <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto; margin-bottom: 5px;"></div>
+                <p class="mb-0 fw-bold">{{ bolsista_nome }}</p>
+                <p class="text-muted small">Assinatura do Bolsista</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4><i class="bi bi-calendar-range me-2"></i>Importar Cronograma: {{ projeto.convenio }}</h4>
+    <hr>
+
+    {% if not modo_revisao %}
+    <!-- FASE 1: UPLOAD DO DOCX -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Selecione o Plano de Trabalho (.docx)</label>
+                    <input type="file" name="arquivo_docx" class="form-control" accept=".docx" required>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-2"></i>Extrair Atividades</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if modo_revisao %}
+    <!-- FASE 2: REVISÃO DO FORMSET -->
+    <div class="alert alert-warning shadow-sm">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Revisão Necessária:</strong> Verifique os dados extraídos do documento. Preencha eventuais campos em branco antes de salvar.
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ formset.management_form }} <!-- OBRIGATÓRIO PARA O FORMSET FUNCIONAR -->
+        
+        <div class="accordion" id="accordionAtividades">
+            {% for form in formset %}
+            <div class="accordion-item mb-2 border shadow-sm">
+                <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                    <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}">
+                        Atividade {{ form.numero.value|default:"Nova" }} - {{ form.nome.value|default:"Sem Nome" }}
+                    </button>
+                </h2>
+                <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#accordionAtividades">
+                    <div class="accordion-body bg-light">
+                        
+                        <!-- Renderização manual dos campos para controle do layout Bootstrap -->
+                        <div class="row">
+                            <div class="col-md-2 mb-3">
+                                <label class="fw-bold">Item</label>
+                                {{ form.numero }}
+                            </div>
+                            <div class="col-md-10 mb-3">
+                                <label class="fw-bold">Nome da Atividade</label>
+                                {{ form.nome }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="fw-bold">Descrição</label>
+                                {{ form.descricao }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Justificativa</label>
+                                {{ form.justificativa }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Entregáveis</label>
+                                {{ form.entregaveis }}
+                            </div>
+                        </div>
+
+                        <div class="row align-items-end">
+                            <div class="col-md-3 mb-3">
+                                <label class="fw-bold">Início (Mês)</label>
+                                {{ form.mes_inicio_relativo }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="fw-bold">Fim (Mês)</label>
+                                {{ form.mes_fim_relativo }}
+                            </div>
+                            <div class="col-md-6 mb-3 text-end">
+                                {% if formset.can_delete %}
+                                    <div class="form-check d-inline-block text-danger">
+                                        {{ form.DELETE }} <label class="form-check-label fw-bold">Descartar Atividade</label>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Campos ocultos do formset (como ID, caso estejamos editando) -->
+                        {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-4 mb-5">
+            <button type="submit" class="btn btn-success btn-lg shadow-sm"><i class="bi bi-save-fill me-2"></i>Homologar Cronograma</button>
+            <a href="{% url 'admin:cadastros_projetopdi_change' projeto.id %}" class="btn btn-secondary btn-lg ms-2">Cancelar</a>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

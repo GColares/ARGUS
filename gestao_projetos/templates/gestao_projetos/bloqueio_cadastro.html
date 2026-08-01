@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Fundo de tela opaco/desfocado para dar contexto de "bloqueio" -->
+<div class="container-fluid mt-4" style="filter: blur(4px); pointer-events: none; user-select: none;">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white" style="height: 50px;"></div>
+        <div class="card-body" style="height: 60vh;">
+            <!-- Estrutura fantasma apenas para compor o fundo -->
+            <div class="row"><div class="col-6 bg-light p-4 mb-3 rounded"></div><div class="col-6 bg-light p-4 mb-3 rounded"></div></div>
+            <div class="bg-light p-5 rounded"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Bloqueio Estático (Hard Stop) -->
+<div class="modal fade" id="modalBloqueio" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      
+      <div class="modal-header bg-danger text-white border-0">
+        <h5 class="modal-title fw-bold">
+            <i class="bi bi-shield-lock-fill me-2"></i>Acesso Bloqueado: Inconsistência no Projeto
+        </h5>
+      </div>
+      
+      <div class="modal-body p-4 bg-light">
+        <p class="fs-6 text-dark">
+            Não é possível elaborar o relatório de atividades pois o projeto <strong>{{ projeto.nome }} ({{ projeto.convenio }})</strong> tem pendências no cadastro.
+        </p>
+        
+        <hr class="text-muted">
+        
+        <h6 class="fw-bold text-danger mb-3">Pendências Críticas Identificadas:</h6>
+        <ul class="list-group mb-4 shadow-sm">
+            {% for pendencia in pendencias %}
+                <li class="list-group-item list-group-item-danger border-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ pendencia }}
+                </li>
+            {% endfor %}
+        </ul>
+        
+        <div class="alert alert-warning py-2 small mb-0 border-warning text-dark">
+            <i class="bi bi-info-circle-fill me-1"></i> Apenas membros com perfil de gestão podem sanar estas pendências no cadastro do projeto. O preenchimento do relatório permanecerá travado até a regularização.
+        </div>
+      </div>
+      
+      <div class="modal-footer bg-light border-top-0 d-flex justify-content-between">
+        <a href="{% url 'gestao_projetos:listar_relatorios' %}" class="btn btn-outline-secondary px-4">
+            <i class="bi bi-arrow-left me-1"></i> Voltar à Fila
+        </a>
+        
+        <!-- Direciona dinamicamente para o formulário de edição deste projeto específico no Django Admin -->
+        <a href="{% url 'admin:cadastros_projetopdi_change' projeto.id %}" class="btn btn-danger px-4 shadow-sm">
+            <i class="bi bi-gear-fill me-1"></i> Configurar Projeto
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Inicializa o modal do Bootstrap via JS e exibe imediatamente após renderizar a página
+    var modalElement = document.getElementById('modalBloqueio');
+    var modalBloqueio = new bootstrap.Modal(modalElement, {
+        backdrop: 'static', // Impede clique fora
+        keyboard: false     // Impede ESC
+    });
+    modalBloqueio.show();
+});
+</script>
+{% endblock %}

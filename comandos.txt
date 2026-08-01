@@ -1,0 +1,10 @@
+
+source .venv/Scripts/activate   # ativa o ambiente virtual
+
+pip freeze > requirements.txt   #gerar um novo arquivosource
+
+python manage.py runserver      #rodar servidor
+
+python manage.py makemigrations
+
+python manage.py migrate

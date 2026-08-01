@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-    
+
 @login_required
 def home_argus(request):
     """
@@ -35,6 +35,13 @@ def home_argus(request):
             'icone': 'fa-university', 
             'cor': 'info',
             'descricao': 'Controle de bens tombados e movimentações internas.'
+        },
+        {
+            'nome': 'Gestão de Projetos',
+            'url': 'gestao_projetos:home_gestao_projetos',
+            'icone': 'fas fa-file-invoice',
+            'cor': 'warning',
+            'descricao': 'Gestão de atividades do projeto.'
         },
     ]
 

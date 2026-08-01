@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger shadow">
+                <div class="card-header bg-danger text-white text-center">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Confirmação de Exclusão</h5>
+                </div>
+                <div class="card-body text-center p-4">
+                    <p class="mb-4">Você está prestes a excluir permanentemente o rascunho do relatório da <strong>Parcela {{ relatorio.parcela }}{% if relatorio.bolsista.total_parcelas_previstas %} de {{ relatorio.bolsista.total_parcelas_previstas }}{% endif %}</strong> do bolsista <strong>{{ relatorio.bolsista.nome_completo }}</strong>.</p>
+                    <p class="text-danger small fw-bold">Esta ação não poderá ser desfeita.</p>
+                    
+                    <form method="POST" action="{% url 'gestao_projetos:excluir_relatorio' relatorio.id %}">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <a href="{% url 'gestao_projetos:listar_relatorios' %}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-danger">Sim, Excluir Rascunho</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -7,7 +7,8 @@ from decimal import Decimal
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'argus_core.settings')
 django.setup()
 
-from patrimonio.models import ProjetoPDI, BemPatrimonial
+from patrimonio.models import BemPatrimonial
+from cadastros.models import ProjetoPDI
 
 def limpar_valor(valor_str):
     if not valor_str: return Decimal('0.00')

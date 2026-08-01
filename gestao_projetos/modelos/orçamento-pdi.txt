@@ -1,0 +1,57 @@
+I - Programas de Computador ou Equipamentos
+permitir adicionar subitens
+
+II - Aquisição, Implantação, Ampliação ou Modernização de laboratório de P&D
+permitir adicionar subitens
+
+III - Recursos Humanos Diretos
+
+III.1 - Diretos
+permitir adicionar subitens
+
+III.2 - Indiretos
+permitir adicionar subitens
+
+(não permitir novos itens de nível 2 no item III)
+
+IV - Serviço de Terceiro Técnicos
+permitir adicionar subitens
+
+V - Material de Consumo
+permitir adicionar subitens
+
+Total de Dispêndios I a V
+
+VI - Outros Dispêndios Correlatos
+
+VI.1 - Treinamentos
+permitir adicionar subitens
+
+VI.2 - Livros e Periódicos
+permitir adicionar subitens
+
+VI.3 - Livros e Periódicos
+permitir adicionar subitens
+
+VI.4 - Viagens
+permitir adicionar subitens
+VI.5 - ISS
+permitir adicionar subitens
+
+VI.6 - Outros Correlatos
+permitir adicionar subitens
+
+(não permitir novos itens de nível 2 no item VI)
+
+Total de Dispêndios I a VI
+
+VII - Custos incorridos
+VII.1 - Custos FAEPI - DOA
+VII.2 - Constituição de Reserva (IFAM)
+(não permitir novos itens de nível 2 no item VII)
+
+Total Bruto do Projeto R$ 
+
+
+
+Preciso dos seguintes ajustes na modelagem do orçamento: neste primeiro momento, como estou usando a interface do Admin, eu precisaria lançar somente os subtotais dos grupos de dispêndios, ou seja, detalhamento de nível 1. Quando criarmos a interface do front, lá poderemos criar, cadastrar, lançar, os outros níveis de detalhamento de despesa. é possível?
