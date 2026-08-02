@@ -236,15 +236,15 @@
         
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" style="min-width: 1000px;">
-                <thead class="bg-light text-muted small text-uppercase">
+                <thead class="bg-light text-muted small text-uppercase text-center">
                     <tr>
                         <th class="ps-4 py-3 text-center" style="width: 60px;">Num</th>
-                        <th class="py-3">Descrição do Produto</th>
+                        <th class="py-3 text-center">Descrição do Produto</th>
                         <th class="py-3 text-center" style="width: 140px;">Categoria</th>
                         <th class="py-3 text-center" style="width: 80px;">Unid.</th>
                         <th class="py-3 text-center" style="width: 100px;">Qtd.</th>
-                        <th class="py-3 text-end" style="width: 130px;">Valor Unit.</th>
-                        <th class="py-3 text-end" style="width: 140px;">Valor Total</th>
+                        <th class="py-3 text-center" style="width: 130px;">Valor Unit.</th>
+                        <th class="py-3 text-center" style="width: 140px;">Valor Total</th>
                         <th class="py-3 text-center" style="width: 120px;">Ações</th>
                     </tr>
                 </thead>
@@ -260,8 +260,8 @@
                         </td>
                         <td class="text-center text-muted">{{ item.unidade_comercial }}</td>
                         <td class="text-center fw-bold">{{ item.quantidade|floatformat:"-4" }}</td>
-                        <td class="text-end text-secondary">R$ {{ item.valor_unitario|floatformat:2 }}</td>
-                        <td class="text-end fw-bold text-danger">R$ {{ item.valor_total|floatformat:2 }}</td>
+                        <td class="text-center text-secondary">R$ {{ item.valor_unitario|floatformat:2 }}</td>
+                        <td class="text-center fw-bold text-danger">R$ {{ item.valor_total|floatformat:2 }}</td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
                                 <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modalEditarProduto_{{ item.id }}" title="Editar Insumo">

@@ -43,13 +43,13 @@
     <div class="cs-card p-4 p-md-5">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
-                <thead class="table-light">
+                <thead class="table-light text-center">
                     <tr>
-                        <th>Nome / Sigla</th>
-                        <th>Finalidade</th>
-                        <th>Riscos (Q / B)</th>
-                        <th>AVCB / Ambiental</th>
-                        <th class="text-end">Ações</th>
+                        <th class="text-center">Nome / Sigla</th>
+                        <th class="text-center">Finalidade</th>
+                        <th class="text-center">Riscos (Q / B)</th>
+                        <th class="text-center">AVCB / Ambiental</th>
+                        <th class="text-center">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -96,7 +96,7 @@
                                 {% endif %}
                             </div>
                         </td>
-                        <td class="text-end">
+                        <td class="text-center">
                             <a href="{% url 'central_servicos:predio_editar' predio.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">
                                 <i class="fas fa-edit"></i> Editar
                             </a>
