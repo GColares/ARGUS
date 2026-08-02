@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'incorporacao',
     'almoxarifado',
     'gestao_projetos',
+    'manutencao_predial',
 ]
 
 

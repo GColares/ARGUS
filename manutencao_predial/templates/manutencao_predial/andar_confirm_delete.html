@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Excluir Andar{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 border-danger">
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2"></i> Confirmar Exclusão</h5>
+            </div>
+            <div class="card-body text-center py-5">
+                <h4>Tem certeza que deseja excluir?</h4>
+                <p class="text-muted fs-5 mb-4"><strong>{{ object }}</strong></p>
+                <form method="post">
+                    {% csrf_token %}
+                    <a href="{% url 'home_manutencao_predial:andar_list' %}" class="btn btn-outline-secondary me-2 px-4">Cancelar</a>
+                    <button type="submit" class="btn btn-danger fw-bold px-4">Excluir Definitivamente</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

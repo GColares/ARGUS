@@ -36,6 +36,13 @@ def home_argus(request):
             'cor': 'info',
             'descricao': 'Controle de bens tombados e movimentações internas.'
         },
+        {
+            'nome': 'Central de Serviços: Manutenção, Infraestrutura e Logística', 
+            'url': 'home_manutencao_predial:dashboard', 
+            'icone': 'fa-building', 
+            'cor': 'warning',
+            'descricao': 'Gestão de infraestrutura, logística e serviços operacionais.'
+        },
     ]
 
     # A ordenação alfabética (sorted) tratará de colocar "Cadastros" logo após "Almoxarifado" automaticamente!

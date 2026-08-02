@@ -29,6 +29,7 @@ urlpatterns = [
     path('incorporacao/', include('incorporacao.urls', namespace='home_incorporacao')),
     path('patrimonio/', include('patrimonio.urls', namespace='home_patrimonio')),
     path('almoxarifado/', include('almoxarifado.urls', namespace='home_almoxarifado')),
+    path('manutencao_predial/', include('manutencao_predial.urls', namespace='home_manutencao_predial')),
 ]
 
 if settings.DEBUG:
