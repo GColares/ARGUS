@@ -6,9 +6,62 @@ from cadastros.models import Fornecedor
 from almoxarifado.models import ProdutoAlmoxarifado
 import uuid
 
+class Finalidade(models.Model):
+    nome = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.nome
+
 class Predio(models.Model):
+    RISCO_QUIMICO_CHOICES = [
+        ('BAIXO', 'Baixo'),
+        ('MEDIO', 'Médio'),
+        ('ALTO', 'Alto'),
+    ]
+    RISCO_BIOLOGICO_CHOICES = [
+        ('NB1', 'NB-1'),
+        ('NB2', 'NB-2'),
+        ('NB3', 'NB-3'),
+        ('NB4', 'NB-4'),
+    ]
+
     nome = models.CharField(max_length=100)
     sigla = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Identificação Básica Adicional
+    finalidades = models.ManyToManyField(Finalidade, blank=True, related_name='predios', verbose_name="Finalidades do Prédio")
+    area_total_m2 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name="Área Total (m²)")
+    capacidade_pessoas = models.PositiveIntegerField(blank=True, null=True)
+    
+    # Infraestrutura Crítica
+    possui_geracao_solar = models.BooleanField(null=True, blank=True, verbose_name="Possui Geração Solar?")
+    capacidade_geracao_solar_kwp = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name="Capacidade Solar (kWp)")
+    quantidade_placas_solares = models.PositiveIntegerField(blank=True, null=True, verbose_name="Quantidade de Placas Solares")
+    
+    possui_gerador_emergencia = models.BooleanField(null=True, blank=True, verbose_name="Possui Gerador de Emergência?")
+    possui_subestacao_propria = models.BooleanField(null=True, blank=True, verbose_name="Possui Subestação Própria?")
+    possui_climatizacao_central = models.BooleanField(null=True, blank=True, verbose_name="Possui Climatização Central?")
+    possui_rede_gases_especiais = models.BooleanField(null=True, blank=True, verbose_name="Possui Rede de Gases Especiais?")
+    possui_sala_limpa = models.BooleanField(null=True, blank=True, verbose_name="Possui Sala Limpa?")
+    
+    # Classificação de Riscos
+    risco_quimico = models.CharField(max_length=10, choices=RISCO_QUIMICO_CHOICES, blank=True, null=True)
+    risco_biologico = models.CharField(max_length=10, choices=RISCO_BIOLOGICO_CHOICES, blank=True, null=True)
+    armazena_inflamaveis = models.BooleanField(null=True, blank=True, verbose_name="Armazena Inflamáveis?")
+    possui_ete_sanitaria = models.BooleanField(null=True, blank=True, verbose_name="Possui ETE Sanitária?")
+    possui_ete_especial = models.BooleanField(null=True, blank=True, verbose_name="Possui ETE Especial/Industrial?")
+    
+    # Segurança e Licenças
+    avcb_numero = models.CharField(max_length=50, blank=True, null=True, verbose_name="Nº AVCB")
+    avcb_validade = models.DateField(blank=True, null=True, verbose_name="Validade AVCB")
+    avcb_arquivo = models.FileField(upload_to='licencas/avcb/', blank=True, null=True, verbose_name="Arquivo AVCB")
+    licenca_ambiental_numero = models.CharField(max_length=50, blank=True, null=True, verbose_name="Nº Licença Ambiental")
+    licenca_ambiental_validade = models.DateField(blank=True, null=True, verbose_name="Validade Licença Ambiental")
+    licenca_ambiental_arquivo = models.FileField(upload_to='licencas/ambiental/', blank=True, null=True, verbose_name="Arquivo Licença Ambiental")
+    licenca_vigilancia_sanitaria_numero = models.CharField(max_length=50, blank=True, null=True, verbose_name="Nº Licença Vig. Sanitária")
+    licenca_vigilancia_sanitaria_validade = models.DateField(blank=True, null=True, verbose_name="Validade Vig. Sanitária")
+    licenca_vigilancia_sanitaria_arquivo = models.FileField(upload_to='licencas/vigilancia/', blank=True, null=True, verbose_name="Arquivo Vig. Sanitária")
+    brigada_incendio_ativa = models.BooleanField(null=True, blank=True, verbose_name="Brigada de Incêndio Ativa?")
 
     # pyrefly: ignore [bad-override]
     def __str__(self):

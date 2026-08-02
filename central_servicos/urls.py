@@ -10,4 +10,9 @@ urlpatterns = [
     path('relatorio/<str:status>/', views.RelatorioOSView.as_view(), name='relatorio_os'),
     path('historico/', views.OrdemServicoHistoricoView.as_view(), name='historico_os'),
     path('cancelar/<int:pk>/', views.OrdemServicoCancelarView.as_view(), name='cancelar_os'),
+    
+    # Gestão de Prédios
+    path('predios/', views.PredioListView.as_view(), name='predio_list'),
+    path('predios/novo/', views.PredioCreateView.as_view(), name='predio_novo'),
+    path('predios/<int:pk>/editar/', views.PredioUpdateView.as_view(), name='predio_editar'),
 ]

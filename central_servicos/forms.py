@@ -1,5 +1,6 @@
+# pyrefly: ignore [untyped-import]
 from django import forms
-from .models import OrdemServico
+from .models import OrdemServico, Predio
 
 class OrdemServicoForm(forms.ModelForm):
     class Meta:
@@ -24,3 +25,47 @@ class OrdemServicoCancelamentoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['motivo_cancelamento'].required = True
+
+BOOL_CHOICES = [('', 'Não Informado'), (True, 'Sim'), (False, 'Não')]
+
+class PredioForm(forms.ModelForm):
+    class Meta:
+        model = Predio
+        fields = '__all__'
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do prédio'}),
+            'sigla': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: P1, BIO, etc.'}),
+            'finalidades': forms.CheckboxSelectMultiple(attrs={'class': 'btn-check'}),
+            'area_total_m2': forms.NumberInput(attrs={'class': 'form-control'}),
+            'capacidade_pessoas': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            'possui_geracao_solar': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+            'capacidade_geracao_solar_kwp': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'quantidade_placas_solares': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            'possui_gerador_emergencia': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+            'possui_subestacao_propria': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+            'possui_climatizacao_central': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+            'possui_rede_gases_especiais': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+            'possui_sala_limpa': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+            
+            'risco_quimico': forms.Select(attrs={'class': 'form-select'}),
+            'risco_biologico': forms.Select(attrs={'class': 'form-select'}),
+            'armazena_inflamaveis': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+            'possui_ete_sanitaria': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+            'possui_ete_especial': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+            
+            'avcb_numero': forms.TextInput(attrs={'class': 'form-control'}),
+            'avcb_validade': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'avcb_arquivo': forms.FileInput(attrs={'class': 'form-control'}),
+            
+            'licenca_ambiental_numero': forms.TextInput(attrs={'class': 'form-control'}),
+            'licenca_ambiental_validade': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'licenca_ambiental_arquivo': forms.FileInput(attrs={'class': 'form-control'}),
+            
+            'licenca_vigilancia_sanitaria_numero': forms.TextInput(attrs={'class': 'form-control'}),
+            'licenca_vigilancia_sanitaria_validade': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'licenca_vigilancia_sanitaria_arquivo': forms.FileInput(attrs={'class': 'form-control'}),
+            
+            'brigada_incendio_ativa': forms.Select(choices=BOOL_CHOICES, attrs={'class': 'form-select'}),
+        }

@@ -9,7 +9,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 # pyrefly: ignore [untyped-import]
 from django.urls import reverse_lazy
 from .models import OrdemServico, Predio, Andar, Sala, AtivoPredial, CategoriaServico, MaterialUtilizado
-from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm
+from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 
@@ -107,4 +107,36 @@ class OrdemServicoCancelarView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         form.instance.status = 'CANCELADA'
         messages.success(self.request, 'Ordem de Serviço cancelada com sucesso.')
+        return super().form_valid(form)
+
+# ==========================================
+# GESTÃO DE PRÉDIOS
+# ==========================================
+class PredioListView(LoginRequiredMixin, ListView):
+    model = Predio
+    template_name = 'central_servicos/predio_list.html'
+    context_object_name = 'predios'
+    
+    def get_queryset(self):
+        # pyrefly: ignore [missing-attribute]
+        return Predio.objects.all().order_by('nome')
+
+class PredioCreateView(LoginRequiredMixin, CreateView):
+    model = Predio
+    form_class = PredioForm
+    template_name = 'central_servicos/predio_form.html'
+    success_url = reverse_lazy('central_servicos:predio_list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Prédio cadastrado com sucesso.')
+        return super().form_valid(form)
+
+class PredioUpdateView(LoginRequiredMixin, UpdateView):
+    model = Predio
+    form_class = PredioForm
+    template_name = 'central_servicos/predio_form.html'
+    success_url = reverse_lazy('central_servicos:predio_list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Prédio atualizado com sucesso.')
         return super().form_valid(form)
