@@ -20,14 +20,14 @@ def dashboard(request):
         'ultimas_os': ultimas_os,
     }
     
-    return render(request, 'manutencao_predial/dashboard.html', context)
+    return render(request, 'central_servicos/dashboard.html', context)
 
 
 class OrdemServicoCreateView(LoginRequiredMixin, CreateView):
     model = OrdemServico
     form_class = OrdemServicoForm
-    template_name = 'manutencao_predial/os_form.html'
-    success_url = reverse_lazy('home_manutencao_predial:dashboard')
+    template_name = 'central_servicos/os_form.html'
+    success_url = reverse_lazy('central_servicos:dashboard')
 
     def form_valid(self, form):
         form.instance.solicitante = self.request.user
