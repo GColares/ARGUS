@@ -15,4 +15,5 @@ urlpatterns = [
     path('predios/', views.PredioListView.as_view(), name='predio_list'),
     path('predios/novo/', views.PredioCreateView.as_view(), name='predio_novo'),
     path('predios/<int:pk>/editar/', views.PredioUpdateView.as_view(), name='predio_editar'),
+    path('predios/<int:pk>/excluir/', views.PredioDeleteView.as_view(), name='predio_excluir'),
 ]

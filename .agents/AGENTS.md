@@ -6,3 +6,6 @@ O dicionário `modulos` dentro dessa view controla os painéis exibidos na tela 
 
 ## Idioma
 Responda sempre em **Português do Brasil (pt-BR)**.
+
+## Telas de Cadastro (CRUD)
+Sempre que você criar, planejar ou modificar funcionalidades de "Cadastro" (CRUD) no sistema, é OBRIGATÓRIO incluir e implementar a função de "Excluir" (Delete). Todas as telas de listagem ou formulários de edição devem prover um caminho claro e funcional para a exclusão do registro, preferencialmente com confirmação (ex: modal ou página de confirmação do Django) para evitar deleções acidentais.

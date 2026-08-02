@@ -129,31 +129,73 @@
                                 <h5 class="fw-bold mb-3 text-primary"><i class="fas fa-cogs me-2"></i> Infraestrutura Crítica</h5>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label" for="{{ form.possui_gerador_emergencia.id_for_label }}">Possui Gerador de Emergência?</label>
-                                    {{ form.possui_gerador_emergencia }}
+                                    <label class="form-label d-block">Possui Gerador de Emergência?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_gerador_emergencia %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label" for="{{ form.possui_subestacao_propria.id_for_label }}">Possui Subestação Própria?</label>
-                                    {{ form.possui_subestacao_propria }}
+                                    <label class="form-label d-block">Possui Subestação Própria?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_subestacao_propria %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label" for="{{ form.possui_climatizacao_central.id_for_label }}">Possui Climatização Central?</label>
-                                    {{ form.possui_climatizacao_central }}
+                                    <label class="form-label d-block">Possui Climatização Central?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_climatizacao_central %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label" for="{{ form.possui_rede_gases_especiais.id_for_label }}">Possui Rede de Gases Especiais?</label>
-                                    {{ form.possui_rede_gases_especiais }}
+                                    <label class="form-label d-block">Possui Rede de Gases Especiais?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_rede_gases_especiais %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label" for="{{ form.possui_sala_limpa.id_for_label }}">Possui Sala Limpa (Cleanroom)?</label>
-                                    {{ form.possui_sala_limpa }}
+                                    <label class="form-label d-block">Possui Sala Limpa (Cleanroom)?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_sala_limpa %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
 
                                 <hr>
                                 <h6 class="fw-bold mb-3 text-success"><i class="fas fa-solar-panel me-2"></i> Energia Solar</h6>
                                 <div class="mb-3">
-                                    <label class="form-label" for="{{ form.possui_geracao_solar.id_for_label }}">Possui Central de Geração Solar?</label>
-                                    {{ form.possui_geracao_solar }}
+                                    <label class="form-label d-block">Possui Central de Geração Solar?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_geracao_solar %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                                 <div class="row g-2">
                                     <div class="col-6">
@@ -180,16 +222,37 @@
                                     {{ form.risco_biologico }}
                                 </div>
                                 <div class="mb-3 mt-3">
-                                    <label class="form-label fw-bold text-danger" for="{{ form.armazena_inflamaveis.id_for_label }}">Armazena Materiais Inflamáveis?</label>
-                                    {{ form.armazena_inflamaveis }}
+                                    <label class="form-label d-block fw-bold text-danger">Armazena Materiais Inflamáveis?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.armazena_inflamaveis %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label" for="{{ form.possui_ete_sanitaria.id_for_label }}">Possui ETE Sanitária?</label>
-                                    {{ form.possui_ete_sanitaria }}
+                                    <label class="form-label d-block">Possui ETE Sanitária?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_ete_sanitaria %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold" for="{{ form.possui_ete_especial.id_for_label }}">Possui ETE Especial/Industrial?</label>
-                                    {{ form.possui_ete_especial }}
+                                    <label class="form-label d-block fw-bold">Possui ETE Especial/Industrial?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_ete_especial %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                                 <div class="mt-2">
                                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" data-bs-toggle="modal" data-bs-target="#eteModal">
@@ -220,9 +283,16 @@
                                 <label class="form-label">Arquivo PDF do AVCB</label>
                                 {{ form.avcb_arquivo }}
                             </div>
-                            <div class="col-md-2 d-flex flex-column pt-1">
-                                <label class="form-label">Brigada Ativa</label>
-                                {{ form.brigada_incendio_ativa }}
+                            <div class="col-md-3 d-flex flex-column pt-1">
+                                <label class="form-label d-block">Brigada Ativa</label>
+                                <div class="mt-1">
+                                    {% for radio in form.brigada_incendio_ativa %}
+                                        <div class="form-check form-check-inline">
+                                            {{ radio.tag }}
+                                            <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -269,10 +339,20 @@
 
             </div>
             
-            <div class="card-footer bg-white border-top p-4 text-end">
-                <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">
-                    <i class="fas fa-save me-2"></i> Salvar Prédio
-                </button>
+            <div class="card-footer bg-white border-top p-4 d-flex justify-content-between align-items-center">
+                <div>
+                    {% if form.instance.pk %}
+                        <a href="{% url 'central_servicos:predio_excluir' form.instance.pk %}" class="btn btn-outline-danger rounded-pill px-4">
+                            <i class="fas fa-trash-alt me-2"></i> Excluir Prédio
+                        </a>
+                    {% endif %}
+                </div>
+                <div>
+                    <a href="{% url 'central_servicos:predio_list' %}" class="btn btn-light rounded-pill px-4 me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">
+                        <i class="fas fa-save me-2"></i> Salvar Prédio
+                    </button>
+                </div>
             </div>
         </form>
     </div>

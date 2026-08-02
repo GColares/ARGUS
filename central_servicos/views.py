@@ -140,3 +140,12 @@ class PredioUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Prédio atualizado com sucesso.')
         return super().form_valid(form)
+
+class PredioDeleteView(LoginRequiredMixin, DeleteView):
+    model = Predio
+    template_name = 'central_servicos/predio_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:predio_list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "Prédio excluído com sucesso.")
+        return super().delete(request, *args, **kwargs)
