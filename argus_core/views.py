@@ -40,7 +40,7 @@ def home_argus(request):
         },
         {
             'nome': 'Central de Serviços: Manutenção, Infraestrutura e Logística', 
-            'url': 'central_servicos:dashboard', 
+            'url': 'central_servicos:home_central_servicos', 
             'icone': 'fa-building', 
             'cor': 'warning',
             'descricao': 'Gestão de infraestrutura, logística e serviços operacionais.'

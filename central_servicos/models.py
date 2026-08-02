@@ -1,4 +1,6 @@
+# pyrefly: ignore [untyped-import]
 from django.db import models
+# pyrefly: ignore [untyped-import]
 from django.contrib.auth.models import User
 from cadastros.models import Fornecedor
 from almoxarifado.models import ProdutoAlmoxarifado
@@ -8,6 +10,7 @@ class Predio(models.Model):
     nome = models.CharField(max_length=100)
     sigla = models.CharField(max_length=20, blank=True, null=True)
 
+    # pyrefly: ignore [bad-override]
     def __str__(self):
         return self.nome
 
@@ -42,13 +45,19 @@ class CategoriaServico(models.Model):
         verbose_name = "Categoria de Serviço"
         verbose_name_plural = "Categorias de Serviço"
 
+    # pyrefly: ignore [bad-override]
     def __str__(self):
         return self.nome
 
 class OrdemServico(models.Model):
+    objects = models.Manager()
+    
     STATUS_CHOICES = [
         ('PENDENTE', 'Pendente'),
+        ('PROGRAMADA', 'Programada'),
+        ('INICIADA', 'Iniciada'),
         ('EM_ANDAMENTO', 'Em Andamento'),
+        ('SUSPENSA', 'Suspensa'),
         ('CONCLUIDA', 'Concluída'),
         ('CANCELADA', 'Cancelada'),
     ]
@@ -70,6 +79,7 @@ class OrdemServico(models.Model):
     
     descricao_problema = models.TextField()
     laudo_tecnico = models.TextField(blank=True, null=True)
+    motivo_cancelamento = models.TextField(blank=True, null=True, verbose_name="Motivo do Cancelamento")
     
     data_abertura = models.DateTimeField(auto_now_add=True)
     data_previsao = models.DateField(blank=True, null=True)

@@ -82,7 +82,7 @@ from . import views
 app_name = 'home_manutencao_predial'
 
 urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
+    path('', views.home_manutencao_predial, name='home_manutencao_predial'),
 """
 for m, ml, name, name_pl in models:
     urls_code += f"""
@@ -104,7 +104,7 @@ for m, ml, name, name_pl in models:
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0 text-institucional"><i class="fas fa-list me-2"></i> Lista de {name_pl}</h2>
     <div>
-        <a href="{{% url 'home_manutencao_predial:dashboard' %}}" class="btn btn-outline-secondary me-2">Voltar</a>
+        <a href="{{% url 'home_manutencao_predial:home_manutencao_predial' %}}" class="btn btn-outline-secondary me-2">Voltar</a>
         <a href="{{% url 'home_manutencao_predial:{ml}_create' %}}" class="btn btn-success fw-bold">Novo {name}</a>
     </div>
 </div>

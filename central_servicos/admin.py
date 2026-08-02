@@ -45,3 +45,11 @@ class OrdemServicoAdmin(admin.ModelAdmin):
     # pyrefly: ignore [bad-override-mutable-attribute]
     inlines = [MaterialUtilizadoInline]
     readonly_fields = ('numero', 'data_abertura', 'estoque_baixado')
+
+@admin.register(MaterialUtilizado)
+class MaterialUtilizadoAdmin(admin.ModelAdmin):
+    # pyrefly: ignore [bad-override-mutable-attribute]
+    list_display = ('ordem_servico', 'produto_almoxarifado', 'quantidade')
+    list_filter = ('ordem_servico',)
+    # pyrefly: ignore [bad-override-mutable-attribute]
+    search_fields = ('produto_almoxarifado__nome', 'ordem_servico__numero')

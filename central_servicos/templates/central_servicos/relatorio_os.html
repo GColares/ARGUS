@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatório de Ordens de Serviço: {{ status_display }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .navbar, .footer-institucional, .btn-print, .btn-back {
+            display: none !important;
+        }
+        body {
+            background-color: white !important;
+        }
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .container {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+    }
+    .print-header {
+        border-bottom: 2px solid var(--bs-primary);
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4 p-md-5">
+            
+            <!-- Cabeçalho Institucional -->
+            <div class="print-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold mb-0 text-primary">Relatório de Ordens de Serviço</h2>
+                    <p class="text-muted fs-5 mb-0">Status: <strong>{{ status_display }}</strong></p>
+                </div>
+                <div class="text-end">
+                    <p class="mb-0 text-muted small">Gerado em: {% now "d/m/Y H:i" %}</p>
+                    <p class="mb-0 text-muted small">Sistema ARGUS - Central de Serviços</p>
+                </div>
+            </div>
+
+            <!-- Tabela de Dados -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle border">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Número</th>
+                            <th scope="col">Data Abertura</th>
+                            <th scope="col">Categoria</th>
+                            <th scope="col">Local (Sala)</th>
+                            <th scope="col">Prioridade</th>
+                            <th scope="col">Solicitante</th>
+                            <th scope="col">Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for os in ordens %}
+                        <tr>
+                            <td class="fw-bold">{{ os.numero }}</td>
+                            <td>{{ os.data_abertura|date:"d/m/Y H:i" }}</td>
+                            <td>{{ os.categoria|default:"Geral" }}</td>
+                            <td>
+                                {% if os.sala %}
+                                    {{ os.sala }}
+                                    {% if os.ativo_predial %}<br><small class="text-muted">Ativo: {{ os.ativo_predial.nome }}</small>{% endif %}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if os.prioridade == 'BAIXA' %}<span class="badge bg-secondary">Baixa</span>
+                                {% elif os.prioridade == 'MEDIA' %}<span class="badge bg-primary">Média</span>
+                                {% elif os.prioridade == 'ALTA' %}<span class="badge bg-warning text-dark">Alta</span>
+                                {% elif os.prioridade == 'URGENTE' %}<span class="badge bg-danger">Urgente</span>
+                                {% else %}{{ os.get_prioridade_display }}
+                                {% endif %}
+                            </td>
+                            <td>{{ os.solicitante.get_full_name|default:os.solicitante.username }}</td>
+                            <td>
+                                <div style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ os.descricao_problema }}">
+                                    {{ os.descricao_problema }}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-2x mb-2 text-secondary"></i><br>
+                                Nenhuma ordem de serviço encontrada com este status.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <p class="text-muted mb-0">Total de registros: <strong>{{ ordens|length }}</strong></p>
+                <div>
+                    <button type="button" class="btn btn-outline-primary btn-print me-2" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i> Imprimir
+                    </button>
+                    <a href="javascript:window.close();" class="btn btn-secondary btn-back">
+                        <i class="fas fa-times me-1"></i> Fechar Aba
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
