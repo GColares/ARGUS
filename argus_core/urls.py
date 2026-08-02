@@ -1,8 +1,13 @@
+# pyrefly: ignore [untyped-import]
 from django.contrib import admin
+# pyrefly: ignore [untyped-import]
 from django.urls import path, include
 from . import views
+# pyrefly: ignore [untyped-import]
 from django.contrib.auth import views as auth_views
+# pyrefly: ignore [untyped-import]
 from django.conf import settings
+# pyrefly: ignore [untyped-import]
 from django.conf.urls.static import static
 
 urlpatterns = [ 

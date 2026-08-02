@@ -1,4 +1,6 @@
+# pyrefly: ignore [untyped-import]
 from django.shortcuts import render
+# pyrefly: ignore [untyped-import]
 from django.contrib.auth.decorators import login_required
     
 @login_required
@@ -16,8 +18,8 @@ def home_argus(request):
             'descricao': 'Gestão de entradas e controle de estoque por NF-e.'
         },
         {
-            'nome': 'Cadastros', # <--- MÓDULO ADICIONADO
-            'url': 'cadastros:home_cadastros', # Ajuste conforme a sua URL de cadastros
+            'nome': 'Cadastros',
+            'url': 'cadastros:home_cadastros',
             'icone': 'fa-database', 
             'cor': 'success',
             'descricao': 'Gestão de Fornecedores, Projetos e Processos.'

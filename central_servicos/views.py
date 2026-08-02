@@ -1,16 +1,25 @@
+# pyrefly: ignore [untyped-import]
 from django.shortcuts import render
+# pyrefly: ignore [untyped-import]
 from django.contrib.auth.decorators import login_required
+# pyrefly: ignore [untyped-import]
 from django.contrib.auth.mixins import LoginRequiredMixin
+# pyrefly: ignore [untyped-import]
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+# pyrefly: ignore [untyped-import]
 from django.urls import reverse_lazy
 from .models import OrdemServico, Predio, Andar, Sala, AtivoPredial, CategoriaServico, MaterialUtilizado
 from .forms import OrdemServicoForm
 
 @login_required
 def dashboard(request):
+    # pyrefly: ignore [missing-attribute]
     os_pendentes = OrdemServico.objects.filter(status='PENDENTE').count()
+    # pyrefly: ignore [missing-attribute]
     os_em_andamento = OrdemServico.objects.filter(status='EM_ANDAMENTO').count()
+    # pyrefly: ignore [missing-attribute]
     os_concluidas = OrdemServico.objects.filter(status='CONCLUIDA').count()
+    # pyrefly: ignore [missing-attribute]
     ultimas_os = OrdemServico.objects.all().order_by('-data_abertura')[:10]
     
     context = {
