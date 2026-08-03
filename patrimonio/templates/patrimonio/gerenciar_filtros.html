@@ -19,17 +19,17 @@
     </div>
 
     <table class="table table-hover">
-        <thead class="table-dark">
+        <thead class="table-dark text-center">
             <tr>
-                <th>Termo de Filtro</th>
-                <th class="text-end">Ações</th>
+                <th class="text-center">Termo de Filtro</th>
+                <th class="text-center">Ações</th>
             </tr>
         </thead>
         <tbody>
             {% for filtro in filtros %}
             <tr>
                 <td>{{ filtro.termo }}</td>
-                <td class="text-end">
+                <td class="text-center">
                     <form method="POST" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="deletar_id" value="{{ filtro.id }}">

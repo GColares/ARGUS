@@ -1,8 +1,13 @@
+# pyrefly: ignore [untyped-import]
 from django.contrib import admin
+# pyrefly: ignore [untyped-import]
 from django.urls import path, include
 from . import views
+# pyrefly: ignore [untyped-import]
 from django.contrib.auth import views as auth_views
+# pyrefly: ignore [untyped-import]
 from django.conf import settings
+# pyrefly: ignore [untyped-import]
 from django.conf.urls.static import static
 
 urlpatterns = [ 
@@ -30,6 +35,7 @@ urlpatterns = [
     path('patrimonio/', include('patrimonio.urls', namespace='home_patrimonio')),
     path('almoxarifado/', include('almoxarifado.urls', namespace='home_almoxarifado')),
     path('gestao_projetos/', include('gestao_projetos.urls', namespace='home_gestao_projetos')),
+    path('central_servicos/', include('central_servicos.urls', namespace='central_servicos')),
 ]
 
 if settings.DEBUG:

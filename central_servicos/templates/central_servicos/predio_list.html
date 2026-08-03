@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestão de Prédios e Instalações{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cs-hub-container {
+        padding: 2rem 0;
+        min-height: 80vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 1rem;
+    }
+    .cs-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+    .tag-danger { background-color: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
+    .tag-warning { background-color: #ffc107; color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
+    .tag-success { background-color: #198754; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cs-hub-container px-3 px-md-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: #2c3e50;">Prédios e Instalações</h2>
+            <p class="text-muted mb-0">Gestão de infraestrutura, riscos e licenças do Polo.</p>
+        </div>
+        <div>
+            <a href="{% url 'central_servicos:home_central_servicos' %}" class="btn btn-outline-secondary rounded-pill px-4 me-2">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
+            </a>
+            <a href="{% url 'central_servicos:predio_novo' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                <i class="fas fa-plus me-1"></i> Novo Prédio
+            </a>
+        </div>
+    </div>
+
+    <div class="cs-card p-4 p-md-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th class="text-center">Nome / Sigla</th>
+                        <th class="text-center">Finalidade</th>
+                        <th class="text-center">Riscos (Q / B)</th>
+                        <th class="text-center">AVCB / Ambiental</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for predio in predios %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ predio.nome }}</div>
+                            <small class="text-muted">{{ predio.sigla|default:"Sem Sigla" }}</small>
+                        </td>
+                        <td>
+                            {% for finalidade in predio.finalidades.all %}
+                                <span class="badge bg-light text-dark border">{{ finalidade.nome }}</span>
+                            {% empty %}
+                                <span class="text-muted">-</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary" title="Risco Químico">Q: {{ predio.get_risco_quimico_display|default:"N/A" }}</span>
+                            <span class="badge bg-secondary" title="Risco Biológico">B: {{ predio.get_risco_biologico_display|default:"N/A" }}</span>
+                        </td>
+                        <td>
+                            <!-- AVCB -->
+                            <div class="mb-1">
+                                <small class="text-muted fw-bold">AVCB:</small> 
+                                {% if predio.avcb_validade %}
+                                    <span class="tag-success"><i class="fas fa-calendar-check"></i> {{ predio.avcb_validade|date:"d/m/Y" }}</span>
+                                {% else %}
+                                    <span class="text-muted small">Não registrado</span>
+                                {% endif %}
+                                {% if predio.avcb_arquivo %}
+                                    <a href="{{ predio.avcb_arquivo.url }}" target="_blank" class="text-primary ms-1" title="Ver PDF"><i class="fas fa-file-pdf"></i></a>
+                                {% endif %}
+                            </div>
+                            <!-- AMBIENTAL -->
+                            <div>
+                                <small class="text-muted fw-bold">LAO:</small> 
+                                {% if predio.licenca_ambiental_validade %}
+                                    <span class="tag-success"><i class="fas fa-leaf"></i> {{ predio.licenca_ambiental_validade|date:"d/m/Y" }}</span>
+                                {% else %}
+                                    <span class="text-muted small">Não registrado</span>
+                                {% endif %}
+                                {% if predio.licenca_ambiental_arquivo %}
+                                    <a href="{{ predio.licenca_ambiental_arquivo.url }}" target="_blank" class="text-primary ms-1" title="Ver PDF"><i class="fas fa-file-pdf"></i></a>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'central_servicos:predio_editar' predio.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <a href="{% url 'central_servicos:predio_excluir' predio.pk %}" class="btn btn-sm btn-outline-danger rounded-pill ms-1">
+                                <i class="fas fa-trash-alt"></i> Excluir
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fas fa-building fa-3x mb-3 text-secondary" style="opacity: 0.5;"></i><br>
+                            Nenhum prédio cadastrado ainda.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

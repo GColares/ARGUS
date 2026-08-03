@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Solicitação - Central de Serviços{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-plus-circle me-2"></i> Nova Solicitação de Serviço</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Categoria do Serviço</label>
+                            {{ form.categoria }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Prioridade</label>
+                            {{ form.prioridade }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Local (Sala/Ambiente)</label>
+                            {{ form.sala }}
+                            <div class="form-text">Onde o serviço deve ser executado?</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ativo / Equipamento (Opcional)</label>
+                            {{ form.ativo_predial }}
+                            <div class="form-text">Qual equipamento apresenta defeito? Deixe em branco se for serviço geral.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Descrição do Pedido / Problema</label>
+                        {{ form.descricao_problema }}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'central_servicos:home_central_servicos' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-success fw-bold px-4">Salvar e Enviar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

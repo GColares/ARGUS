@@ -1,0 +1,550 @@
+{% extends 'base.html' %}
+
+{% block title %}Central de Serviços - Hub{% endblock %}
+
+{% block content %}
+<style>
+    /* CSS Premium / Glassmorphism / Animations */
+    .cs-hub-container {
+        padding: 2rem 0;
+        min-height: 80vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 1rem;
+    }
+
+    .cs-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        cursor: pointer;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+        text-decoration: none !important;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 3rem 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .cs-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 1);
+    }
+
+    .cs-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, var(--bs-primary), var(--bs-info));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .cs-card:hover::before {
+        opacity: 1;
+    }
+
+    .cs-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.1), rgba(var(--bs-info-rgb), 0.1));
+        color: var(--bs-primary);
+        transition: all 0.3s ease;
+    }
+
+    .cs-card:hover .cs-icon-wrapper {
+        background: var(--bs-primary);
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .cs-title {
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+
+    .cs-desc {
+        color: #6c757d;
+        text-align: center;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* Custom Modal Styles */
+    .modal-content.glass-modal {
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header.glass-header {
+        background: linear-gradient(90deg, #2c3e50, #3498db);
+        color: white;
+        border-radius: 1rem 1rem 0 0;
+        border-bottom: none;
+    }
+
+    .nav-pills.custom-pills .nav-link {
+        border-radius: 0.5rem;
+        color: #495057;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .nav-pills.custom-pills .nav-link.active {
+        background-color: var(--bs-primary);
+        color: white;
+        box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.3);
+    }
+
+    .concept-box {
+        background: #f8f9fa;
+        border-left: 4px solid var(--bs-primary);
+        padding: 1.5rem;
+        border-radius: 0 0.5rem 0.5rem 0;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Action Grid in Cadastros Modal */
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        background: white;
+        border: 1px solid #dee2e6;
+        color: #495057;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+        border-color: var(--bs-primary);
+        background: #f8f9fa;
+        color: var(--bs-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .action-btn i {
+        font-size: 1.5rem;
+        color: var(--bs-primary);
+    }
+</style>
+
+<div class="container-fluid cs-hub-container px-4">
+    <div class="text-center mb-5">
+        <h1 class="fw-bolder" style="color: #2c3e50; font-size: 2.5rem;">Central de Serviços</h1>
+        <p class="lead text-muted">Hub de Manutenção, Infraestrutura e Logística</p>
+    </div>
+
+    <!-- METRICS BANNER -->
+    <div class="row g-3 justify-content-center mb-5">
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'central_servicos:relatorio_os' 'PENDENTE' %}" target="_blank" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #fff3cd, #fff);">
+                    <div class="card-body text-center py-3 px-2">
+                        <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                        <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_pendentes }}</h2>
+                        <span class="text-muted fw-semibold small">Pendentes</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'central_servicos:relatorio_os' 'PROGRAMADA' %}" target="_blank" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #e2e3e5, #fff);">
+                    <div class="card-body text-center py-3 px-2">
+                        <i class="fas fa-calendar-alt fa-2x text-secondary mb-2"></i>
+                        <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_programadas }}</h2>
+                        <span class="text-muted fw-semibold small">Programadas</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'central_servicos:relatorio_os' 'INICIADA' %}" target="_blank" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #cff4fc, #fff);">
+                    <div class="card-body text-center py-3 px-2">
+                        <i class="fas fa-truck-pickup fa-2x text-info mb-2"></i>
+                        <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_iniciadas }}</h2>
+                        <span class="text-muted fw-semibold small">Iniciadas</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'central_servicos:relatorio_os' 'EM_ANDAMENTO' %}" target="_blank" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #cfe2ff, #fff);">
+                    <div class="card-body text-center py-3 px-2">
+                        <i class="fas fa-tools fa-2x text-primary mb-2"></i>
+                        <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_em_andamento }}</h2>
+                        <span class="text-muted fw-semibold small">Em Andamento</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'central_servicos:relatorio_os' 'SUSPENSA' %}" target="_blank" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #f8d7da, #fff);">
+                    <div class="card-body text-center py-3 px-2">
+                        <i class="fas fa-pause-circle fa-2x text-danger mb-2"></i>
+                        <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_suspensas }}</h2>
+                        <span class="text-muted fw-semibold small">Suspensas</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="{% url 'central_servicos:relatorio_os' 'CONCLUIDA' %}" target="_blank" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #d1e7dd, #fff);">
+                    <div class="card-body text-center py-3 px-2">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_concluidas }}</h2>
+                        <span class="text-muted fw-semibold small">Concluídas</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Manual Card -->
+        <div class="col-12 col-md-4 col-lg-3">
+            <div class="cs-card" data-bs-toggle="modal" data-bs-target="#manualModal">
+                <div class="cs-icon-wrapper">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3 class="cs-title">Manual</h3>
+                <p class="cs-desc">Regras de uso e conceitos fundamentais do módulo.</p>
+            </div>
+        </div>
+
+        <!-- Cadastros Base Card -->
+        <div class="col-12 col-md-4 col-lg-3">
+            <div class="cs-card" data-bs-toggle="modal" data-bs-target="#cadastrosModal">
+                <div class="cs-icon-wrapper">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3 class="cs-title">Cadastros</h3>
+                <p class="cs-desc">Gerencie Prédios, Andares, Salas e Ativos Prediais.</p>
+            </div>
+        </div>
+
+        <!-- Solicitar Serviços Card -->
+        <div class="col-12 col-md-4 col-lg-3">
+            <a href="{% url 'central_servicos:nova_os' %}" class="cs-card">
+                <div class="cs-icon-wrapper text-primary bg-primary bg-opacity-10">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <h3 class="cs-title">Solicitar Serviço</h3>
+                <p class="cs-desc">Abra um novo chamado de manutenção ou serviço predial.</p>
+            </a>
+        </div>
+
+        <!-- Histórico Card -->
+        <div class="col-12 col-md-4 col-lg-3">
+            <a href="{% url 'central_servicos:historico_os' %}" class="cs-card">
+                <div class="cs-icon-wrapper text-info bg-info bg-opacity-10">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3 class="cs-title">Histórico</h3>
+                <p class="cs-desc">Consulte todas as OS, incluindo as canceladas.</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: MANUAL E CONCEITOS -->
+<div class="modal fade" id="manualModal" tabindex="-1" aria-labelledby="manualModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-modal">
+            <div class="modal-header glass-header py-3">
+                <h4 class="modal-title fw-bold" id="manualModalLabel"><i class="fas fa-book-reader me-2"></i> Manual de
+                    Conceitos - Central de Serviços</h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row">
+                    <!-- Nav Tabs -->
+                    <div class="col-md-3 border-end pe-4">
+                        <div class="nav flex-column nav-pills custom-pills" id="v-pills-tab" role="tablist"
+                            aria-orientation="vertical">
+                            <button class="nav-link text-start active" id="v-pills-hierarquia-tab" data-bs-toggle="pill"
+                                data-bs-target="#v-pills-hierarquia" type="button" role="tab">
+                                <i class="fas fa-sitemap me-2 w-20px"></i> Hierarquia de Espaços
+                            </button>
+                            <button class="nav-link text-start" id="v-pills-ativos-tab" data-bs-toggle="pill"
+                                data-bs-target="#v-pills-ativos" type="button" role="tab">
+                                <i class="fas fa-box-open me-2 w-20px"></i> Ativos Prediais
+                            </button>
+                            <button class="nav-link text-start" id="v-pills-os-tab" data-bs-toggle="pill"
+                                data-bs-target="#v-pills-os" type="button" role="tab">
+                                <i class="fas fa-clipboard-list me-2 w-20px"></i> Fluxo da O.S.
+                            </button>
+                            <button class="nav-link text-start" id="v-pills-categoria-tab" data-bs-toggle="pill"
+                                data-bs-target="#v-pills-categoria" type="button" role="tab">
+                                <i class="fas fa-tags me-2 w-20px"></i> Categorias
+                            </button>
+                            <button class="nav-link text-start" id="v-pills-estoque-tab" data-bs-toggle="pill"
+                                data-bs-target="#v-pills-estoque" type="button" role="tab">
+                                <i class="fas fa-cubes me-2 w-20px"></i> Baixa de Estoque
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="col-md-9 ps-4">
+                        <div class="tab-content" id="v-pills-tabContent">
+
+                            <!-- Hierarquia -->
+                            <div class="tab-pane fade show active" id="v-pills-hierarquia" role="tabpanel">
+                                <h3 class="fw-bold mb-4 text-primary">A Hierarquia de Espaços</h3>
+                                <p class="lead">O módulo baseia-se numa estrutura física organizada em 3 níveis para
+                                    facilitar a localização exata de qualquer problema ou ativo.</p>
+
+                                <div class="concept-box">
+                                    <h5><i class="fas fa-building text-primary me-2"></i> 1. Prédios</h5>
+                                    <p class="mb-0 text-muted">A estrutura macro. Representa o edifício físico (Ex:
+                                        "Prédio Principal", "Anexo A").</p>
+                                </div>
+                                <div class="concept-box">
+                                    <h5><i class="fas fa-layer-group text-primary me-2"></i> 2. Andares</h5>
+                                    <p class="mb-0 text-muted">Subdivisões verticaais que pertencem
+                                        <strong>obrigatoriamente</strong> a um Prédio (Ex: "Térreo", "1º Andar").</p>
+                                </div>
+                                <div class="concept-box">
+                                    <h5><i class="fas fa-door-open text-primary me-2"></i> 3. Salas</h5>
+                                    <p class="mb-0 text-muted">Os espaços finais de uso, localizados dentro de um Andar
+                                        (Ex: "Sala de Reunião 101", "Banheiro Masculino"). Ordens de Serviço geralmente
+                                        ocorrem aqui.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ativos Prediais -->
+                            <div class="tab-pane fade" id="v-pills-ativos" role="tabpanel">
+                                <h3 class="fw-bold mb-4 text-primary">Ativos Prediais vs. Patrimônio</h3>
+                                <div class="alert alert-info border-0 shadow-sm">
+                                    <i class="fas fa-info-circle me-2"></i> O <strong>Ativo Predial</strong> é a
+                                    representação de um equipamento para fins de <em>manutenção</em>. O <strong>Bem
+                                        Patrimonial</strong> é o seu registro contábil e de inventário.
+                                </div>
+                                <p>Na Central de Serviços, lidamos com os <strong>Ativos Prediais</strong> (ex: Aparelho
+                                    de Ar Condicionado, Elevador, Quadro Elétrico). Eles possuem uma ligação direta com
+                                    as Salas onde estão instalados.</p>
+                                <ul class="list-group list-group-flush mb-4">
+                                    <li class="list-group-item bg-transparent border-0 py-1"><i
+                                            class="fas fa-check text-success me-2"></i> Permite abrir Ordens de Serviço
+                                        diretamente para um equipamento.</li>
+                                    <li class="list-group-item bg-transparent border-0 py-1"><i
+                                            class="fas fa-check text-success me-2"></i> Pode (ou não) estar vinculado a
+                                        um Bem Patrimonial do módulo de Patrimônio.</li>
+                                    <li class="list-group-item bg-transparent border-0 py-1"><i
+                                            class="fas fa-check text-success me-2"></i> Facilita o histórico de
+                                        manutenção por equipamento.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Fluxo OS -->
+                            <div class="tab-pane fade" id="v-pills-os" role="tabpanel">
+                                <h3 class="fw-bold mb-4 text-primary">O Fluxo da Ordem de Serviço</h3>
+                                <p>Toda demanda de manutenção gera uma O.S., que segue um ciclo de vida controlado por
+                                    seus Status.</p>
+
+                                <div class="row text-center mt-4 g-3">
+                                    <div class="col-md-4">
+                                        <div class="p-3 border-0 shadow-sm rounded bg-warning bg-opacity-10 h-100">
+                                            <i class="fas fa-clock fa-2x text-warning mb-3"></i>
+                                            <h5>Pendente</h5>
+                                            <small class="text-muted">A O.S. foi criada, mas a equipe ainda não acatou o chamado.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 border-0 shadow-sm rounded bg-secondary bg-opacity-10 h-100">
+                                            <i class="fas fa-calendar-alt fa-2x text-secondary mb-3"></i>
+                                            <h5>Programada</h5>
+                                            <small class="text-muted">O serviço foi agendado para uma data futura específica.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 border-0 shadow-sm rounded bg-info bg-opacity-10 h-100">
+                                            <i class="fas fa-truck-pickup fa-2x text-info mb-3"></i>
+                                            <h5>Iniciada</h5>
+                                            <small class="text-muted">A equipe acatou a O.S. e iniciou a logística/deslocamento ou planejamento.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 border-0 shadow-sm rounded bg-primary bg-opacity-10 h-100">
+                                            <i class="fas fa-tools fa-2x text-primary mb-3"></i>
+                                            <h5>Em Andamento</h5>
+                                            <small class="text-muted">A execução técnica ("mão na massa") está ocorrendo no local.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 border-0 shadow-sm rounded bg-danger bg-opacity-10 h-100">
+                                            <i class="fas fa-pause-circle fa-2x text-danger mb-3"></i>
+                                            <h5>Suspensa</h5>
+                                            <small class="text-muted">Fluxo congelado (ex: falta de peça, chuva). Materiais aguardam a retomada.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 border-0 shadow-sm rounded bg-success bg-opacity-10 h-100">
+                                            <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                                            <h5>Concluída</h5>
+                                            <small class="text-muted">Serviço finalizado. Os materiais alocados são baixados do estoque neste momento.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Categorias -->
+                            <div class="tab-pane fade" id="v-pills-categoria" role="tabpanel">
+                                <h3 class="fw-bold mb-4 text-primary">Categorias de Serviço</h3>
+                                <p class="lead">Para facilitar a triagem e o atendimento, as Ordens de Serviço são
+                                    classificadas em Categorias.</p>
+
+                                <div class="concept-box">
+                                    <h5>O que é uma Categoria?</h5>
+                                    <p class="mb-0 text-muted">É a área técnica ou o tipo de intervenção que o chamado
+                                        exige. Isso ajuda a direcionar a demanda para o técnico correto (eletricista,
+                                        encanador, pedreiro, etc).</p>
+                                </div>
+                                <h5 class="mt-4 mb-3"><i class="fas fa-lightbulb text-warning me-2"></i> Exemplos
+                                    Comuns:</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 border-0 rounded bg-white shadow-sm h-100">
+                                            <i class="fas fa-bolt text-danger mb-2 fs-4"></i>
+                                            <h6 class="fw-bold">Elétrica</h6>
+                                            <small class="text-muted">Troca de lâmpadas, curtos-circuitos, instalação de
+                                                tomadas e disjuntores.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 border-0 rounded bg-white shadow-sm h-100">
+                                            <i class="fas fa-faucet text-info mb-2 fs-4"></i>
+                                            <h6 class="fw-bold">Hidráulica</h6>
+                                            <small class="text-muted">Vazamentos, desentupimentos, reparos em pias,
+                                                vasos e encanamentos.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 border-0 rounded bg-white shadow-sm h-100">
+                                            <i class="fas fa-paint-roller text-secondary mb-2 fs-4"></i>
+                                            <h6 class="fw-bold">Alvenaria / Civil</h6>
+                                            <small class="text-muted">Pintura, reparo em portas, pisos, forros e
+                                                telhados.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 border-0 rounded bg-white shadow-sm h-100">
+                                            <i class="fas fa-snowflake text-primary mb-2 fs-4"></i>
+                                            <h6 class="fw-bold">Climatização</h6>
+                                            <small class="text-muted">Limpeza de filtros, recarga de gás e manutenção de
+                                                ar-condicionado.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Estoque -->
+                            <div class="tab-pane fade" id="v-pills-estoque" role="tabpanel">
+                                <h3 class="fw-bold mb-4 text-primary">Integração com o Almoxarifado</h3>
+                                <p class="lead">Para consertar problemas, utilizamos materiais. O ARGUS automatiza a
+                                    baixa do estoque ao final da O.S.</p>
+
+                                <div class="concept-box" style="border-color: var(--bs-success);">
+                                    <h5 class="text-success">Como funciona a baixa de estoque?</h5>
+                                    <ol class="mb-0 mt-3 text-muted">
+                                        <li class="mb-2">A equipe cadastra os <strong>Materiais Utilizados</strong> na
+                                            Ordem de Serviço (ex: "2 lâmpadas").</li>
+                                        <li class="mb-2">A O.S. corre normalmente até o conserto acabar.</li>
+                                        <li class="mb-2">Quando a O.S. é marcada como <strong>"Concluída"</strong> e
+                                            salva, o sistema aciona automaticamente o módulo de Almoxarifado.</li>
+                                        <li>As quantidades são subtraídas do estoque geral, garantindo que o inventário
+                                            físico seja idêntico ao registrado no sistema.</li>
+                                    </ol>
+                                </div>
+                                <div class="alert alert-warning border-0 mt-3 shadow-sm text-dark">
+                                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                                    <strong>Atenção:</strong> A baixa só ocorre uma vez por O.S. para evitar duplicação.
+                                    O sistema trava a edição de materiais após a conclusão.
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendi, Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: CADASTROS BASE -->
+<div class="modal fade" id="cadastrosModal" tabindex="-1" aria-labelledby="cadastrosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-modal">
+            <div class="modal-header glass-header py-3">
+                <h5 class="modal-title fw-bold" id="cadastrosModalLabel"><i class="fas fa-database me-2"></i> Cadastros
+                    Base do Sistema</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-muted mb-4 text-center">Acesse rapidamente as tabelas de domínio para alimentar o
+                    sistema.</p>
+                <div class="action-grid">
+                    <a href="{% url 'central_servicos:predio_list' %}" class="action-btn">
+                        <i class="fas fa-city"></i> Prédios (Avançado)
+                    </a>
+                    <a href="/admin/central_servicos/andar/" class="action-btn">
+                        <i class="fas fa-layer-group"></i> Andares
+                    </a>
+                    <a href="/admin/central_servicos/sala/" class="action-btn">
+                        <i class="fas fa-door-open"></i> Salas
+                    </a>
+                    <a href="/admin/central_servicos/ativopredial/" class="action-btn">
+                        <i class="fas fa-microchip"></i> Ativos Prediais
+                    </a>
+                    <a href="/admin/central_servicos/categoriaservico/" class="action-btn">
+                        <i class="fas fa-tags"></i> Categorias
+                    </a>
+                    <a href="/admin/central_servicos/materialutilizado/" class="action-btn">
+                        <i class="fas fa-box"></i> Materiais
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,6 @@
+# pyrefly: ignore [untyped-import]
 from django.shortcuts import render
+# pyrefly: ignore [untyped-import]
 from django.contrib.auth.decorators import login_required
 
 @login_required
@@ -16,8 +18,8 @@ def home_argus(request):
             'descricao': 'Gestão de entradas e controle de estoque por NF-e.'
         },
         {
-            'nome': 'Cadastros', # <--- MÓDULO ADICIONADO
-            'url': 'cadastros:home_cadastros', # Ajuste conforme a sua URL de cadastros
+            'nome': 'Cadastros',
+            'url': 'cadastros:home_cadastros',
             'icone': 'fa-database', 
             'cor': 'success',
             'descricao': 'Gestão de Fornecedores, Projetos e Processos.'
@@ -42,6 +44,13 @@ def home_argus(request):
             'icone': 'fas fa-file-invoice',
             'cor': 'warning',
             'descricao': 'Gestão de atividades do projeto.'
+        },
+        {
+            'nome': 'Central de Serviços: Manutenção, Infraestrutura e Logística', 
+            'url': 'central_servicos:home_central_servicos', 
+            'icone': 'fa-building', 
+            'cor': 'warning',
+            'descricao': 'Gestão de infraestrutura, logística e serviços operacionais.'
         },
     ]
 

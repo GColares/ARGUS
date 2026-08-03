@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Histórico de Ordens de Serviço{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cs-hub-container {
+        padding: 2rem 0;
+        min-height: 80vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 1rem;
+    }
+    .cs-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+    .status-badge {
+        padding: 0.4em 0.8em;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.85em;
+    }
+    .status-PENDENTE { background-color: #ffc107; color: #000; }
+    .status-PROGRAMADA { background-color: #17a2b8; color: #fff; }
+    .status-INICIADA { background-color: #0d6efd; color: #fff; }
+    .status-EM_ANDAMENTO { background-color: #6610f2; color: #fff; }
+    .status-SUSPENSA { background-color: #fd7e14; color: #fff; }
+    .status-CONCLUIDA { background-color: #198754; color: #fff; }
+    .status-CANCELADA { background-color: #dc3545; color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cs-hub-container px-3 px-md-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: #2c3e50;">Histórico Geral de OS</h2>
+            <p class="text-muted mb-0">Consulte todas as Ordens de Serviço cadastradas, incluindo as canceladas.</p>
+        </div>
+        <a href="{% url 'central_servicos:home_central_servicos' %}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left me-2"></i> Voltar ao Painel
+        </a>
+    </div>
+
+    <div class="cs-card p-4 p-md-5">
+        <!-- Filtros podem ser adicionados aqui no futuro -->
+        
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th class="text-center">Número</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Data Abertura</th>
+                        <th class="text-center">Categoria / Local</th>
+                        <th class="text-center">Solicitante</th>
+                        <th class="text-center">Motivo Cancelamento</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for os in ordens %}
+                    <tr>
+                        <td class="fw-bold">{{ os.numero }}</td>
+                        <td>
+                            <span class="status-badge status-{{ os.status }}">
+                                {{ os.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ os.data_abertura|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <div>{{ os.categoria|default:"Geral" }}</div>
+                            <small class="text-muted">{{ os.sala|default:"N/A" }}</small>
+                        </td>
+                        <td>{{ os.solicitante.get_full_name|default:os.solicitante.username }}</td>
+                        <td>
+                            {% if os.status == 'CANCELADA' %}
+                                <div style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ os.motivo_cancelamento }}">
+                                    {{ os.motivo_cancelamento|default:"N/A" }}
+                                </div>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <!-- Se não estiver cancelada nem concluída, exibe botão de cancelar -->
+                                {% if os.status != 'CANCELADA' and os.status != 'CONCLUIDA' %}
+                                    <a href="{% url 'central_servicos:cancelar_os' os.pk %}" class="btn btn-sm btn-outline-danger" title="Cancelar OS">
+                                        <i class="fas fa-ban"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-folder-open fa-3x mb-3 text-secondary" style="opacity: 0.5;"></i><br>
+                            Nenhuma Ordem de Serviço encontrada.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-4 text-end">
+            <p class="text-muted mb-0">Total de registros: <strong>{{ ordens|length }}</strong></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
