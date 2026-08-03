@@ -6,327 +6,366 @@
 
 {% block content %}
 
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'almoxarifado:home_almoxarifado' %}" class="text-decoration-none text-danger">Almoxarifado</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'almoxarifado:lista_notas' %}" class="text-decoration-none text-danger">Histórico</a></li>
-            <li class="breadcrumb-item active">NF-e {{ nota.numero }}</li>
-        </ol>
-    </nav>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'almoxarifado:home_almoxarifado' %}"
+                class="text-decoration-none text-danger">Almoxarifado</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'almoxarifado:lista_notas' %}"
+                class="text-decoration-none text-danger">Histórico</a></li>
+        <li class="breadcrumb-item active">NF-e {{ nota.numero }}</li>
+    </ol>
+</nav>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        {% if nota_anterior %}
+        <a href="{% url 'almoxarifado:detalhe_nota' nota_anterior.id %}"
+            class="btn btn-sm btn-outline-secondary fw-bold">
+            <i class="fas fa-arrow-left me-1"></i> NF Anterior
+        </a>
+        {% else %}
+        <span class="text-muted small ms-2"><i class="fas fa-ban me-1"></i>Início da lista</span>
+        {% endif %}
+    </div>
+
+    <div class="text-center">
+        <span class="badge bg-secondary text-white border text-uppercase" style="letter-spacing: 1px;">
+            <i class="fas fa-exchange-alt me-1"></i> Navegação
+        </span>
+    </div>
+
+    <div>
+        {% if proxima_nota %}
+        <a href="{% url 'almoxarifado:detalhe_nota' proxima_nota.id %}"
+            class="btn btn-sm btn-outline-secondary fw-bold">
+            Próxima NF <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+        {% else %}
+        <span class="text-muted small me-2">Fim da lista <i class="fas fa-ban ms-1"></i></span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'almoxarifado:lista_notas' %}"
+            class="btn btn-light border-secondary border-opacity-25 shadow-sm text-secondary"
+            title="Voltar ao Histórico de Entradas">
+            <i class="fas fa-arrow-left"></i>
+        </a>
         <div>
+            <h2 class="fw-bold m-0">
+                <i class="fas fa-file-invoice text-danger me-2"></i>Nota Fiscal Eletrônica <span class="text-danger">#{{
+                    nota.numero }}</span>
+            </h2>
+            <p class="text-muted small mb-0 mt-1">Série: {{ nota.serie }} | Emissão: {{ nota.data_emissao|date:"d/m/Y"
+                }}</p>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+
+        {% if request.user.perfil.vinculo == 'SERVIDOR' and request.user.perfil.siape %}
+        {% if nota.termo_recebimento_assinado %}
+        <a href="{{ nota.termo_recebimento_assinado.url }}" target="_blank" class="btn btn-success fw-bold shadow-sm"
+            title="Baixar/Ver Termo Arquivado">
+            <i class="fas fa-file-contract me-2"></i>Termo Arquivado
+        </a>
+        {% else %}
+        <a href="{% url 'almoxarifado:ver_termo_rme' nota.id %}" target="_blank"
+            class="btn btn-primary fw-bold shadow-sm" title="Acessar Painel do Termo RME">
+            <i class="fas fa-file-contract me-2"></i>Painel RME (Termo)
+        </a>
+        {% endif %}
+        {% endif %}
+
+        <button type="button" class="btn btn-success fw-bold shadow-sm" data-bs-toggle="modal"
+            data-bs-target="#modalImportarNfeGlobal">
+            <i class="fas fa-file-upload me-2"></i>Importar Nova NF-e
+        </button>
+
+        <button type="button" class="btn btn-outline-dark fw-bold shadow-sm" data-bs-toggle="modal"
+            data-bs-target="#modalEditarNota">
+            <i class="fas fa-edit me-2 text-primary"></i>Editar Capa
+        </button>
+
+        {% if nota.arquivo_pdf %}
+        <a href="{{ nota.arquivo_pdf.url }}"
+            onclick="window.open(this.href, 'JanelaPDF', 'width=850,height=900,left=200,top=50,resizable=yes,scrollbars=yes'); return false;"
+            class="btn btn-outline-danger fw-bold shadow-sm" title="Ver PDF Original">
+            <i class="fas fa-file-pdf"></i>
+        </a>
+        {% endif %}
+
+        <button type="button" class="btn btn-danger fw-bold shadow-sm ms-2" data-bs-toggle="modal"
+            data-bs-target="#modalExcluirNota">
+            <i class="fas fa-trash-alt me-2"></i>Excluir Nota
+        </button>
+    </div>
+</div>
+
+<div class="card border-danger border-opacity-25 shadow-sm mb-4 bg-white">
+    <div
+        class="card-header bg-danger bg-opacity-10 py-3 border-bottom-0 d-flex justify-content-between align-items-center">
+        <div style="min-width: 110px;">
             {% if nota_anterior %}
-                <a href="{% url 'almoxarifado:detalhe_nota' nota_anterior.id %}" class="btn btn-sm btn-outline-secondary fw-bold">
-                    <i class="fas fa-arrow-left me-1"></i> NF Anterior
-                </a>
-            {% else %}
-                <span class="text-muted small ms-2"><i class="fas fa-ban me-1"></i>Início da lista</span>
+            <a href="{% url 'almoxarifado:detalhe_nota' nota_anterior.id %}"
+                class="btn btn-sm btn-danger text-white fw-bold shadow-sm">
+                <i class="fas fa-chevron-left me-1"></i> Anterior
+            </a>
             {% endif %}
         </div>
-
-        <div class="text-center">
-            <span class="badge bg-secondary text-white border text-uppercase" style="letter-spacing: 1px;">
-                <i class="fas fa-exchange-alt me-1"></i> Navegação
-            </span>
-        </div>
-
-        <div>
+        <h6 class="card-title mb-0 fw-bold text-danger text-uppercase text-center"><i
+                class="fas fa-truck me-2"></i>Dados de Logística e Faturamento</h6>
+        <div style="min-width: 110px;" class="text-end">
             {% if proxima_nota %}
-                <a href="{% url 'almoxarifado:detalhe_nota' proxima_nota.id %}" class="btn btn-sm btn-outline-secondary fw-bold">
-                    Próxima NF <i class="fas fa-arrow-right ms-1"></i>
-                </a>
-            {% else %}
-                <span class="text-muted small me-2">Fim da lista <i class="fas fa-ban ms-1"></i></span>
+            <a href="{% url 'almoxarifado:detalhe_nota' proxima_nota.id %}"
+                class="btn btn-sm btn-danger text-white fw-bold shadow-sm">
+                Próxima <i class="fas fa-chevron-right ms-1"></i>
+            </a>
             {% endif %}
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center gap-3">
-            <a href="{% url 'almoxarifado:lista_notas' %}" class="btn btn-light border-secondary border-opacity-25 shadow-sm text-secondary" title="Voltar ao Histórico de Entradas">
-                <i class="fas fa-arrow-left"></i>
-            </a>        
-            <div>
-                <h2 class="fw-bold m-0">
-                    <i class="fas fa-file-invoice text-danger me-2"></i>Nota Fiscal Eletrônica <span class="text-danger">#{{ nota.numero }}</span>
-                </h2>
-                <p class="text-muted small mb-0 mt-1">Série: {{ nota.serie }} | Emissão: {{ nota.data_emissao|date:"d/m/Y" }}</p>
+    <div class="card-body p-4">
+        <div class="row g-4">
+
+            <div class="col-md-5 border-md-end">
+                <span class="text-muted small d-block fw-bold text-uppercase mb-1">Fornecedor / Emitente</span>
+                <h6 class="fw-bold text-dark mb-0">{{ nota.fornecedor.nome|default:"Não identificado" }}</h6>
+                <span class="text-muted font-monospace small">CNPJ: {{ nota.fornecedor.cnpj|default:"--" }}</span>
             </div>
-        </div>
-        
-        <div class="d-flex gap-2">
-            
-            {% if request.user.perfil.vinculo == 'SERVIDOR' and request.user.perfil.siape %}
-                {% if nota.termo_recebimento_assinado %}
-                <a href="{{ nota.termo_recebimento_assinado.url }}" target="_blank" class="btn btn-success fw-bold shadow-sm" title="Baixar/Ver Termo Arquivado">
-                    <i class="fas fa-file-contract me-2"></i>Termo Arquivado
-                </a>
-                {% else %}
-                <a href="{% url 'almoxarifado:ver_termo_rme' nota.id %}" target="_blank" class="btn btn-primary fw-bold shadow-sm" title="Acessar Painel do Termo RME">
-                    <i class="fas fa-file-contract me-2"></i>Painel RME (Termo)
-                </a>
-                {% endif %}
-            {% endif %}
 
-            <button type="button" class="btn btn-success fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportarNfeGlobal">
-                <i class="fas fa-file-upload me-2"></i>Importar Nova NF-e
-            </button>
-
-            <button type="button" class="btn btn-outline-dark fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEditarNota">
-                <i class="fas fa-edit me-2 text-primary"></i>Editar Capa
-            </button>
-
-            {% if nota.arquivo_pdf %}
-                <a href="{{ nota.arquivo_pdf.url }}" 
-                onclick="window.open(this.href, 'JanelaPDF', 'width=850,height=900,left=200,top=50,resizable=yes,scrollbars=yes'); return false;" 
-                class="btn btn-outline-danger fw-bold shadow-sm" title="Ver PDF Original">
-                    <i class="fas fa-file-pdf"></i>
-                </a>
-            {% endif %}
-            
-            <button type="button" class="btn btn-danger fw-bold shadow-sm ms-2" data-bs-toggle="modal" data-bs-target="#modalExcluirNota">
-                <i class="fas fa-trash-alt me-2"></i>Excluir Nota
-            </button>
-        </div>
-    </div>
-
-    <div class="card border-danger border-opacity-25 shadow-sm mb-4 bg-white">
-        <div class="card-header bg-danger bg-opacity-10 py-3 border-bottom-0 d-flex justify-content-between align-items-center">
-            <div style="min-width: 110px;">
-                {% if nota_anterior %}
-                    <a href="{% url 'almoxarifado:detalhe_nota' nota_anterior.id %}" class="btn btn-sm btn-danger text-white fw-bold shadow-sm">
-                        <i class="fas fa-chevron-left me-1"></i> Anterior
-                    </a>
-                {% endif %}
+            <div class="col-md-4 border-md-end">
+                <span class="text-muted small d-block fw-bold text-uppercase mb-1">Destinatário (IFAM / FAEPI)</span>
+                <h6 class="fw-bold text-dark mb-0">{{ nota.destinatario_nome }}</h6>
+                <span class="text-muted font-monospace small">CNPJ: {{ nota.destinatario_cnpj }}</span>
             </div>
-            <h6 class="card-title mb-0 fw-bold text-danger text-uppercase text-center"><i class="fas fa-truck me-2"></i>Dados de Logística e Faturamento</h6>
-            <div style="min-width: 110px;" class="text-end">
-                {% if proxima_nota %}
-                    <a href="{% url 'almoxarifado:detalhe_nota' proxima_nota.id %}" class="btn btn-sm btn-danger text-white fw-bold shadow-sm">
-                        Próxima <i class="fas fa-chevron-right ms-1"></i>
-                    </a>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div class="card-body p-4">
-            <div class="row g-4">
-                
-                <div class="col-md-5 border-md-end">
-                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Fornecedor / Emitente</span>
-                    <h6 class="fw-bold text-dark mb-0">{{ nota.fornecedor.nome|default:"Não identificado" }}</h6>
-                    <span class="text-muted font-monospace small">CNPJ: {{ nota.fornecedor.cnpj|default:"--" }}</span>
-                </div>
-                
-                <div class="col-md-4 border-md-end">
-                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Destinatário (IFAM / FAEPI)</span>
-                    <h6 class="fw-bold text-dark mb-0">{{ nota.destinatario_nome }}</h6>
-                    <span class="text-muted font-monospace small">CNPJ: {{ nota.destinatario_cnpj }}</span>
-                </div>
 
-                <div class="col-md-4 text-md-end align-self-center position-relative">
-                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Valor Líquido NF</span>
-                    <h3 class="fw-bold text-dark mb-0">R$ {{ nota.valor_total_nota|floatformat:2 }}</h3>
-                    
-                    <div class="small mt-1 lh-1 d-flex flex-column align-items-end">
-                        <div class="mb-1 text-end">
-                            {% if nota.inconsistencia_produtos %}
-                                <div class="d-flex align-items-center justify-content-end gap-2 mb-1">
-                                    <span class="badge bg-danger text-white py-1">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>Divergência
-                                    </span>
-                                </div>
-                                <span class="text-danger fw-bold d-block mb-1" style="font-size: 0.75rem; text-decoration: line-through;" title="Valor lido na capa da nota">
-                                    Capa: R$ {{ nota.valor_total_produtos|floatformat:2 }}
-                                </span>
-                                <span class="text-dark fw-bold d-block border-bottom border-dark pb-1" style="font-size: 0.85rem;" title="Soma matemática real dos itens da tabela">
-                                    Soma Real: R$ {{ nota.soma_itens_calculada|floatformat:2 }}
-                                </span>
-                            {% else %}
-                                <div class="d-flex align-items-center justify-content-end gap-1">
-                                    <i class="fas fa-check-circle text-success" title="Soma dos itens validada"></i>
-                                    <span class="text-secondary fw-medium" style="font-size: 0.80rem;">
-                                        Prod: R$ {{ nota.valor_total_produtos|floatformat:2 }}
-                                    </span>
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <span class="text-danger fw-medium mt-1" style="font-size: 0.80rem;">
-                            Desc: - R$ {{ nota.valor_desconto|floatformat:2 }}
-                        </span>
-                    </div>
-                </div>
+            <div class="col-md-4 text-md-end align-self-center position-relative">
+                <span class="text-muted small d-block fw-bold text-uppercase mb-1">Valor Líquido NF</span>
+                <h3 class="fw-bold text-dark mb-0">R$ {{ nota.valor_total_nota|floatformat:2 }}</h3>
 
-                <div class="col-12"><hr class="text-muted opacity-25 my-1"></div>
-
-                <div class="col-md-5 border-md-end align-self-center">
-                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Chave de Acesso Sefaz</span>
-                    {% if nota.chave_acesso %}
-                        <span class="font-monospace fw-bold text-secondary fs-6 chave-texto-exibicao">{{ nota.chave_acesso }}</span>
-                    {% else %}
-                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 fw-bold" style="font-size: 0.85rem;">
-                            <i class="fas fa-exclamation-triangle me-1"></i>Chave não cadastrada
-                        </span>
-                    {% endif %}
-                </div>
-                
-                <div class="col-md-4 border-md-end align-self-center">
-                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Recebido por</span>
-                    {% if nota.usuario_recebedor %}
-                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1 flex-wrap">
-                            <i class="fas fa-user-check text-success"></i>
-                            {{ nota.usuario_recebedor.get_full_name|default:nota.usuario_recebedor.username }}
-                            {% if nota.usuario_recebedor.perfil %}
-                                <span class="badge bg-light text-secondary border fw-semibold" style="font-size: 0.70rem;">
-                                    {% if nota.usuario_recebedor.perfil.vinculo == 'SERVIDOR' and nota.usuario_recebedor.perfil.siape %}
-                                        SIAPE {{ nota.usuario_recebedor.perfil.siape }}
-                                    {% elif nota.usuario_recebedor.perfil.vinculo == 'TERCEIRIZADO' %}
-                                        Terceirizado
-                                    {% endif %}
-                                </span>
-                            {% endif %}
-                        </h6>
-                    {% else %}
-                        <span class="text-muted small fw-medium text-opacity-70">
-                            <i class="fas fa-user-clock me-1 text-warning"></i>Aguardando identificação
-                        </span>
-                    {% endif %}
-                </div>
-                
-                <div class="col-md-3 align-self-center">
-                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Em (Data da Entrega)</span>
-                    {% if nota.data_recebimento %}
-                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <i class="fas fa-calendar-alt text-secondary"></i>
-                            {{ nota.data_recebimento|date:"d/m/Y" }}
-                        </h6>
-                    {% else %}
-                        <span class="text-muted small fw-medium text-opacity-70">
-                            <i class="fas fa-hourglass-start me-1 text-secondary"></i>Não informada
-                        </span>
-                    {% endif %}
-                </div>
-                <div class="col-12"><hr class="text-muted opacity-25 my-1"></div>
-                
-                <div class="col-12">
-                    <span class="text-muted small d-block fw-bold text-uppercase mb-1">Centro de Custo / Projeto PDI</span>
-                    {% if nota.projeto_vinculado %}
-                        <h6 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
-                            <i class="fas fa-project-diagram"></i>
-                            Convênio nº{{nota.projeto_vinculado.convenio}} - {{ nota.projeto_vinculado.projeto }}
-                        </h6>
-                    {% else %}
-                        <span class="text-muted small fw-medium text-opacity-70">
-                            <i class="fas fa-folder-open me-1 text-secondary"></i>Nenhum projeto vinculado a esta entrada
-                        </span>
-                    {% endif %}
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
-            <h5 class="card-title mb-0 fw-bold text-dark"><i class="fas fa-boxes me-2 text-danger"></i>Lista de Materiais e Insumos</h5>
-            <span class="badge bg-danger bg-opacity-10 text-danger fs-6 px-3 py-2 fw-semibold">{{ nota.produtos.count }} itens</span>
-        </div>
-        
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="min-width: 1000px;">
-                <thead class="bg-light text-muted small text-uppercase text-center">
-                    <tr>
-                        <th class="ps-4 py-3 text-center" style="width: 60px;">Num</th>
-                        <th class="py-3 text-center">Descrição do Produto</th>
-                        <th class="py-3 text-center" style="width: 140px;">Categoria</th>
-                        <th class="py-3 text-center" style="width: 80px;">Unid.</th>
-                        <th class="py-3 text-center" style="width: 100px;">Qtd.</th>
-                        <th class="py-3 text-center" style="width: 130px;">Valor Unit.</th>
-                        <th class="py-3 text-center" style="width: 140px;">Valor Total</th>
-                        <th class="py-3 text-center" style="width: 120px;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in nota.produtos.all %}
-                    <tr>
-                        <td class="ps-4 text-center"><span class="badge bg-light text-secondary border">{{ item.numero_item }}</span></td>
-                        <td><div class="small fw-medium text-dark">{{ item.descricao }}</div></td>
-                        <td class="text-center">
-                            <span class="badge {% if item.categoria == 'CONSUMO' %}bg-warning{% elif item.categoria == 'PERMANENTE' %}bg-info{% else %}bg-secondary{% endif %} bg-opacity-10 text-{% if item.categoria == 'CONSUMO' %}warning{% elif item.categoria == 'PERMANENTE' %}bg-info{% else %}secondary{% endif %}">
-                                {{ item.get_categoria_display }}
+                <div class="small mt-1 lh-1 d-flex flex-column align-items-end">
+                    <div class="mb-1 text-end">
+                        {% if nota.inconsistencia_produtos %}
+                        <div class="d-flex align-items-center justify-content-end gap-2 mb-1">
+                            <span class="badge bg-danger text-white py-1">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Divergência
                             </span>
-                        </td>
-                        <td class="text-center text-muted">{{ item.unidade_comercial }}</td>
-                        <td class="text-center fw-bold">{{ item.quantidade|floatformat:"-4" }}</td>
-                        <td class="text-center text-secondary">R$ {{ item.valor_unitario|floatformat:2 }}</td>
-                        <td class="text-center fw-bold text-danger">R$ {{ item.valor_total|floatformat:2 }}</td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-1">
-                                <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modalEditarProduto_{{ item.id }}" title="Editar Insumo">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary position-relative" data-bs-toggle="modal" data-bs-target="#modalFotosProduto_{{ item.id }}" title="Galeria e Fotos">
-                                    <i class="fas fa-camera"></i>
-                                    {% if item.fotos.count > 0 %}
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                                            {{ item.fotos.count }}
-                                        </span>
-                                    {% endif %}
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        </div>
+                        <span class="text-danger fw-bold d-block mb-1"
+                            style="font-size: 0.75rem; text-decoration: line-through;"
+                            title="Valor lido na capa da nota">
+                            Capa: R$ {{ nota.valor_total_produtos|floatformat:2 }}
+                        </span>
+                        <span class="text-dark fw-bold d-block border-bottom border-dark pb-1"
+                            style="font-size: 0.85rem;" title="Soma matemática real dos itens da tabela">
+                            Soma Real: R$ {{ nota.soma_itens_calculada|floatformat:2 }}
+                        </span>
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-end gap-1">
+                            <i class="fas fa-check-circle text-success" title="Soma dos itens validada"></i>
+                            <span class="text-secondary fw-medium" style="font-size: 0.80rem;">
+                                Prod: R$ {{ nota.valor_total_produtos|floatformat:2 }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <span class="text-danger fw-medium mt-1" style="font-size: 0.80rem;">
+                        Desc: - R$ {{ nota.valor_desconto|floatformat:2 }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <hr class="text-muted opacity-25 my-1">
+            </div>
+
+            <div class="col-md-5 border-md-end align-self-center">
+                <span class="text-muted small d-block fw-bold text-uppercase mb-1">Chave de Acesso Sefaz</span>
+                {% if nota.chave_acesso %}
+                <span class="font-monospace fw-bold text-secondary fs-6 chave-texto-exibicao">{{ nota.chave_acesso
+                    }}</span>
+                {% else %}
+                <span
+                    class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 fw-bold"
+                    style="font-size: 0.85rem;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>Chave não cadastrada
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4 border-md-end align-self-center">
+                <span class="text-muted small d-block fw-bold text-uppercase mb-1">Recebido por</span>
+                {% if nota.usuario_recebedor %}
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1 flex-wrap">
+                    <i class="fas fa-user-check text-success"></i>
+                    {{ nota.usuario_recebedor.get_full_name|default:nota.usuario_recebedor.username }}
+                    {% if nota.usuario_recebedor.perfil %}
+                    <span class="badge bg-light text-secondary border fw-semibold" style="font-size: 0.70rem;">
+                        {% if nota.usuario_recebedor.perfil.vinculo == 'SERVIDOR' and
+                        nota.usuario_recebedor.perfil.siape %}
+                        SIAPE {{ nota.usuario_recebedor.perfil.siape }}
+                        {% elif nota.usuario_recebedor.perfil.vinculo == 'TERCEIRIZADO' %}
+                        Terceirizado
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                </h6>
+                {% else %}
+                <span class="text-muted small fw-medium text-opacity-70">
+                    <i class="fas fa-user-clock me-1 text-warning"></i>Aguardando identificação
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="col-md-3 align-self-center">
+                <span class="text-muted small d-block fw-bold text-uppercase mb-1">Em (Data da Entrega)</span>
+                {% if nota.data_recebimento %}
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="fas fa-calendar-alt text-secondary"></i>
+                    {{ nota.data_recebimento|date:"d/m/Y" }}
+                </h6>
+                {% else %}
+                <span class="text-muted small fw-medium text-opacity-70">
+                    <i class="fas fa-hourglass-start me-1 text-secondary"></i>Não informada
+                </span>
+                {% endif %}
+            </div>
+            <div class="col-12">
+                <hr class="text-muted opacity-25 my-1">
+            </div>
+
+            <div class="col-12">
+                <span class="text-muted small d-block fw-bold text-uppercase mb-1">Centro de Custo / Projeto PDI</span>
+                {% if nota.projeto_vinculado %}
+                <h6 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+                    <i class="fas fa-project-diagram"></i>
+                    Convênio nº{{nota.projeto_vinculado.convenio}} - {{ nota.projeto_vinculado.projeto }}
+                </h6>
+                {% else %}
+                <span class="text-muted small fw-medium text-opacity-70">
+                    <i class="fas fa-folder-open me-1 text-secondary"></i>Nenhum projeto vinculado a esta entrada
+                </span>
+                {% endif %}
+            </div>
+
         </div>
     </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
+        <h5 class="card-title mb-0 fw-bold text-dark"><i class="fas fa-boxes me-2 text-danger"></i>Lista de Materiais e
+            Insumos</h5>
+        <span class="badge bg-danger bg-opacity-10 text-danger fs-6 px-3 py-2 fw-semibold">{{ nota.produtos.count }}
+            itens</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="min-width: 1000px;">
+            <thead class="bg-light text-muted small text-uppercase text-center">
+                <tr>
+                    <th class="ps-4 py-3 text-center" style="width: 60px;">Num</th>
+                    <th class="py-3 text-center">Descrição do Produto</th>
+                    <th class="py-3 text-center" style="width: 140px;">Categoria</th>
+                    <th class="py-3 text-center" style="width: 80px;">Unid.</th>
+                    <th class="py-3 text-center" style="width: 100px;">Qtd.</th>
+                    <th class="py-3 text-center" style="width: 130px;">Valor Unit.</th>
+                    <th class="py-3 text-center" style="width: 140px;">Valor Total</th>
+                    <th class="py-3 text-center" style="width: 120px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in nota.produtos.all %}
+                <tr>
+                    <td class="ps-4 text-center"><span class="badge bg-light text-secondary border">{{ item.numero_item
+                            }}</span></td>
+                    <td>
+                        <div class="small fw-medium text-dark">{{ item.descricao }}</div>
+                    </td>
+                    <td class="text-center">
+                        <span
+                            class="badge {% if item.categoria == 'CONSUMO' %}bg-warning{% elif item.categoria == 'PERMANENTE' %}bg-info{% else %}bg-secondary{% endif %} bg-opacity-10 text-{% if item.categoria == 'CONSUMO' %}warning{% elif item.categoria == 'PERMANENTE' %}bg-info{% else %}secondary{% endif %}">
+                            {{ item.get_categoria_display }}
+                        </span>
+                    </td>
+                    <td class="text-center text-muted">{{ item.unidade_comercial }}</td>
+                    <td class="text-center fw-bold">{{ item.quantidade|floatformat:"-4" }}</td>
+                    <td class="text-center text-secondary">R$ {{ item.valor_unitario|floatformat:2 }}</td>
+                    <td class="text-center fw-bold text-danger">R$ {{ item.valor_total|floatformat:2 }}</td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal"
+                                data-bs-target="#modalEditarProduto_{{ item.id }}" title="Editar Insumo">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary position-relative"
+                                data-bs-toggle="modal" data-bs-target="#modalFotosProduto_{{ item.id }}"
+                                title="Galeria e Fotos">
+                                <i class="fas fa-camera"></i>
+                                {% if item.fotos.count > 0 %}
+                                <span
+                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                    style="font-size: 0.6rem;">
+                                    {{ item.fotos.count }}
+                                </span>
+                                {% endif %}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 {% include 'almoxarifado/modal_ia_global.html' %}
-{% include 'almoxarifado/modais_inclusos.html' %} 
+{% include 'almoxarifado/modais_inclusos.html' %}
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const chavesTexto = document.querySelectorAll('.chave-texto-exibicao');
-    chavesTexto.forEach(function(elemento) {
-        if (elemento.textContent) {
-            elemento.textContent = aplicarMascaraChave(elemento.textContent);
-        }
-    });
-
-    const camposChave = document.querySelectorAll('input[name="chave_acesso"]');
-    camposChave.forEach(function(input) {
-        if (input.value) {
-            input.value = aplicarMascaraChave(input.value);
-        }
-            
-        input.addEventListener('input', function() {
-            let posicaoCursor = this.selectionStart;
-            let tamanhoOriginal = this.value.length;
-            this.value = aplicarMascaraChave(this.value);
-            let tamanhoNovo = this.value.length;
-            posicaoCursor = posicaoCursor + (tamanhoNovo - tamanhoOriginal);
-            this.setSelectionRange(posicaoCursor, posicaoCursor);
-        });
-
-        input.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                const campoData = document.querySelector('input[name="data_recebimento"]');
-                if (campoData) {
-                    campoData.focus();
-                }
+    document.addEventListener('DOMContentLoaded', function () {
+        const chavesTexto = document.querySelectorAll('.chave-texto-exibicao');
+        chavesTexto.forEach(function (elemento) {
+            if (elemento.textContent) {
+                elemento.textContent = aplicarMascaraChave(elemento.textContent);
             }
         });
-    });
 
-    function aplicarMascaraChave(valor) {
-        let apenasNumeros = valor.replace(/\D/g, '');
-        let blocos = apenasNumeros.match(/.{1,4}/g);
-        return blocos ? blocos.join(' ') : apenasNumeros;
-    }
-});
+        const camposChave = document.querySelectorAll('input[name="chave_acesso"]');
+        camposChave.forEach(function (input) {
+            if (input.value) {
+                input.value = aplicarMascaraChave(input.value);
+            }
+
+            input.addEventListener('input', function () {
+                let posicaoCursor = this.selectionStart;
+                let tamanhoOriginal = this.value.length;
+                this.value = aplicarMascaraChave(this.value);
+                let tamanhoNovo = this.value.length;
+                posicaoCursor = posicaoCursor + (tamanhoNovo - tamanhoOriginal);
+                this.setSelectionRange(posicaoCursor, posicaoCursor);
+            });
+
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const campoData = document.querySelector('input[name="data_recebimento"]');
+                    if (campoData) {
+                        campoData.focus();
+                    }
+                }
+            });
+        });
+
+        function aplicarMascaraChave(valor) {
+            let apenasNumeros = valor.replace(/\D/g, '');
+            let blocos = apenasNumeros.match(/.{1,4}/g);
+            return blocos ? blocos.join(' ') : apenasNumeros;
+        }
+    });
 </script>
 {% endblock %}

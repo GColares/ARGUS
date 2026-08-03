@@ -2,23 +2,28 @@
 import os
 import tempfile
 from decimal import Decimal
+# pyrefly: ignore [untyped-import]
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
-from django.template.loader import get_template
+# pyrefly: ignore [untyped-import]
 from django.contrib.auth.decorators import login_required
+# pyrefly: ignore [untyped-import]
 from django.contrib import messages
+# pyrefly: ignore [untyped-import]
 from django.db import transaction
+# pyrefly: ignore [untyped-import]
 from django.db.models import Q, Count, Sum
+# pyrefly: ignore [untyped-import]
 from django.utils import timezone
+# pyrefly: ignore [untyped-import]
 from django.db.models.functions import Length
-from xhtml2pdf import pisa # type: ignore
 
 # Nossos módulos locais do ARGUS
 from cadastros.models import Fornecedor
-from .models import NotaFiscalAlmoxarifado, ProdutoAlmoxarifado, CotaDiariaIA, FotoProduto, ProjetoPDI, TermoRME
+from .models import NotaFiscalAlmoxarifado, ProdutoAlmoxarifado, CotaDiariaIA, FotoProduto, ProjetoPDI
 from .documentos import construir_csv_categoria, construir_csv_notas, construir_termo_docx
 from .services import processar_nfe_com_gemini
 from cadastros.decorators import servidor_efetivo_required
+# pyrefly: ignore [untyped-import]
 from django.contrib.auth.models import User
 
 # ==============================================================================
@@ -32,7 +37,9 @@ def home_almoxarifado(request):
     Calcula as métricas financeiras, quantitativas e limites da IA.
     """
     # 1. BLOCO: Indicadores Principais
+    # pyrefly: ignore [missing-attribute]
     total_notas = NotaFiscalAlmoxarifado.objects.count()
+    # pyrefly: ignore [missing-attribute]
     total_produtos = ProdutoAlmoxarifado.objects.count()
 
     # O Django Sum retorna None se não houver registros.
@@ -252,8 +259,8 @@ def detalhe_nota_almoxarifado(request, pk):
     # LÓGICA DE NAVEGAÇÃO (ANTERIOR / PRÓXIMA)
     # Pula automaticamente IDs que tenham sido excluídos do banco
     # =====================================================================
-    nota_anterior = NotaFiscalAlmoxarifado.objects.filter(id__lt=nota.id).order_by('-id').first() # type: ignore
-    proxima_nota = NotaFiscalAlmoxarifado.objects.filter(id__gt=nota.id).order_by('id').first() # type: ignore
+    nota_anterior = NotaFiscalAlmoxarifado.objects.filter(id__lt=nota.id).order_by('-id').first()
+    proxima_nota = NotaFiscalAlmoxarifado.objects.filter(id__gt=nota.id).order_by('id').first()
     
     contexto = {
         'nota': nota,
@@ -300,7 +307,7 @@ def editar_nota_almoxarifado(request, pk):
                     cnpj=cnpj_limpo,
                     defaults={'nome': forn_nome_post.strip() or 'NÃO IDENTIFICADO'}
                 )
-                nota.fornecedor = forn_obj # type: ignore
+                nota.fornecedor = forn_obj
         nota.destinatario_nome = request.POST.get('destinatario_nome', nota.destinatario_nome).strip()
         nota.destinatario_cnpj = request.POST.get('destinatario_cnpj', nota.destinatario_cnpj).strip()
         
@@ -314,10 +321,10 @@ def editar_nota_almoxarifado(request, pk):
 
         # Relacionamentos (Chaves Estrangeiras)
         usr_id = request.POST.get('usuario_recebedor_id')
-        nota.usuario_recebedor_id = usr_id if usr_id else None # type: ignore
+        nota.usuario_recebedor_id = usr_id if usr_id else None
 
         proj_id = request.POST.get('projeto_vinculado_id')
-        nota.projeto_vinculado_id = proj_id if proj_id else None # type: ignore
+        nota.projeto_vinculado_id = proj_id if proj_id else None
 
         # Validação extra do Django via clean (se der erro matemático, o Django captura aqui)
         try:
@@ -328,10 +335,10 @@ def editar_nota_almoxarifado(request, pk):
             messages.error(request, f"Erro ao salvar: {str(e)}")
         
         # Como estamos num modal na tela de detalhes, recarregamos a própria tela
-        return redirect('almoxarifado:detalhe_nota', pk=nota.id) # type: ignore
+        return redirect('almoxarifado:detalhe_nota', pk=nota.id)
 
     # Para GET, como é modal, basta redirecionar de volta aos detalhes
-    return redirect('almoxarifado:detalhe_nota', pk=nota.id) # type: ignore
+    return redirect('almoxarifado:detalhe_nota', pk=nota.id)
 
 
 @login_required
@@ -382,7 +389,7 @@ def editar_produto_almoxarifado(request, produto_id):
         messages.success(request, f"Insumo #{produto.numero_item} atualizado.")
         
         # Recarrega a página de detalhes da nota
-        return redirect('almoxarifado:detalhe_nota', pk=produto.nota_fiscal.id) # type: ignore
+        return redirect('almoxarifado:detalhe_nota', pk=produto.nota_fiscal.id)
 
     return redirect('almoxarifado:detalhe_nota', pk=produto.nota_fiscal.id)
 
@@ -414,7 +421,7 @@ def excluir_foto_produto(request, foto_id):
     foto = get_object_or_404(FotoProduto, pk=foto_id)
     
     # Precisamos do ID da nota antes de apagar a foto para saber para onde redirecionar
-    nota_id = foto.produto.nota_fiscal.id # type: ignore
+    nota_id = foto.produto.nota_fiscal.id
 
     if request.method == 'POST':
         # 1. Apaga o arquivo físico do disco de forma segura
@@ -460,7 +467,7 @@ def gerar_termo_recebimento_docx(request, pk):
 
     if nota.termo_recebimento_assinado:
         messages.warning(request, "Ação bloqueada: Esta nota já possui um Termo Assinado arquivado de forma definitiva.")
-        return redirect('almoxarifado:detalhe_nota', pk=nota.id) # type: ignore
+        return redirect('almoxarifado:detalhe_nota', pk=nota.id)
 
     return construir_termo_docx(nota, request.user)
 
@@ -476,14 +483,14 @@ def anexar_termo_assinado(request, pk):
         # Trava de segurança para garantir que é PDF
         if not arquivo.name.lower().endswith('.pdf'):
             messages.error(request, "Formato inválido. O Termo assinado deve ser obrigatoriamente um arquivo PDF.")
-            return redirect('almoxarifado:detalhe_nota', pk=nota.id) # type: ignore
+            return redirect('almoxarifado:detalhe_nota', pk=nota.id)
 
         nota.termo_recebimento_assinado = arquivo
         nota.save()
         
         messages.success(request, "Termo de Recebimento arquivado com sucesso! O ciclo desta nota foi selado.")
         
-    return redirect('almoxarifado:detalhe_nota', pk=nota.id) # type: ignore
+    return redirect('almoxarifado:detalhe_nota', pk=nota.id)
 
 @login_required
 @servidor_efetivo_required
@@ -495,7 +502,8 @@ def visualizar_termo_rme(request, pk):
     nota = get_object_or_404(NotaFiscalAlmoxarifado, pk=pk)
     
     # Lógica de agrupamento de categorias para o texto da declaração
-    categorias = nota.produtos.values_list('categoria', flat=True).distinct() # type: ignore
+    # pyrefly: ignore [missing-attribute]
+    categorias = nota.produtos.values_list('categoria', flat=True).distinct()
     
     if 'PERMANENTE' in categorias and 'CONSUMO' in categorias:
         bens_texto = "os equipamentos e materiais novos"
@@ -507,8 +515,8 @@ def visualizar_termo_rme(request, pk):
     recebedor_fisico_texto = "Não identificado"
     if nota.usuario_recebedor:
         vinculo_desc = ""
-        if hasattr(nota.usuario_recebedor, 'perfil') and nota.usuario_recebedor.perfil: # type: ignore
-            vinculo_desc = f" ({nota.usuario_recebedor.perfil.get_vinculo_display()})" # type: ignore
+        if hasattr(nota.usuario_recebedor, 'perfil') and nota.usuario_recebedor.perfil:
+            vinculo_desc = f" ({nota.usuario_recebedor.perfil.get_vinculo_display()})"
         recebedor_fisico_texto = f"{nota.usuario_recebedor.get_full_name() or nota.usuario_recebedor.username}{vinculo_desc}"
 
     declaracao = (
@@ -520,7 +528,8 @@ def visualizar_termo_rme(request, pk):
     
     from .forms import UploadTermoAssinadoForm
     form_upload = UploadTermoAssinadoForm()
-    tem_fotos = any(item.fotos.exists() for item in nota.produtos.all()) # type: ignore
+    # pyrefly: ignore [missing-attribute]
+    tem_fotos = any(item.fotos.exists() for item in nota.produtos.all())
     
     contexto = {
         'nota': nota,
@@ -532,44 +541,3 @@ def visualizar_termo_rme(request, pk):
     }
     
     return render(request, 'almoxarifado/termo_rme.html', contexto)
-
-def exportar_pdf_rme(request, rme_id):
-    """
-    Gera o PDF formal do Termo de Recebimento (RME) para upload no SEI.
-    """
-    # 1. Busca o Termo RME e blinda contra acessos inválidos (Erro 404)
-    rme = get_object_or_404(TermoRME, id=rme_id)
-    nota = rme.nota_fiscal
-    
-    # Busca os produtos atrelados à nota (Ajuste o '_set' se você usou um related_name diferente no model)
-    produtos = nota.produtoalmoxarifado_set.all() 
-
-    # 2. Prepara o dicionário de dados que será enviado ao HTML
-    context = {
-        'rme': rme,
-        'nota': nota,
-        'produtos': produtos,
-        'data_emissao_pdf': timezone.now(),
-        'instituicao': 'Instituto Federal do Amazonas - IFAM',
-        'setor': 'Polo de Inovação / Almoxarifado'
-    }
-    
-    # 3. Configura a resposta HTTP para forçar o download do arquivo PDF
-    response = HttpResponse(content_type='application/pdf')
-    # Use 'inline;' ao invés de 'attachment;' se quiser que o PDF abra no navegador antes de baixar
-    nome_arquivo = f"RME_{rme.numero_termo.replace('/', '_')}.pdf"
-    response['Content-Disposition'] = f'inline; filename="{nome_arquivo}"'
-    
-    # 4. Renderiza o HTML e converte para PDF
-    template_path = 'almoxarifado/pdf_rme_template.html'
-    template = get_template(template_path)
-    html = template.render(context)
-    
-    # Executa a conversão
-    pisa_status = pisa.CreatePDF(html, dest=response)
-    
-    # Se der erro na geração, avisa o sistema
-    if pisa_status.err:
-        return HttpResponse('Erro interno: O ARGUS não conseguiu gerar o PDF.', status=500)
-        
-    return response
