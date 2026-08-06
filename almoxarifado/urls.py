@@ -35,5 +35,5 @@ urlpatterns = [
     path('nota/<int:pk>/anexar-termo/', views.anexar_termo_assinado, name='anexar_termo'),
     
     # Rota para gerar o PDF do RME
-    path('rme/<int:rme_id>/pdf/', views.exportar_pdf_rme, name='exportar_pdf_rme'),
+    # path('rme/<int:rme_id>/pdf/', views.exportar_pdf_rme, name='exportar_pdf_rme'),
 ]

@@ -134,19 +134,18 @@
 
     <div class="container mt-4">
         {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0"
-            role="alert">
-            {% if message.tags == 'success' %}<i class="fas fa-check-circle me-2 fs-5 align-middle"></i>{% endif %}
-            {% if message.tags == 'error' or message.tags == 'danger' %}<i
-                class="fas fa-exclamation-circle me-2 fs-5 align-middle"></i>{% endif %}
-            {% if message.tags == 'warning' %}<i class="fas fa-exclamation-triangle me-2 fs-5 align-middle"></i>{% endif
-            %}
-            {% if message.tags == 'info' %}<i class="fas fa-info-circle me-2 fs-5 align-middle"></i>{% endif %}
-            <span class="align-middle">{{ message }}</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0"
+                role="alert">
+                {% if message.tags == 'success' %}<i class="fas fa-check-circle me-2 fs-5 align-middle"></i>{% endif %}
+                {% if message.tags == 'error' or message.tags == 'danger' %}<i
+                    class="fas fa-exclamation-circle me-2 fs-5 align-middle"></i>{% endif %}
+                {% if message.tags == 'warning' %}<i class="fas fa-exclamation-triangle me-2 fs-5 align-middle"></i>{% endif %}
+                {% if message.tags == 'info' %}<i class="fas fa-info-circle me-2 fs-5 align-middle"></i>{% endif %}
+                <span class="align-middle">{{ message }}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
         {% endif %}
     </div>
 
