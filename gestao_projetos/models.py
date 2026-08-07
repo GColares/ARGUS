@@ -53,7 +53,7 @@ class RelatorioAtividade(models.Model):
         verbose_name="Parcela de Referência",
         null=True
     )
-    macroentrega = models.CharField(max_length=50, blank=True, null=True, verbose_name="Ref. Macro Entrega")
+    macroentregas = models.ManyToManyField('cadastros.Macroentrega', blank=True, related_name='relatorios', verbose_name="Macroentregas Associadas")
     periodo_inicio = models.DateField(verbose_name="Período Início")
     periodo_fim = models.DateField(verbose_name="Período Fim")
     carga_horaria_periodo = models.PositiveIntegerField(verbose_name="Carga Horária do Período")
@@ -81,7 +81,7 @@ class RelatorioAtividade(models.Model):
     
     class Meta:
         db_table = 'argus_relatorio_atividade'
-        unique_together = ('termo_bolsa', 'parcela_referencia', 'versao')
+        unique_together = ('termo_bolsa', 'parcela_referencia')
         verbose_name = 'Relatório de Atividade'
         verbose_name_plural = 'Relatórios de Atividades'
 

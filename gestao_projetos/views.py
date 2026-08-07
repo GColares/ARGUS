@@ -19,6 +19,8 @@ from django.contrib import messages
 from django.forms import modelformset_factory
 from .forms import AtividadePlanoAcaoForm
 from .utils import extrair_atividades_texto_docx
+from dateutil.relativedelta import relativedelta
+from cadastros.models import Macroentrega
 
 
 @login_required
@@ -80,11 +82,12 @@ def montar_contexto_relatorio(relatorio_id):
         
         # Seção 3: Identificação do Período e Parcela
         'parcelas_previstas': total_parcelas,
-        'parcela': f"{relatorio.parcela_referencia.numero} de {total_parcelas}",
+        'parcela': str(relatorio.parcela_referencia.numero),
         'periodo_inicio': relatorio.periodo_inicio.strftime('%d/%m/%Y'),
         'periodo_fim': relatorio.periodo_fim.strftime('%d/%m/%Y'),
         'carga_horaria_total': relatorio.carga_horaria_periodo,
-        'macroentrega_numero': getattr(relatorio, 'macroentrega', 'N/I'),
+        'macroentrega_numero': ', '.join([str(m.numero) for m in relatorio.macroentregas.all()]) if relatorio.macroentregas.exists() else 'N/I',
+        'macroentregas_objs': relatorio.macroentregas.all(),
 
         # Seção 5: Ocorrências
         'ocorrencias': relatorio.ocorrencias or 'Nenhuma ocorrência de não conformidade registrada no período.',
@@ -153,7 +156,7 @@ def gerar_documento_relatorio(request, relatorio_id):
     Garante que a rastreabilidade patrimonial e administrativa siga as normas do IFAM.
     """
     relatorio = get_object_or_404(RelatorioAtividade, id=relatorio_id)
-    contexto = montar_contexto_relatorio(relatorio.id)
+    contexto = montar_contexto_relatorio(relatorio.id) # type: ignore
 
     # Caminho seguro do template ajustado para a pasta "modelos"
     template_path = os.path.join(
@@ -168,10 +171,12 @@ def gerar_documento_relatorio(request, relatorio_id):
 
     # Resposta HTTP configurada para download direto
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    nome_arquivo = f"Relatorio_Parcela_{relatorio.parcela_referencia.numero}_{relatorio.bolsista.nome_completo.replace(' ', '_')}.docx"
+    # Calcula total de parcelas
+    total_parcelas = relatorio.termo_bolsa.quantidade_parcelas if relatorio.termo_bolsa else getattr(relatorio.bolsista, 'total_parcelas_previstas', '?')
+    nome_arquivo = f"Relatorio_Parcela_{relatorio.parcela_referencia.numero}_de_{total_parcelas}_{relatorio.bolsista.nome_completo.replace(' ', '_')}.docx"
     response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
     
-    doc.save(response)
+    doc.save(response) # type: ignore
     return response
 
 def auditar_pendencias_projeto(projeto):
@@ -209,7 +214,7 @@ def visualizar_relatorio(request, relatorio_id):
     if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
         return HttpResponseForbidden("Acesso negado: Você não possui permissão administrativa neste projeto.")
         
-    contexto = montar_contexto_relatorio(relatorio.id)
+    contexto = montar_contexto_relatorio(relatorio.id) # type: ignore
     contexto['relatorio_obj'] = relatorio # Passar objeto base
     
     # Estruturar atividades para renderização limpa no HTML
@@ -220,7 +225,7 @@ def visualizar_relatorio(request, relatorio_id):
         atvs = relatorio.bolsista.projeto.atividades_plano.all().order_by('numero')
         
     for atv in atvs:
-        itens = relatorio.itens_atividade.filter(atividade_mae=atv)
+        itens = relatorio.itens_atividade.filter(atividade_mae=atv) # type: ignore
         # Sempre incluir a atividade, mesmo se não houver tarefas (para mostrar no preview)
         atividades_html.append({
             'titulo': atv.nome,
@@ -246,66 +251,152 @@ def alterar_relatorio(request, relatorio_id):
         
     return render(request, 'gestao_projetos/alterar_relatorio.html', {'relatorio': relatorio})
 
+def sincronizar_macroentregas_relatorio(relatorio, request=None):
+    """
+    Calcula a intersecção temporal entre o período do relatório e as Macroentregas
+    do projeto, vinculando-as automaticamente.
+    """
+    if relatorio.termo_bolsa:
+        projeto = relatorio.termo_bolsa.cota_pt.projeto
+    elif relatorio.bolsista:
+        projeto = relatorio.bolsista.projeto
+    else:
+        return
+
+    # Tenta obter a data de início real do plano de trabalho
+    if not hasattr(projeto, 'planotrabalho') or not projeto.planotrabalho.data_inicio:
+        if request:
+            messages.warning(request, f"Relatório {relatorio.id}: O Projeto/Plano de Trabalho não possui Data de Início definida. Não foi possível calcular as Macroentregas automaticamente.")
+        return
+
+    data_inicio_plano = projeto.planotrabalho.data_inicio
+    macroentregas_vinculadas = []
+
+    # Busca todas as macroentregas do projeto
+    macroentregas = Macroentrega.objects.filter(plano_trabalho=projeto.planotrabalho)
+    
+    if not macroentregas.exists():
+        if request:
+            messages.warning(request, f"Relatório {relatorio.id}: O Projeto não possui Macroentregas cadastradas no Cronograma.")
+        return
+
+    for m in macroentregas:
+        # Calcula datas absolutas da macroentrega
+        m_inicio = data_inicio_plano + relativedelta(months=m.mes_inicio_relativo - 1)
+        m_fim = data_inicio_plano + relativedelta(months=m.mes_fim_relativo) - relativedelta(days=1)
+        
+        # Checa intersecção de datas
+        if relatorio.periodo_inicio <= m_fim and m_inicio <= relatorio.periodo_fim:
+            macroentregas_vinculadas.append(m)
+            
+    if macroentregas_vinculadas:
+        relatorio.macroentregas.set(macroentregas_vinculadas)
+    else:
+        if request:
+            messages.info(request, f"Relatório {relatorio.id}: Nenhuma Macroentrega coincidiu com o período ({relatorio.periodo_inicio.strftime('%d/%m/%Y')} a {relatorio.periodo_fim.strftime('%d/%m/%Y')}).")
+
 @login_required
 def criar_relatorio(request):
     """
-    Instancia um novo rascunho de relatório de atividades.
-    Filtra os termos ativos disponíveis respeitando o RBAC.
+    Interface unificada para geração de registros de relatórios (Individual ou em Lote).
+    Permite escolher múltiplos Bolsistas (Termos) e múltiplas Parcelas.
+    As datas de início e fim são extraídas automaticamente do Excel (Painel_bolsas.xlsx).
     """
+    from cadastros.models import TermoBolsa, ProjetoPDI
+    from .utils import obter_dados_parcela_excel
+    from django.db.models import Max, Q
+    
     projetos_permitidos = MembroEquipe.objects.filter(
         usuario=request.user
     ).values_list('projeto_id', flat=True)
     
-    # Carrega apenas os termos ativos dos projetos autorizados para o select do formulário
-    from cadastros.models import TermoBolsa
+    projetos = ProjetoPDI.objects.filter(id__in=projetos_permitidos).annotate(
+        max_parcelas=Max('cotas_bolsas__termos_vinculados__quantidade_parcelas', filter=Q(cotas_bolsas__termos_vinculados__status='ATIVO'))
+    )
     termos = TermoBolsa.objects.filter(
         cota_pt__projeto_id__in=projetos_permitidos,
         status='ATIVO'
-    )
+    ).select_related('cota_pt__projeto').order_by('bolsista__nome')
+
+    contexto = {
+        'projetos': projetos,
+        'termos': termos
+    }
 
     if request.method == 'POST':
-        termo_id = request.POST.get('termo_id')
-        periodo_inicio = request.POST.get('periodo_inicio')
-        periodo_fim = request.POST.get('periodo_fim')
-        carga_horaria = request.POST.get('carga_horaria_periodo')
-        macroentrega = request.POST.get('macroentrega')
-
-        termo = get_object_or_404(TermoBolsa, id=termo_id, cota_pt__projeto_id__in=projetos_permitidos)
-
-        # Inteligência de Gestão de Parcelas
-        relatorios_existentes = RelatorioAtividade.objects.filter(termo_bolsa=termo).order_by('-parcela_referencia__numero', '-versao')
+        termo_ids = request.POST.getlist('termo_id')
+        parcela_nums = request.POST.getlist('parcela_num')
         
-        proxima_parcela = 1
-        nova_versao = 1
-        
-        if relatorios_existentes.exists():
-            ultimo_relatorio = relatorios_existentes.first()
-            if ultimo_relatorio.status == 'CONCLUIDO':
-                proxima_parcela = ultimo_relatorio.parcela_referencia.numero_referencia.numero + 1
-            else:
-                messages.error(request, f"Existe um registro pendente para a parcela {ultimo_relatorio.parcela_referencia.numero}. Conclua-o antes de gerar um novo.")
-                return redirect('gestao_projetos:criar_relatorio')
-
-        if proxima_parcela > termo.quantidade_parcelas:
-            messages.error(request, f"Limite atingido: O Termo {termo.numero_termo} prevê apenas {termo.quantidade_parcelas} parcelas.")
+        if not termo_ids or not parcela_nums:
+            messages.error(request, "Selecione pelo menos um Bolsista e uma Parcela.")
             return redirect('gestao_projetos:criar_relatorio')
-
-        novo_relatorio = RelatorioAtividade.objects.create(
-            termo_bolsa=termo,
-            parcela_referencia=termo.parcelas.get(numero=proxima_parcela),
-            versao=nova_versao,
-            periodo_inicio=periodo_inicio,
-            periodo_fim=periodo_fim,
-            carga_horaria_periodo=carga_horaria,
-            macroentrega=macroentrega,
-            status='PENDENTE',
-            criado_por=request.user
-        )
+            
+        relatorios_criados = 0
+        erros = []
         
-        messages.success(request, f"Registro criado (Parcela {proxima_parcela} de {termo.quantidade_parcelas}). Você já pode detalhar as atividades.")
-        return redirect('gestao_projetos:elaborar_relatorio', relatorio_id=novo_relatorio.id)
+        from cadastros.models import DistribuicaoContaCota
+        
+        for termo_id in termo_ids:
+            termo = get_object_or_404(TermoBolsa, id=termo_id, cota_pt__projeto_id__in=projetos_permitidos)
+            
+            for p_str in parcela_nums:
+                try:
+                    p = int(p_str)
+                except ValueError:
+                    continue
+                    
+                if p > termo.quantidade_parcelas:
+                    erros.append(f"Parcela {p} excede o limite do termo {termo.numero_termo}.")
+                    continue
+                    
+                # Verifica se já existe para este termo e parcela
+                if RelatorioAtividade.objects.filter(termo_bolsa=termo, parcela_referencia__numero=p).exists():
+                    continue
+                    
+                dt_inicio, dt_fim, carga_horaria = obter_dados_parcela_excel(termo.numero_termo, p)
+                if not dt_inicio or not dt_fim:
+                    erros.append(f"Datas da Parcela {p} não encontradas no Excel para o Termo {termo.numero_termo}.")
+                    continue
+                    
+                # Resolve a conta de pagamento
+                conta_pagamento = None
+                dist = DistribuicaoContaCota.objects.filter(
+                    cota_pt=termo.cota_pt,
+                    parcela_inicio__lte=p,
+                    parcela_fim__gte=p
+                ).first()
+                if dist:
+                    conta_pagamento = dist.conta_pagamento
 
-    return render(request, 'gestao_projetos/criar_relatorio.html', {'termos': termos})
+                novo_relatorio = RelatorioAtividade.objects.create(
+                    termo_bolsa=termo,
+                    parcela_referencia=termo.parcelas.get(numero=p),
+                    versao=1,
+                    periodo_inicio=dt_inicio,
+                    periodo_fim=dt_fim,
+                    carga_horaria_periodo=carga_horaria,
+                    status='PENDENTE',
+                    criado_por=request.user,
+                    conta_pagamento=conta_pagamento
+                )
+                # Sincroniza as Macroentregas automaticamente
+                sincronizar_macroentregas_relatorio(novo_relatorio, request)
+                relatorios_criados += 1
+                
+        if relatorios_criados > 0:
+            if erros:
+                messages.warning(request, f"{relatorios_criados} relatório(s) gerado(s) com sucesso, mas ocorreram {len(erros)} erros (veja os logs ou tente novamente).")
+            else:
+                messages.success(request, f"{relatorios_criados} relatório(s) gerado(s) com sucesso!")
+        else:
+            if erros:
+                messages.error(request, f"Nenhum relatório foi gerado. Erros encontrados: {', '.join(erros[:3])}")
+            else:
+                messages.info(request, "Nenhum novo relatório foi gerado. É possível que todos já existam.")
+                
+        return redirect('gestao_projetos:listar_relatorios')
+
+    return render(request, 'gestao_projetos/criar_relatorio.html', contexto)
 
 @login_required
 def excluir_relatorio(request, relatorio_id):
@@ -346,21 +437,37 @@ def listar_relatorios(request):
         'termo_bolsa__cota_pt__projeto'
     ).order_by('termo_bolsa__cota_pt__projeto__convenio', 'termo_bolsa__bolsista__nome', 'parcela_referencia__numero', 'versao')
 
-    # Captura dos parâmetros de filtro da URL (GET)
-    termo_id = request.GET.get('termo')
-    parcela = request.GET.get('parcela')
-    status = request.GET.get('status')
+    # Captura dos parâmetros de filtro da URL (GET) com suporte a múltiplos valores
+    if 'clear' in request.GET:
+        if 'relatorios_filtros' in request.session:
+            del request.session['relatorios_filtros']
+        return redirect('gestao_projetos:listar_relatorios')
+
+    if 'filter_applied' in request.GET:
+        termo_ids = [t for t in request.GET.getlist('termo') if t.strip()]
+        parcelas = [p for p in request.GET.getlist('parcela') if p.strip()]
+        status_list = [s for s in request.GET.getlist('status') if s.strip()]
+        request.session['relatorios_filtros'] = {
+            'termo': termo_ids,
+            'parcela': parcelas,
+            'status': status_list
+        }
+    else:
+        filtros = request.session.get('relatorios_filtros', {})
+        termo_ids = filtros.get('termo', [])
+        parcelas = filtros.get('parcela', [])
+        status_list = filtros.get('status', [])
 
     # Aplicação incremental de filtros no queryset
-    if termo_id:
-        relatorios = relatorios.filter(termo_bolsa_id=termo_id)
-    if parcela:
-        relatorios = relatorios.filter(parcela_referencia__numero=parcela)
-    if status:
-        relatorios = relatorios.filter(status=status)
+    if termo_ids:
+        relatorios = relatorios.filter(termo_bolsa_id__in=termo_ids)
+    if parcelas:
+        relatorios = relatorios.filter(parcela_referencia__numero__in=parcelas)
+    if status_list:
+        relatorios = relatorios.filter(status__in=status_list)
 
     from cadastros.models import TermoBolsa
-    termos = TermoBolsa.objects.all().order_by('bolsista_nome')
+    termos = TermoBolsa.objects.all().order_by('bolsista__nome')
 
     contexto = {
         'relatorios': relatorios,
@@ -368,10 +475,10 @@ def listar_relatorios(request):
         'total_relatorios': relatorios.count(),
         'total_rascunhos': relatorios.filter(status='PENDENTE').count(),
         'total_concluidos': relatorios.filter(status='CONCLUIDO').count(),
-        # Retorno dos estados atuais para manter a persistência visual nos selects
-        'filtro_termo': termo_id,
-        'filtro_parcela': parcela,
-        'filtro_status': status,
+        # Retorno dos estados atuais para manter a persistência visual nos selects (agora são listas)
+        'filtro_termo': termo_ids,
+        'filtro_parcela': parcelas,
+        'filtro_status': status_list,
     }
     
     return render(request, 'gestao_projetos/listar_relatorios.html', contexto)
@@ -482,154 +589,6 @@ def importar_cronograma_projeto(request, projeto_id):
     return render(request, 'gestao_projetos/importar_cronograma.html', contexto)
 
 @login_required
-def gerar_relatorios_lote(request):
-    """
-    Interface para geração em lote de registros de relatórios.
-    Permite gerar o histórico completo de um bolsista ou uma parcela específica para toda a equipe.
-    As datas de início e fim são extraídas automaticamente do Excel (Painel_bolsas.xlsx).
-    """
-    from cadastros.models import TermoBolsa, ProjetoPDI
-    from .utils import obter_dados_parcela_excel
-    from django.db.models import Max, Q
-    
-    projetos_permitidos = MembroEquipe.objects.filter(
-        usuario=request.user
-    ).values_list('projeto_id', flat=True)
-    
-    projetos = ProjetoPDI.objects.filter(id__in=projetos_permitidos).annotate(
-        max_parcelas=Max('cotas_bolsas__termos_vinculados__quantidade_parcelas', filter=Q(cotas_bolsas__termos_vinculados__status='ATIVO'))
-    )
-    termos = TermoBolsa.objects.filter(
-        cota_pt__projeto_id__in=projetos_permitidos,
-        status='ATIVO'
-    ).select_related('cota_pt__projeto')
-
-    contexto = {
-        'projetos': projetos,
-        'termos': termos
-    }
-
-    if request.method == 'POST':
-        acao = request.POST.get('acao')
-        
-        relatorios_criados = 0
-        erros = []
-        
-        if acao == 'por_bolsista':
-            termo_id = request.POST.get('termo_id')
-            if not termo_id:
-                messages.error(request, "Selecione um bolsista.")
-                return redirect('gestao_projetos:gerar_relatorios_lote')
-                
-            termo = get_object_or_404(TermoBolsa, id=termo_id, cota_pt__projeto_id__in=projetos_permitidos)
-            
-            # Descobre a última parcela concluída ou rascunho existente
-            existentes = RelatorioAtividade.objects.filter(termo_bolsa=termo).values_list('parcela', flat=True)
-            
-            for p in range(1, termo.quantidade_parcelas + 1):
-                if p in existentes:
-                    continue # Pula as já geradas
-                    
-                dt_inicio, dt_fim, carga_horaria = obter_dados_parcela_excel(termo.numero_termo, p)
-                if not dt_inicio or not dt_fim:
-                    erros.append(f"Datas da Parcela {p} não encontradas no Excel para o Termo {termo.numero_termo}.")
-                    continue
-                    
-
-                    
-                # Resolve a conta de pagamento
-                conta_pagamento = None
-                from cadastros.models import DistribuicaoContaCota
-                dist = DistribuicaoContaCota.objects.filter(
-                    cota_pt=termo.cota_pt,
-                    parcela_inicio__lte=p,
-                    parcela_fim__gte=p
-                ).first()
-                if dist:
-                    conta_pagamento = dist.conta_pagamento
-
-                RelatorioAtividade.objects.create(
-                    termo_bolsa=termo,
-                    parcela_referencia=termo.parcelas.get(numero=p),
-                    versao=1,
-                    periodo_inicio=dt_inicio,
-                    periodo_fim=dt_fim,
-                    carga_horaria_periodo=carga_horaria,
-                    macroentrega="Geral",
-                    status='PENDENTE',
-                    criado_por=request.user,
-                    conta_pagamento=conta_pagamento
-                )
-                relatorios_criados += 1
-                
-        elif acao == 'por_parcela':
-            projeto_id = request.POST.get('projeto_id')
-            parcela_num = request.POST.get('parcela_num')
-            
-            if not projeto_id or not parcela_num:
-                messages.error(request, "Selecione o Projeto e o número da Parcela.")
-                return redirect('gestao_projetos:gerar_relatorios_lote')
-                
-            parcela_num = int(parcela_num)
-            termos_projeto = TermoBolsa.objects.filter(
-                cota_pt__projeto_id=projeto_id,
-                status='ATIVO',
-                quantidade_parcelas__gte=parcela_num # Só pega quem tem direito a essa parcela
-            )
-            
-            for termo in termos_projeto:
-                # Verifica se já existe para este termo
-                if RelatorioAtividade.objects.filter(termo_bolsa=termo, parcela_referencia__numero=parcela_num).exists():
-                    continue
-                    
-                dt_inicio, dt_fim, carga_horaria = obter_dados_parcela_excel(termo.numero_termo, parcela_num)
-                if not dt_inicio or not dt_fim:
-                    erros.append(f"Datas da Parcela {parcela_num} não encontradas no Excel para o Termo {termo.numero_termo}.")
-                    continue
-                    
-
-                    
-                # Resolve a conta de pagamento
-                conta_pagamento = None
-                from cadastros.models import DistribuicaoContaCota
-                dist = DistribuicaoContaCota.objects.filter(
-                    cota_pt=termo.cota_pt,
-                    parcela_inicio__lte=parcela_num,
-                    parcela_fim__gte=parcela_num
-                ).first()
-                if dist:
-                    conta_pagamento = dist.conta_pagamento
-
-                RelatorioAtividade.objects.create(
-                    termo_bolsa=termo,
-                    parcela_referencia=termo.parcelas.get(numero=parcela_num),
-                    versao=1,
-                    periodo_inicio=dt_inicio,
-                    periodo_fim=dt_fim,
-                    carga_horaria_periodo=carga_horaria,
-                    macroentrega="Geral",
-                    status='PENDENTE',
-                    criado_por=request.user,
-                    conta_pagamento=conta_pagamento
-                )
-                relatorios_criados += 1
-
-        if relatorios_criados > 0:
-            messages.success(request, f"Sucesso! {relatorios_criados} registro(s) criado(s).")
-        if erros:
-            for erro in erros:
-                messages.warning(request, erro)
-        if relatorios_criados == 0 and not erros:
-            messages.info(request, "Nenhum relatório precisou ser criado (já existem ou faltam dados).")
-            
-        return redirect('gestao_projetos:listar_relatorios')
-
-    return render(request, 'gestao_projetos/gerar_relatorios_lote.html', contexto)
-
-
-
-
-@login_required
 def excluir_todos_relatorios(request):
     from django.shortcuts import redirect
     from django.contrib import messages
@@ -677,8 +636,14 @@ def baixar_relatorio_docx(request, relatorio_id):
     doc.render(contexto)
     
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    bolsista_nome = relatorio.termo_bolsa.bolsista.nome if relatorio.termo_bolsa else relatorio.bolsista.nome_completo
-    nome_arquivo = f"Relatorio_Atividades_{bolsista_nome.replace(' ', '_')}_Parcela_{relatorio.parcela_referencia.numero}.docx"
+    if relatorio.termo_bolsa:
+        bolsista_nome = relatorio.termo_bolsa.bolsista.nome
+        total_parcelas = relatorio.termo_bolsa.quantidade_parcelas
+    else:
+        bolsista_nome = relatorio.bolsista.nome_completo
+        total_parcelas = getattr(relatorio.bolsista, 'total_parcelas_previstas', '?')
+
+    nome_arquivo = f"Relatorio_Atividades_{bolsista_nome.replace(' ', '_')}_Parcela_{relatorio.parcela_referencia.numero}_de_{total_parcelas}.docx"
     response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
     
     doc.save(response)
@@ -699,17 +664,23 @@ def exportar_relatorios_zip(request):
         'termo_bolsa__cota_pt__projeto'
     ).order_by('termo_bolsa__cota_pt__projeto__convenio', 'termo_bolsa__bolsista__nome', 'parcela_referencia__numero', 'versao')
 
-    # Captura dos parâmetros de filtro da URL (GET)
-    termo_id = request.GET.get('termo')
-    parcela = request.GET.get('parcela')
-    status = request.GET.get('status')
+    # Captura dos parâmetros de filtro da URL (GET) com suporte a múltiplos valores
+    if 'filter_applied' in request.GET:
+        termo_ids = [t for t in request.GET.getlist('termo') if t.strip()]
+        parcelas = [p for p in request.GET.getlist('parcela') if p.strip()]
+        status_list = [s for s in request.GET.getlist('status') if s.strip()]
+    else:
+        filtros = request.session.get('relatorios_filtros', {})
+        termo_ids = filtros.get('termo', [])
+        parcelas = filtros.get('parcela', [])
+        status_list = filtros.get('status', [])
 
-    if termo_id:
-        relatorios = relatorios.filter(termo_bolsa_id=termo_id)
-    if parcela:
-        relatorios = relatorios.filter(parcela_referencia__numero=parcela)
-    if status:
-        relatorios = relatorios.filter(status=status)
+    if termo_ids:
+        relatorios = relatorios.filter(termo_bolsa_id__in=termo_ids)
+    if parcelas:
+        relatorios = relatorios.filter(parcela_referencia__numero__in=parcelas)
+    if status_list:
+        relatorios = relatorios.filter(status__in=status_list)
         
     # Trava de RBAC
     projetos_permitidos = MembroEquipe.objects.filter(
@@ -748,8 +719,14 @@ def exportar_relatorios_zip(request):
             docx_buffer = io.BytesIO()
             doc.save(docx_buffer)
             
-            bolsista_nome = relatorio.termo_bolsa.bolsista.nome if relatorio.termo_bolsa else relatorio.bolsista.nome_completo
-            nome_arquivo = f"Relatorio_Atividades_{bolsista_nome.replace(' ', '_')}_Parcela_{relatorio.parcela_referencia.numero}.docx"
+            if relatorio.termo_bolsa:
+                bolsista_nome = relatorio.termo_bolsa.bolsista.nome
+                total_parcelas = relatorio.termo_bolsa.quantidade_parcelas
+            else:
+                bolsista_nome = relatorio.bolsista.nome_completo
+                total_parcelas = getattr(relatorio.bolsista, 'total_parcelas_previstas', '?')
+
+            nome_arquivo = f"Relatorio_Atividades_{bolsista_nome.replace(' ', '_')}_Parcela_{relatorio.parcela_referencia.numero}_de_{total_parcelas}.docx"
             
             # Adiciona ao ZIP
             zip_file.writestr(nome_arquivo, docx_buffer.getvalue())

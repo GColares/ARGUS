@@ -14,8 +14,6 @@ urlpatterns = [
     path('termo/<int:termo_id>/editar/', views.editar_termo_bolsa, name='editar_termo_bolsa'),
     
     # Geração em lote
-    path('relatorios/gerar-lote/', views.gerar_relatorios_lote, name='gerar_relatorios_lote'),
-    
     # Orçamento e Financeiro
     path('orcamento-financeiro/', views.relatorio_orcamento_financeiro, name='orcamento_financeiro'),
 
@@ -27,7 +25,7 @@ urlpatterns = [
     path('relatorios/excluir-todos/', views.excluir_todos_relatorios, name='excluir_todos_relatorios'), # DELETE ALL
     path('relatorios/exportar-zip/', views.exportar_relatorios_zip, name='exportar_relatorios_zip'), # EXPORT ZIP
 
-    path('relatorio/novo/lote/', views.gerar_relatorios_lote, name='gerar_relatorios_lote'), # BATCH CREATE
+
     path('poc-extracao/', views.extrair_tabelas_docx_poc, name='poc_extracao'),
 
     path('projeto/<int:projeto_id>/importar-cronograma/', views.importar_cronograma_projeto, name='importar_cronograma'),
