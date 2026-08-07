@@ -223,11 +223,11 @@ class PlanoTrabalho(models.Model):
 
     @property
     def total_i_v(self):
-        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria in ['I', 'II', 'III', 'IV', 'V'])
+        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria in ['I', 'II', 'III', 'IV', 'V']) # type: ignore
 
     @property
     def total_vi(self):
-        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria == 'VI')
+        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria == 'VI') # type: ignore
 
     @property
     def total_i_vi(self):
@@ -235,7 +235,7 @@ class PlanoTrabalho(models.Model):
 
     @property
     def total_vii(self):
-        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria == 'VII')
+        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria == 'VII') # type: ignore
 
     @property
     def total_bruto(self):
@@ -280,7 +280,7 @@ class RubricaOrcamentariaPT(models.Model):
         verbose_name_plural = "Rubricas Orçamentárias"
 
     def __str__(self):
-        return f"{self.get_categoria_display()} ({self.get_fonte_recurso_display()}) - R$ {self.valor_previsto}"
+        return f"{self.get_categoria_display()} ({self.get_fonte_recurso_display()}) - R$ {self.valor_previsto}" # type: ignore
 
 class ContaBancaria(models.Model):
     """Contas de repasse exclusivas gerenciadas pela Interveniente para o projeto."""
@@ -366,11 +366,11 @@ class DistribuicaoContaCota(models.Model):
         if self.parcela_inicio and self.parcela_fim:
             if self.parcela_inicio > self.parcela_fim:
                 raise ValidationError("A 'Parcela Início' não pode ser maior que a 'Parcela Fim'.")
-            if self.cota_pt_id and self.parcela_fim > self.cota_pt.parcelas_previstas:
+            if self.cota_pt and self.parcela_fim > self.cota_pt.parcelas_previstas:
                 raise ValidationError(f"A parcela {self.parcela_fim} excede o limite de {self.cota_pt.parcelas_previstas} parcelas da Cota.")
                 
             # Verifica sobreposição
-            if self.cota_pt_id:
+            if self.cota_pt:
                 sobreposicoes = DistribuicaoContaCota.objects.filter(
                     cota_pt=self.cota_pt,
                     parcela_inicio__lte=self.parcela_fim,
@@ -446,7 +446,7 @@ class TermoBolsa(models.Model):
         super().clean()
         
         # Impede exceções matemáticas se os campos obrigatórios ainda não foram preenchidos na interface
-        if not self.quantidade_parcelas or not self.valor_parcela or not self.cota_pt_id:
+        if not self.quantidade_parcelas or not self.valor_parcela or not self.cota_pt:
             return
 
         # 1. Validação de Cotas (Parcelas)
@@ -479,13 +479,13 @@ class TermoBolsa(models.Model):
         super().save(*args, **kwargs)
         # Gerar parcelas automaticamente
         if self.quantidade_parcelas:
-            parcelas_existentes = self.parcelas.count()
+            parcelas_existentes = self.parcelas.count() # type: ignore
             if parcelas_existentes < self.quantidade_parcelas:
                 for i in range(parcelas_existentes + 1, self.quantidade_parcelas + 1):
                     Parcela.objects.create(termo_bolsa=self, numero=i)
 
     def __str__(self):
-        return f"Termo {self.numero_termo} - {self.bolsista.nome} ({self.get_status_display()})"
+        return f"Termo {self.numero_termo} - {self.bolsista.nome} ({self.get_status_display()})" # type: ignore
 
 # =====================================================================
 # RH  
