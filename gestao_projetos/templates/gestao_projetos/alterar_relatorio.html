@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: #43A047;">
+            <h5 class="mb-0"><strong>Alterar Relatório - Parcela {{ relatorio.parcela_referencia.numero }}</strong></h5>
+            <span class="badge bg-light text-dark">
+                {{ relatorio.termo_bolsa.bolsista.nome }}
+            </span>
+        </div>
+        
+        <div class="card-body">
+            <div class="alert alert-info">
+                <strong>Instruções:</strong> O Relatório de Atividades é preenchido e assinado offline. 
+                Utilize esta tela para fazer o upload do documento final em PDF assinado pelo bolsista.
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Arquivo Assinado (PDF)</label>
+                    <input type="file" name="arquivo_pdf" class="form-control" accept="application/pdf">
+                    
+                    {% if relatorio.arquivo_pdf %}
+                        <div class="mt-2 text-success">
+                            <i class="fas fa-check-circle"></i> Documento atual: 
+                            <a href="{{ relatorio.arquivo_pdf.url }}" target="_blank">Ver arquivo anexado</a>
+                        </div>
+                    {% else %}
+                        <div class="mt-2 text-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Nenhum documento anexado. Status atual: Pendente.
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'gestao_projetos:listar_relatorios' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar e Concluir</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -53,7 +53,7 @@
     <!-- Card de Filtros Avançados -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light fw-bold text-secondary">
-            <i class="fas fa-filter me-1"></i> Filtrar Fila de Rascunhos
+            <i class="fas fa-filter me-1"></i> Filtrar Relatórios
         </div>
         <div class="card-body">
             <form method="GET" class="row g-3">
@@ -63,7 +63,7 @@
                         <option value="">Todos os bolsistas</option>
                         {% for termo in termos %}
                             <option value="{{ termo.id }}" {% if filtro_termo == termo.id|stringformat:"s" %}selected{% endif %}>
-                                {{ termo.bolsista_nome }}
+                                {{ termo.bolsista.nome }}
                             </option>
                         {% endfor %}
                     </select>
@@ -84,14 +84,14 @@
                     <label class="form-label small fw-bold">Status</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">Todos os Status</option>
-                        <option value="RASCUNHO" {% if filtro_status == "RASCUNHO" %}selected{% endif %}>Rascunho</option>
+                        <option value="PENDENTE" {% if filtro_status == "PENDENTE" %}selected{% endif %}>Pendente</option>
                         <option value="CONCLUIDO" {% if filtro_status == "CONCLUIDO" %}selected{% endif %}>Concluído</option>
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
                     <div class="d-grid w-100 gap-1">
                         <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Aplicar</button>
-                        <button type="submit" formaction="{% url 'gestao_projetos:exportar_rascunhos_zip' %}" class="btn btn-success btn-sm"><i class="fas fa-file-archive"></i> Baixar ZIP</button>
+                        <button type="submit" formaction="{% url 'gestao_projetos:exportar_relatorios_zip' %}" class="btn btn-success btn-sm"><i class="fas fa-file-archive"></i> Exportar Lote para ZIP</button>
                         <a href="{% url 'gestao_projetos:listar_relatorios' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
                     </div>
                 </div>
@@ -99,7 +99,7 @@
         </div>
     </div>
 
-    <!-- Tabela Principal de Rascunhos -->
+    <!-- Tabela de Relatórios -->
     <div class="card shadow-sm">
         <div class="card-header bg-light fw-bold text-secondary d-flex justify-content-between align-items-center">
             <span>Resultados da Fila</span>
@@ -123,12 +123,14 @@
                         {% for relatorio in relatorios %}
                         <tr>
                             <td>
-                                <span class="fw-bold text-dark">{{ relatorio.bolsista.projeto.convenio }}</span><br>
-                                <span class="text-muted" style="font-size: 0.8rem;">{{ relatorio.bolsista.projeto.nome|truncatechars:40 }}</span>
+                                {% for p in projetos %}
+                                    <span class="fw-bold text-dark">{{ p.convenio }}</span><br>
+                                    <span class="text-muted" style="font-size: 0.8rem;">{{ p.nome|truncatechars:40 }}</span>
+                                {% endfor %}
                             </td>
                             <td>
                                 {% if relatorio.termo_bolsa %}
-                                    <div class="fw-bold">{{ relatorio.termo_bolsa.bolsista_nome }}</div>
+                                    <div class="fw-bold">{{ relatorio.termo_bolsa.bolsista.nome }}</div>
                                     <small class="text-muted">{{ relatorio.termo_bolsa.cota_pt.projeto.convenio }}</small>
                                 {% else %}
                                     <div class="fw-bold">{{ relatorio.bolsista.nome_completo }}</div>
@@ -137,7 +139,7 @@
                             </td>
                             <td class="text-center">
                                 <span class="badge bg-secondary rounded-pill">
-                                    Parcela {{ relatorio.parcela }} de {% if relatorio.termo_bolsa %}{{ relatorio.termo_bolsa.quantidade_parcelas }}{% else %}{{ relatorio.bolsista.total_parcelas_previstas|default:'?' }}{% endif %}
+                                    Parcela {{ relatorio.parcela_referencia.numero }} de {% if relatorio.termo_bolsa %}{{ relatorio.termo_bolsa.quantidade_parcelas }}{% else %}{{ relatorio.bolsista.total_parcelas_previstas|default:'?' }}{% endif %}
                                 </span>
                             </td>
                             <td class="text-center">
@@ -147,15 +149,21 @@
                                 {{ relatorio.carga_horaria_periodo }}h
                             </td>
                             <td class="text-center">
-                                {% if relatorio.status == 'RASCUNHO' %}
-                                    <span class="badge bg-warning text-dark px-2 py-1">Rascunho</span>
+                                {% if relatorio.status == 'PENDENTE' %}
+                                    <span class="badge bg-warning text-dark px-2 py-1">Pendente</span>
                                 {% else %}
                                     <span class="badge bg-success px-2 py-1">Concluído</span>
                                 {% endif %}
                             </td>
                             <td class="text-end pe-4">
-                                <a href="{% url 'gestao_projetos:elaborar_relatorio' relatorio.id %}" class="btn btn-sm btn-outline-primary px-3" title="Editar ou Inserir Atividades">
-                                    <i class="fas fa-edit me-1"></i> Gerenciar
+                                <a href="{% url 'gestao_projetos:visualizar_relatorio' relatorio.id %}" class="btn btn-sm btn-outline-info" title="Visualizar">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'gestao_projetos:alterar_relatorio' relatorio.id %}" class="btn btn-sm btn-outline-primary ms-1" title="Alterar/Upload">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'gestao_projetos:baixar_relatorio_docx' relatorio.id %}" class="btn btn-sm btn-outline-success ms-1" title="Baixar DOCX">
+                                    <i class="fas fa-download"></i>
                                 </a>
                                 <a href="{% url 'gestao_projetos:excluir_relatorio' relatorio.id %}" class="btn btn-sm btn-outline-danger px-2 ms-1" title="Excluir Relatório" onclick="return confirm('Tem certeza que deseja excluir este relatório específico?');">
                                     <i class="fas fa-trash-alt"></i>

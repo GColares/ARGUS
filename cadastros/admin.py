@@ -88,8 +88,8 @@ class CotaBolsaPTAdmin(admin.ModelAdmin):
 
 @admin.register(TermoBolsa)
 class TermoBolsaAdmin(admin.ModelAdmin):
-    list_display = ('numero_termo', 'bolsista_nome', 'cota_pt', 'quantidade_parcelas', 'status')
+    list_display = ('numero_termo', 'bolsista', 'cota_pt', 'quantidade_parcelas', 'status')
     list_filter = ('status', 'cota_pt__projeto')
-    search_fields = ('numero_termo', 'bolsista_nome', 'bolsista_cpf')
+    search_fields = ('numero_termo', 'bolsista', 'bolsista__cpf')
 
 

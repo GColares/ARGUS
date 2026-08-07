@@ -203,3 +203,101 @@ def cadastrar_fornecedor(request):
         'retorno_termo_id': retorno_termo_id,
     }
     return render(request, 'cadastros/form_fornecedor.html', context)
+@login_required
+def gerenciar_cotas(request, projeto_id):
+    from .models import ProjetoPDI, CotaBolsaPT
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+    cotas = CotaBolsaPT.objects.filter(projeto=projeto).order_by('perfil_funcao')
+    
+    return render(request, 'cadastros/gerenciar_cotas.html', {
+        'projeto': projeto,
+        'cotas': cotas
+    })
+
+@login_required
+def visualizar_cota(request, cota_id):
+    from .models import CotaBolsaPT, AtividadePlanoAcao
+    cota = get_object_or_404(CotaBolsaPT, id=cota_id)
+    projeto = cota.projeto
+    atividades_projeto = AtividadePlanoAcao.objects.filter(projeto=projeto).order_by('numero')
+    
+    return render(request, 'cadastros/visualizar_cota.html', {
+        'cota': cota,
+        'projeto': projeto,
+        'atividades_projeto': atividades_projeto,
+        'atividades_vinculadas': cota.atividades_vinculadas.values_list('id', flat=True)
+    })
+
+@login_required
+def editar_cota(request, cota_id):
+    from .models import CotaBolsaPT, AtividadePlanoAcao
+    cota = get_object_or_404(CotaBolsaPT, id=cota_id)
+    projeto = cota.projeto
+    atividades_projeto = AtividadePlanoAcao.objects.filter(projeto=projeto).order_by('numero')
+    
+    if request.method == 'POST':
+        atividades_ids = request.POST.getlist('atividades')
+        # Vincula as atividades (Limpa as antigas e add novas)
+        cota.atividades_vinculadas.set(atividades_ids)
+        messages.success(request, 'Atividades vinculadas com sucesso!')
+        return redirect('cadastros:gerenciar_cotas', projeto_id=projeto.id)
+        
+    return render(request, 'cadastros/editar_cota.html', {
+        'cota': cota,
+        'projeto': projeto,
+        'atividades_projeto': atividades_projeto,
+        'atividades_vinculadas': cota.atividades_vinculadas.values_list('id', flat=True)
+    })
+
+# ==========================================
+# GESTÃO DE BOLSISTAS (BANCO DE TALENTOS)
+# ==========================================
+
+@login_required
+def listar_bolsistas(request):
+    from .models import Bolsista
+    bolsistas = Bolsista.objects.all().order_by('nome')
+    return render(request, 'cadastros/listar_bolsistas.html', {'bolsistas': bolsistas})
+
+@login_required
+def criar_bolsista(request):
+    from .forms import BolsistaForm
+    if request.method == 'POST':
+        form = BolsistaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Bolsista cadastrado com sucesso!')
+            return redirect('cadastros:listar_bolsistas')
+    else:
+        form = BolsistaForm()
+    return render(request, 'cadastros/form_bolsista.html', {'form': form, 'titulo': 'Cadastrar Novo Bolsista'})
+
+@login_required
+def editar_bolsista(request, id):
+    from .models import Bolsista
+    from .forms import BolsistaForm
+    bolsista = get_object_or_404(Bolsista, id=id)
+    if request.method == 'POST':
+        form = BolsistaForm(request.POST, instance=bolsista)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Bolsista atualizado com sucesso!')
+            return redirect('cadastros:listar_bolsistas')
+    else:
+        form = BolsistaForm(instance=bolsista)
+    return render(request, 'cadastros/form_bolsista.html', {'form': form, 'titulo': f'Editar Bolsista: {bolsista.nome}', 'bolsista': bolsista})
+
+@login_required
+def excluir_bolsista(request, id):
+    from .models import Bolsista
+    bolsista = get_object_or_404(Bolsista, id=id)
+    if request.method == 'POST':
+        try:
+            bolsista.delete()
+            messages.success(request, 'Bolsista excluído com sucesso!')
+        except Exception as e:
+            messages.error(request, f'Não foi possível excluir o bolsista pois ele está vinculado a um ou mais Termos de Bolsa. Erro: {e}')
+        return redirect('cadastros:listar_bolsistas')
+    # fallback se vier por GET direto e não quiser usar form post na listagem
+    return redirect('cadastros:listar_bolsistas')
+

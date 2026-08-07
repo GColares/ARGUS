@@ -46,7 +46,7 @@
                                 <option value="">Escolha...</option>
                                 {% for termo in termos %}
                                     <option value="{{ termo.id }}" data-projeto-id="{{ termo.cota_pt.projeto.id }}" class="bolsista-option d-none">
-                                        {{ termo.bolsista_nome }} ({{ termo.numero_termo }})
+                                        {{ termo.bolsista.nome }} ({{ termo.numero_termo }})
                                     </option>
                                 {% endfor %}
                             </select>

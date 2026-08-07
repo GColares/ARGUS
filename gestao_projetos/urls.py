@@ -10,6 +10,8 @@ urlpatterns = [
     
     # Rota de listagem (ponto de entrada)
     path('relatorios/', views.listar_relatorios, name='listar_relatorios'),
+    path('termos/', views.listar_termos_bolsa, name='listar_termos_bolsa'),
+    path('termo/<int:termo_id>/editar/', views.editar_termo_bolsa, name='editar_termo_bolsa'),
     
     # Geração em lote
     path('relatorios/gerar-lote/', views.gerar_relatorios_lote, name='gerar_relatorios_lote'),
@@ -18,12 +20,12 @@ urlpatterns = [
     path('orcamento-financeiro/', views.relatorio_orcamento_financeiro, name='orcamento_financeiro'),
 
     path('relatorio/novo/', views.criar_relatorio, name='criar_relatorio'), # CREATE
-    path('relatorio/<int:relatorio_id>/elaborar/', views.elaborar_relatorio, name='elaborar_relatorio'), # UPDATE
-    path('relatorio/<int:relatorio_id>/preview/', views.preview_relatorio, name='preview_relatorio'), # PREVIEW
+    path('relatorio/<int:relatorio_id>/visualizar/', views.visualizar_relatorio, name='visualizar_relatorio'), # READ
+    path('relatorio/<int:relatorio_id>/alterar/', views.alterar_relatorio, name='alterar_relatorio'), # UPDATE
     path('relatorio/<int:relatorio_id>/baixar/', views.baixar_relatorio_docx, name='baixar_relatorio_docx'), # DOWNLOAD
     path('relatorio/<int:relatorio_id>/excluir/', views.excluir_relatorio, name='excluir_relatorio'), # DELETE
     path('relatorios/excluir-todos/', views.excluir_todos_relatorios, name='excluir_todos_relatorios'), # DELETE ALL
-    path('relatorios/exportar-zip/', views.exportar_rascunhos_zip, name='exportar_rascunhos_zip'), # EXPORT ZIP
+    path('relatorios/exportar-zip/', views.exportar_relatorios_zip, name='exportar_relatorios_zip'), # EXPORT ZIP
 
     path('relatorio/novo/lote/', views.gerar_relatorios_lote, name='gerar_relatorios_lote'), # BATCH CREATE
     path('poc-extracao/', views.extrair_tabelas_docx_poc, name='poc_extracao'),

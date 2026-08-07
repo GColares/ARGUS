@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'cadastros:listar_bolsistas' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar para Bolsistas
+            </a>
+            <h4 class="fw-bold text-success"><i class="fas fa-user-edit me-2"></i> {{ titulo }}</h4>
+            <p class="text-muted mb-0">Preencha os dados pessoais e documentais do bolsista.</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <h5 class="fw-bold mb-3 border-bottom pb-2">Informações Pessoais</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Nome Completo</label>
+                        {{ form.nome }}
+                        {% if form.nome.errors %}<div class="text-danger small mt-1">{{ form.nome.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">CPF</label>
+                        {{ form.cpf }}
+                        {% if form.cpf.errors %}<div class="text-danger small mt-1">{{ form.cpf.errors }}</div>{% endif %}
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">RG</label>
+                        {{ form.rg }}
+                        {% if form.rg.errors %}<div class="text-danger small mt-1">{{ form.rg.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Órgão Emissor</label>
+                        {{ form.orgao_emissor_rg }}
+                        {% if form.orgao_emissor_rg.errors %}<div class="text-danger small mt-1">{{ form.orgao_emissor_rg.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Data de Nascimento</label>
+                        {{ form.data_nascimento }}
+                        {% if form.data_nascimento.errors %}<div class="text-danger small mt-1">{{ form.data_nascimento.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Estado Civil</label>
+                        {{ form.estado_civil }}
+                        {% if form.estado_civil.errors %}<div class="text-danger small mt-1">{{ form.estado_civil.errors }}</div>{% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Nacionalidade</label>
+                        {{ form.nacionalidade }}
+                        {% if form.nacionalidade.errors %}<div class="text-danger small mt-1">{{ form.nacionalidade.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">SIAPE (Opcional)</label>
+                        {{ form.siape }}
+                        {% if form.siape.errors %}<div class="text-danger small mt-1">{{ form.siape.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <h5 class="fw-bold mb-3 border-bottom pb-2">Contato e Endereço</h5>
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Endereço Residencial</label>
+                        {{ form.endereco }}
+                        {% if form.endereco.errors %}<div class="text-danger small mt-1">{{ form.endereco.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">CEP</label>
+                        {{ form.cep }}
+                        {% if form.cep.errors %}<div class="text-danger small mt-1">{{ form.cep.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Telefone</label>
+                        {{ form.telefone }}
+                        {% if form.telefone.errors %}<div class="text-danger small mt-1">{{ form.telefone.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">E-mail</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'cadastros:listar_bolsistas' %}" class="btn btn-secondary px-4 fw-bold">Cancelar</a>
+                    <button type="submit" class="btn btn-success px-4 fw-bold">
+                        <i class="fas fa-save me-1"></i> Salvar Bolsista
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

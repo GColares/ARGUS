@@ -41,7 +41,10 @@
                                     </a>
                                 </td>
                                 
-                                <td class="text-center">
+                                <td class="text-center d-flex justify-content-center gap-2">
+                                    <a href="{% url 'cadastros:gerenciar_cotas' projeto.id %}" class="btn btn-sm btn-outline-success rounded-pill fw-bold" title="Gerenciar Cotas do Plano de Trabalho e Vínculos">
+                                        <i class="fas fa-users me-1"></i> Cotas
+                                    </a>
                                     <a href="{% url 'cadastros:gerenciar_processos' projeto.id %}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" title="Gerenciar Processos de Compra e Pagamento">
                                         <i class="fas fa-file-signature me-1"></i> Processos
                                     </a>

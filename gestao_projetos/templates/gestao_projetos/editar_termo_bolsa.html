@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'gestao_projetos:listar_termos_bolsa' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar para Termos de Bolsa
+            </a>
+            <h4 class="fw-bold text-primary"><i class="fas fa-edit me-2"></i> Editar Termo de Bolsa</h4>
+            <p class="text-muted mb-0">Atualize os dados do contrato do bolsista {{ termo.bolsista.nome }}</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Cota do Plano de Trabalho</label>
+                        {{ form.cota_pt }}
+                        {% if form.cota_pt.errors %}<div class="text-danger small mt-1">{{ form.cota_pt.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Status do Termo</label>
+                        {{ form.status }}
+                        {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors }}</div>{% endif %}
+                    </div>
+
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Modalidade da Bolsa</label>
+                        {{ form.modalidade_bolsa }}
+                        {% if form.modalidade_bolsa.errors %}<div class="text-danger small mt-1">{{ form.modalidade_bolsa.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Carga Horária Total (Horas)</label>
+                        {{ form.carga_horaria_total }}
+                        {% if form.carga_horaria_total.errors %}<div class="text-danger small mt-1">{{ form.carga_horaria_total.errors }}</div>{% endif %}
+                    </div>
+
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Bolsista</label>
+                        {{ form.bolsista }}
+                        {% if form.bolsista.errors %}<div class="text-danger small mt-1">{{ form.bolsista.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Número do Termo / Aditivo</label>
+                        {{ form.numero_termo }}
+                        {% if form.numero_termo.errors %}<div class="text-danger small mt-1">{{ form.numero_termo.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Vigência Início</label>
+                        {{ form.vigencia_inicio }}
+                        {% if form.vigencia_inicio.errors %}<div class="text-danger small mt-1">{{ form.vigencia_inicio.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Vigência Fim</label>
+                        {{ form.vigencia_fim }}
+                        {% if form.vigencia_fim.errors %}<div class="text-danger small mt-1">{{ form.vigencia_fim.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Qtd. de Parcelas</label>
+                        {{ form.quantidade_parcelas }}
+                        {% if form.quantidade_parcelas.errors %}<div class="text-danger small mt-1">{{ form.quantidade_parcelas.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Valor da Parcela (R$)</label>
+                        {{ form.valor_parcela }}
+                        {% if form.valor_parcela.errors %}<div class="text-danger small mt-1">{{ form.valor_parcela.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'gestao_projetos:listar_termos_bolsa' %}" class="btn btn-secondary px-4 fw-bold">Cancelar</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">
+                        <i class="fas fa-save me-1"></i> Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

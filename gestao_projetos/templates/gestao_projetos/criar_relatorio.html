@@ -18,7 +18,7 @@
                         <select name="termo_id" class="form-select" required>
                             <option value="">Selecione o bolsista/termo...</option>
                             {% for termo in termos %}
-                                <option value="{{ termo.id }}">{{ termo.bolsista_nome }} - Termo {{ termo.numero_termo }} ({{ termo.cota_pt.projeto.nome }})</option>
+                                <option value="{{ termo.id }}">{{ termo.bolsista.nome }} - Termo {{ termo.numero_termo }} ({{ termo.cota_pt.projeto.nome }})</option>
                             {% endfor %}
                         </select>
                         <small class="text-muted">A parcela será calculada automaticamente com base no histórico do termo.</small>

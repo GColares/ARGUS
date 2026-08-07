@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar para Projetos
+            </a>
+            <h4 class="fw-bold text-success"><i class="fas fa-users me-2"></i> Cotas do Plano de Trabalho</h4>
+            <p class="text-muted mb-0">Projeto: {{ projeto.nome }} (Convênio: {{ projeto.convenio }})</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Perfil / Função</th>
+                            <th class="text-center">Vagas</th>
+                            <th class="text-center">Parcelas Prev.</th>
+                            <th class="text-center">Valor Global (R$)</th>
+                            <th class="text-center">Atividades Vinculadas</th>
+                            <th class="text-center pe-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cota in cotas %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="text-body">{{ cota.perfil_funcao }}</span>
+                            </td>
+                            <td class="text-center">{{ cota.quantidade_vagas }}</td>
+                            <td class="text-center">{{ cota.parcelas_previstas }}</td>
+                            <td class="text-center">R$ {{ cota.valor_global_previsto|floatformat:2 }}</td>
+                            <td class="text-center">
+                                {% with qtd_atvs=cota.atividades_vinculadas.count %}
+                                    {% if qtd_atvs > 0 %}
+                                        <span class="badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check-circle me-1"></i> {{ qtd_atvs }} vinculadas</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2" title="O relatório de atividades desta cota será gerado vazio!"><i class="fas fa-exclamation-triangle me-1"></i> Nenhuma vinculada</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td class="text-center pe-4">
+                                <a href="{% url 'cadastros:visualizar_cota' cota.id %}" class="btn btn-sm btn-outline-info" title="Visualizar">
+                                    <i class="fas fa-search"></i>
+                                </a>
+                                <a href="{% url 'cadastros:editar_cota' cota.id %}" class="btn btn-sm btn-outline-primary ms-1" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3 text-light"></i><br>
+                                Nenhuma cota registrada para este projeto ainda.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

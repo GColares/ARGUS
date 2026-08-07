@@ -1,6 +1,6 @@
 import re
 from django import forms
-from .models import ProjetoPDI, ContaBancaria, Processo, TipoProcesso
+from .models import ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Bolsista
 
 # ==============================================================================
 # MOTOR DE LIMPEZA GERAL
@@ -101,3 +101,46 @@ class ProcessoForm(forms.ModelForm):
     def clean_descricao(self):
         descricao = self.cleaned_data.get('descricao')
         return higienizar_texto_pdf(descricao)
+class TermoBolsaForm(forms.ModelForm):
+    class Meta:
+        model = TermoBolsa
+        fields = [
+            'cota_pt', 'bolsista', 'modalidade_bolsa', 'numero_termo',
+            'vigencia_inicio', 'vigencia_fim', 'quantidade_parcelas', 'carga_horaria_total',
+            'valor_parcela', 'status'
+        ]
+        widgets = {
+            'cota_pt': forms.Select(attrs={'class': 'form-select'}),
+            'bolsista': forms.Select(attrs={'class': 'form-select'}),
+            'modalidade_bolsa': forms.Select(attrs={'class': 'form-select'}),
+            'numero_termo': forms.TextInput(attrs={'class': 'form-control'}),
+            'vigencia_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'vigencia_fim': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'quantidade_parcelas': forms.NumberInput(attrs={'class': 'form-control'}),
+            'carga_horaria_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_parcela': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'status': forms.Select(attrs={'class': 'form-select fw-bold'}),
+        }
+
+class BolsistaForm(forms.ModelForm):
+    class Meta:
+        model = Bolsista
+        fields = [
+            'nome', 'cpf', 'rg', 'orgao_emissor_rg', 'data_nascimento',
+            'nacionalidade', 'estado_civil', 'endereco', 'cep',
+            'telefone', 'email', 'siape'
+        ]
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
+            'rg': forms.TextInput(attrs={'class': 'form-control'}),
+            'orgao_emissor_rg': forms.TextInput(attrs={'class': 'form-control'}),
+            'data_nascimento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'nacionalidade': forms.TextInput(attrs={'class': 'form-control'}),
+            'estado_civil': forms.Select(attrs={'class': 'form-select'}),
+            'endereco': forms.TextInput(attrs={'class': 'form-control'}),
+            'cep': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00000-000'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'siape': forms.TextInput(attrs={'class': 'form-control'}),
+        }

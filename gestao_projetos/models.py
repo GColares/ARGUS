@@ -10,8 +10,8 @@ class RelatorioAtividade(models.Model):
     garantindo que apenas membros alocados no projeto manipulem o documento.
     """
     STATUS_CHOICES = [
-        ('RASCUNHO', 'Rascunho'),
-        ('CONCLUIDO', 'Pronto para Download'),
+        ('PENDENTE', 'Aguardando Assinatura'),
+        ('CONCLUIDO', 'Assinado / Concluído'),
     ]
 
     # Utilização de Lazy Reference ('app.Model') para evitar circular imports 
@@ -42,11 +42,17 @@ class RelatorioAtividade(models.Model):
         blank=True
     )
     criado_por = models.ForeignKey(User, on_delete=models.PROTECT)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='RASCUNHO')
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='PENDENTE')
     
     versao = models.PositiveIntegerField(default=1, verbose_name="Versão do Relatório")
     
-    parcela = models.PositiveIntegerField(verbose_name="Número da Parcela")
+    parcela_referencia = models.ForeignKey(
+        'cadastros.Parcela', 
+        on_delete=models.CASCADE, 
+        related_name='relatorios', 
+        verbose_name="Parcela de Referência",
+        null=True
+    )
     macroentrega = models.CharField(max_length=50, blank=True, null=True, verbose_name="Ref. Macro Entrega")
     periodo_inicio = models.DateField(verbose_name="Período Início")
     periodo_fim = models.DateField(verbose_name="Período Fim")
@@ -56,6 +62,13 @@ class RelatorioAtividade(models.Model):
         blank=True, 
         null=True, 
         help_text="Injetado no bloco 'Ocorrências' do relatório. Deixe em branco para 'Nenhuma'."
+    )
+    
+    arquivo_pdf = models.FileField(
+        upload_to='projetos/relatorios_assinados/', 
+        null=True, 
+        blank=True, 
+        verbose_name="Relatório Assinado (PDF)"
     )
 
     # Parecer do Coordenador (Requisito de Governança para atesto por Servidor Efetivo)
@@ -68,19 +81,19 @@ class RelatorioAtividade(models.Model):
     
     class Meta:
         db_table = 'argus_relatorio_atividade'
-        unique_together = ('termo_bolsa', 'parcela', 'versao')
+        unique_together = ('termo_bolsa', 'parcela_referencia', 'versao')
         verbose_name = 'Relatório de Atividade'
         verbose_name_plural = 'Relatórios de Atividades'
 
     def __str__(self):
         # Proteção contra erros ao tentar ler dados vazios
         if self.termo_bolsa:
-            nome = self.termo_bolsa.bolsista_nome
-        elif self.bolsista_id:
+            nome = self.termo_bolsa.bolsista.nome
+        elif self.bolsista_id: # type: ignore
             nome = self.bolsista.nome_completo
         else:
             nome = 'Desconhecido'
-        return f"Relatório Parcela {self.parcela} (v{self.versao}) - {nome}"
+        return f"Relatório Parcela {self.parcela_referencia.numero if self.parcela_referencia else '?'} (v{self.versao}) - {nome}"
 
 
 class ItemAtividade(models.Model):

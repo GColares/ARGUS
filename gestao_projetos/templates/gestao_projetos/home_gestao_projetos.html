@@ -1,4 +1,4 @@
-# Template: gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html
+<!-- Template: gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -46,6 +46,21 @@
                     <p class="card-text text-muted small">Acompanhamento e visão gerencial das distribuições orçamentárias e mapeamento de contas de pagamento das bolsas.</p>
                     <a href="{% url 'gestao_projetos:orcamento_financeiro' %}" class="btn btn-outline-success btn-sm">
                         Acessar Painel
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Card: Termos de Bolsa -->
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="text-primary mb-3">
+                        <i class="fas fa-file-signature fs-1"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Termos de Bolsa</h5>
+                    <p class="card-text text-muted small">Acompanhe os contratos ativos e inativos dos bolsistas vinculados às Cotas do Plano de Trabalho.</p>
+                    <a href="{% url 'gestao_projetos:listar_termos_bolsa' %}" class="btn btn-outline-primary btn-sm">
+                        Acessar Termos
                     </a>
                 </div>
             </div>

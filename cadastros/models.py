@@ -384,6 +384,35 @@ class DistribuicaoContaCota(models.Model):
     def __str__(self):
         return f"Parcelas {self.parcela_inicio} a {self.parcela_fim} -> {self.conta_pagamento.fonte_recurso}"
 
+
+class Bolsista(models.Model):
+    """
+    Representa a pessoa física que recebe a bolsa.
+    """
+    ESTADO_CIVIL_CHOICES = [
+        ('Solteiro', 'Solteiro(a)'),
+        ('Casado', 'Casado(a)'),
+        ('Divorciado', 'Divorciado(a)'),
+        ('Viuvo', 'Viúvo(a)'),
+        ('Outro', 'Outro'),
+    ]
+
+    nome = models.CharField(max_length=255)
+    cpf = models.CharField(max_length=14, unique=True)
+    rg = models.CharField(max_length=30)
+    orgao_emissor_rg = models.CharField(max_length=20)
+    data_nascimento = models.DateField(null=True, blank=True)
+    nacionalidade = models.CharField(max_length=100, default='Brasileiro')
+    estado_civil = models.CharField(max_length=20, choices=ESTADO_CIVIL_CHOICES, default='Solteiro')
+    endereco = models.CharField(max_length=255, null=True, blank=True)
+    cep = models.CharField(max_length=10, null=True, blank=True)
+    telefone = models.CharField(max_length=20, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    siape = models.CharField(max_length=20, null=True, blank=True, help_text='Apenas para servidores')
+
+    def __str__(self):
+        return self.nome
+
 class TermoBolsa(models.Model):
     """
     Representa o contrato ativo ou inativo de um bolsista ocupando uma fração da CotaBolsaPT.
@@ -396,8 +425,10 @@ class TermoBolsa(models.Model):
     ]
 
     cota_pt = models.ForeignKey(CotaBolsaPT, on_delete=models.PROTECT, related_name='termos_vinculados')
-    bolsista_nome = models.CharField(max_length=255) 
-    bolsista_cpf = models.CharField(max_length=14)
+    bolsista = models.ForeignKey('Bolsista', on_delete=models.PROTECT, related_name='termos')
+    modalidade_bolsa = models.CharField(max_length=100, choices=[('Pesquisa', 'Pesquisa'), ('Ensino', 'Ensino'), ('Extensao', 'Extensão'), ('Desenvolvimento', 'Desenvolvimento Institucional'), ('Inovacao', 'Inovação')], default='Pesquisa')
+    carga_horaria_total = models.PositiveIntegerField(verbose_name="Carga Horária Total (horas)", default=0)
+
     
     numero_termo = models.CharField(max_length=50, verbose_name="Número do Termo de Bolsa/Aditivo")
     vigencia_inicio = models.DateField()
@@ -408,6 +439,8 @@ class TermoBolsa(models.Model):
     valor_parcela = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor da Parcela (R$)")
     
     status = models.CharField(max_length=20, choices=STATUS_TERMO, default='ATIVO')
+    atualizado_em = models.DateTimeField(auto_now=True)
+
 
     def clean(self):
         super().clean()
@@ -442,8 +475,17 @@ class TermoBolsa(models.Model):
                 f"somada à execução anterior (R$ {gasto_acumulado:.2f}) ultrapassa o teto do Plano de Trabalho (R$ {self.cota_pt.valor_global_previsto:.2f})."
             )
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Gerar parcelas automaticamente
+        if self.quantidade_parcelas:
+            parcelas_existentes = self.parcelas.count()
+            if parcelas_existentes < self.quantidade_parcelas:
+                for i in range(parcelas_existentes + 1, self.quantidade_parcelas + 1):
+                    Parcela.objects.create(termo_bolsa=self, numero=i)
+
     def __str__(self):
-        return f"Termo {self.numero_termo} - {self.bolsista_nome} ({self.get_status_display()})"
+        return f"Termo {self.numero_termo} - {self.bolsista.nome} ({self.get_status_display()})"
 
 # =====================================================================
 # RH  
@@ -603,3 +645,20 @@ class Macroentrega(models.Model):
 
     def __str__(self):
         return f"M{self.numero} - {self.nome}"
+
+class Parcela(models.Model):
+    """
+    Entidade que representa a previsão de pagamento (caixinha vazia) 
+    que será posteriormente preenchida/comprovada por um Relatório de Atividades.
+    """
+    termo_bolsa = models.ForeignKey(TermoBolsa, on_delete=models.CASCADE, related_name='parcelas')
+    numero = models.PositiveIntegerField(verbose_name="Número da Parcela")
+
+    class Meta:
+        verbose_name = "Parcela"
+        verbose_name_plural = "Parcelas"
+        unique_together = ('termo_bolsa', 'numero')
+        ordering = ['numero']
+
+    def __str__(self):
+        return f"Parcela {self.numero} - {self.termo_bolsa.bolsista.nome}"
