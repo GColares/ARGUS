@@ -69,3 +69,51 @@ class PredioForm(forms.ModelForm):
             
             'brigada_incendio_ativa': forms.RadioSelect(choices=BOOL_CHOICES, attrs={'class': 'form-check-input'}),
         }
+
+from .models import Andar, Sala, AtivoPredial, CategoriaServico, Finalidade
+
+class AndarForm(forms.ModelForm):
+    class Meta:
+        model = Andar
+        fields = '__all__'
+        widgets = {
+            'predio': forms.Select(attrs={'class': 'form-select'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Andar'}),
+        }
+
+class SalaForm(forms.ModelForm):
+    class Meta:
+        model = Sala
+        fields = '__all__'
+        widgets = {
+            'andar': forms.Select(attrs={'class': 'form-select'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da Sala'}),
+        }
+
+class AtivoPredialForm(forms.ModelForm):
+    class Meta:
+        model = AtivoPredial
+        fields = '__all__'
+        widgets = {
+            'sala': forms.Select(attrs={'class': 'form-select'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Ativo'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'patrimonio': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nº Patrimônio'}),
+        }
+
+class CategoriaServicoForm(forms.ModelForm):
+    class Meta:
+        model = CategoriaServico
+        fields = '__all__'
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da Categoria'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+class FinalidadeForm(forms.ModelForm):
+    class Meta:
+        model = Finalidade
+        fields = '__all__'
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da Finalidade'}),
+        }

@@ -16,4 +16,34 @@ urlpatterns = [
     path('predios/novo/', views.PredioCreateView.as_view(), name='predio_novo'),
     path('predios/<int:pk>/editar/', views.PredioUpdateView.as_view(), name='predio_editar'),
     path('predios/<int:pk>/excluir/', views.PredioDeleteView.as_view(), name='predio_excluir'),
+
+    # Gestão de Andares
+    path('andares/', views.AndarListView.as_view(), name='andar_list'),
+    path('andares/novo/', views.AndarCreateView.as_view(), name='andar_novo'),
+    path('andares/<int:pk>/editar/', views.AndarUpdateView.as_view(), name='andar_editar'),
+    path('andares/<int:pk>/excluir/', views.AndarDeleteView.as_view(), name='andar_excluir'),
+
+    # Gestão de Salas
+    path('salas/', views.SalaListView.as_view(), name='sala_list'),
+    path('salas/novo/', views.SalaCreateView.as_view(), name='sala_novo'),
+    path('salas/<int:pk>/editar/', views.SalaUpdateView.as_view(), name='sala_editar'),
+    path('salas/<int:pk>/excluir/', views.SalaDeleteView.as_view(), name='sala_excluir'),
+
+    # Gestão de Ativos Prediais
+    path('ativos/', views.AtivoPredialListView.as_view(), name='ativopredial_list'),
+    path('ativos/novo/', views.AtivoPredialCreateView.as_view(), name='ativopredial_novo'),
+    path('ativos/<int:pk>/editar/', views.AtivoPredialUpdateView.as_view(), name='ativopredial_editar'),
+    path('ativos/<int:pk>/excluir/', views.AtivoPredialDeleteView.as_view(), name='ativopredial_excluir'),
+
+    # Gestão de Categorias
+    path('categorias/', views.CategoriaServicoListView.as_view(), name='categoriaservico_list'),
+    path('categorias/novo/', views.CategoriaServicoCreateView.as_view(), name='categoriaservico_novo'),
+    path('categorias/<int:pk>/editar/', views.CategoriaServicoUpdateView.as_view(), name='categoriaservico_editar'),
+    path('categorias/<int:pk>/excluir/', views.CategoriaServicoDeleteView.as_view(), name='categoriaservico_excluir'),
+
+    # Gestão de Finalidades
+    path('finalidades/', views.FinalidadeListView.as_view(), name='finalidade_list'),
+    path('finalidades/novo/', views.FinalidadeCreateView.as_view(), name='finalidade_novo'),
+    path('finalidades/<int:pk>/editar/', views.FinalidadeUpdateView.as_view(), name='finalidade_editar'),
+    path('finalidades/<int:pk>/excluir/', views.FinalidadeDeleteView.as_view(), name='finalidade_excluir'),
 ]

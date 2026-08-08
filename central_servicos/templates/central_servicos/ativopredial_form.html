@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}{{% if object %}}Editar{{% else %}}Novo{{% endif %}} Ativo Predial - Central de Serviços{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h3 class="fw-bold text-primary mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        {{% if object %}}Editar Ativo Predial{{% else %}}Novo Ativo Predial{{% endif %}}
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            {% for field in form %}
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold text-muted small">{{ field.label }}</label>
+                                {{ field }}
+                                {{% if field.help_text %}}
+                                <div class="form-text">{{ field.help_text }}</div>
+                                {{% endif %}}
+                                {{% if field.errors %}}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {{% endif %}}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <hr class="my-4 text-muted">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'central_servicos:ativopredial_list' %}" class="btn btn-light px-4">Cancelar</a>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="fas fa-save me-1"></i> Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

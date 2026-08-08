@@ -526,20 +526,20 @@
                     <a href="{% url 'central_servicos:predio_list' %}" class="action-btn">
                         <i class="fas fa-city"></i> Prédios (Avançado)
                     </a>
-                    <a href="/admin/central_servicos/andar/" class="action-btn">
+                    <a href="{% url 'central_servicos:andar_list' %}" class="action-btn">
                         <i class="fas fa-layer-group"></i> Andares
                     </a>
-                    <a href="/admin/central_servicos/sala/" class="action-btn">
+                    <a href="{% url 'central_servicos:sala_list' %}" class="action-btn">
                         <i class="fas fa-door-open"></i> Salas
                     </a>
-                    <a href="/admin/central_servicos/ativopredial/" class="action-btn">
+                    <a href="{% url 'central_servicos:ativopredial_list' %}" class="action-btn">
                         <i class="fas fa-microchip"></i> Ativos Prediais
                     </a>
-                    <a href="/admin/central_servicos/categoriaservico/" class="action-btn">
+                    <a href="{% url 'central_servicos:categoriaservico_list' %}" class="action-btn">
                         <i class="fas fa-tags"></i> Categorias
                     </a>
-                    <a href="/admin/central_servicos/materialutilizado/" class="action-btn">
-                        <i class="fas fa-box"></i> Materiais
+                    <a href="{% url 'central_servicos:finalidade_list' %}" class="action-btn">
+                        <i class="fas fa-bullseye"></i> Finalidades
                     </a>
                 </div>
             </div>

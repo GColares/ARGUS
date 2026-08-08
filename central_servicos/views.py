@@ -8,8 +8,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 # pyrefly: ignore [untyped-import]
 from django.urls import reverse_lazy
-from .models import OrdemServico, Predio, Andar, Sala, AtivoPredial, CategoriaServico, MaterialUtilizado
-from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm
+from .models import OrdemServico, Predio, Andar, Sala, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
+from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, SalaForm, AtivoPredialForm, CategoriaServicoForm, FinalidadeForm
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 
@@ -148,4 +148,174 @@ class PredioDeleteView(LoginRequiredMixin, DeleteView):
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Prédio excluído com sucesso.")
+        return super().delete(request, *args, **kwargs)
+
+# ==========================================
+# GESTÃO DE ANDARES
+# ==========================================
+class AndarListView(LoginRequiredMixin, ListView):
+    model = Andar
+    template_name = 'central_servicos/andar_list.html'
+    context_object_name = 'andares'
+
+class AndarCreateView(LoginRequiredMixin, CreateView):
+    model = Andar
+    form_class = AndarForm
+    template_name = 'central_servicos/andar_form.html'
+    success_url = reverse_lazy('central_servicos:andar_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Andar cadastrado com sucesso.')
+        return super().form_valid(form)
+
+class AndarUpdateView(LoginRequiredMixin, UpdateView):
+    model = Andar
+    form_class = AndarForm
+    template_name = 'central_servicos/andar_form.html'
+    success_url = reverse_lazy('central_servicos:andar_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Andar atualizado com sucesso.')
+        return super().form_valid(form)
+
+class AndarDeleteView(LoginRequiredMixin, DeleteView):
+    model = Andar
+    template_name = 'central_servicos/andar_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:andar_list')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Andar excluído com sucesso.')
+        return super().delete(request, *args, **kwargs)
+
+# ==========================================
+# GESTÃO DE SALAS
+# ==========================================
+class SalaListView(LoginRequiredMixin, ListView):
+    model = Sala
+    template_name = 'central_servicos/sala_list.html'
+    context_object_name = 'salas'
+
+class SalaCreateView(LoginRequiredMixin, CreateView):
+    model = Sala
+    form_class = SalaForm
+    template_name = 'central_servicos/sala_form.html'
+    success_url = reverse_lazy('central_servicos:sala_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Sala cadastrada com sucesso.')
+        return super().form_valid(form)
+
+class SalaUpdateView(LoginRequiredMixin, UpdateView):
+    model = Sala
+    form_class = SalaForm
+    template_name = 'central_servicos/sala_form.html'
+    success_url = reverse_lazy('central_servicos:sala_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Sala atualizada com sucesso.')
+        return super().form_valid(form)
+
+class SalaDeleteView(LoginRequiredMixin, DeleteView):
+    model = Sala
+    template_name = 'central_servicos/sala_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:sala_list')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Sala excluída com sucesso.')
+        return super().delete(request, *args, **kwargs)
+
+# ==========================================
+# GESTÃO DE ATIVOS PREDIAIS
+# ==========================================
+class AtivoPredialListView(LoginRequiredMixin, ListView):
+    model = AtivoPredial
+    template_name = 'central_servicos/ativopredial_list.html'
+    context_object_name = 'ativos'
+
+class AtivoPredialCreateView(LoginRequiredMixin, CreateView):
+    model = AtivoPredial
+    form_class = AtivoPredialForm
+    template_name = 'central_servicos/ativopredial_form.html'
+    success_url = reverse_lazy('central_servicos:ativopredial_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Ativo Predial cadastrado com sucesso.')
+        return super().form_valid(form)
+
+class AtivoPredialUpdateView(LoginRequiredMixin, UpdateView):
+    model = AtivoPredial
+    form_class = AtivoPredialForm
+    template_name = 'central_servicos/ativopredial_form.html'
+    success_url = reverse_lazy('central_servicos:ativopredial_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Ativo Predial atualizado com sucesso.')
+        return super().form_valid(form)
+
+class AtivoPredialDeleteView(LoginRequiredMixin, DeleteView):
+    model = AtivoPredial
+    template_name = 'central_servicos/ativopredial_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:ativopredial_list')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Ativo Predial excluído com sucesso.')
+        return super().delete(request, *args, **kwargs)
+
+# ==========================================
+# GESTÃO DE CATEGORIAS DE SERVIÇO
+# ==========================================
+class CategoriaServicoListView(LoginRequiredMixin, ListView):
+    model = CategoriaServico
+    template_name = 'central_servicos/categoriaservico_list.html'
+    context_object_name = 'categorias'
+
+class CategoriaServicoCreateView(LoginRequiredMixin, CreateView):
+    model = CategoriaServico
+    form_class = CategoriaServicoForm
+    template_name = 'central_servicos/categoriaservico_form.html'
+    success_url = reverse_lazy('central_servicos:categoriaservico_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Categoria cadastrada com sucesso.')
+        return super().form_valid(form)
+
+class CategoriaServicoUpdateView(LoginRequiredMixin, UpdateView):
+    model = CategoriaServico
+    form_class = CategoriaServicoForm
+    template_name = 'central_servicos/categoriaservico_form.html'
+    success_url = reverse_lazy('central_servicos:categoriaservico_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Categoria atualizada com sucesso.')
+        return super().form_valid(form)
+
+class CategoriaServicoDeleteView(LoginRequiredMixin, DeleteView):
+    model = CategoriaServico
+    template_name = 'central_servicos/categoriaservico_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:categoriaservico_list')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Categoria excluída com sucesso.')
+        return super().delete(request, *args, **kwargs)
+
+# ==========================================
+# GESTÃO DE FINALIDADES
+# ==========================================
+class FinalidadeListView(LoginRequiredMixin, ListView):
+    model = Finalidade
+    template_name = 'central_servicos/finalidade_list.html'
+    context_object_name = 'finalidades'
+
+class FinalidadeCreateView(LoginRequiredMixin, CreateView):
+    model = Finalidade
+    form_class = FinalidadeForm
+    template_name = 'central_servicos/finalidade_form.html'
+    success_url = reverse_lazy('central_servicos:finalidade_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Finalidade cadastrada com sucesso.')
+        return super().form_valid(form)
+
+class FinalidadeUpdateView(LoginRequiredMixin, UpdateView):
+    model = Finalidade
+    form_class = FinalidadeForm
+    template_name = 'central_servicos/finalidade_form.html'
+    success_url = reverse_lazy('central_servicos:finalidade_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Finalidade atualizada com sucesso.')
+        return super().form_valid(form)
+
+class FinalidadeDeleteView(LoginRequiredMixin, DeleteView):
+    model = Finalidade
+    template_name = 'central_servicos/finalidade_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:finalidade_list')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Finalidade excluída com sucesso.')
         return super().delete(request, *args, **kwargs)

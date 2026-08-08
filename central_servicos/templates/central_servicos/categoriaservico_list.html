@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Categorias de Serviço - Central de Serviços{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-list text-primary me-2"></i> Gestão de Categorias de Serviço</h2>
+        <a href="{% url 'central_servicos:categoriaservico_novo' %}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus me-1"></i> Novo Categoria de Serviço
+        </a>
+    </div>
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center px-4">ID</th>
+                            <th class="text-center">Nome</th>
+                            <th class="text-center px-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for obj in categorias %}
+                        <tr>
+                            <td class="text-center text-muted">#{{ obj.id }}</td>
+                            <td class="text-center fw-semibold">{{ obj.nome }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'central_servicos:categoriaservico_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'central_servicos:categoriaservico_excluir' obj.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-3x mb-3 text-light"></i>
+                                <p class="mb-0">Nenhum registro encontrado.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
