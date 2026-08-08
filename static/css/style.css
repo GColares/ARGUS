@@ -1,20 +1,56 @@
 /* =========================================
-   PALETA DE CORES INSTITUCIONAL - INOVA
+   PALETA DE CORES HÍBRIDA - ARGUS E INOVA
    ========================================= */
 :root {
+    /* Cores Nativas ARGUS (Software Identity) */
+    --argus-azul: #0D3B66;
+    --argus-teal: #1AA3A8;
+
+    /* Cores Inova Nativas (Institucional) */
     --inova-verde: #7EC247;
     --inova-vermelho: #B72D25;
     --inova-grafite: #1A1A1A;
     --inova-cinza-claro: #F1F1F2;
+    --inova-ouro: #D48806;
+
+    /* Sobrescrevendo o Bootstrap 5 nativamente */
+    /* Primary = ARGUS Azul */
+    --bs-primary: #0D3B66;
+    --bs-primary-rgb: 13, 59, 102;
+    
+    /* Info = ARGUS Teal */
+    --bs-info: #1AA3A8;
+    --bs-info-rgb: 26, 163, 168;
+
+    /* Success = Inova Verde */
+    --bs-success: #7EC247;
+    --bs-success-rgb: 126, 194, 71;
+    
+    /* Danger = Inova Vermelho */
+    --bs-danger: #B72D25;
+    --bs-danger-rgb: 183, 45, 37;
+
+    /* Warning = Inova Ouro */
+    --bs-warning: #D48806;
+    --bs-warning-rgb: 212, 136, 6;
+    
+    /* Dark = Inova Grafite */
+    --bs-dark: #1A1A1A;
+    --bs-dark-rgb: 26, 26, 26;
+    
+    /* Configuração de Tipografia Global */
+    --bs-font-sans-serif: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --bs-body-font-family: var(--bs-font-sans-serif);
+    --bs-body-color: var(--inova-grafite);
 }
 
 body {
-    background-color: #fafbfa;
+    background-color: #fbfcfb;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    color: var(--inova-grafite);
+    font-family: var(--bs-font-sans-serif);
+    color: var(--bs-body-color);
 }
 
 .content-wrapper {
@@ -22,29 +58,84 @@ body {
 }
 
 /* =========================================
-   NAVBAR INSTITUCIONAL
+   NAVBAR INSTITUCIONAL (DINÂMICA POR MÓDULO)
    ========================================= */
 .navbar-institucional {
     background-color: #ffffff;
-    border-bottom: 4px solid var(--inova-verde);
+    /* Padrão fallback se não houver tema específico */
+    border-bottom: 4px solid var(--argus-teal);
+    transition: border-color 0.3s ease;
 }
 
 .navbar-institucional .nav-link {
     color: var(--inova-grafite);
     font-weight: 500;
     padding: 0.5rem 1rem;
-    transition: color 0.2s;
+    transition: all 0.2s ease;
 }
 
 .navbar-institucional .nav-link:hover {
-    color: var(--inova-verde);
+    color: var(--argus-teal);
 }
 
 .navbar-institucional .nav-link.active {
+    font-weight: 700;
+    border-radius: 6px;
+}
+
+/* TEMA: GERAL (Padrão) */
+body.theme-default .navbar-institucional { border-bottom-color: var(--argus-teal); }
+body.theme-default .navbar-institucional .nav-link.active {
+    color: var(--argus-azul) !important;
+    background-color: rgba(13, 59, 102, 0.1);
+}
+
+/* TEMA: GESTÃO DE PROJETOS (Primary / Azul ARGUS) */
+body.theme-primary .navbar-institucional { border-bottom-color: var(--argus-azul); }
+body.theme-primary .navbar-institucional .nav-link:hover { color: var(--argus-azul); }
+body.theme-primary .navbar-institucional .nav-link.active {
+    color: var(--argus-azul) !important;
+    background-color: rgba(13, 59, 102, 0.1);
+}
+
+/* TEMA: CENTRAL DE SERVIÇOS (Info / Teal ARGUS) */
+body.theme-info .navbar-institucional { border-bottom-color: var(--argus-teal); }
+body.theme-info .navbar-institucional .nav-link:hover { color: var(--argus-teal); }
+body.theme-info .navbar-institucional .nav-link.active {
+    color: var(--argus-teal) !important;
+    background-color: rgba(26, 163, 168, 0.1);
+}
+
+/* TEMA: CADASTROS (Success / Verde Inova) */
+body.theme-success .navbar-institucional { border-bottom-color: var(--inova-verde); }
+body.theme-success .navbar-institucional .nav-link:hover { color: var(--inova-verde); }
+body.theme-success .navbar-institucional .nav-link.active {
     color: var(--inova-verde) !important;
     background-color: rgba(126, 194, 71, 0.1);
-    border-radius: 6px;
-    font-weight: 700;
+}
+
+/* TEMA: ALMOXARIFADO (Danger / Vermelho Inova) */
+body.theme-danger .navbar-institucional { border-bottom-color: var(--inova-vermelho); }
+body.theme-danger .navbar-institucional .nav-link:hover { color: var(--inova-vermelho); }
+body.theme-danger .navbar-institucional .nav-link.active {
+    color: var(--inova-vermelho) !important;
+    background-color: rgba(183, 45, 37, 0.1);
+}
+
+/* TEMA: INCORPORAÇÃO (Warning / Ouro Inova) */
+body.theme-warning .navbar-institucional { border-bottom-color: var(--inova-ouro); }
+body.theme-warning .navbar-institucional .nav-link:hover { color: var(--inova-ouro); }
+body.theme-warning .navbar-institucional .nav-link.active {
+    color: var(--inova-ouro) !important;
+    background-color: rgba(212, 136, 6, 0.1);
+}
+
+/* TEMA: PATRIMÔNIO (Dark / Grafite Inova) */
+body.theme-dark .navbar-institucional { border-bottom-color: var(--inova-grafite); }
+body.theme-dark .navbar-institucional .nav-link:hover { color: var(--inova-grafite); }
+body.theme-dark .navbar-institucional .nav-link.active {
+    color: var(--inova-grafite) !important;
+    background-color: rgba(26, 26, 26, 0.1);
 }
 
 /* =========================================
@@ -61,4 +152,110 @@ body {
    ========================================= */
 .btn, .card, .alert { 
     transition: all 0.2s ease-in-out; 
+}
+
+/* =========================================
+   OVERRIDE DE BOTOES DO BOOTSTRAP
+   ========================================= */
+/* PRIMARY (ARGUS AZUL) */
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--argus-azul);
+    --bs-btn-border-color: var(--argus-azul);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #092c4d;
+    --bs-btn-hover-border-color: #092c4d;
+    --bs-btn-active-bg: #07223b;
+    --bs-btn-active-border-color: #07223b;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--argus-azul);
+    --bs-btn-border-color: var(--argus-azul);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--argus-azul);
+    --bs-btn-hover-border-color: var(--argus-azul);
+    --bs-btn-active-bg: var(--argus-azul);
+}
+
+/* INFO (ARGUS TEAL) */
+.btn-info {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--argus-teal);
+    --bs-btn-border-color: var(--argus-teal);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #147b7f;
+    --bs-btn-hover-border-color: #147b7f;
+}
+
+.btn-outline-info {
+    --bs-btn-color: var(--argus-teal);
+    --bs-btn-border-color: var(--argus-teal);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--argus-teal);
+    --bs-btn-hover-border-color: var(--argus-teal);
+}
+
+/* SUCCESS (INOVA VERDE) */
+.btn-success {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--inova-verde);
+    --bs-btn-border-color: var(--inova-verde);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #6ab03b;
+    --bs-btn-hover-border-color: #6ab03b;
+}
+
+.btn-outline-success {
+    --bs-btn-color: var(--inova-verde);
+    --bs-btn-border-color: var(--inova-verde);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--inova-verde);
+    --bs-btn-hover-border-color: var(--inova-verde);
+}
+
+/* DANGER (INOVA VERMELHO) */
+.btn-danger {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--inova-vermelho);
+    --bs-btn-border-color: var(--inova-vermelho);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #a32720;
+    --bs-btn-hover-border-color: #a32720;
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--inova-vermelho);
+    --bs-btn-border-color: var(--inova-vermelho);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--inova-vermelho);
+    --bs-btn-hover-border-color: var(--inova-vermelho);
+}
+
+/* WARNING (INOVA OURO) */
+.btn-warning {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--inova-ouro);
+    --bs-btn-border-color: var(--inova-ouro);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #b57304;
+    --bs-btn-hover-border-color: #b57304;
+}
+
+.btn-outline-warning {
+    --bs-btn-color: var(--inova-ouro);
+    --bs-btn-border-color: var(--inova-ouro);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--inova-ouro);
+    --bs-btn-hover-border-color: var(--inova-ouro);
+}
+
+/* DARK (INOVA GRAFITE) */
+.btn-dark {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--inova-grafite);
+    --bs-btn-border-color: var(--inova-grafite);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #000;
+    --bs-btn-hover-border-color: #000;
 }

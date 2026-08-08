@@ -28,28 +28,28 @@ def home_argus(request):
             'nome': 'Incorporação', 
             'url': 'incorporacao:home_incorporacao', 
             'icone': 'fa-folder-plus', 
-            'cor': 'primary',
+            'cor': 'warning',
             'descricao': 'Gestão de termos de doação e incorporação patrimonial.'
         },
         {
             'nome': 'Patrimônio', 
             'url': 'patrimonio:home_patrimonio', 
             'icone': 'fa-university', 
-            'cor': 'info',
+            'cor': 'dark',
             'descricao': 'Controle de bens tombados e movimentações internas.'
         },
         {
             'nome': 'Gestão de Projetos',
             'url': 'gestao_projetos:home_gestao_projetos',
             'icone': 'fas fa-file-invoice',
-            'cor': 'warning',
+            'cor': 'primary',
             'descricao': 'Gestão de atividades do projeto.'
         },
         {
             'nome': 'Central de Serviços: Manutenção, Infraestrutura e Logística', 
             'url': 'central_servicos:home_central_servicos', 
             'icone': 'fa-building', 
-            'cor': 'warning',
+            'cor': 'info',
             'descricao': 'Gestão de infraestrutura, logística e serviços operacionais.'
         },
     ]

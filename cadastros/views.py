@@ -8,9 +8,22 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def home_cadastros(request):
-    projetos = ProjetoPDI.objects.all().order_by('-data_cadastro')
-    return render(request, 'cadastros/home_cadastros.html', {'projetos': projetos})
+    return render(request, 'cadastros/home_cadastros.html')
 
+@login_required
+def listar_projetos(request):
+    projetos = ProjetoPDI.objects.all().order_by('-data_cadastro')
+    return render(request, 'cadastros/listar_projetos.html', {'projetos': projetos})
+
+@login_required
+def listar_fornecedores_global(request):
+    fornecedores = Fornecedor.objects.all().order_by('nome')
+    return render(request, 'cadastros/listar_fornecedores_global.html', {'fornecedores': fornecedores})
+
+@login_required
+def listar_processos_global(request):
+    processos = Processo.objects.select_related('projeto').all().order_by('-id')
+    return render(request, 'cadastros/listar_processos_global.html', {'processos': processos})
 @login_required
 def novo_projeto(request):
     if request.method == 'POST':

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-secondary"><i class="fas fa-file-signature me-2"></i> Processos Globais</h3>
+            <p class="text-muted small mb-0">Visão geral de todos os processos cadastrados no sistema</p>
+        </div>
+        <a href="{% url 'cadastros:cadastrar_processo' %}" class="btn btn-secondary text-white fw-bold shadow-sm">
+            <i class="fas fa-plus me-2"></i> NOVO PROCESSO
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h6 class="mb-0 fw-bold">LISTA DE PROCESSOS</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Processo / Objeto</th>
+                        <th>Tipo</th>
+                        <th>Origem</th>
+                        <th>Projeto Vinculado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in processos %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ p.numero }}</div>
+                            <small class="text-muted">{{ p.descricao|default:"Sem descrição"|truncatechars:50 }}</small>
+                        </td>
+                        <td>{{ p.tipo.nome }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ p.origem }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'cadastros:gerenciar_processos' p.projeto.id %}" class="text-decoration-none">
+                                <div class="fw-bold">{{ p.projeto.convenio }}</div>
+                                <small class="text-muted">{{ p.projeto.nome|truncatechars:30 }}</small>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
+                            <p class="mb-0">Nenhum processo cadastrado.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

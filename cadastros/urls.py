@@ -19,4 +19,7 @@ urlpatterns = [
     path('bolsistas/novo/', views.criar_bolsista, name='criar_bolsista'),
     path('bolsistas/<int:id>/editar/', views.editar_bolsista, name='editar_bolsista'),
     path('bolsistas/<int:id>/excluir/', views.excluir_bolsista, name='excluir_bolsista'),
+    path('projetos/', views.listar_projetos, name='listar_projetos'),
+    path('fornecedores/', views.listar_fornecedores_global, name='listar_fornecedores_global'),
+    path('processos/', views.listar_processos_global, name='listar_processos_global'),
 ]

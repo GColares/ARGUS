@@ -12,3 +12,6 @@ Sempre que você criar, planejar ou modificar funcionalidades de "Cadastro" (CRU
 
 ## Estilo de Tabelas
 Os cabeçalhos (`<th>` ou `<thead>`) de todas as tabelas criadas no sistema devem ter os rótulos centralizados obrigatoriamente (por exemplo, utilizando a classe utilitária `text-center` do Bootstrap). As colunas de "Ações" (editar/excluir) também devem acompanhar esse alinhamento para manter a uniformidade visual.
+
+## Navegação e UX (Botão Voltar)
+Todas as páginas e telas desenvolvidas para o sistema Argus devem obrigatoriamente conter um botão ou link de "Voltar" (Back) funcionando adequadamente. Este botão deve apontar de volta para a tela lógica anterior na hierarquia do sistema ou utilizar mecanismos de fallback do navegador (ex: javascript:history.back()) caso a rota de origem seja dinâmica.
