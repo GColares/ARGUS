@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict T8yIyJeuISmiPIsW63xdxrqgoHMk3aP9h1yvDZpK2IohfB5dL3Cf1ZwGHPv6Xts
+\restrict Ov3nmFTfml7fLPiWBzq4w7ReOOhtp7BJbbJOsPcMTps8zp3K8MHC7EPC7aKweXy
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.4
@@ -18,6 +18,22 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+ALTER SCHEMA public OWNER TO postgres;
+
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON SCHEMA public IS '';
+
 
 SET default_tablespace = '';
 
@@ -5896,8 +5912,16 @@ ALTER TABLE ONLY public.patrimonio_itemverificacao
 
 
 --
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE USAGE ON SCHEMA public FROM PUBLIC;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict T8yIyJeuISmiPIsW63xdxrqgoHMk3aP9h1yvDZpK2IohfB5dL3Cf1ZwGHPv6Xts
+\unrestrict Ov3nmFTfml7fLPiWBzq4w7ReOOhtp7BJbbJOsPcMTps8zp3K8MHC7EPC7aKweXy
 
