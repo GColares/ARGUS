@@ -1,6 +1,6 @@
 # pyrefly: ignore [untyped-import]
 from django.contrib import admin
-from .models import Predio, Andar, Sala, AtivoPredial, OrdemServico, MaterialUtilizado, CategoriaServico
+from .models import Predio, Andar, Sala, TipoAtivo, AtivoPredial, OrdemServico, MaterialUtilizado, CategoriaServico
 
 class MaterialUtilizadoInline(admin.TabularInline):
     model = MaterialUtilizado
@@ -23,12 +23,18 @@ class SalaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'andar')
     list_filter = ('andar__predio', 'andar')
 
+@admin.register(TipoAtivo)
+class TipoAtivoAdmin(admin.ModelAdmin):
+    # pyrefly: ignore [bad-override-mutable-attribute]
+    list_display = ('nome',)
+    search_fields = ('nome',)
+
 @admin.register(AtivoPredial)
 class AtivoPredialAdmin(admin.ModelAdmin):
     # pyrefly: ignore [bad-override-mutable-attribute]
-    list_display = ('nome', 'patrimonio', 'sala')
-    list_filter = ('sala__andar__predio',)
-    search_fields = ('nome', 'patrimonio')
+    list_display = ('tipo', 'nome_apelido', 'patrimonio', 'numero_serie', 'sala')
+    list_filter = ('sala__andar__predio', 'tipo')
+    search_fields = ('nome_apelido', 'patrimonio', 'numero_serie')
 
 @admin.register(CategoriaServico)
 class CategoriaServicoAdmin(admin.ModelAdmin):

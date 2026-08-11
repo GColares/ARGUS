@@ -1,15 +1,20 @@
 # pyrefly: ignore [untyped-import]
 from django import forms
-from .models import OrdemServico, Predio
+from .models import OrdemServico, Predio, Sala
 
 class OrdemServicoForm(forms.ModelForm):
+    salas = forms.ModelMultipleChoiceField(
+        queryset=Sala.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'd-none real-checkboxes'}),
+        label="Salas / Ambientes",
+        help_text="Selecione os ambientes onde a manutenção será realizada."
+    )
+
     class Meta:
         model = OrdemServico
-        fields = ['categoria', 'prioridade', 'sala', 'ativo_predial', 'descricao_problema']
+        fields = ['categoria', 'salas', 'ativo_predial', 'descricao_problema']
         widgets = {
             'categoria': forms.Select(attrs={'class': 'form-select'}),
-            'prioridade': forms.Select(attrs={'class': 'form-select'}),
-            'sala': forms.Select(attrs={'class': 'form-select'}),
             'ativo_predial': forms.Select(attrs={'class': 'form-select'}),
             'descricao_problema': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva detalhadamente a sua solicitação...'}),
         }
@@ -70,7 +75,7 @@ class PredioForm(forms.ModelForm):
             'brigada_incendio_ativa': forms.RadioSelect(choices=BOOL_CHOICES, attrs={'class': 'form-check-input'}),
         }
 
-from .models import Andar, Sala, AtivoPredial, CategoriaServico, Finalidade
+from .models import Andar, Sala, TipoAtivo, AtivoPredial, CategoriaServico, Finalidade
 
 class AndarForm(forms.ModelForm):
     class Meta:
@@ -95,10 +100,29 @@ class AtivoPredialForm(forms.ModelForm):
         model = AtivoPredial
         fields = '__all__'
         widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
             'sala': forms.Select(attrs={'class': 'form-select'}),
-            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Ativo'}),
+            'nome_apelido': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome/Apelido do Ativo'}),
+            'numero_serie': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Número de Série'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'patrimonio': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nº Patrimônio'}),
+        }
+
+class AtivoPredialLoteForm(forms.ModelForm):
+    salas = forms.ModelMultipleChoiceField(
+        queryset=Sala.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'd-none real-checkboxes'}),
+        label="Salas / Ambientes",
+        help_text="Selecione um ou mais ambientes onde este ativo será criado."
+    )
+
+    class Meta:
+        model = AtivoPredial
+        fields = ['salas', 'tipo', 'nome_apelido', 'descricao']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'nome_apelido': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ar da Janela (Opcional)'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 class CategoriaServicoForm(forms.ModelForm):
@@ -116,4 +140,13 @@ class FinalidadeForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da Finalidade'}),
+        }
+
+class TipoAtivoForm(forms.ModelForm):
+    class Meta:
+        model = TipoAtivo
+        fields = '__all__'
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ar Condicionado, Porta, Extintor'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }

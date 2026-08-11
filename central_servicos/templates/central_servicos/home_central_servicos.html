@@ -119,40 +119,6 @@
         border-radius: 0 0.5rem 0.5rem 0;
         margin-bottom: 1.5rem;
     }
-
-    /* Action Grid in Cadastros Modal */
-    .action-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-
-    .action-btn {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        border-radius: 0.75rem;
-        background: white;
-        border: 1px solid #dee2e6;
-        color: #495057;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-
-    .action-btn:hover {
-        border-color: var(--bs-primary);
-        background: #f8f9fa;
-        color: var(--bs-primary);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    .action-btn i {
-        font-size: 1.5rem;
-        color: var(--bs-primary);
-    }
 </style>
 
 <div class="container-fluid px-4 mt-4">
@@ -509,41 +475,5 @@
     </div>
 </div>
 
-<!-- MODAL: CADASTROS BASE -->
-<div class="modal fade" id="cadastrosModal" tabindex="-1" aria-labelledby="cadastrosModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content glass-modal">
-            <div class="modal-header glass-header py-3">
-                <h5 class="modal-title fw-bold" id="cadastrosModalLabel"><i class="fas fa-database me-2"></i> Cadastros
-                    Base do Sistema</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4 bg-light">
-                <p class="text-muted mb-4 text-center">Acesse rapidamente as tabelas de domínio para alimentar o
-                    sistema.</p>
-                <div class="action-grid">
-                    <a href="{% url 'central_servicos:predio_list' %}" class="action-btn">
-                        <i class="fas fa-city"></i> Prédios (Avançado)
-                    </a>
-                    <a href="{% url 'central_servicos:andar_list' %}" class="action-btn">
-                        <i class="fas fa-layer-group"></i> Andares
-                    </a>
-                    <a href="{% url 'central_servicos:sala_list' %}" class="action-btn">
-                        <i class="fas fa-door-open"></i> Salas
-                    </a>
-                    <a href="{% url 'central_servicos:ativopredial_list' %}" class="action-btn">
-                        <i class="fas fa-microchip"></i> Ativos Prediais
-                    </a>
-                    <a href="{% url 'central_servicos:categoriaservico_list' %}" class="action-btn">
-                        <i class="fas fa-tags"></i> Categorias
-                    </a>
-                    <a href="{% url 'central_servicos:finalidade_list' %}" class="action-btn">
-                        <i class="fas fa-bullseye"></i> Finalidades
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+{% include 'central_servicos/_cadastros_modal.html' %}
 {% endblock %}

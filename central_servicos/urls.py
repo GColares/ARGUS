@@ -35,13 +35,19 @@ urlpatterns = [
     path('ativos/<int:pk>/editar/', views.AtivoPredialUpdateView.as_view(), name='ativopredial_editar'),
     path('ativos/<int:pk>/excluir/', views.AtivoPredialDeleteView.as_view(), name='ativopredial_excluir'),
 
-    # Gestão de Categorias
+    # Categoria de Serviço
     path('categorias/', views.CategoriaServicoListView.as_view(), name='categoriaservico_list'),
     path('categorias/novo/', views.CategoriaServicoCreateView.as_view(), name='categoriaservico_novo'),
     path('categorias/<int:pk>/editar/', views.CategoriaServicoUpdateView.as_view(), name='categoriaservico_editar'),
     path('categorias/<int:pk>/excluir/', views.CategoriaServicoDeleteView.as_view(), name='categoriaservico_excluir'),
 
-    # Gestão de Finalidades
+    # Tipo de Ativo
+    path('tipos-ativos/', views.TipoAtivoListView.as_view(), name='tipoativo_list'),
+    path('tipos-ativos/novo/', views.TipoAtivoCreateView.as_view(), name='tipoativo_novo'),
+    path('tipos-ativos/<int:pk>/editar/', views.TipoAtivoUpdateView.as_view(), name='tipoativo_editar'),
+    path('tipos-ativos/<int:pk>/excluir/', views.TipoAtivoDeleteView.as_view(), name='tipoativo_excluir'),
+
+    # Finalidade
     path('finalidades/', views.FinalidadeListView.as_view(), name='finalidade_list'),
     path('finalidades/novo/', views.FinalidadeCreateView.as_view(), name='finalidade_novo'),
     path('finalidades/<int:pk>/editar/', views.FinalidadeUpdateView.as_view(), name='finalidade_editar'),

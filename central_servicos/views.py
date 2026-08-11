@@ -8,8 +8,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 # pyrefly: ignore [untyped-import]
 from django.urls import reverse_lazy
-from .models import OrdemServico, Predio, Andar, Sala, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
-from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, SalaForm, AtivoPredialForm, CategoriaServicoForm, FinalidadeForm
+from .models import OrdemServico, Predio, Andar, Sala, TipoAtivo, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
+from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, SalaForm, TipoAtivoForm, AtivoPredialForm, AtivoPredialLoteForm, CategoriaServicoForm, FinalidadeForm
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 
@@ -45,9 +45,37 @@ class OrdemServicoCreateView(LoginRequiredMixin, CreateView):
     template_name = 'central_servicos/os_form.html'
     success_url = reverse_lazy('central_servicos:home_central_servicos')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Injeta a estrutura hierárquica completa para a interface em árvore
+        context['predios_hierarquia'] = Predio.objects.prefetch_related('andares__salas').all()
+        return context
+
     def form_valid(self, form):
-        form.instance.solicitante = self.request.user
-        return super().form_valid(form)
+        salas = form.cleaned_data.get('salas')
+        categoria = form.cleaned_data.get('categoria')
+        descricao_problema = form.cleaned_data.get('descricao_problema')
+        ativo_predial = form.cleaned_data.get('ativo_predial')
+        solicitante = self.request.user
+
+        # Se houver mais de uma sala, ignoramos o ativo predial (manutenção geral)
+        if salas.count() > 1:
+            ativo_predial = None
+
+        os_criadas = 0
+        for sala in salas:
+            OrdemServico.objects.create(
+                sala=sala,
+                categoria=categoria,
+                descricao_problema=descricao_problema,
+                ativo_predial=ativo_predial,
+                solicitante=solicitante
+            )
+            os_criadas += 1
+
+        messages.success(self.request, f'{os_criadas} Ordem(ns) de Serviço gerada(s) com sucesso.')
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(self.success_url)
 
 class RelatorioOSView(LoginRequiredMixin, ListView):
     model = OrdemServico
@@ -228,12 +256,39 @@ class AtivoPredialListView(LoginRequiredMixin, ListView):
 
 class AtivoPredialCreateView(LoginRequiredMixin, CreateView):
     model = AtivoPredial
-    form_class = AtivoPredialForm
+    form_class = AtivoPredialLoteForm
     template_name = 'central_servicos/ativopredial_form.html'
     success_url = reverse_lazy('central_servicos:ativopredial_list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Injeta a estrutura hierárquica completa para a interface em árvore
+        context['predios_hierarquia'] = Predio.objects.prefetch_related('andares__salas').all()
+        return context
+
     def form_valid(self, form):
-        messages.success(self.request, 'Ativo Predial cadastrado com sucesso.')
-        return super().form_valid(form)
+        salas = form.cleaned_data.get('salas')
+        tipo = form.cleaned_data.get('tipo')
+        nome_apelido = form.cleaned_data.get('nome_apelido')
+        descricao = form.cleaned_data.get('descricao')
+        
+        # Cria um ativo para cada sala selecionada
+        ativos_criados = 0
+        for sala in salas:
+            AtivoPredial.objects.create(
+                sala=sala,
+                tipo=tipo,
+                nome_apelido=nome_apelido,
+                descricao=descricao,
+                patrimonio='', # Em branco no lote
+                numero_serie='' # Em branco no lote
+            )
+            ativos_criados += 1
+            
+        messages.success(self.request, f'{ativos_criados} Ativo(s) Predial(is) cadastrado(s) com sucesso.')
+        # Redireciona manualmente pois não estamos usando form.save() padrão
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(self.success_url)
 
 class AtivoPredialUpdateView(LoginRequiredMixin, UpdateView):
     model = AtivoPredial
@@ -318,4 +373,34 @@ class FinalidadeDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('central_servicos:finalidade_list')
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Finalidade excluída com sucesso.')
+        return super().delete(request, *args, **kwargs)
+
+class TipoAtivoListView(LoginRequiredMixin, ListView):
+    model = TipoAtivo
+    template_name = 'central_servicos/tipoativo_list.html'
+
+class TipoAtivoCreateView(LoginRequiredMixin, CreateView):
+    model = TipoAtivo
+    form_class = TipoAtivoForm
+    template_name = 'central_servicos/tipoativo_form.html'
+    success_url = reverse_lazy('central_servicos:tipoativo_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Tipo de Ativo cadastrado com sucesso.')
+        return super().form_valid(form)
+
+class TipoAtivoUpdateView(LoginRequiredMixin, UpdateView):
+    model = TipoAtivo
+    form_class = TipoAtivoForm
+    template_name = 'central_servicos/tipoativo_form.html'
+    success_url = reverse_lazy('central_servicos:tipoativo_list')
+    def form_valid(self, form):
+        messages.success(self.request, 'Tipo de Ativo atualizado com sucesso.')
+        return super().form_valid(form)
+
+class TipoAtivoDeleteView(LoginRequiredMixin, DeleteView):
+    model = TipoAtivo
+    template_name = 'central_servicos/tipoativo_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:tipoativo_list')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Tipo de Ativo excluído com sucesso.')
         return super().delete(request, *args, **kwargs)

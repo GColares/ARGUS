@@ -26,6 +26,8 @@ A arquitetura de negócios do ARGUS baseia-se em um **ecossistema interdependent
 - **Módulo `patrimonio` e `incorporacao`:** Gerenciam os bens físicos, suas notas fiscais e tombamentos.
 - **Módulo `almoxarifado`:** Controla os insumos consumíveis.
 - **Módulo `central_servicos`:** Consome bens do `patrimonio` (como Ativos Prediais que precisam de manutenção) e consome itens do `almoxarifado` (ex: lâmpadas e parafusos que sofrem baixa após uma Ordem de Serviço concluída).
+  - *Arquitetura de Ativos:* Utiliza o modelo normalizado (TipoAtivo + Instância Física) para permitir relatórios analíticos, separando o "O que é" do "Onde/Qual é".
+  - *UX/UI Padrão:* Para seleções em massa de ambientes, utiliza componentes customizados de seleção hierárquica em árvore (Prédio -> Andar -> Sala) ao invés de listas ou Select2 genéricos.
 - **Módulo `gestao_projetos`:** Consome os `cadastros` para formar equipes e gerenciar orçamentos/planos de trabalho.
 
 ## 4. Como a IA deve se comportar perante esta regra

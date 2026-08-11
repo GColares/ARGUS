@@ -81,14 +81,28 @@ class Sala(models.Model):
     def __str__(self):
         return f"{self.andar} - {self.nome}"
 
-class AtivoPredial(models.Model):
-    sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True, blank=True, related_name='ativos')
-    nome = models.CharField(max_length=150)
-    descricao = models.TextField(blank=True, null=True)
-    patrimonio = models.CharField(max_length=50, blank=True, null=True)
+class TipoAtivo(models.Model):
+    nome = models.CharField(max_length=100, unique=True, verbose_name="Tipo de Ativo")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
 
     def __str__(self):
-        return f"{self.nome} ({self.sala})"
+        return self.nome
+        
+    class Meta:
+        verbose_name = "Tipo de Ativo"
+        verbose_name_plural = "Tipos de Ativos"
+        ordering = ['nome']
+
+class AtivoPredial(models.Model):
+    sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True, blank=True, related_name='ativos')
+    tipo = models.ForeignKey(TipoAtivo, on_delete=models.PROTECT, related_name='ativos', null=True, verbose_name="Tipo de Ativo")
+    nome_apelido = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome/Apelido")
+    numero_serie = models.CharField(max_length=100, blank=True, null=True, verbose_name="Número de Série")
+    patrimonio = models.CharField(max_length=50, blank=True, null=True, verbose_name="Número de Patrimônio")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+
+    def __str__(self):
+        return f"{self.nome_apelido or self.tipo} ({self.sala})"
 
 class CategoriaServico(models.Model):
     nome = models.CharField(max_length=100, unique=True)

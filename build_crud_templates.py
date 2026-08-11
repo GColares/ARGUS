@@ -21,7 +21,12 @@ for model_name, data in models.items():
 {{% block content %}}
 <div class=\"container-fluid px-4 py-4\">
     <div class=\"d-flex justify-content-between align-items-center mb-4\">
-        <h2><i class=\"fas fa-list text-primary me-2\"></i> Gestão de {plural}</h2>
+        <div>
+            <a href=\"{{% url 'central_servicos:home_central_servicos' %}}\" class=\"text-decoration-none text-muted small fw-bold mb-2 d-inline-block\">
+                <i class=\"fas fa-arrow-left me-1\"></i> Voltar ao Painel da Central
+            </a>
+            <h2 class=\"mb-0\"><i class=\"fas fa-list text-primary me-2\"></i> Gestão de {plural}</h2>
+        </div>
         <a href=\"{{% url 'central_servicos:{model_name}_novo' %}}\" class=\"btn btn-primary shadow-sm\">
             <i class=\"fas fa-plus me-1\"></i> Novo {title}
         </a>
@@ -69,16 +74,21 @@ for model_name, data in models.items():
 '''
 
     form_html = f'''{{% extends 'base.html' %}}
-{{% block title %}}{{{{% if object %}}}}Editar{{{{% else %}}}}Novo{{{{% endif %}}}} {title} - Central de Serviços{{% endblock %}}
+{{% block title %}}{{% if object %}}Editar{{% else %}}Novo{{% endif %}} {title} - Central de Serviços{{% endblock %}}
 {{% block content %}}
 <div class=\"container-fluid px-4 py-4\">
     <div class=\"row justify-content-center\">
         <div class=\"col-lg-8\">
+            <div class=\"mb-3\">
+                <a href=\"{{% url 'central_servicos:{model_name}_list' %}}\" class=\"text-decoration-none text-muted small fw-bold mb-2 d-inline-block\">
+                    <i class=\"fas fa-arrow-left me-1\"></i> Voltar para Lista de {plural}
+                </a>
+            </div>
             <div class=\"card shadow-sm border-0 rounded-4\">
                 <div class=\"card-header bg-white border-0 pt-4 pb-0\">
                     <h3 class=\"fw-bold text-primary mb-0\">
                         <i class=\"fas fa-edit me-2\"></i>
-                        {{{{% if object %}}}}Editar {title}{{{{% else %}}}}Novo {title}{{{{% endif %}}}}
+                        {{% if object %}}Editar {title}{{% else %}}Novo {title}{{% endif %}}
                     </h3>
                 </div>
                 <div class=\"card-body p-4\">
@@ -89,14 +99,14 @@ for model_name, data in models.items():
                             <div class=\"col-md-12\">
                                 <label class=\"form-label fw-semibold text-muted small\">{{{{ field.label }}}}</label>
                                 {{{{ field }}}}
-                                {{{{% if field.help_text %}}}}
+                                {{% if field.help_text %}}
                                 <div class=\"form-text\">{{{{ field.help_text }}}}</div>
-                                {{{{% endif %}}}}
-                                {{{{% if field.errors %}}}}
+                                {{% endif %}}
+                                {{% if field.errors %}}
                                 <div class=\"invalid-feedback d-block\">
                                     {{% for error in field.errors %}}{{{{ error }}}}{{% endfor %}}
                                 </div>
-                                {{{{% endif %}}}}
+                                {{% endif %}}
                             </div>
                             {{% endfor %}}
                         </div>
@@ -122,6 +132,11 @@ for model_name, data in models.items():
 <div class=\"container-fluid px-4 py-5\">
     <div class=\"row justify-content-center\">
         <div class=\"col-md-6\">
+            <div class=\"mb-3\">
+                <a href=\"{{% url 'central_servicos:{model_name}_list' %}}\" class=\"text-decoration-none text-muted small fw-bold mb-2 d-inline-block\">
+                    <i class=\"fas fa-arrow-left me-1\"></i> Voltar para Lista de {plural}
+                </a>
+            </div>
             <div class=\"card shadow border-0 rounded-4\">
                 <div class=\"card-body p-5 text-center\">
                     <div class=\"mb-4\">

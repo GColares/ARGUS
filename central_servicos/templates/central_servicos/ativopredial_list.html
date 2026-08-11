@@ -3,7 +3,12 @@
 {% block content %}
 <div class="container-fluid px-4 py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-list text-primary me-2"></i> Gestão de Ativos Prediais</h2>
+        <div>
+            <a href="{% url 'central_servicos:home_central_servicos' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar ao Painel da Central
+            </a>
+            <h2 class="mb-0"><i class="fas fa-list text-primary me-2"></i> Gestão de Ativos Prediais</h2>
+        </div>
         <a href="{% url 'central_servicos:ativopredial_novo' %}" class="btn btn-primary shadow-sm">
             <i class="fas fa-plus me-1"></i> Novo Ativo Predial
         </a>
@@ -15,7 +20,10 @@
                     <thead class="table-light">
                         <tr>
                             <th class="text-center px-4">ID</th>
-                            <th class="text-center">Nome</th>
+                            <th class="text-center">Tipo de Ativo</th>
+                            <th class="text-center">Apelido</th>
+                            <th class="text-center">Patrimônio</th>
+                            <th class="text-center">Sala</th>
                             <th class="text-center px-4">Ações</th>
                         </tr>
                     </thead>
@@ -23,7 +31,10 @@
                         {% for obj in ativos %}
                         <tr>
                             <td class="text-center text-muted">#{{ obj.id }}</td>
-                            <td class="text-center fw-semibold">{{ obj.nome }}</td>
+                            <td class="text-center fw-semibold">{{ obj.tipo.nome|default:"-" }}</td>
+                            <td class="text-center">{{ obj.nome_apelido|default:"-" }}</td>
+                            <td class="text-center">{{ obj.patrimonio|default:"-" }}</td>
+                            <td class="text-center">{{ obj.sala.nome }}</td>
                             <td class="text-center">
                                 <a href="{% url 'central_servicos:ativopredial_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
                                     <i class="fas fa-edit"></i>
@@ -35,7 +46,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-4">
+                            <td colspan="6" class="text-center text-muted py-4">
                                 <i class="fas fa-inbox fa-3x mb-3 text-light"></i>
                                 <p class="mb-0">Nenhum registro encontrado.</p>
                             </td>

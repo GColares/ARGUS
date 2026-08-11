@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Salas - Central de Serviços{% endblock %}
+{% block title %}Tipos de Ativos - Central de Serviços{% endblock %}
 {% block content %}
 <div class="container-fluid px-4 py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,10 +7,10 @@
             <a href="{% url 'central_servicos:home_central_servicos' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
                 <i class="fas fa-arrow-left me-1"></i> Voltar ao Painel da Central
             </a>
-            <h2 class="mb-0"><i class="fas fa-list text-primary me-2"></i> Gestão de Salas</h2>
+            <h2 class="mb-0"><i class="fas fa-list text-primary me-2"></i> Gestão de Tipos de Ativos</h2>
         </div>
-        <a href="{% url 'central_servicos:sala_novo' %}" class="btn btn-primary shadow-sm">
-            <i class="fas fa-plus me-1"></i> Novo Sala
+        <a href="{% url 'central_servicos:tipoativo_novo' %}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus me-1"></i> Novo Tipo de Ativo
         </a>
     </div>
     <div class="card shadow-sm border-0 rounded-3">
@@ -25,15 +25,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for obj in salas %}
+                        {% for obj in object_list %}
                         <tr>
                             <td class="text-center text-muted">#{{ obj.id }}</td>
                             <td class="text-center fw-semibold">{{ obj.nome }}</td>
                             <td class="text-center">
-                                <a href="{% url 'central_servicos:sala_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
+                                <a href="{% url 'central_servicos:tipoativo_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <a href="{% url 'central_servicos:sala_excluir' obj.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                <a href="{% url 'central_servicos:tipoativo_excluir' obj.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir">
                                     <i class="fas fa-trash-alt"></i>
                                 </a>
                             </td>

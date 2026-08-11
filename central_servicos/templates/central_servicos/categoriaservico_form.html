@@ -1,14 +1,19 @@
 {% extends 'base.html' %}
-{% block title %}{{% if object %}}Editar{{% else %}}Novo{{% endif %}} Categoria de Serviço - Central de Serviços{% endblock %}
+{% block title %}{% if object %}Editar{% else %}Novo{% endif %} Categoria de Serviço - Central de Serviços{% endblock %}
 {% block content %}
 <div class="container-fluid px-4 py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
+            <div class="mb-3">
+                <a href="{% url 'central_servicos:categoriaservico_list' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar para Lista de Categorias de Serviço
+                </a>
+            </div>
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-header bg-white border-0 pt-4 pb-0">
                     <h3 class="fw-bold text-primary mb-0">
                         <i class="fas fa-edit me-2"></i>
-                        {{% if object %}}Editar Categoria de Serviço{{% else %}}Novo Categoria de Serviço{{% endif %}}
+                        {% if object %}Editar Categoria de Serviço{% else %}Novo Categoria de Serviço{% endif %}
                     </h3>
                 </div>
                 <div class="card-body p-4">
@@ -19,14 +24,14 @@
                             <div class="col-md-12">
                                 <label class="form-label fw-semibold text-muted small">{{ field.label }}</label>
                                 {{ field }}
-                                {{% if field.help_text %}}
+                                {% if field.help_text %}
                                 <div class="form-text">{{ field.help_text }}</div>
-                                {{% endif %}}
-                                {{% if field.errors %}}
+                                {% endif %}
+                                {% if field.errors %}
                                 <div class="invalid-feedback d-block">
                                     {% for error in field.errors %}{{ error }}{% endfor %}
                                 </div>
-                                {{% endif %}}
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
