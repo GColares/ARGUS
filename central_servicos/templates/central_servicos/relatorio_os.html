@@ -53,7 +53,7 @@
                             <th scope="col" class="text-center">Número</th>
                             <th scope="col" class="text-center">Data Abertura</th>
                             <th scope="col" class="text-center">Categoria</th>
-                            <th scope="col" class="text-center">Local (Sala)</th>
+                            <th scope="col" class="text-center">Local (Ambiente)</th>
                             <th scope="col" class="text-center">Prioridade</th>
                             <th scope="col" class="text-center">Solicitante</th>
                             <th scope="col" class="text-center">Descrição</th>
@@ -67,7 +67,7 @@
                             <td>{{ os.categoria|default:"Geral" }}</td>
                             <td>
                                 {% if os.sala %}
-                                    {{ os.sala }}
+                                    {{ os.ambiente }}
                                     {% if os.ativo_predial %}<br><small class="text-muted">Ativo: {{ os.ativo_predial.nome }}</small>{% endif %}
                                 {% else %}
                                     <span class="text-muted">N/A</span>

@@ -71,8 +71,9 @@ class BemPatrimonial(models.Model):
     valor = models.DecimalField(max_digits=15, decimal_places=2)
     
     # === A PONTE DEFINITIVA PARA O NÚCLEO DO SISTEMA ===
-    projeto = models.ForeignKey('cadastros.ProjetoPDI', on_delete=models.SET_NULL, null=True)
-    termo_doacao = models.ForeignKey('incorporacao.TermoDoacao', on_delete=models.CASCADE, related_name='bens_patrimoniais')
+    projeto = models.ForeignKey('cadastros.ProjetoPDI', on_delete=models.SET_NULL, null=True, blank=True)
+    termo_doacao = models.ForeignKey('incorporacao.TermoDoacao', on_delete=models.CASCADE, related_name='bens_patrimoniais', null=True, blank=True)
+    ambiente = models.ForeignKey('central_servicos.Ambiente', on_delete=models.SET_NULL, null=True, blank=True, related_name='bens_patrimoniais', verbose_name="Ambiente (Localização)")
     # ===================================================
     
     nota_fiscal = models.CharField(max_length=100, null=True, blank=True)

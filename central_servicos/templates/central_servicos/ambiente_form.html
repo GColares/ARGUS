@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
-{% block title %}{% if object %}Editar{% else %}Novo{% endif %} Sala - Central de Serviços{% endblock %}
+{% block title %}{% if object %}Editar{% else %}Novo{% endif %} Ambiente - Central de Serviços{% endblock %}
 {% block content %}
 <div class="container-fluid px-4 py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="mb-3">
-                <a href="{% url 'central_servicos:sala_list' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
-                    <i class="fas fa-arrow-left me-1"></i> Voltar para Lista de Salas
+                <a href="{% url 'central_servicos:ambiente_list' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar para Lista de Ambientes
                 </a>
             </div>
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-header bg-white border-0 pt-4 pb-0">
                     <h3 class="fw-bold text-primary mb-0">
                         <i class="fas fa-edit me-2"></i>
-                        {% if object %}Editar Sala{% else %}Novo Sala{% endif %}
+                        {% if object %}Editar Ambiente{% else %}Novo Ambiente{% endif %}
                     </h3>
                 </div>
                 <div class="card-body p-4">
@@ -37,7 +37,7 @@
                         </div>
                         <hr class="my-4 text-muted">
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="{% url 'central_servicos:sala_list' %}" class="btn btn-light px-4">Cancelar</a>
+                            <a href="{% url 'central_servicos:ambiente_list' %}" class="btn btn-light px-4">Cancelar</a>
                             <button type="submit" class="btn btn-primary px-4 shadow-sm">
                                 <i class="fas fa-save me-1"></i> Salvar
                             </button>

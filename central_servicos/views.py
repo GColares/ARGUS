@@ -8,8 +8,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 # pyrefly: ignore [untyped-import]
 from django.urls import reverse_lazy
-from .models import OrdemServico, Predio, Andar, Sala, TipoAtivo, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
-from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, SalaForm, TipoAtivoForm, AtivoPredialForm, AtivoPredialLoteForm, CategoriaServicoForm, FinalidadeForm
+from .models import OrdemServico, Predio, Andar, Ambiente, TipoAmbiente, TipoElemento, ElementoConstrutivo, TipoAtivo, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
+from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, AmbienteForm, TipoAmbienteForm, ElementoConstrutivoForm, TipoAtivoForm, AtivoPredialForm, AtivoPredialLoteForm, CategoriaServicoForm, FinalidadeForm
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 
@@ -215,33 +215,33 @@ class AndarDeleteView(LoginRequiredMixin, DeleteView):
 # ==========================================
 # GESTÃO DE SALAS
 # ==========================================
-class SalaListView(LoginRequiredMixin, ListView):
-    model = Sala
-    template_name = 'central_servicos/sala_list.html'
+class AmbienteListView(LoginRequiredMixin, ListView):
+    model = Ambiente
+    template_name = 'central_servicos/ambiente_list.html'
     context_object_name = 'salas'
 
-class SalaCreateView(LoginRequiredMixin, CreateView):
-    model = Sala
-    form_class = SalaForm
-    template_name = 'central_servicos/sala_form.html'
-    success_url = reverse_lazy('central_servicos:sala_list')
+class AmbienteCreateView(LoginRequiredMixin, CreateView):
+    model = Ambiente
+    form_class = AmbienteForm
+    template_name = 'central_servicos/ambiente_form.html'
+    success_url = reverse_lazy('central_servicos:ambiente_list')
     def form_valid(self, form):
         messages.success(self.request, 'Sala cadastrada com sucesso.')
         return super().form_valid(form)
 
-class SalaUpdateView(LoginRequiredMixin, UpdateView):
-    model = Sala
-    form_class = SalaForm
-    template_name = 'central_servicos/sala_form.html'
-    success_url = reverse_lazy('central_servicos:sala_list')
+class AmbienteUpdateView(LoginRequiredMixin, UpdateView):
+    model = Ambiente
+    form_class = AmbienteForm
+    template_name = 'central_servicos/ambiente_form.html'
+    success_url = reverse_lazy('central_servicos:ambiente_list')
     def form_valid(self, form):
         messages.success(self.request, 'Sala atualizada com sucesso.')
         return super().form_valid(form)
 
-class SalaDeleteView(LoginRequiredMixin, DeleteView):
-    model = Sala
-    template_name = 'central_servicos/sala_confirm_delete.html'
-    success_url = reverse_lazy('central_servicos:sala_list')
+class AmbienteDeleteView(LoginRequiredMixin, DeleteView):
+    model = Ambiente
+    template_name = 'central_servicos/ambiente_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:ambiente_list')
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Sala excluída com sucesso.')
         return super().delete(request, *args, **kwargs)
@@ -404,3 +404,47 @@ class TipoAtivoDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Tipo de Ativo excluído com sucesso.')
         return super().delete(request, *args, **kwargs)
+
+class TipoAmbienteListView(LoginRequiredMixin, ListView):
+    model = TipoAmbiente
+    template_name = 'central_servicos/tipoambiente_list.html'
+    context_object_name = 'tiposambiente'
+
+class TipoAmbienteCreateView(LoginRequiredMixin, CreateView):
+    model = TipoAmbiente
+    form_class = TipoAmbienteForm
+    template_name = 'central_servicos/tipoambiente_form.html'
+    success_url = reverse_lazy('central_servicos:tipoambiente_list')
+
+class TipoAmbienteUpdateView(LoginRequiredMixin, UpdateView):
+    model = TipoAmbiente
+    form_class = TipoAmbienteForm
+    template_name = 'central_servicos/tipoambiente_form.html'
+    success_url = reverse_lazy('central_servicos:tipoambiente_list')
+
+class TipoAmbienteDeleteView(LoginRequiredMixin, DeleteView):
+    model = TipoAmbiente
+    template_name = 'central_servicos/tipoambiente_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:tipoambiente_list')
+
+class ElementoConstrutivoListView(LoginRequiredMixin, ListView):
+    model = ElementoConstrutivo
+    template_name = 'central_servicos/elementoconstrutivo_list.html'
+    context_object_name = 'elementosconstrutivos'
+
+class ElementoConstrutivoCreateView(LoginRequiredMixin, CreateView):
+    model = ElementoConstrutivo
+    form_class = ElementoConstrutivoForm
+    template_name = 'central_servicos/elementoconstrutivo_form.html'
+    success_url = reverse_lazy('central_servicos:elementoconstrutivo_list')
+
+class ElementoConstrutivoUpdateView(LoginRequiredMixin, UpdateView):
+    model = ElementoConstrutivo
+    form_class = ElementoConstrutivoForm
+    template_name = 'central_servicos/elementoconstrutivo_form.html'
+    success_url = reverse_lazy('central_servicos:elementoconstrutivo_list')
+
+class ElementoConstrutivoDeleteView(LoginRequiredMixin, DeleteView):
+    model = ElementoConstrutivo
+    template_name = 'central_servicos/elementoconstrutivo_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:elementoconstrutivo_list')

@@ -74,12 +74,65 @@ class Andar(models.Model):
     def __str__(self):
         return f"{self.predio.sigla or self.predio.nome} - {self.nome}"
 
-class Sala(models.Model):
-    andar = models.ForeignKey(Andar, on_delete=models.CASCADE, related_name='salas')
+class TipoAmbiente(models.Model):
+    nome = models.CharField(max_length=100, unique=True, verbose_name="Tipo de Ambiente")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    
+    def __str__(self):
+        return self.nome
+        
+    class Meta:
+        verbose_name = "Tipo de Ambiente"
+        verbose_name_plural = "Tipos de Ambiente"
+        ordering = ['nome']
+
+class Ambiente(models.Model):
+    LOCALIZACAO_CHOICES = [
+        ('INTERNO', 'Área Interna'),
+        ('EXTERNO', 'Área Externa'),
+    ]
+    predio = models.ForeignKey(Predio, on_delete=models.CASCADE, related_name='ambientes')
+    andar = models.ForeignKey(Andar, on_delete=models.SET_NULL, null=True, blank=True, related_name='ambientes', help_text="Deixe em branco para áreas externas")
     nome = models.CharField(max_length=100)
+    tipo = models.ForeignKey(TipoAmbiente, on_delete=models.PROTECT, related_name='ambientes')
+    localizacao = models.CharField(max_length=10, choices=LOCALIZACAO_CHOICES, default='INTERNO')
 
     def __str__(self):
-        return f"{self.andar} - {self.nome}"
+        if self.andar:
+            return f"{self.predio.sigla or self.predio.nome} - {self.andar.nome} - {self.nome}"
+        return f"{self.predio.sigla or self.predio.nome} - {self.nome} ({self.get_localizacao_display()})"
+
+class CategoriaElemento(models.Model):
+    nome = models.CharField(max_length=100, unique=True, help_text="Ex: Piso, Parede, Janela, Forro")
+    
+    def __str__(self):
+        return self.nome
+        
+    class Meta:
+        verbose_name = "Categoria de Elemento"
+        verbose_name_plural = "Categorias de Elementos"
+        ordering = ['nome']
+
+class TipoElemento(models.Model):
+    categoria = models.ForeignKey(CategoriaElemento, on_delete=models.CASCADE, related_name='tipos')
+    nome = models.CharField(max_length=100, help_text="Ex: Piso Frio, Piso Acarpetado, Parede Drywall")
+    
+    def __str__(self):
+        return f"{self.categoria.nome}: {self.nome}"
+        
+    class Meta:
+        verbose_name = "Tipo de Elemento"
+        verbose_name_plural = "Tipos de Elementos"
+        ordering = ['categoria__nome', 'nome']
+
+class ElementoConstrutivo(models.Model):
+    ambiente = models.ForeignKey(Ambiente, on_delete=models.CASCADE, related_name='elementos_construtivos')
+    tipo = models.ForeignKey(TipoElemento, on_delete=models.PROTECT)
+    area_m2 = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Área (m²)")
+    detalhes = models.TextField(blank=True, null=True, help_text="Especificações ou detalhes para cálculo da IN 05/2017")
+    
+    def __str__(self):
+        return f"{self.tipo.nome} - {self.area_m2}m² ({self.ambiente.nome})"
 
 class TipoAtivo(models.Model):
     nome = models.CharField(max_length=100, unique=True, verbose_name="Tipo de Ativo")
@@ -94,7 +147,7 @@ class TipoAtivo(models.Model):
         ordering = ['nome']
 
 class AtivoPredial(models.Model):
-    sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True, blank=True, related_name='ativos')
+    ambiente = models.ForeignKey(Ambiente, on_delete=models.SET_NULL, null=True, blank=True, related_name='ativos', verbose_name="Ambiente")
     tipo = models.ForeignKey(TipoAtivo, on_delete=models.PROTECT, related_name='ativos', null=True, verbose_name="Tipo de Ativo")
     nome_apelido = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome/Apelido")
     numero_serie = models.CharField(max_length=100, blank=True, null=True, verbose_name="Número de Série")
@@ -102,7 +155,7 @@ class AtivoPredial(models.Model):
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
 
     def __str__(self):
-        return f"{self.nome_apelido or self.tipo} ({self.sala})"
+        return f"{self.nome_apelido or self.tipo} ({self.ambiente})"
 
 class CategoriaServico(models.Model):
     nome = models.CharField(max_length=100, unique=True)
@@ -141,7 +194,7 @@ class OrdemServico(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE')
     prioridade = models.CharField(max_length=20, choices=PRIORIDADE_CHOICES, default='MEDIA')
     
-    sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True, blank=True, related_name='ordens_servico')
+    ambiente = models.ForeignKey(Ambiente, on_delete=models.SET_NULL, null=True, blank=True, related_name='ordens_servico', verbose_name="Ambiente")
     ativo_predial = models.ForeignKey(AtivoPredial, on_delete=models.SET_NULL, null=True, blank=True, related_name='ordens_servico')
     
     descricao_problema = models.TextField()

@@ -15,7 +15,7 @@ Ele não é um sistema acadêmico focado apenas no ensino, mas sim uma ferrament
 ## 2. Público-Alvo e Perfis de Usuário
 O ARGUS é operado por pessoas inseridas em processos específicos da instituição, abrangendo:
 - **Servidores Públicos e Administrativos:** Operam as aprovações, gestão de contratos e orçamentos.
-- **Gestores de Manutenção e Infraestrutura:** Usam a Central de Serviços para monitorar Prédios, Salas e Ativos Prediais.
+- **Gestores de Manutenção e Infraestrutura:** Usam a Central de Serviços para monitorar Prédios, Ambientes, Elementos Construtivos (conforme IN 05/2017) e Ativos Prediais.
 - **Coordenadores de Projetos:** Gerenciam cronogramas, planos de ação e distribuição de cotas para bolsistas.
 - **Técnicos e Operadores:** Equipes de ponta (ex: Almoxarifado, Equipes de Manutenção técnica) que executam o trabalho de chão de fábrica (separação de itens, consertos físicos).
 *(Nota para a IA: O design das telas deve sempre considerar que o usuário pode variar desde um gestor analisando relatórios executivos até um técnico utilizando o sistema para dar baixa rápida em um estoque).*
@@ -23,11 +23,12 @@ O ARGUS é operado por pessoas inseridas em processos específicos da instituiç
 ## 3. Integração e Ecossistema dos Módulos
 A arquitetura de negócios do ARGUS baseia-se em um **ecossistema interdependente**. Os módulos não devem ser tratados como ilhas isoladas. A IA deve sempre buscar aproveitar as integrações entre eles:
 - **Módulo `cadastros`:** É a espinha dorsal. Fornece Pessoas (Servidores/Bolsistas), Fornecedores, Contas Bancárias e Parâmetros Base.
-- **Módulo `patrimonio` e `incorporacao`:** Gerenciam os bens físicos, suas notas fiscais e tombamentos.
+- **Módulo `patrimonio` e `incorporacao`:** Gerenciam os bens físicos, suas notas fiscais e tombamentos. A partir de agora, um `BemPatrimonial` também é vinculado espacialmente a um `Ambiente` da Central de Serviços.
 - **Módulo `almoxarifado`:** Controla os insumos consumíveis.
-- **Módulo `central_servicos`:** Consome bens do `patrimonio` (como Ativos Prediais que precisam de manutenção) e consome itens do `almoxarifado` (ex: lâmpadas e parafusos que sofrem baixa após uma Ordem de Serviço concluída).
+- **Módulo `central_servicos`:** É o núcleo CAFM (Computer-Aided Facility Management). Consome bens do `patrimonio` (como Ativos Prediais alocados em Ambientes) e consome itens do `almoxarifado` (ex: lâmpadas e parafusos que sofrem baixa após uma Ordem de Serviço concluída).
+  - *Arquitetura de Espaços e Elementos:* Baseada na IN 05/2017 SEGES/MPOG, utiliza o modelo central `Ambiente` (interno/externo) que agrupa N `Elementos Construtivos` com metragens exatas (pisos, paredes, vidraças) para cálculo preciso de mão de obra de limpeza. O modelo antigo `Sala` foi substituído.
   - *Arquitetura de Ativos:* Utiliza o modelo normalizado (TipoAtivo + Instância Física) para permitir relatórios analíticos, separando o "O que é" do "Onde/Qual é".
-  - *UX/UI Padrão:* Para seleções em massa de ambientes, utiliza componentes customizados de seleção hierárquica em árvore (Prédio -> Andar -> Sala) ao invés de listas ou Select2 genéricos.
+  - *UX/UI Padrão:* Para seleções em massa de ambientes, utiliza componentes customizados de seleção hierárquica em árvore (Prédio -> Andar -> Ambiente) ao invés de listas ou Select2 genéricos.
 - **Módulo `gestao_projetos`:** Consome os `cadastros` para formar equipes e gerenciar orçamentos/planos de trabalho.
 
 ## 4. Como a IA deve se comportar perante esta regra

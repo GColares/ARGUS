@@ -1,6 +1,6 @@
 # pyrefly: ignore [untyped-import]
 from django.contrib import admin
-from .models import Predio, Andar, Sala, TipoAtivo, AtivoPredial, OrdemServico, MaterialUtilizado, CategoriaServico
+from .models import Predio, Andar, Ambiente, TipoAmbiente, CategoriaElemento, TipoElemento, ElementoConstrutivo, TipoAtivo, AtivoPredial, OrdemServico, MaterialUtilizado, CategoriaServico
 
 class MaterialUtilizadoInline(admin.TabularInline):
     model = MaterialUtilizado
@@ -17,11 +17,29 @@ class AndarAdmin(admin.ModelAdmin):
     list_display = ('nome', 'predio')
     list_filter = ('predio',)
 
-@admin.register(Sala)
-class SalaAdmin(admin.ModelAdmin):
-    # pyrefly: ignore [bad-override-mutable-attribute]
-    list_display = ('nome', 'andar')
-    list_filter = ('andar__predio', 'andar')
+class ElementoConstrutivoInline(admin.TabularInline):
+    model = ElementoConstrutivo
+    extra = 1
+
+@admin.register(TipoAmbiente)
+class TipoAmbienteAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+
+@admin.register(CategoriaElemento)
+class CategoriaElementoAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+
+@admin.register(TipoElemento)
+class TipoElementoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'categoria')
+    list_filter = ('categoria',)
+
+@admin.register(Ambiente)
+class AmbienteAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'tipo', 'localizacao', 'predio', 'andar')
+    list_filter = ('localizacao', 'predio', 'tipo')
+    inlines = [ElementoConstrutivoInline]
+
 
 @admin.register(TipoAtivo)
 class TipoAtivoAdmin(admin.ModelAdmin):
@@ -32,8 +50,8 @@ class TipoAtivoAdmin(admin.ModelAdmin):
 @admin.register(AtivoPredial)
 class AtivoPredialAdmin(admin.ModelAdmin):
     # pyrefly: ignore [bad-override-mutable-attribute]
-    list_display = ('tipo', 'nome_apelido', 'patrimonio', 'numero_serie', 'sala')
-    list_filter = ('sala__andar__predio', 'tipo')
+    list_display = ('tipo', 'nome_apelido', 'patrimonio', 'numero_serie', 'ambiente')
+    list_filter = ('ambiente__predio', 'tipo')
     search_fields = ('nome_apelido', 'patrimonio', 'numero_serie')
 
 @admin.register(CategoriaServico)
@@ -45,7 +63,7 @@ class CategoriaServicoAdmin(admin.ModelAdmin):
 @admin.register(OrdemServico)
 class OrdemServicoAdmin(admin.ModelAdmin):
     # pyrefly: ignore [bad-override-mutable-attribute]
-    list_display = ('numero', 'categoria', 'solicitante', 'status', 'prioridade', 'ativo_predial', 'sala', 'data_abertura')
+    list_display = ('numero', 'categoria', 'solicitante', 'status', 'prioridade', 'ativo_predial', 'ambiente', 'data_abertura')
     list_filter = ('status', 'categoria', 'prioridade', 'data_abertura')
     search_fields = ('numero', 'descricao_problema')
     # pyrefly: ignore [bad-override-mutable-attribute]

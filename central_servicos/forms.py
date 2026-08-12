@@ -1,10 +1,10 @@
 # pyrefly: ignore [untyped-import]
 from django import forms
-from .models import OrdemServico, Predio, Sala
+from .models import OrdemServico, Predio, Ambiente
 
 class OrdemServicoForm(forms.ModelForm):
-    salas = forms.ModelMultipleChoiceField(
-        queryset=Sala.objects.all(),
+    ambientes = forms.ModelMultipleChoiceField(
+        queryset=Ambiente.objects.all(),
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'd-none real-checkboxes'}),
         label="Salas / Ambientes",
         help_text="Selecione os ambientes onde a manutenção será realizada."
@@ -12,7 +12,7 @@ class OrdemServicoForm(forms.ModelForm):
 
     class Meta:
         model = OrdemServico
-        fields = ['categoria', 'salas', 'ativo_predial', 'descricao_problema']
+        fields = ['categoria', 'ambientes', 'ativo_predial', 'descricao_problema']
         widgets = {
             'categoria': forms.Select(attrs={'class': 'form-select'}),
             'ativo_predial': forms.Select(attrs={'class': 'form-select'}),
@@ -75,7 +75,7 @@ class PredioForm(forms.ModelForm):
             'brigada_incendio_ativa': forms.RadioSelect(choices=BOOL_CHOICES, attrs={'class': 'form-check-input'}),
         }
 
-from .models import Andar, Sala, TipoAtivo, AtivoPredial, CategoriaServico, Finalidade
+from .models import Andar, Ambiente, TipoAmbiente, CategoriaElemento, TipoElemento, ElementoConstrutivo, TipoAtivo, AtivoPredial, CategoriaServico, Finalidade
 
 class AndarForm(forms.ModelForm):
     class Meta:
@@ -86,13 +86,16 @@ class AndarForm(forms.ModelForm):
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Andar'}),
         }
 
-class SalaForm(forms.ModelForm):
+class AmbienteForm(forms.ModelForm):
     class Meta:
-        model = Sala
+        model = Ambiente
         fields = '__all__'
         widgets = {
+            'predio': forms.Select(attrs={'class': 'form-select'}),
             'andar': forms.Select(attrs={'class': 'form-select'}),
-            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da Sala'}),
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'localizacao': forms.Select(attrs={'class': 'form-select'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Ambiente'}),
         }
 
 class AtivoPredialForm(forms.ModelForm):
@@ -101,7 +104,7 @@ class AtivoPredialForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'tipo': forms.Select(attrs={'class': 'form-select'}),
-            'sala': forms.Select(attrs={'class': 'form-select'}),
+            'ambiente': forms.Select(attrs={'class': 'form-select'}),
             'nome_apelido': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome/Apelido do Ativo'}),
             'numero_serie': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Número de Série'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -109,8 +112,8 @@ class AtivoPredialForm(forms.ModelForm):
         }
 
 class AtivoPredialLoteForm(forms.ModelForm):
-    salas = forms.ModelMultipleChoiceField(
-        queryset=Sala.objects.all(),
+    ambientes = forms.ModelMultipleChoiceField(
+        queryset=Ambiente.objects.all(),
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'd-none real-checkboxes'}),
         label="Salas / Ambientes",
         help_text="Selecione um ou mais ambientes onde este ativo será criado."
@@ -118,7 +121,7 @@ class AtivoPredialLoteForm(forms.ModelForm):
 
     class Meta:
         model = AtivoPredial
-        fields = ['salas', 'tipo', 'nome_apelido', 'descricao']
+        fields = ['ambientes', 'tipo', 'nome_apelido', 'descricao']
         widgets = {
             'tipo': forms.Select(attrs={'class': 'form-select'}),
             'nome_apelido': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ar da Janela (Opcional)'}),
@@ -149,4 +152,42 @@ class TipoAtivoForm(forms.ModelForm):
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Ar Condicionado, Porta, Extintor'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+
+class TipoAmbienteForm(forms.ModelForm):
+    class Meta:
+        model = TipoAmbiente
+        fields = '__all__'
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+class CategoriaElementoForm(forms.ModelForm):
+    class Meta:
+        model = CategoriaElemento
+        fields = '__all__'
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class TipoElementoForm(forms.ModelForm):
+    class Meta:
+        model = TipoElemento
+        fields = '__all__'
+        widgets = {
+            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class ElementoConstrutivoForm(forms.ModelForm):
+    class Meta:
+        model = ElementoConstrutivo
+        fields = '__all__'
+        widgets = {
+            'ambiente': forms.Select(attrs={'class': 'form-select'}),
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'area_m2': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'detalhes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }

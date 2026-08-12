@@ -23,11 +23,24 @@ urlpatterns = [
     path('andares/<int:pk>/editar/', views.AndarUpdateView.as_view(), name='andar_editar'),
     path('andares/<int:pk>/excluir/', views.AndarDeleteView.as_view(), name='andar_excluir'),
 
-    # Gestão de Salas
-    path('salas/', views.SalaListView.as_view(), name='sala_list'),
-    path('salas/novo/', views.SalaCreateView.as_view(), name='sala_novo'),
-    path('salas/<int:pk>/editar/', views.SalaUpdateView.as_view(), name='sala_editar'),
-    path('salas/<int:pk>/excluir/', views.SalaDeleteView.as_view(), name='sala_excluir'),
+    # Gestão de Ambientes
+    path('ambientes/', views.AmbienteListView.as_view(), name='ambiente_list'),
+    path('ambientes/novo/', views.AmbienteCreateView.as_view(), name='ambiente_novo'),
+    path('ambientes/<int:pk>/editar/', views.AmbienteUpdateView.as_view(), name='ambiente_editar'),
+    path('ambientes/<int:pk>/excluir/', views.AmbienteDeleteView.as_view(), name='ambiente_excluir'),
+
+
+    # Gestão de Tipos de Ambiente
+    path('tipos-ambiente/', views.TipoAmbienteListView.as_view(), name='tipoambiente_list'),
+    path('tipos-ambiente/novo/', views.TipoAmbienteCreateView.as_view(), name='tipoambiente_novo'),
+    path('tipos-ambiente/<int:pk>/editar/', views.TipoAmbienteUpdateView.as_view(), name='tipoambiente_editar'),
+    path('tipos-ambiente/<int:pk>/excluir/', views.TipoAmbienteDeleteView.as_view(), name='tipoambiente_excluir'),
+
+    # Gestão de Elementos Construtivos
+    path('elementos-construtivos/', views.ElementoConstrutivoListView.as_view(), name='elementoconstrutivo_list'),
+    path('elementos-construtivos/novo/', views.ElementoConstrutivoCreateView.as_view(), name='elementoconstrutivo_novo'),
+    path('elementos-construtivos/<int:pk>/editar/', views.ElementoConstrutivoUpdateView.as_view(), name='elementoconstrutivo_editar'),
+    path('elementos-construtivos/<int:pk>/excluir/', views.ElementoConstrutivoDeleteView.as_view(), name='elementoconstrutivo_excluir'),
 
     # Gestão de Ativos Prediais
     path('ativos/', views.AtivoPredialListView.as_view(), name='ativopredial_list'),
