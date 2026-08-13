@@ -287,6 +287,95 @@ class AtivoPredialListView(LoginRequiredMixin, ListView):
     template_name = 'central_servicos/ativopredial_list.html'
     context_object_name = 'ativos'
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        
+        busca = self.request.GET.get('q', '').strip()
+        filtro_tipo = self.request.GET.get('tipo', '')
+        filtro_predio = self.request.GET.get('predio', '')
+        filtro_ambiente = self.request.GET.get('ambiente', '')
+        sort_param = self.request.GET.get('sort', '')
+
+        from django.db.models import Q
+        
+        if busca:
+            qs = qs.filter(
+                Q(nome_apelido__icontains=busca) |
+                Q(patrimonio__icontains=busca) |
+                Q(tipo__nome__icontains=busca) |
+                Q(ambiente__nome__icontains=busca)
+            ).distinct()
+            
+        if filtro_tipo:
+            qs = qs.filter(tipo_id=filtro_tipo)
+        if filtro_ambiente:
+            qs = qs.filter(ambiente_id=filtro_ambiente)
+        elif filtro_predio:
+            qs = qs.filter(ambiente__andar__predio_id=filtro_predio)
+            
+        if sort_param:
+            qs = qs.order_by(sort_param)
+            
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Injeta a estrutura hierárquica completa para a interface em árvore
+        context['predios_hierarquia'] = Predio.objects.prefetch_related('andares__ambientes').all()
+        
+        context['tipos_ativos'] = TipoAtivo.objects.all()
+        context['predios'] = Predio.objects.all()
+        context['ambientes_list'] = Ambiente.objects.all()
+        
+        context['busca'] = self.request.GET.get('q', '').strip()
+        context['filtro_tipo'] = self.request.GET.get('tipo', '')
+        context['filtro_predio'] = self.request.GET.get('predio', '')
+        context['filtro_ambiente'] = self.request.GET.get('ambiente', '')
+        context['current_sort'] = self.request.GET.get('sort', '')
+        
+        context['filtros_ativos'] = bool(context['filtro_tipo'] or context['filtro_predio'] or context['filtro_ambiente'])
+        
+        return context
+
+from django.views.generic import TemplateView
+from django.views import View
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.urls import reverse
+
+class AmbienteAtivosOffcanvasView(LoginRequiredMixin, TemplateView):
+    template_name = 'central_servicos/_ambiente_ativos_offcanvas.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        ambiente_id = self.kwargs.get('ambiente_id')
+        ambiente = get_object_or_404(Ambiente, pk=ambiente_id)
+        context['ambiente'] = ambiente
+        context['ativos'] = AtivoPredial.objects.filter(ambiente=ambiente).select_related('tipo')
+        context['tipos_ativos'] = TipoAtivo.objects.all()
+        return context
+
+class AtivoPredialRapidoCreateView(LoginRequiredMixin, View):
+    def post(self, request, ambiente_id):
+        ambiente = get_object_or_404(Ambiente, pk=ambiente_id)
+        tipo_id = request.POST.get('tipo')
+        nome_apelido = request.POST.get('nome_apelido')
+        patrimonio = request.POST.get('patrimonio')
+        
+        if tipo_id:
+            tipo = get_object_or_404(TipoAtivo, pk=tipo_id)
+            AtivoPredial.objects.create(
+                ambiente=ambiente,
+                tipo=tipo,
+                nome_apelido=nome_apelido,
+                patrimonio=patrimonio
+            )
+            messages.success(request, 'Ativo adicionado com sucesso!')
+        else:
+            messages.error(request, 'Erro: Tipo de ativo não informado.')
+            
+        return redirect('central_servicos:ativopredial_list')
+
 class AtivoPredialCreateView(LoginRequiredMixin, CreateView):
     model = AtivoPredial
     form_class = AtivoPredialLoteForm
@@ -305,18 +394,25 @@ class AtivoPredialCreateView(LoginRequiredMixin, CreateView):
         nome_apelido = form.cleaned_data.get('nome_apelido')
         descricao = form.cleaned_data.get('descricao')
         
-        # Cria um ativo para cada sala selecionada
+        # Cria os ativos considerando a quantidade por sala
         ativos_criados = 0
         for ambiente in ambientes:
-            AtivoPredial.objects.create(
-                ambiente=ambiente,
-                tipo=tipo,
-                nome_apelido=nome_apelido,
-                descricao=descricao,
-                patrimonio='', # Em branco no lote
-                numero_serie='' # Em branco no lote
-            )
-            ativos_criados += 1
+            qtd_str = self.request.POST.get(f'quantidade_ambiente_{ambiente.id}')
+            try:
+                qtd = int(qtd_str) if qtd_str else 1
+            except ValueError:
+                qtd = 1
+                
+            for _ in range(qtd):
+                AtivoPredial.objects.create(
+                    ambiente=ambiente,
+                    tipo=tipo,
+                    nome_apelido=nome_apelido,
+                    descricao=descricao,
+                    patrimonio='', # Em branco no lote
+                    numero_serie='' # Em branco no lote
+                )
+                ativos_criados += 1
             
         messages.success(self.request, f'{ativos_criados} Ativo(s) Predial(is) cadastrado(s) com sucesso.')
         # Redireciona manualmente pois não estamos usando form.save() padrão

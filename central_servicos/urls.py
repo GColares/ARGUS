@@ -48,6 +48,8 @@ urlpatterns = [
     # Gestão de Ativos Prediais
     path('ativos/', views.AtivoPredialListView.as_view(), name='ativopredial_list'),
     path('ativos/novo/', views.AtivoPredialCreateView.as_view(), name='ativopredial_novo'),
+    path('ativos/ambiente/<int:ambiente_id>/', views.AmbienteAtivosOffcanvasView.as_view(), name='ambiente_ativos_offcanvas'),
+    path('ativos/ambiente/<int:ambiente_id>/rapido/', views.AtivoPredialRapidoCreateView.as_view(), name='ativopredial_rapido_novo'),
     path('ativos/<int:pk>/editar/', views.AtivoPredialUpdateView.as_view(), name='ativopredial_editar'),
     path('ativos/<int:pk>/excluir/', views.AtivoPredialDeleteView.as_view(), name='ativopredial_excluir'),
 

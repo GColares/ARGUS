@@ -1,0 +1,67 @@
+<div class="offcanvas-header bg-primary text-white">
+    <h5 class="offcanvas-title fw-bold" id="offcanvasAtivosLabel">
+        <i class="fas fa-door-open me-2"></i>{{ ambiente.nome }}
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+</div>
+<div class="offcanvas-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0 text-muted text-uppercase small">Ativos Cadastrados</h6>
+        <span class="badge bg-primary rounded-pill">{{ ativos.count }}</span>
+    </div>
+
+    <!-- Lista de Ativos -->
+    <div class="list-group mb-4 shadow-sm">
+        {% for ativo in ativos %}
+            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0 fw-bold">{{ ativo.tipo.nome }}</h6>
+                    <small class="text-muted d-block">
+                        {% if ativo.nome_apelido %}{{ ativo.nome_apelido }} | {% endif %}
+                        Patrimônio: {{ ativo.patrimonio|default:"Não informado" }}
+                    </small>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'central_servicos:ativopredial_editar' ativo.pk %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+            <div class="list-group-item text-center py-4 text-muted">
+                <i class="fas fa-box-open fa-2x mb-2 text-light"></i>
+                <p class="mb-0 small">Nenhum ativo neste ambiente.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Formulário Rápido de Adição -->
+    <div class="card shadow-sm border-0 bg-light">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3"><i class="fas fa-plus-circle me-1"></i>Adição Rápida</h6>
+            <form id="formAdicaoRapidaAtivo" method="post" action="{% url 'central_servicos:ativopredial_rapido_novo' ambiente.pk %}">
+                {% csrf_token %}
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold text-muted">Tipo de Ativo</label>
+                    <select name="tipo" class="form-select form-select-sm" required>
+                        <option value="">Selecione...</option>
+                        {% for tipo in tipos_ativos %}
+                            <option value="{{ tipo.id }}">{{ tipo.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold text-muted">Nome/Apelido (Opcional)</label>
+                    <input type="text" name="nome_apelido" class="form-control form-control-sm" placeholder="Ex: Ar da janela">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-muted">Patrimônio (Opcional)</label>
+                    <input type="text" name="patrimonio" class="form-control form-control-sm" placeholder="Nº de Patrimônio">
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold">Salvar Ativo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

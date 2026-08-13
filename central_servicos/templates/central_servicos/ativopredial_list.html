@@ -1,61 +1,401 @@
 {% extends 'base.html' %}
 {% block title %}Ativos Prediais - Central de Serviços{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos para a Árvore de Seleção */
+    .tree-container {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        background: #f8f9fa;
+        padding: 1.5rem;
+    }
+    .predio-header {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        border: 1px solid #e9ecef;
+        transition: all 0.2s;
+    }
+    .predio-header:hover {
+        border-color: var(--bs-primary);
+        transform: translateY(-1px);
+    }
+    .andar-container {
+        margin-left: 2rem;
+        margin-bottom: 1.5rem;
+        border-left: 2px solid #dee2e6;
+        padding-left: 1.5rem;
+    }
+    .andar-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-top: 0.5rem;
+    }
+    .sala-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .sala-item {
+        background: white;
+        border: 1px solid #dee2e6;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        text-decoration: none;
+        color: inherit;
+    }
+    .sala-item:hover {
+        background: var(--bs-primary);
+        color: white;
+        border-color: var(--bs-primary);
+    }
+    .sala-item:hover i {
+        color: white !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid px-4 py-4">
+<div class="container-fluid px-4 mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'central_servicos:home_central_servicos' %}" class="text-decoration-none text-primary">Central de Serviços</a></li>
+            <li class="breadcrumb-item active">Gestão de Ativos Prediais</li>
+        </ol>
+    </nav>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <a href="{% url 'central_servicos:home_central_servicos' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
                 <i class="fas fa-arrow-left me-1"></i> Voltar ao Painel da Central
             </a>
-            <h2 class="mb-0"><i class="fas fa-list text-primary me-2"></i> Gestão de Ativos Prediais</h2>
+            <div class="d-flex align-items-center gap-3">
+                <h2 class="fw-bold m-0 text-dark">
+                    <i class="fas fa-list text-primary me-2"></i>Gestão de Ativos Prediais
+                </h2>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill shadow-sm py-2 px-3" style="font-size: 0.85rem;">
+                    {{ ativos|length }} ativos listados
+                </span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">Navegue pela árvore de ambientes, cadastre novos ativos em lote ou pesquise na lista geral</p>
         </div>
-        <a href="{% url 'central_servicos:ativopredial_novo' %}" class="btn btn-primary shadow-sm">
-            <i class="fas fa-plus me-1"></i> Novo Ativo Predial
-        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary shadow-sm" data-bs-toggle="modal" data-bs-target="#cadastrosModal" title="Menu de Cadastros Base">
+                <i class="fas fa-database me-1"></i> Cadastros Base
+            </button>
+            <a href="{% url 'central_servicos:ativopredial_novo' %}" class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus-circle me-1"></i> Inserção em Lote
+            </a>
+        </div>
     </div>
-    <div class="card shadow-sm border-0 rounded-3">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="text-center px-4">ID</th>
-                            <th class="text-center">Tipo de Ativo</th>
-                            <th class="text-center">Apelido</th>
-                            <th class="text-center">Patrimônio</th>
-                            <th class="text-center">Sala</th>
-                            <th class="text-center px-4">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for obj in ativos %}
-                        <tr>
-                            <td class="text-center text-muted">#{{ obj.id }}</td>
-                            <td class="text-center fw-semibold">{{ obj.tipo.nome|default:"-" }}</td>
-                            <td class="text-center">{{ obj.nome_apelido|default:"-" }}</td>
-                            <td class="text-center">{{ obj.patrimonio|default:"-" }}</td>
-                            <td class="text-center">{{ obj.sala.nome }}</td>
-                            <td class="text-center">
-                                <a href="{% url 'central_servicos:ativopredial_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'central_servicos:ativopredial_excluir' obj.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
-                            </td>
-                        </tr>
+
+    <!-- Navegação em Abas -->
+    <ul class="nav nav-tabs mb-4 border-0" id="ativosTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold border-0 bg-transparent text-muted" id="arvore-tab" data-bs-toggle="tab" data-bs-target="#arvore" type="button" role="tab" aria-controls="arvore" aria-selected="true" style="border-bottom: 3px solid transparent !important;">
+                <i class="fas fa-sitemap me-2"></i> Estrutura Física
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold border-0 bg-transparent text-muted" id="lista-tab" data-bs-toggle="tab" data-bs-target="#lista" type="button" role="tab" aria-controls="lista" aria-selected="false" style="border-bottom: 3px solid transparent !important;">
+                <i class="fas fa-table me-2"></i> Todos os Ativos (Lista)
+            </button>
+        </li>
+    </ul>
+
+    <!-- Conteúdo das Abas -->
+    <div class="tab-content" id="ativosTabsContent">
+        
+        <!-- Aba 1: Estrutura Física (Árvore) -->
+        <div class="tab-pane fade show active" id="arvore" role="tabpanel" aria-labelledby="arvore-tab">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-dark mb-0">Navegue pela Estrutura</h5>
+                    <p class="text-muted small">Clique em um ambiente para gerenciar os ativos instalados nele.</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="tree-container shadow-sm">
+                        {% for predio in predios_hierarquia %}
+                            <div class="predio-group mb-2">
+                                <div class="predio-header" data-bs-toggle="collapse" data-bs-target="#predio-{{ predio.id }}">
+                                    <div>
+                                        <i class="fas fa-building text-primary me-2"></i>
+                                        <span class="fw-bold fs-5">{{ predio.nome }}</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-muted"></i>
+                                </div>
+                                
+                                <div class="collapse show" id="predio-{{ predio.id }}">
+                                    <div class="andar-container mt-3">
+                                        {% for andar in predio.andares.all %}
+                                            <div class="andar-group mb-4">
+                                                <div class="andar-header">
+                                                    <span class="fw-bold text-secondary"><i class="fas fa-layer-group me-2"></i> {{ andar.nome }}</span>
+                                                </div>
+                                                <div class="sala-grid">
+                                                    {% for ambiente in andar.ambientes.all %}
+                                                        <!-- Botão que abre o Offcanvas via JS -->
+                                                        <a href="javascript:void(0)" class="sala-item btn-abrir-offcanvas" data-ambiente-id="{{ ambiente.id }}">
+                                                            <i class="fas fa-door-closed text-muted"></i>
+                                                            <span class="fw-semibold text-truncate">{{ ambiente.nome }}</span>
+                                                        </a>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% empty %}
+                                            <p class="text-muted small fst-italic">Nenhum andar/ambiente cadastrado neste prédio.</p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
                         {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="fas fa-inbox fa-3x mb-3 text-light"></i>
-                                <p class="mb-0">Nenhum registro encontrado.</p>
-                            </td>
-                        </tr>
+                            <div class="alert alert-warning">Nenhum prédio cadastrado. Cadastre os ambientes primeiro.</div>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba 2: Lista Geral -->
+        <div class="tab-pane fade" id="lista" role="tabpanel" aria-labelledby="lista-tab">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Lista Geral de Ativos</h5>
+                        {% if busca %}
+                        <small class="text-muted">Exibindo resultados para: <strong class="text-primary">{{ busca }}</strong></small>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="GET" action="{% url 'central_servicos:ativopredial_list' %}" class="w-100" style="max-width: 700px;">
+                        <input type="hidden" name="sort" value="{{ current_sort }}">
+                        
+                        <div class="input-group shadow-sm border border-primary border-opacity-25 rounded-3 overflow-hidden bg-white">
+                            <span class="input-group-text bg-white border-0 text-muted ps-3">
+                                <i class="fas fa-search small"></i>
+                            </span>
+                            
+                            <input type="text" name="q" class="form-control border-0 bg-white ps-2 py-2" style="box-shadow: none;" placeholder="Pesquisar por patrimônio, apelido..." value="{{ busca }}">
+                            
+                            <button type="button" class="btn btn-light border-0 text-secondary px-3 d-flex align-items-center gap-1 position-relative" data-bs-toggle="collapse" data-bs-target="#gavetaFiltrosAvancados" title="Filtros Avançados">
+                                <i class="fas fa-sliders-h"></i>
+                                <span class="d-none d-sm-inline small fw-bold">Filtros</span>
+                                {% if filtros_ativos %}
+                                    <span class="position-absolute top-25 start-100 translate-middle p-1 bg-primary border border-light rounded-circle" style="margin-left: -10px;">
+                                        <span class="visually-hidden">Filtros ativos</span>
+                                    </span>
+                                {% endif %}
+                            </button>
+
+                            {% if busca or filtros_ativos %}
+                            <a href="{% url 'central_servicos:ativopredial_list' %}?sort={{ current_sort }}" class="btn btn-white border-0 text-muted bg-white d-flex align-items-center justify-content-center px-2" title="Limpar todos os filtros">
+                                <i class="fas fa-times-circle text-danger"></i>
+                            </a>
+                            {% endif %}
+                            
+                            <button type="submit" class="btn btn-primary fw-bold px-4 border-0">Buscar</button>
+                        </div>
+
+                        <div class="collapse {% if filtros_ativos %}show{% endif %} mt-3 p-3 bg-white border border-secondary border-opacity-25 rounded-3 text-start shadow-sm" id="gavetaFiltrosAvancados">
+                            <h6 class="text-secondary small fw-bold text-uppercase mb-3"><i class="fas fa-filter text-primary me-2"></i>Filtrar por Atributos</h6>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label text-xs text-uppercase fw-bold text-muted mb-1">Tipo de Ativo</label>
+                                    <select class="form-select form-select-sm" name="tipo">
+                                        <option value="">Todos os Tipos...</option>
+                                        {% for t in tipos_ativos %}
+                                            <option value="{{ t.id }}" {% if filtro_tipo == t.id|stringformat:"i" %}selected{% endif %}>{{ t.nome }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label text-xs text-uppercase fw-bold text-muted mb-1">Prédio</label>
+                                    <select class="form-select form-select-sm" name="predio">
+                                        <option value="">Todos os Prédios...</option>
+                                        {% for p in predios %}
+                                            <option value="{{ p.id }}" {% if filtro_predio == p.id|stringformat:"i" %}selected{% endif %}>{{ p.nome }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label class="form-label text-xs text-uppercase fw-bold text-muted mb-1">Ambiente Específico</label>
+                                    <select class="form-select form-select-sm" name="ambiente">
+                                        <option value="">Todos os Ambientes...</option>
+                                        {% for amb in ambientes_list %}
+                                            <option value="{{ amb.id }}" {% if filtro_ambiente == amb.id|stringformat:"i" %}selected{% endif %}>{{ amb.nome }} ({{ amb.andar.predio.nome }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="col-12 text-end mt-3">
+                                    <button type="submit" class="btn btn-sm btn-dark fw-bold px-4 shadow-sm">
+                                        Aplicar Filtros Avançados
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="py-3 text-center px-4 border-0">
+                                        <a href="?sort={% if current_sort == 'id' %}-id{% else %}id{% endif %}&q={{ busca|urlencode }}&tipo={{ filtro_tipo }}&predio={{ filtro_predio }}&ambiente={{ filtro_ambiente }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
+                                            ID <i class="fas fa-sort{% if current_sort == 'id' %}-up text-primary{% elif current_sort == '-id' %}-down text-primary{% endif %} ms-2"></i>
+                                        </a>
+                                    </th>
+                                    <th class="py-3 text-center border-0">
+                                        <a href="?sort={% if current_sort == 'tipo__nome' %}-tipo__nome{% else %}tipo__nome{% endif %}&q={{ busca|urlencode }}&tipo={{ filtro_tipo }}&predio={{ filtro_predio }}&ambiente={{ filtro_ambiente }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
+                                            Tipo de Ativo <i class="fas fa-sort{% if current_sort == 'tipo__nome' %}-up text-primary{% elif current_sort == '-tipo__nome' %}-down text-primary{% endif %} ms-2"></i>
+                                        </a>
+                                    </th>
+                                    <th class="py-3 text-center border-0">
+                                        <a href="?sort={% if current_sort == 'nome_apelido' %}-nome_apelido{% else %}nome_apelido{% endif %}&q={{ busca|urlencode }}&tipo={{ filtro_tipo }}&predio={{ filtro_predio }}&ambiente={{ filtro_ambiente }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
+                                            Apelido <i class="fas fa-sort{% if current_sort == 'nome_apelido' %}-up text-primary{% elif current_sort == '-nome_apelido' %}-down text-primary{% endif %} ms-2"></i>
+                                        </a>
+                                    </th>
+                                    <th class="py-3 text-center border-0">
+                                        <a href="?sort={% if current_sort == 'patrimonio' %}-patrimonio{% else %}patrimonio{% endif %}&q={{ busca|urlencode }}&tipo={{ filtro_tipo }}&predio={{ filtro_predio }}&ambiente={{ filtro_ambiente }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
+                                            Patrimônio <i class="fas fa-sort{% if current_sort == 'patrimonio' %}-up text-primary{% elif current_sort == '-patrimonio' %}-down text-primary{% endif %} ms-2"></i>
+                                        </a>
+                                    </th>
+                                    <th class="py-3 text-center border-0">
+                                        <a href="?sort={% if current_sort == 'ambiente__nome' %}-ambiente__nome{% else %}ambiente__nome{% endif %}&q={{ busca|urlencode }}&tipo={{ filtro_tipo }}&predio={{ filtro_predio }}&ambiente={{ filtro_ambiente }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
+                                            Ambiente <i class="fas fa-sort{% if current_sort == 'ambiente__nome' %}-up text-primary{% elif current_sort == '-ambiente__nome' %}-down text-primary{% endif %} ms-2"></i>
+                                        </a>
+                                    </th>
+                                    <th class="py-3 text-center px-4 border-0">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for obj in ativos %}
+                                <tr>
+                                    <td class="text-center text-muted">#{{ obj.id }}</td>
+                                    <td class="text-center fw-semibold">{{ obj.tipo.nome|default:"-" }}</td>
+                                    <td class="text-center">{{ obj.nome_apelido|default:"-" }}</td>
+                                    <td class="text-center">{{ obj.patrimonio|default:"-" }}</td>
+                                    <td class="text-center">{{ obj.ambiente.nome|default:"-" }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'central_servicos:ativopredial_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'central_servicos:ativopredial_excluir' obj.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-3x mb-3 text-light"></i>
+                                        <p class="mb-0">Nenhum registro encontrado.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Offcanvas de Ativos do Ambiente -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAtivos" aria-labelledby="offcanvasAtivosLabel" style="width: 400px;">
+    <!-- O conteúdo será injetado aqui via HTMX/Fetch -->
+    <div class="offcanvas-body text-center d-flex align-items-center justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando...</span>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Estilização ativa das abas
+        const tabs = document.querySelectorAll('.nav-tabs .nav-link');
+        tabs.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function (event) {
+                tabs.forEach(t => {
+                    t.classList.remove('text-primary');
+                    t.classList.add('text-muted');
+                    t.style.borderBottomColor = 'transparent';
+                });
+                event.target.classList.remove('text-muted');
+                event.target.classList.add('text-primary');
+                event.target.style.borderBottomColor = 'var(--bs-primary)';
+            });
+        });
+        
+        // Simular o clique para ativar o estilo inicial
+        document.querySelector('.nav-tabs .nav-link.active').classList.add('text-primary');
+        document.querySelector('.nav-tabs .nav-link.active').classList.remove('text-muted');
+        document.querySelector('.nav-tabs .nav-link.active').style.borderBottomColor = 'var(--bs-primary)';
+
+        // Lógica do Offcanvas via Fetch
+        const offcanvasElement = document.getElementById('offcanvasAtivos');
+        const offcanvas = new bootstrap.Offcanvas(offcanvasElement);
+        
+        document.querySelectorAll('.btn-abrir-offcanvas').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const ambienteId = this.dataset.ambienteId;
+                
+                // Mostrar estado de carregamento
+                offcanvasElement.innerHTML = `
+                    <div class="offcanvas-header bg-light">
+                        <h5 class="offcanvas-title">Carregando...</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body text-center mt-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>`;
+                
+                offcanvas.show();
+
+                // Fazer a requisição
+                fetch(`/central_servicos/ativos/ambiente/${ambienteId}/`)
+                    .then(response => response.text())
+                    .then(html => {
+                        offcanvasElement.innerHTML = html;
+                    })
+                    .catch(error => {
+                        offcanvasElement.innerHTML = `
+                            <div class="offcanvas-header bg-danger text-white">
+                                <h5 class="offcanvas-title">Erro</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                            </div>
+                            <div class="offcanvas-body text-center text-danger mt-4">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                                <p>Falha ao carregar os ativos deste ambiente.</p>
+                            </div>`;
+                    });
+            });
+        });
+
+    });
+</script>
 {% endblock %}

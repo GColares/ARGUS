@@ -93,7 +93,7 @@
     }
 
     .modal-header.glass-header {
-        background: linear-gradient(90deg, #2c3e50, #3498db);
+        background: linear-gradient(90deg, var(--bs-dark), var(--bs-primary));
         color: white;
         border-radius: 1rem 1rem 0 0;
         border-bottom: none;
@@ -133,7 +133,7 @@
     <div class="row g-3 justify-content-center mb-5">
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{% url 'central_servicos:relatorio_os' 'PENDENTE' %}" target="_blank" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #fff3cd, #fff);">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, rgba(var(--bs-warning-rgb), 0.15), var(--bs-white));">
                     <div class="card-body text-center py-3 px-2">
                         <i class="fas fa-clock fa-2x text-warning mb-2"></i>
                         <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_pendentes }}</h2>
@@ -144,7 +144,7 @@
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{% url 'central_servicos:relatorio_os' 'PROGRAMADA' %}" target="_blank" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #e2e3e5, #fff);">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, rgba(var(--bs-secondary-rgb), 0.15), var(--bs-white));">
                     <div class="card-body text-center py-3 px-2">
                         <i class="fas fa-calendar-alt fa-2x text-secondary mb-2"></i>
                         <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_programadas }}</h2>
@@ -155,7 +155,7 @@
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{% url 'central_servicos:relatorio_os' 'INICIADA' %}" target="_blank" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #cff4fc, #fff);">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, rgba(var(--bs-info-rgb), 0.15), var(--bs-white));">
                     <div class="card-body text-center py-3 px-2">
                         <i class="fas fa-truck-pickup fa-2x text-info mb-2"></i>
                         <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_iniciadas }}</h2>
@@ -166,7 +166,7 @@
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{% url 'central_servicos:relatorio_os' 'EM_ANDAMENTO' %}" target="_blank" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #cfe2ff, #fff);">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.15), var(--bs-white));">
                     <div class="card-body text-center py-3 px-2">
                         <i class="fas fa-tools fa-2x text-primary mb-2"></i>
                         <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_em_andamento }}</h2>
@@ -177,7 +177,7 @@
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{% url 'central_servicos:relatorio_os' 'SUSPENSA' %}" target="_blank" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #f8d7da, #fff);">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, rgba(var(--bs-danger-rgb), 0.15), var(--bs-white));">
                     <div class="card-body text-center py-3 px-2">
                         <i class="fas fa-pause-circle fa-2x text-danger mb-2"></i>
                         <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_suspensas }}</h2>
@@ -188,7 +188,7 @@
         </div>
         <div class="col-6 col-md-4 col-lg-2">
             <a href="{% url 'central_servicos:relatorio_os' 'CONCLUIDA' %}" target="_blank" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, #d1e7dd, #fff);">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 1rem; background: linear-gradient(135deg, rgba(var(--bs-success-rgb), 0.15), var(--bs-white));">
                     <div class="card-body text-center py-3 px-2">
                         <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
                         <h2 class="fw-bold text-dark mb-0 fs-3">{{ os_concluidas }}</h2>
@@ -225,7 +225,7 @@
         <!-- Solicitar Serviços Card -->
         <div class="col-12 col-md-4 col-lg-3">
             <a href="{% url 'central_servicos:nova_os' %}" class="cs-card">
-                <div class="cs-icon-wrapper text-primary bg-primary bg-opacity-10">
+                <div class="cs-icon-wrapper">
                     <i class="fas fa-plus-circle"></i>
                 </div>
                 <h3 class="cs-title">Solicitar Serviço</h3>
@@ -237,7 +237,7 @@
         <!-- Relatórios Card (Inclui Histórico) -->
         <div class="col-12 col-md-4 col-lg-3">
             <a href="{% url 'central_servicos:relatorios' %}" class="cs-card">
-                <div class="cs-icon-wrapper text-success bg-success bg-opacity-10">
+                <div class="cs-icon-wrapper">
                     <i class="fas fa-chart-pie"></i>
                 </div>
                 <h3 class="cs-title">Relatórios</h3>
@@ -477,6 +477,6 @@
     </div>
 </div>
 
-{% include 'central_servicos/_cadastros_modal.html' %}
+
 
 {% endblock %}

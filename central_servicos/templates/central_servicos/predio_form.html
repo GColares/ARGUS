@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastro de Prédio{% endblock %}
+
+{% block extra_css %}
+<style>
+    .nav-tabs .nav-link {
+        color: #495057;
+        font-weight: 600;
+        border: none;
+        border-bottom: 3px solid transparent;
+        padding: 1rem 1.5rem;
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--bs-primary);
+        background: transparent;
+        border-bottom: 3px solid var(--bs-primary);
+    }
+    .nav-tabs .nav-link:hover {
+        border-bottom: 3px solid #dee2e6;
+    }
+    .form-section {
+        background-color: #fcfcfc;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        border: 1px solid #eaeaea;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4 mb-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'central_servicos:home_central_servicos' %}" class="text-decoration-none text-primary">Central de Serviços</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'central_servicos:predio_list' %}" class="text-decoration-none text-primary">Prédios e Instalações</a></li>
+            <li class="breadcrumb-item active">{% if object %}Editar{% else %}Novo(a){% endif %}</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <a href="{% url 'central_servicos:predio_list' %}" class="text-decoration-none text-muted small fw-bold d-inline-block"><i class="fas fa-arrow-left me-1"></i> Voltar</a>
+        <button type="button" class="btn btn-sm btn-outline-secondary border-0 text-muted" data-bs-toggle="modal" data-bs-target="#cadastrosModal">
+            <i class="fas fa-database me-1"></i> Cadastros Base
+        </button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-building text-primary me-2"></i>{% if object %}Editar Prédio: {{ object.nome }}{% else %}Novo Prédio{% endif %}</h2>
+            <p class="text-muted small mb-0 mt-1">Preencha os dados do prédio para a gestão de infraestrutura.</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- TABS NAV -->
+            <ul class="nav nav-tabs px-4 pt-3" id="predioTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="geral-tab" data-bs-toggle="tab" data-bs-target="#geral" type="button" role="tab" aria-controls="geral" aria-selected="true">
+                        <i class="fas fa-info-circle me-1"></i> Identificação Geral
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="infra-tab" data-bs-toggle="tab" data-bs-target="#infra" type="button" role="tab" aria-controls="infra" aria-selected="false">
+                        <i class="fas fa-industry me-1"></i> Infraestrutura e Riscos
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="seguranca-tab" data-bs-toggle="tab" data-bs-target="#seguranca" type="button" role="tab" aria-controls="seguranca" aria-selected="false">
+                        <i class="fas fa-shield-alt me-1"></i> Segurança e Licenças
+                    </button>
+                </li>
+            </ul>
+            
+            <!-- TABS CONTENT -->
+            <div class="tab-content p-4 p-md-5" id="predioTabsContent">
+                
+                <!-- TAB: IDENTIFICAÇÃO GERAL -->
+                <div class="tab-pane fade show active" id="geral" role="tabpanel" aria-labelledby="geral-tab">
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Nome do Prédio <span class="text-danger">*</span></label>
+                            {{ form.nome }}
+                            <div class="text-danger small">{{ form.nome.errors }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Sigla</label>
+                            {{ form.sigla }}
+                            <div class="text-danger small">{{ form.sigla.errors }}</div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Finalidades do Prédio</label>
+                            <div class="d-flex flex-wrap gap-2 mt-1">
+                                {% for checkbox in form.finalidades %}
+                                    <div>
+                                        {{ checkbox.tag }}
+                                        <label class="btn btn-outline-primary rounded-pill px-3 mb-0" for="{{ checkbox.id_for_label }}">
+                                            {{ checkbox.choice_label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="text-danger small">{{ form.finalidades.errors }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Área Total (m²)</label>
+                            {{ form.area_total_m2 }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Capacidade (Pessoas)</label>
+                            {{ form.capacidade_pessoas }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: INFRA E RISCOS -->
+                <div class="tab-pane fade" id="infra" role="tabpanel" aria-labelledby="infra-tab">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="form-section h-100">
+                                <h5 class="fw-bold mb-3 text-primary"><i class="fas fa-cogs me-2"></i> Infraestrutura Crítica</h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Possui Gerador de Emergência?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_gerador_emergencia %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Possui Subestação Própria?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_subestacao_propria %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Possui Climatização Central?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_climatizacao_central %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Possui Rede de Gases Especiais?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_rede_gases_especiais %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Possui Sala Limpa (Cleanroom)?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_sala_limpa %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <hr>
+                                <h6 class="fw-bold mb-3 text-success"><i class="fas fa-solar-panel me-2"></i> Energia Solar</h6>
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Possui Central de Geração Solar?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_geracao_solar %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label small">Capacidade (kWp)</label>
+                                        {{ form.capacidade_geracao_solar_kwp }}
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">Nº de Placas</label>
+                                        {{ form.quantidade_placas_solares }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-section h-100">
+                                <h5 class="fw-bold mb-3 text-danger"><i class="fas fa-biohazard me-2"></i> Classificação de Riscos</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Risco Químico</label>
+                                    {{ form.risco_quimico }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Risco Biológico</label>
+                                    {{ form.risco_biologico }}
+                                </div>
+                                <div class="mb-3 mt-3">
+                                    <label class="form-label d-block fw-bold text-danger">Armazena Materiais Inflamáveis?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.armazena_inflamaveis %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Possui ETE Sanitária?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_ete_sanitaria %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label d-block fw-bold">Possui ETE Especial/Industrial?</label>
+                                    <div class="mt-1">
+                                        {% for radio in form.possui_ete_especial %}
+                                            <div class="form-check form-check-inline">
+                                                {{ radio.tag }}
+                                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" data-bs-toggle="modal" data-bs-target="#eteModal">
+                                        <i class="fas fa-question-circle"></i> O que significa isso?
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: SEGURANÇA E LICENÇAS -->
+                <div class="tab-pane fade" id="seguranca" role="tabpanel" aria-labelledby="seguranca-tab">
+                    
+                    <!-- AVCB -->
+                    <div class="form-section mb-4">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-fire-extinguisher text-danger me-2"></i> Corpo de Bombeiros (AVCB)</h5>
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-3">
+                                <label class="form-label">Número do AVCB</label>
+                                {{ form.avcb_numero }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Data de Validade</label>
+                                {{ form.avcb_validade }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Arquivo PDF do AVCB</label>
+                                {{ form.avcb_arquivo }}
+                            </div>
+                            <div class="col-md-3 d-flex flex-column pt-1">
+                                <label class="form-label d-block">Brigada Ativa</label>
+                                <div class="mt-1">
+                                    {% for radio in form.brigada_incendio_ativa %}
+                                        <div class="form-check form-check-inline">
+                                            {{ radio.tag }}
+                                            <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Licença Ambiental -->
+                    <div class="form-section mb-4">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-leaf text-success me-2"></i> Licença Ambiental de Operação (LAO)</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Número da Licença Ambiental</label>
+                                {{ form.licenca_ambiental_numero }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Data de Validade</label>
+                                {{ form.licenca_ambiental_validade }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Arquivo PDF (LAO)</label>
+                                {{ form.licenca_ambiental_arquivo }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vigilância Sanitária -->
+                    <div class="form-section mb-4">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-notes-medical text-primary me-2"></i> Licença da Vigilância Sanitária</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Número da Licença</label>
+                                {{ form.licenca_vigilancia_sanitaria_numero }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Data de Validade</label>
+                                {{ form.licenca_vigilancia_sanitaria_validade }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Arquivo PDF</label>
+                                {{ form.licenca_vigilancia_sanitaria_arquivo }}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            
+            <div class="card-footer bg-white border-top p-4 d-flex justify-content-between align-items-center">
+                <div>
+                    {% if form.instance.pk %}
+                        <a href="{% url 'central_servicos:predio_excluir' form.instance.pk %}" class="btn btn-outline-danger rounded-pill px-4">
+                            <i class="fas fa-trash-alt me-2"></i> Excluir Prédio
+                        </a>
+                    {% endif %}
+                </div>
+                <div>
+                    <a href="{% url 'central_servicos:predio_list' %}" class="btn btn-light rounded-pill px-4 me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">
+                        <i class="fas fa-save me-2"></i> Salvar Prédio
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal ETE Conceitos -->
+<div class="modal fade" id="eteModal" tabindex="-1" aria-labelledby="eteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal">
+            <div class="modal-header glass-header">
+                <h5 class="modal-title fw-bold" id="eteModalLabel"><i class="fas fa-tint me-2 text-primary"></i> Conceitos de ETE</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>ETE Sanitária</strong><br>
+                Utilizada para tratar o esgoto comum do dia-a-dia, proveniente de banheiros, cozinhas e pias administrativas. Ela devolve a água limpa para o meio ambiente ou rede municipal.</p>
+                <hr>
+                <p class="text-danger"><strong>ETE Especial / Industrial</strong><br>
+                Estrutura complexa e apartada da rede sanitária. É de uso <strong>obrigatório</strong> para tratar os rejeitos líquidos gerados por pias de laboratórios (Química, Biologia, etc.), que contêm metais pesados, ácidos, bases ou material biológico perigoso. Se um prédio de pesquisa não tem, ele usa caixas de contenção que são recolhidas por caminhões especializados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendi</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

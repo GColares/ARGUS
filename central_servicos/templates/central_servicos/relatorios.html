@@ -94,78 +94,74 @@
         color: #2c3e50;
     }
     
-    /* Tree View Styles */
-    .tree-view {
-        background: white;
-        border-radius: 1rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    /* Tree View Styles (Padrão Ativos) */
+    .tree-container {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        background: #f8f9fa;
         padding: 1.5rem;
     }
-    
-    .tree-node-predio > .accordion-button {
-        background-color: #f8f9fa;
-        font-weight: 700;
-        color: #2c3e50;
-        font-size: 1.1rem;
-        border-radius: 0.5rem !important;
+    .predio-header {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
         margin-bottom: 0.5rem;
-    }
-    
-    .tree-node-andar > .accordion-button {
-        background-color: transparent;
-        font-weight: 600;
-        color: #495057;
-        border: none;
-        padding-left: 2rem;
-    }
-    .tree-node-andar > .accordion-button:not(.collapsed) {
-        background-color: rgba(var(--bs-info-rgb), 0.05);
-        color: var(--bs-info);
-        box-shadow: inset 0 -1px 0 rgba(0,0,0,.125);
-    }
-    
-    .tree-node-ambiente {
-        padding: 1rem 1rem 1rem 3rem;
-        border-bottom: 1px solid #f1f3f5;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        transition: background-color 0.2s;
+        justify-content: space-between;
+        cursor: pointer;
+        border: 1px solid #e9ecef;
+        transition: all 0.2s;
     }
-    .tree-node-ambiente:hover {
-        background-color: #f8f9fa;
+    .predio-header:hover {
+        border-color: var(--bs-primary);
+        transform: translateY(-1px);
     }
-    .tree-node-ambiente:last-child {
-        border-bottom: none;
+    .andar-container {
+        margin-left: 2rem;
+        margin-bottom: 1.5rem;
+        border-left: 2px solid #dee2e6;
+        padding-left: 1.5rem;
     }
-
-    /* Drag Handle */
-    .drag-handle {
-        cursor: grab;
-        color: #adb5bd;
-        margin-right: 0.5rem;
-        transition: color 0.2s;
+    .andar-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-top: 0.5rem;
     }
-    .drag-handle:hover {
-        color: #495057;
+    .sala-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 1rem;
     }
-    .sortable-ghost {
-        opacity: 0.4;
-        background-color: #f8f9fa;
-    }
-    .sortable-chosen {
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    .sala-item {
+        background: white;
+        border: 1px solid #dee2e6;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: inherit;
     }
 </style>
 
 
 <div class="container-fluid px-4 mt-4 mb-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'central_servicos:home_central_servicos' %}" class="text-decoration-none text-primary">Central de Serviços</a></li>
+            <li class="breadcrumb-item active">Relatórios e Indicadores</li>
+        </ol>
+    </nav>
+    <a href="{% url 'central_servicos:home_central_servicos' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Voltar ao Painel da Central</a>
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
         <div>
-            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-chart-pie text-success me-2"></i>Relatórios e Indicadores</h2>
+            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-chart-pie text-primary me-2"></i>Relatórios e Indicadores</h2>
             <p class="text-muted small mb-0 mt-1">Métricas consolidadas de cadastros e OS</p>
         </div>
-        <a href="{% url 'central_servicos:home_central_servicos' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Voltar</a>
     </div>
 
     <!-- SEÇÃO 1: LISTAS -->
@@ -217,138 +213,48 @@
 
     <!-- SEÇÃO 2: ESTRUTURA (Árvore) -->
     <h4 class="fw-bold mb-4 text-secondary"><i class="fas fa-sitemap me-2"></i> Seção 2: Estrutura Organizacional</h4>
-    <div class="tree-view">
-        <div class="accordion sortable-list" id="accordionPredios" data-model="Predio">
-            {% for predio in predios_arvore %}
-            <div class="accordion-item border-0 mb-2 sortable-item" data-id="{{ predio.id }}">
-                <h2 class="accordion-header tree-node-predio" id="headingPredio{{ predio.id }}">
-                    <button class="accordion-button collapsed shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePredio{{ predio.id }}" aria-expanded="false" aria-controls="collapsePredio{{ predio.id }}">
-                        <i class="fas fa-grip-vertical drag-handle"></i><i class="fas fa-building text-primary me-3"></i> {{ predio.nome }}
-                    </button>
-                </h2>
-                <div id="collapsePredio{{ predio.id }}" class="accordion-collapse collapse" aria-labelledby="headingPredio{{ predio.id }}">
-                    <div class="accordion-body p-0 pt-2">
-                        
-                        <!-- Andares do Prédio -->
-                        <div class="accordion accordion-flush sortable-list" id="accordionAndares{{ predio.id }}" data-model="Andar">
-                            {% for andar in predio.andares.all %}
-                            <div class="accordion-item border-0 sortable-item" data-id="{{ andar.id }}">
-                                <h2 class="accordion-header tree-node-andar" id="headingAndar{{ andar.id }}">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAndar{{ andar.id }}" aria-expanded="false" aria-controls="collapseAndar{{ andar.id }}">
-                                        <i class="fas fa-grip-vertical drag-handle"></i><i class="fas fa-layer-group text-info me-3"></i> {{ andar.nome }}
-                                    </button>
-                                </h2>
-                                <div id="collapseAndar{{ andar.id }}" class="accordion-collapse collapse" aria-labelledby="headingAndar{{ andar.id }}">
-                                    <div class="accordion-body p-0 sortable-list" data-model="Ambiente">
-                                        
-                                        <!-- Ambientes do Andar -->
-                                        {% for ambiente in andar.ambientes.all %}
-                                        <div class="tree-node-ambiente sortable-item" data-id="{{ ambiente.id }}">
-                                            <div>
-                                                <i class="fas fa-grip-vertical drag-handle"></i><i class="fas fa-door-open text-success me-2"></i> 
-                                                <span class="fw-bold text-dark">{{ ambiente.nome }}</span>
-                                                <span class="text-muted ms-2 small">({{ ambiente.tipo.nome }})</span>
-                                            </div>
-                                            <div>
-                                                <span class="badge bg-light text-dark border me-2">
-                                                    <i class="fas fa-ruler-combined text-warning me-1"></i> {{ ambiente.elementos_construtivos.count }} Elementos
-                                                </span>
-                                                <span class="badge bg-light text-dark border me-3">
-                                                    <i class="fas fa-microchip text-secondary me-1"></i> {{ ambiente.ativos.count }} Ativos
-                                                </span>
-                                                <a href="{% url 'central_servicos:ambiente_editar' ambiente.id %}" class="btn btn-sm btn-outline-success rounded-pill" title="Acessar Ambiente">
-                                                    <i class="fas fa-arrow-right"></i>
-                                                </a>
-                                            </div>
+    <div class="tree-container shadow-sm">
+        {% for predio in predios_arvore %}
+            <div class="predio-group mb-2">
+                <div class="predio-header" data-bs-toggle="collapse" data-bs-target="#predio-{{ predio.id }}">
+                    <div>
+                        <i class="fas fa-building text-primary me-2"></i>
+                        <span class="fw-bold fs-5">{{ predio.nome }}</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-muted"></i>
+                </div>
+                
+                <div class="collapse show" id="predio-{{ predio.id }}">
+                    <div class="andar-container mt-3">
+                        {% for andar in predio.andares.all %}
+                            <div class="andar-group mb-4">
+                                <div class="andar-header">
+                                    <span class="fw-bold text-secondary"><i class="fas fa-layer-group me-2"></i> {{ andar.nome }}</span>
+                                </div>
+                                <div class="sala-grid">
+                                    {% for ambiente in andar.ambientes.all %}
+                                        <div class="sala-item shadow-sm">
+                                            <i class="fas fa-door-closed text-muted"></i>
+                                            <span class="fw-semibold text-truncate">{{ ambiente.nome }}</span>
                                         </div>
-                                        {% empty %}
-                                        <div class="p-3 ps-5 text-muted small">
-                                            <em>Nenhum ambiente cadastrado neste andar.</em>
-                                        </div>
-                                        {% endfor %}
-                                        
-                                    </div>
+                                    {% empty %}
+                                        <div class="p-2 text-muted small fst-italic">Nenhum ambiente neste andar.</div>
+                                    {% endfor %}
                                 </div>
                             </div>
-                            {% empty %}
-                            <div class="p-3 ps-4 text-muted small">
-                                <em>Nenhum andar cadastrado neste prédio.</em>
-                            </div>
-                            {% endfor %}
-                        </div>
-
+                        {% empty %}
+                            <p class="text-muted small fst-italic">Nenhum andar cadastrado neste prédio.</p>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
-            {% empty %}
-            <div class="text-center p-5 text-muted">
-                <i class="fas fa-building fa-3x mb-3 opacity-25"></i>
-                <p>Nenhum prédio cadastrado no sistema.</p>
-            </div>
-            {% endfor %}
-        </div>
+        {% empty %}
+            <div class="alert alert-warning">Nenhum prédio cadastrado.</div>
+        {% endfor %}
     </div>
 </div>
 
 {% endblock %}
 
-{% block extra_js %}
-<!-- SortableJS -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const sortableLists = document.querySelectorAll('.sortable-list');
-    
-    sortableLists.forEach(function(list) {
-        new Sortable(list, {
-            animation: 150,
-            handle: '.drag-handle', // drag handle selector within list items
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            onEnd: function (evt) {
-                const modelName = list.getAttribute('data-model');
-                if (!modelName) return;
-                
-                // Pegar a nova ordem dos IDs
-                const itemIds = [];
-                const items = list.querySelectorAll(':scope > .sortable-item');
-                items.forEach(item => {
-                    const id = item.getAttribute('data-id');
-                    if (id) {
-                        itemIds.push(id);
-                    }
-                });
-                
-                if (itemIds.length === 0) return;
-                
-                // Disparar requisição AJAX para salvar a nova ordem
-                fetch('{% url "central_servicos:reordenar_itens" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        'modelo': modelName,
-                        'ids': itemIds
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        // Toast alert? or silent success. We do a silent success.
-                        console.log(modelName + ' reordenado com sucesso!');
-                    } else {
-                        alert('Erro ao reordenar: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Erro de comunicação ao reordenar.');
-                });
-            }
-        });
-    });
-});
-</script>
-{% endblock %}
+
 
