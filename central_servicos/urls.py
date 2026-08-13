@@ -39,6 +39,12 @@ urlpatterns = [
     path('tipos-ambiente/<int:pk>/editar/', views.TipoAmbienteUpdateView.as_view(), name='tipoambiente_editar'),
     path('tipos-ambiente/<int:pk>/excluir/', views.TipoAmbienteDeleteView.as_view(), name='tipoambiente_excluir'),
 
+    # Gestão de Tipos de Elementos Construtivos
+    path('tipos-elemento/', views.TipoElementoListView.as_view(), name='tipoelemento_list'),
+    path('tipos-elemento/novo/', views.TipoElementoCreateView.as_view(), name='tipoelemento_novo'),
+    path('tipos-elemento/<int:pk>/editar/', views.TipoElementoUpdateView.as_view(), name='tipoelemento_editar'),
+    path('tipos-elemento/<int:pk>/excluir/', views.TipoElementoDeleteView.as_view(), name='tipoelemento_excluir'),
+
     # Gestão de Elementos Construtivos
     path('elementos-construtivos/', views.ElementoConstrutivoListView.as_view(), name='elementoconstrutivo_list'),
     path('elementos-construtivos/novo/', views.ElementoConstrutivoCreateView.as_view(), name='elementoconstrutivo_novo'),

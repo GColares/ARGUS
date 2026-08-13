@@ -9,7 +9,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, V
 # pyrefly: ignore [untyped-import]
 from django.urls import reverse_lazy
 from .models import OrdemServico, Predio, Andar, Ambiente, TipoAmbiente, TipoElemento, ElementoConstrutivo, TipoAtivo, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
-from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, AmbienteForm, TipoAmbienteForm, ElementoConstrutivoForm, TipoAtivoForm, AtivoPredialForm, AtivoPredialLoteForm, CategoriaServicoForm, FinalidadeForm
+from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, AmbienteForm, TipoAmbienteForm, ElementoConstrutivoForm, TipoElementoForm, TipoAtivoForm, AtivoPredialForm, AtivoPredialLoteForm, CategoriaServicoForm, FinalidadeForm
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import JsonResponse
@@ -555,6 +555,31 @@ class TipoAmbienteDeleteView(LoginRequiredMixin, DeleteView):
     model = TipoAmbiente
     template_name = 'central_servicos/tipoambiente_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:tipoambiente_list')
+
+# ==========================================
+# GESTÃO DE TIPOS DE ELEMENTO CONSTRUTIVO
+# ==========================================
+class TipoElementoListView(LoginRequiredMixin, ListView):
+    model = TipoElemento
+    template_name = 'central_servicos/tipoelemento_list.html'
+    context_object_name = 'tiposelemento'
+
+class TipoElementoCreateView(LoginRequiredMixin, CreateView):
+    model = TipoElemento
+    form_class = TipoElementoForm
+    template_name = 'central_servicos/tipoelemento_form.html'
+    success_url = reverse_lazy('central_servicos:tipoelemento_list')
+
+class TipoElementoUpdateView(LoginRequiredMixin, UpdateView):
+    model = TipoElemento
+    form_class = TipoElementoForm
+    template_name = 'central_servicos/tipoelemento_form.html'
+    success_url = reverse_lazy('central_servicos:tipoelemento_list')
+
+class TipoElementoDeleteView(LoginRequiredMixin, DeleteView):
+    model = TipoElemento
+    template_name = 'central_servicos/tipoelemento_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:tipoelemento_list')
 
 class ElementoConstrutivoListView(LoginRequiredMixin, ListView):
     model = ElementoConstrutivo
