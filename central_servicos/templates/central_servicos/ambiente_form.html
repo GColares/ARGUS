@@ -1,5 +1,99 @@
 {% extends 'base.html' %}
-{% block title %}{% if object %}Editar{% else %}Novo{% endif %} Ambiente - Central de Serviços{% endblock %}
+{% block title %}{% if object %}Editar{% else %}Novo{% endif %} Ambiente - Central de Serviços
+<!-- Modal Novo Tipo de Ambiente -->
+<div class="modal fade" id="novoTipoAmbienteModal" tabindex="-1" aria-labelledby="novoTipoAmbienteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-primary" id="novoTipoAmbienteModalLabel"><i class="fas fa-plus-circle me-2"></i>Novo Tipo de Ambiente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small">Nome do Tipo</label>
+            <input type="text" id="ajaxTipoNome" class="form-control" placeholder="Ex: Sala de Reunião">
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small">Descrição (Opcional)</label>
+            <textarea id="ajaxTipoDescricao" class="form-control" rows="2"></textarea>
+        </div>
+        <div id="ajaxTipoError" class="alert alert-danger small fw-bold d-none mt-2 py-2"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="btnSalvarTipo" class="btn btn-primary shadow-sm"><i class="fas fa-save me-1"></i> Salvar e Usar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const btnSalvarTipo = document.getElementById("btnSalvarTipo");
+    if(btnSalvarTipo) {
+        btnSalvarTipo.addEventListener("click", function() {
+            const nome = document.getElementById("ajaxTipoNome").value.trim();
+            const descricao = document.getElementById("ajaxTipoDescricao").value.trim();
+            const errorDiv = document.getElementById("ajaxTipoError");
+            
+            if(!nome) {
+                errorDiv.textContent = "O nome é obrigatório.";
+                errorDiv.classList.remove("d-none");
+                return;
+            }
+            
+            const originalText = btnSalvarTipo.innerHTML;
+            btnSalvarTipo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            btnSalvarTipo.disabled = true;
+            
+            const formData = new FormData();
+            formData.append("nome", nome);
+            formData.append("descricao", descricao);
+            formData.append("csrfmiddlewaretoken", document.querySelector('[name=csrfmiddlewaretoken]').value);
+            
+            fetch("{% url 'central_servicos:tipoambiente_ajax_add' %}", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                btnSalvarTipo.innerHTML = originalText;
+                btnSalvarTipo.disabled = false;
+                
+                if(data.success) {
+                    const select = document.getElementById("{{ form.tipo.id_for_label }}");
+                    if (select) {
+                        const option = new Option(data.nome, data.id, true, true);
+                        select.appendChild(option);
+                        if(typeof jQuery !== 'undefined' && jQuery(select).hasClass("select2-hidden-accessible")) {
+                            jQuery(select).trigger('change');
+                        }
+                    }
+                    
+                    const modalEl = document.getElementById('novoTipoAmbienteModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    
+                    document.getElementById("ajaxTipoNome").value = "";
+                    document.getElementById("ajaxTipoDescricao").value = "";
+                    errorDiv.classList.add("d-none");
+                } else {
+                    errorDiv.textContent = data.error;
+                    errorDiv.classList.remove("d-none");
+                }
+            })
+            .catch(error => {
+                btnSalvarTipo.innerHTML = originalText;
+                btnSalvarTipo.disabled = false;
+                errorDiv.textContent = "Erro na comunicação com o servidor.";
+                errorDiv.classList.remove("d-none");
+            });
+        });
+    }
+});
+</script>
+
+{% endblock %}
 {% block content %}
 <div class="container-fluid px-4 py-4">
     <div class="row justify-content-center">
@@ -23,7 +117,16 @@
                             {% for field in form %}
                             <div class="col-md-12">
                                 <label class="form-label fw-semibold text-muted small">{{ field.label }}</label>
+                                {% if field.name == 'tipo' %}
+                                <div class="input-group">
+                                    {{ field }}
+                                    <button type="button" class="btn btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#novoTipoAmbienteModal" title="Criar Novo Tipo de Ambiente" style="border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem;">
+                                        <i class="fas fa-plus"></i> Novo
+                                    </button>
+                                </div>
+                                {% else %}
                                 {{ field }}
+                                {% endif %}
                                 {% if field.help_text %}
                                 <div class="form-text">{{ field.help_text }}</div>
                                 {% endif %}
@@ -36,11 +139,19 @@
                             {% endfor %}
                         </div>
                         <hr class="my-4 text-muted">
-                        <div class="d-flex justify-content-end gap-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="fixarPredioAndar" name="fixar_predio_andar" {% if request.GET.predio %}checked{% endif %}>
+                                <label class="form-check-label fw-bold text-muted" for="fixarPredioAndar" title="Ao salvar, inicia um novo cadastro já com este Prédio e Andar selecionados.">
+                                    <i class="fas fa-thumbtack me-1"></i> Fixar Prédio e Andar
+                                </label>
+                            </div>
+                            <div class="d-flex gap-2">
                             <a href="{% url 'central_servicos:ambiente_list' %}" class="btn btn-light px-4">Cancelar</a>
                             <button type="submit" class="btn btn-primary px-4 shadow-sm">
                                 <i class="fas fa-save me-1"></i> Salvar
                             </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -48,4 +159,98 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Novo Tipo de Ambiente -->
+<div class="modal fade" id="novoTipoAmbienteModal" tabindex="-1" aria-labelledby="novoTipoAmbienteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-primary" id="novoTipoAmbienteModalLabel"><i class="fas fa-plus-circle me-2"></i>Novo Tipo de Ambiente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small">Nome do Tipo</label>
+            <input type="text" id="ajaxTipoNome" class="form-control" placeholder="Ex: Sala de Reunião">
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-muted small">Descrição (Opcional)</label>
+            <textarea id="ajaxTipoDescricao" class="form-control" rows="2"></textarea>
+        </div>
+        <div id="ajaxTipoError" class="alert alert-danger small fw-bold d-none mt-2 py-2"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="btnSalvarTipo" class="btn btn-primary shadow-sm"><i class="fas fa-save me-1"></i> Salvar e Usar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const btnSalvarTipo = document.getElementById("btnSalvarTipo");
+    if(btnSalvarTipo) {
+        btnSalvarTipo.addEventListener("click", function() {
+            const nome = document.getElementById("ajaxTipoNome").value.trim();
+            const descricao = document.getElementById("ajaxTipoDescricao").value.trim();
+            const errorDiv = document.getElementById("ajaxTipoError");
+            
+            if(!nome) {
+                errorDiv.textContent = "O nome é obrigatório.";
+                errorDiv.classList.remove("d-none");
+                return;
+            }
+            
+            const originalText = btnSalvarTipo.innerHTML;
+            btnSalvarTipo.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            btnSalvarTipo.disabled = true;
+            
+            const formData = new FormData();
+            formData.append("nome", nome);
+            formData.append("descricao", descricao);
+            formData.append("csrfmiddlewaretoken", document.querySelector('[name=csrfmiddlewaretoken]').value);
+            
+            fetch("{% url 'central_servicos:tipoambiente_ajax_add' %}", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                btnSalvarTipo.innerHTML = originalText;
+                btnSalvarTipo.disabled = false;
+                
+                if(data.success) {
+                    const select = document.getElementById("{{ form.tipo.id_for_label }}");
+                    if (select) {
+                        const option = new Option(data.nome, data.id, true, true);
+                        select.appendChild(option);
+                        if(typeof jQuery !== 'undefined' && jQuery(select).hasClass("select2-hidden-accessible")) {
+                            jQuery(select).trigger('change');
+                        }
+                    }
+                    
+                    const modalEl = document.getElementById('novoTipoAmbienteModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    
+                    document.getElementById("ajaxTipoNome").value = "";
+                    document.getElementById("ajaxTipoDescricao").value = "";
+                    errorDiv.classList.add("d-none");
+                } else {
+                    errorDiv.textContent = data.error;
+                    errorDiv.classList.remove("d-none");
+                }
+            })
+            .catch(error => {
+                btnSalvarTipo.innerHTML = originalText;
+                btnSalvarTipo.disabled = false;
+                errorDiv.textContent = "Erro na comunicação com o servidor.";
+                errorDiv.classList.remove("d-none");
+            });
+        });
+    }
+});
+</script>
+
 {% endblock %}

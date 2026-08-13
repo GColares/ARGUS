@@ -1,3 +1,4 @@
+from simple_history.models import HistoricalRecords
 # pyrefly: ignore [untyped-import]
 from django.db import models
 # pyrefly: ignore [untyped-import]
@@ -62,6 +63,11 @@ class Predio(models.Model):
     licenca_vigilancia_sanitaria_validade = models.DateField(blank=True, null=True, verbose_name="Validade Vig. Sanitária")
     licenca_vigilancia_sanitaria_arquivo = models.FileField(upload_to='licencas/vigilancia/', blank=True, null=True, verbose_name="Arquivo Vig. Sanitária")
     brigada_incendio_ativa = models.BooleanField(null=True, blank=True, verbose_name="Brigada de Incêndio Ativa?")
+    ordem = models.PositiveIntegerField(default=0, verbose_name="Ordem")
+    history = HistoricalRecords()
+
+    class Meta:
+        ordering = ['ordem']
 
     # pyrefly: ignore [bad-override]
     def __str__(self):
@@ -70,6 +76,11 @@ class Predio(models.Model):
 class Andar(models.Model):
     predio = models.ForeignKey(Predio, on_delete=models.CASCADE, related_name='andares')
     nome = models.CharField(max_length=50)
+    ordem = models.PositiveIntegerField(default=0, verbose_name="Ordem")
+    history = HistoricalRecords()
+
+    class Meta:
+        ordering = ['ordem']
 
     def __str__(self):
         return f"{self.predio.sigla or self.predio.nome} - {self.nome}"
@@ -77,6 +88,7 @@ class Andar(models.Model):
 class TipoAmbiente(models.Model):
     nome = models.CharField(max_length=100, unique=True, verbose_name="Tipo de Ambiente")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    history = HistoricalRecords()
     
     def __str__(self):
         return self.nome
@@ -96,6 +108,11 @@ class Ambiente(models.Model):
     nome = models.CharField(max_length=100)
     tipo = models.ForeignKey(TipoAmbiente, on_delete=models.PROTECT, related_name='ambientes')
     localizacao = models.CharField(max_length=10, choices=LOCALIZACAO_CHOICES, default='INTERNO')
+    ordem = models.PositiveIntegerField(default=0, verbose_name="Ordem")
+    history = HistoricalRecords()
+
+    class Meta:
+        ordering = ['ordem']
 
     def __str__(self):
         if self.andar:
@@ -130,6 +147,7 @@ class ElementoConstrutivo(models.Model):
     tipo = models.ForeignKey(TipoElemento, on_delete=models.PROTECT)
     area_m2 = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Área (m²)")
     detalhes = models.TextField(blank=True, null=True, help_text="Especificações ou detalhes para cálculo da IN 05/2017")
+    history = HistoricalRecords()
     
     def __str__(self):
         return f"{self.tipo.nome} - {self.area_m2}m² ({self.ambiente.nome})"
@@ -137,6 +155,7 @@ class ElementoConstrutivo(models.Model):
 class TipoAtivo(models.Model):
     nome = models.CharField(max_length=100, unique=True, verbose_name="Tipo de Ativo")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.nome
@@ -153,6 +172,7 @@ class AtivoPredial(models.Model):
     numero_serie = models.CharField(max_length=100, blank=True, null=True, verbose_name="Número de Série")
     patrimonio = models.CharField(max_length=50, blank=True, null=True, verbose_name="Número de Patrimônio")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.nome_apelido or self.tipo} ({self.ambiente})"

@@ -36,7 +36,7 @@ BOOL_CHOICES = [(True, 'Sim'), (False, 'Não'), ('', 'Não Informado')]
 class PredioForm(forms.ModelForm):
     class Meta:
         model = Predio
-        fields = '__all__'
+        exclude = ['ordem']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do prédio'}),
             'sigla': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: P1, BIO, etc.'}),
@@ -80,7 +80,7 @@ from .models import Andar, Ambiente, TipoAmbiente, CategoriaElemento, TipoElemen
 class AndarForm(forms.ModelForm):
     class Meta:
         model = Andar
-        fields = '__all__'
+        exclude = ['ordem']
         widgets = {
             'predio': forms.Select(attrs={'class': 'form-select'}),
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Andar'}),
@@ -89,7 +89,7 @@ class AndarForm(forms.ModelForm):
 class AmbienteForm(forms.ModelForm):
     class Meta:
         model = Ambiente
-        fields = '__all__'
+        exclude = ['ordem']
         widgets = {
             'predio': forms.Select(attrs={'class': 'form-select'}),
             'andar': forms.Select(attrs={'class': 'form-select'}),

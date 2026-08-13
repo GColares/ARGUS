@@ -5,13 +5,14 @@ from django.contrib.auth.decorators import login_required
 # pyrefly: ignore [untyped-import]
 from django.contrib.auth.mixins import LoginRequiredMixin
 # pyrefly: ignore [untyped-import]
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View, TemplateView
 # pyrefly: ignore [untyped-import]
 from django.urls import reverse_lazy
 from .models import OrdemServico, Predio, Andar, Ambiente, TipoAmbiente, TipoElemento, ElementoConstrutivo, TipoAtivo, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
 from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, AmbienteForm, TipoAmbienteForm, ElementoConstrutivoForm, TipoAtivoForm, AtivoPredialForm, AtivoPredialLoteForm, CategoriaServicoForm, FinalidadeForm
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from django.http import JsonResponse
 
 @login_required
 def home_central_servicos(request):
@@ -35,6 +36,13 @@ def home_central_servicos(request):
         'os_em_andamento': os_em_andamento,
         'os_suspensas': os_suspensas,
         'os_concluidas': os_concluidas,
+        'total_predios': Predio.objects.count(),
+        'total_andares': Andar.objects.count(),
+        'total_ambientes': Ambiente.objects.count(),
+        'total_elementos': ElementoConstrutivo.objects.count(),
+        'total_ativos': AtivoPredial.objects.count(),
+        'total_tipos_ambiente': TipoAmbiente.objects.count(),
+        'total_tipos_ativo': TipoAtivo.objects.count(),
     }
     return render(request, 'central_servicos/home_central_servicos.html', context)
 
@@ -48,24 +56,24 @@ class OrdemServicoCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Injeta a estrutura hierárquica completa para a interface em árvore
-        context['predios_hierarquia'] = Predio.objects.prefetch_related('andares__salas').all()
+        context['predios_hierarquia'] = Predio.objects.prefetch_related('andares__ambientes').all()
         return context
 
     def form_valid(self, form):
-        salas = form.cleaned_data.get('salas')
+        ambientes = form.cleaned_data.get('ambientes')
         categoria = form.cleaned_data.get('categoria')
         descricao_problema = form.cleaned_data.get('descricao_problema')
         ativo_predial = form.cleaned_data.get('ativo_predial')
         solicitante = self.request.user
 
         # Se houver mais de uma sala, ignoramos o ativo predial (manutenção geral)
-        if salas.count() > 1:
+        if ambientes.count() > 1:
             ativo_predial = None
 
         os_criadas = 0
-        for sala in salas:
+        for ambiente in ambientes:
             OrdemServico.objects.create(
-                sala=sala,
+                ambiente=ambiente,
                 categoria=categoria,
                 descricao_problema=descricao_problema,
                 ativo_predial=ativo_predial,
@@ -74,7 +82,7 @@ class OrdemServicoCreateView(LoginRequiredMixin, CreateView):
             os_criadas += 1
 
         messages.success(self.request, f'{os_criadas} Ordem(ns) de Serviço gerada(s) com sucesso.')
-        from django.http import HttpResponseRedirect
+        from django.http import JsonResponse, HttpResponseRedirect
         return HttpResponseRedirect(self.success_url)
 
 class RelatorioOSView(LoginRequiredMixin, ListView):
@@ -213,20 +221,38 @@ class AndarDeleteView(LoginRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 # ==========================================
-# GESTÃO DE SALAS
+# GESTÃO DE AMBIENTES
 # ==========================================
 class AmbienteListView(LoginRequiredMixin, ListView):
     model = Ambiente
     template_name = 'central_servicos/ambiente_list.html'
-    context_object_name = 'salas'
+    context_object_name = 'ambientes'
 
 class AmbienteCreateView(LoginRequiredMixin, CreateView):
     model = Ambiente
     form_class = AmbienteForm
     template_name = 'central_servicos/ambiente_form.html'
     success_url = reverse_lazy('central_servicos:ambiente_list')
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.request.GET.get('predio'):
+            initial['predio'] = self.request.GET.get('predio')
+        if self.request.GET.get('andar'):
+            initial['andar'] = self.request.GET.get('andar')
+        return initial
+
     def form_valid(self, form):
-        messages.success(self.request, 'Sala cadastrada com sucesso.')
+        self.object = form.save()
+        messages.success(self.request, 'Ambiente cadastrado com sucesso.')
+        if self.request.POST.get('fixar_predio_andar') == 'on':
+            from django.urls import reverse
+            from django.http import HttpResponseRedirect
+            url = reverse('central_servicos:ambiente_novo')
+            query = f"?predio={self.object.predio_id}"
+            if self.object.andar_id:
+                query += f"&andar={self.object.andar_id}"
+            return HttpResponseRedirect(url + query)
         return super().form_valid(form)
 
 class AmbienteUpdateView(LoginRequiredMixin, UpdateView):
@@ -234,8 +260,15 @@ class AmbienteUpdateView(LoginRequiredMixin, UpdateView):
     form_class = AmbienteForm
     template_name = 'central_servicos/ambiente_form.html'
     success_url = reverse_lazy('central_servicos:ambiente_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.object:
+            context['historico_ambiente'] = self.object.history.all()
+        return context
+
     def form_valid(self, form):
-        messages.success(self.request, 'Sala atualizada com sucesso.')
+        messages.success(self.request, 'Ambiente atualizado com sucesso.')
         return super().form_valid(form)
 
 class AmbienteDeleteView(LoginRequiredMixin, DeleteView):
@@ -263,20 +296,20 @@ class AtivoPredialCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Injeta a estrutura hierárquica completa para a interface em árvore
-        context['predios_hierarquia'] = Predio.objects.prefetch_related('andares__salas').all()
+        context['predios_hierarquia'] = Predio.objects.prefetch_related('andares__ambientes').all()
         return context
 
     def form_valid(self, form):
-        salas = form.cleaned_data.get('salas')
+        ambientes = form.cleaned_data.get('ambientes')
         tipo = form.cleaned_data.get('tipo')
         nome_apelido = form.cleaned_data.get('nome_apelido')
         descricao = form.cleaned_data.get('descricao')
         
         # Cria um ativo para cada sala selecionada
         ativos_criados = 0
-        for sala in salas:
+        for ambiente in ambientes:
             AtivoPredial.objects.create(
-                sala=sala,
+                ambiente=ambiente,
                 tipo=tipo,
                 nome_apelido=nome_apelido,
                 descricao=descricao,
@@ -287,7 +320,7 @@ class AtivoPredialCreateView(LoginRequiredMixin, CreateView):
             
         messages.success(self.request, f'{ativos_criados} Ativo(s) Predial(is) cadastrado(s) com sucesso.')
         # Redireciona manualmente pois não estamos usando form.save() padrão
-        from django.http import HttpResponseRedirect
+        from django.http import JsonResponse, HttpResponseRedirect
         return HttpResponseRedirect(self.success_url)
 
 class AtivoPredialUpdateView(LoginRequiredMixin, UpdateView):
@@ -448,3 +481,72 @@ class ElementoConstrutivoDeleteView(LoginRequiredMixin, DeleteView):
     model = ElementoConstrutivo
     template_name = 'central_servicos/elementoconstrutivo_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:elementoconstrutivo_list')
+
+
+class TipoAmbienteAjaxCreateView(View):
+    def post(self, request, *args, **kwargs):
+        nome = request.POST.get('nome')
+        descricao = request.POST.get('descricao')
+        if not nome:
+            return JsonResponse({'success': False, 'error': 'O nome é obrigatório.'})
+            
+        if TipoAmbiente.objects.filter(nome__iexact=nome).exists():
+            return JsonResponse({'success': False, 'error': 'Já existe um Tipo de Ambiente com este nome.'})
+            
+        tipo = TipoAmbiente.objects.create(nome=nome, descricao=descricao)
+        return JsonResponse({'success': True, 'id': tipo.id, 'nome': tipo.nome})
+
+class RelatoriosView(LoginRequiredMixin, TemplateView):
+    template_name = 'central_servicos/relatorios.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'total_predios': Predio.objects.count(),
+            'total_andares': Andar.objects.count(),
+            'total_ambientes': Ambiente.objects.count(),
+            'total_elementos': ElementoConstrutivo.objects.count(),
+            'total_ativos': AtivoPredial.objects.count(),
+            'total_tipos_ambiente': TipoAmbiente.objects.count(),
+            'total_tipos_ativo': TipoAtivo.objects.count(),
+            'total_categorias': CategoriaServico.objects.count(),
+            'total_finalidades': Finalidade.objects.count(),
+            'predios_arvore': Predio.objects.prefetch_related(
+                'andares__ambientes__elementos_construtivos',
+                'andares__ambientes__ativos'
+            ).all()
+        })
+        return context
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+import json
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ReordenarItensView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            modelo = data.get('modelo')
+            ids = data.get('ids', [])
+            
+            if modelo == 'Predio':
+                ModelClass = Predio
+            elif modelo == 'Andar':
+                ModelClass = Andar
+            elif modelo == 'Ambiente':
+                ModelClass = Ambiente
+            else:
+                return JsonResponse({'error': 'Modelo inválido'}, status=400)
+                
+            for index, item_id in enumerate(ids):
+                # We use update to avoid triggering signals/history for a simple reorder, or we can just save.
+                # Let's use update to be faster and not clutter history if not strictly necessary, 
+                # but if we want history, we should fetch and save. We'll use update for performance.
+                ModelClass.objects.filter(id=item_id).update(ordem=index)
+                
+            return JsonResponse({'status': 'ok'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)

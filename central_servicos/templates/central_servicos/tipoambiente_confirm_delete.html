@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Excluir Tipo de Ambiente{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-5">
+            <div class="card shadow border-0 rounded-4 overflow-hidden text-center">
+                <div class="bg-danger bg-opacity-10 py-5">
+                    <div class="mx-auto bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 80px; height: 80px;">
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    </div>
+                </div>
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-3">Confirma a exclusão?</h2>
+                    <p class="text-muted fs-5 mb-4">Você está prestes a excluir o Tipo de Ambiente <strong>"{{ object }}"</strong>.</p>
+                    
+                    <div class="alert alert-warning text-start mb-4 border-start border-warning border-4">
+                        <i class="fas fa-info-circle me-2"></i> Esta ação é irreversível.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                            <a href="{% url 'central_servicos:tipoambiente_list' %}" class="btn btn-light btn-lg px-5 flex-grow-1">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg px-5 flex-grow-1 shadow-sm">
+                                Sim, excluir
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

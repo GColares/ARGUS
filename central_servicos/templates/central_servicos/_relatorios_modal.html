@@ -1,0 +1,116 @@
+<!-- MODAL: RELATÓRIOS E INDICADORES -->
+<style>
+    .metric-card {
+        background: #fff;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    .metric-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        opacity: 0.8;
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+    .metric-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+</style>
+
+<div class="modal fade" id="relatoriosModal" tabindex="-1" aria-labelledby="relatoriosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-modal" style="border-radius: 1rem; border: none; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);">
+            <div class="modal-header glass-header py-3" style="background: linear-gradient(90deg, #198754, #20c997); color: white; border-radius: 1rem 1rem 0 0; border-bottom: none;">
+                <h4 class="modal-title fw-bold" id="relatoriosModalLabel"><i class="fas fa-chart-pie me-2"></i> Relatórios de Cadastros</h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-muted text-center mb-4">Métricas consolidadas de todos os itens cadastrados no sistema.</p>
+                
+                <div class="row g-4">
+                    <!-- Locais -->
+                    <div class="col-md-4">
+                        <div class="metric-card h-100 border-start border-primary border-4">
+                            <div class="metric-icon text-primary"><i class="fas fa-city"></i></div>
+                            <div class="metric-value">{{ total_predios|default:"0" }}</div>
+                            <div class="metric-label">Prédios</div>
+                            <a href="{% url 'central_servicos:predio_list' %}" class="btn btn-sm btn-outline-primary mt-3 rounded-pill px-3">Ver Lista</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card h-100 border-start border-info border-4">
+                            <div class="metric-icon text-info"><i class="fas fa-layer-group"></i></div>
+                            <div class="metric-value">{{ total_andares|default:"0" }}</div>
+                            <div class="metric-label">Andares</div>
+                            <a href="{% url 'central_servicos:andar_list' %}" class="btn btn-sm btn-outline-info mt-3 rounded-pill px-3">Ver Lista</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card h-100 border-start border-success border-4">
+                            <div class="metric-icon text-success"><i class="fas fa-door-open"></i></div>
+                            <div class="metric-value">{{ total_ambientes|default:"0" }}</div>
+                            <div class="metric-label">Ambientes</div>
+                            <a href="{% url 'central_servicos:ambiente_list' %}" class="btn btn-sm btn-outline-success mt-3 rounded-pill px-3">Ver Lista</a>
+                        </div>
+                    </div>
+
+                    <!-- Elementos e Ativos -->
+                    <div class="col-md-6">
+                        <div class="metric-card h-100 border-start border-warning border-4">
+                            <div class="metric-icon text-warning"><i class="fas fa-ruler-combined"></i></div>
+                            <div class="metric-value">{{ total_elementos|default:"0" }}</div>
+                            <div class="metric-label">Elementos Construtivos</div>
+                            <a href="{% url 'central_servicos:elementoconstrutivo_list' %}" class="btn btn-sm btn-outline-warning mt-3 rounded-pill px-3">Ver Lista</a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="metric-card h-100 border-start border-secondary border-4">
+                            <div class="metric-icon text-secondary"><i class="fas fa-microchip"></i></div>
+                            <div class="metric-value">{{ total_ativos|default:"0" }}</div>
+                            <div class="metric-label">Ativos Prediais</div>
+                            <a href="{% url 'central_servicos:ativopredial_list' %}" class="btn btn-sm btn-outline-secondary mt-3 rounded-pill px-3">Ver Lista</a>
+                        </div>
+                    </div>
+
+                    <!-- Tipos Base -->
+                    <div class="col-md-6">
+                        <div class="metric-card h-100 border-start border-danger border-4">
+                            <div class="metric-icon text-danger"><i class="fas fa-shapes"></i></div>
+                            <div class="metric-value">{{ total_tipos_ambiente|default:"0" }}</div>
+                            <div class="metric-label">Tipos de Ambiente</div>
+                            <a href="{% url 'central_servicos:tipoambiente_list' %}" class="btn btn-sm btn-outline-danger mt-3 rounded-pill px-3">Ver Lista</a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="metric-card h-100 border-start border-dark border-4">
+                            <div class="metric-icon text-dark"><i class="fas fa-cubes"></i></div>
+                            <div class="metric-value">{{ total_tipos_ativo|default:"0" }}</div>
+                            <div class="metric-label">Tipos de Ativos</div>
+                            <a href="{% url 'central_servicos:tipoativo_list' %}" class="btn btn-sm btn-outline-dark mt-3 rounded-pill px-3">Ver Lista</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>

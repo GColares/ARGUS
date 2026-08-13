@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatórios - Central de Serviços{% endblock %}
+
+{% block content %}
+<style>
+    .metric-card {
+        background: #fff;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+        display: block;
+        text-decoration: none;
+        color: inherit;
+    }
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        color: inherit;
+    }
+    .metric-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        opacity: 0.8;
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+    .metric-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .cs-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        cursor: pointer;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+        text-decoration: none !important;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .cs-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 1);
+    }
+
+    .cs-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.1), rgba(var(--bs-info-rgb), 0.1));
+        color: var(--bs-primary);
+        transition: all 0.3s ease;
+    }
+
+    .cs-card:hover .cs-icon-wrapper {
+        background: var(--bs-primary);
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .cs-title {
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+    
+    /* Tree View Styles */
+    .tree-view {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+    }
+    
+    .tree-node-predio > .accordion-button {
+        background-color: #f8f9fa;
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 1.1rem;
+        border-radius: 0.5rem !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .tree-node-andar > .accordion-button {
+        background-color: transparent;
+        font-weight: 600;
+        color: #495057;
+        border: none;
+        padding-left: 2rem;
+    }
+    .tree-node-andar > .accordion-button:not(.collapsed) {
+        background-color: rgba(var(--bs-info-rgb), 0.05);
+        color: var(--bs-info);
+        box-shadow: inset 0 -1px 0 rgba(0,0,0,.125);
+    }
+    
+    .tree-node-ambiente {
+        padding: 1rem 1rem 1rem 3rem;
+        border-bottom: 1px solid #f1f3f5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.2s;
+    }
+    .tree-node-ambiente:hover {
+        background-color: #f8f9fa;
+    }
+    .tree-node-ambiente:last-child {
+        border-bottom: none;
+    }
+
+    /* Drag Handle */
+    .drag-handle {
+        cursor: grab;
+        color: #adb5bd;
+        margin-right: 0.5rem;
+        transition: color 0.2s;
+    }
+    .drag-handle:hover {
+        color: #495057;
+    }
+    .sortable-ghost {
+        opacity: 0.4;
+        background-color: #f8f9fa;
+    }
+    .sortable-chosen {
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+</style>
+
+
+<div class="container-fluid px-4 mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-chart-pie text-success me-2"></i>Relatórios e Indicadores</h2>
+            <p class="text-muted small mb-0 mt-1">Métricas consolidadas de cadastros e OS</p>
+        </div>
+        <a href="{% url 'central_servicos:home_central_servicos' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Voltar</a>
+    </div>
+
+    <!-- SEÇÃO 1: LISTAS -->
+    <h4 class="fw-bold mb-4 text-secondary"><i class="fas fa-list me-2"></i> Seção 1: Listas e Indicadores</h4>
+    <div class="row g-4 mb-5">
+        <!-- Histórico de OS Card (Destaque) -->
+        <div class="col-md-4">
+            <a href="{% url 'central_servicos:historico_os' %}" class="cs-card">
+                <div class="cs-icon-wrapper text-info bg-info bg-opacity-10">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3 class="cs-title">Histórico de OS</h3>
+                <p class="cs-desc text-muted mb-0">Consulte todas as Ordens de Serviço</p>
+            </a>
+        </div>
+        
+        <div class="col-md-2">
+            <a href="{% url 'central_servicos:tipoambiente_list' %}" class="metric-card h-100 border-start border-danger border-4">
+                <div class="metric-icon text-danger"><i class="fas fa-shapes"></i></div>
+                <div class="metric-value">{{ total_tipos_ambiente|default:"0" }}</div>
+                <div class="metric-label" style="font-size: 0.75rem;">Tipos de Ambiente</div>
+            </a>
+        </div>
+        
+        <div class="col-md-2">
+            <a href="{% url 'central_servicos:tipoativo_list' %}" class="metric-card h-100 border-start border-dark border-4">
+                <div class="metric-icon text-dark"><i class="fas fa-cubes"></i></div>
+                <div class="metric-value">{{ total_tipos_ativo|default:"0" }}</div>
+                <div class="metric-label" style="font-size: 0.75rem;">Tipos de Ativos</div>
+            </a>
+        </div>
+        
+        <div class="col-md-2">
+            <a href="{% url 'central_servicos:categoriaservico_list' %}" class="metric-card h-100 border-start border-primary border-4">
+                <div class="metric-icon text-primary"><i class="fas fa-tags"></i></div>
+                <div class="metric-value">{{ total_categorias|default:"0" }}</div>
+                <div class="metric-label" style="font-size: 0.75rem;">Categorias</div>
+            </a>
+        </div>
+        
+        <div class="col-md-2">
+            <a href="{% url 'central_servicos:finalidade_list' %}" class="metric-card h-100 border-start border-secondary border-4">
+                <div class="metric-icon text-secondary"><i class="fas fa-bullseye"></i></div>
+                <div class="metric-value">{{ total_finalidades|default:"0" }}</div>
+                <div class="metric-label" style="font-size: 0.75rem;">Finalidades</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- SEÇÃO 2: ESTRUTURA (Árvore) -->
+    <h4 class="fw-bold mb-4 text-secondary"><i class="fas fa-sitemap me-2"></i> Seção 2: Estrutura Organizacional</h4>
+    <div class="tree-view">
+        <div class="accordion sortable-list" id="accordionPredios" data-model="Predio">
+            {% for predio in predios_arvore %}
+            <div class="accordion-item border-0 mb-2 sortable-item" data-id="{{ predio.id }}">
+                <h2 class="accordion-header tree-node-predio" id="headingPredio{{ predio.id }}">
+                    <button class="accordion-button collapsed shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePredio{{ predio.id }}" aria-expanded="false" aria-controls="collapsePredio{{ predio.id }}">
+                        <i class="fas fa-grip-vertical drag-handle"></i><i class="fas fa-building text-primary me-3"></i> {{ predio.nome }}
+                    </button>
+                </h2>
+                <div id="collapsePredio{{ predio.id }}" class="accordion-collapse collapse" aria-labelledby="headingPredio{{ predio.id }}">
+                    <div class="accordion-body p-0 pt-2">
+                        
+                        <!-- Andares do Prédio -->
+                        <div class="accordion accordion-flush sortable-list" id="accordionAndares{{ predio.id }}" data-model="Andar">
+                            {% for andar in predio.andares.all %}
+                            <div class="accordion-item border-0 sortable-item" data-id="{{ andar.id }}">
+                                <h2 class="accordion-header tree-node-andar" id="headingAndar{{ andar.id }}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAndar{{ andar.id }}" aria-expanded="false" aria-controls="collapseAndar{{ andar.id }}">
+                                        <i class="fas fa-grip-vertical drag-handle"></i><i class="fas fa-layer-group text-info me-3"></i> {{ andar.nome }}
+                                    </button>
+                                </h2>
+                                <div id="collapseAndar{{ andar.id }}" class="accordion-collapse collapse" aria-labelledby="headingAndar{{ andar.id }}">
+                                    <div class="accordion-body p-0 sortable-list" data-model="Ambiente">
+                                        
+                                        <!-- Ambientes do Andar -->
+                                        {% for ambiente in andar.ambientes.all %}
+                                        <div class="tree-node-ambiente sortable-item" data-id="{{ ambiente.id }}">
+                                            <div>
+                                                <i class="fas fa-grip-vertical drag-handle"></i><i class="fas fa-door-open text-success me-2"></i> 
+                                                <span class="fw-bold text-dark">{{ ambiente.nome }}</span>
+                                                <span class="text-muted ms-2 small">({{ ambiente.tipo.nome }})</span>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-light text-dark border me-2">
+                                                    <i class="fas fa-ruler-combined text-warning me-1"></i> {{ ambiente.elementos_construtivos.count }} Elementos
+                                                </span>
+                                                <span class="badge bg-light text-dark border me-3">
+                                                    <i class="fas fa-microchip text-secondary me-1"></i> {{ ambiente.ativos.count }} Ativos
+                                                </span>
+                                                <a href="{% url 'central_servicos:ambiente_editar' ambiente.id %}" class="btn btn-sm btn-outline-success rounded-pill" title="Acessar Ambiente">
+                                                    <i class="fas fa-arrow-right"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <div class="p-3 ps-5 text-muted small">
+                                            <em>Nenhum ambiente cadastrado neste andar.</em>
+                                        </div>
+                                        {% endfor %}
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="p-3 ps-4 text-muted small">
+                                <em>Nenhum andar cadastrado neste prédio.</em>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center p-5 text-muted">
+                <i class="fas fa-building fa-3x mb-3 opacity-25"></i>
+                <p>Nenhum prédio cadastrado no sistema.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- SortableJS -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sortableLists = document.querySelectorAll('.sortable-list');
+    
+    sortableLists.forEach(function(list) {
+        new Sortable(list, {
+            animation: 150,
+            handle: '.drag-handle', // drag handle selector within list items
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            onEnd: function (evt) {
+                const modelName = list.getAttribute('data-model');
+                if (!modelName) return;
+                
+                // Pegar a nova ordem dos IDs
+                const itemIds = [];
+                const items = list.querySelectorAll(':scope > .sortable-item');
+                items.forEach(item => {
+                    const id = item.getAttribute('data-id');
+                    if (id) {
+                        itemIds.push(id);
+                    }
+                });
+                
+                if (itemIds.length === 0) return;
+                
+                // Disparar requisição AJAX para salvar a nova ordem
+                fetch('{% url "central_servicos:reordenar_itens" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        'modelo': modelName,
+                        'ids': itemIds
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        // Toast alert? or silent success. We do a silent success.
+                        console.log(modelName + ' reordenado com sucesso!');
+                    } else {
+                        alert('Erro ao reordenar: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erro de comunicação ao reordenar.');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

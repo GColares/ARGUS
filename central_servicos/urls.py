@@ -9,6 +9,8 @@ urlpatterns = [
     path('nova/', views.OrdemServicoCreateView.as_view(), name='nova_os'),
     path('relatorio/<str:status>/', views.RelatorioOSView.as_view(), name='relatorio_os'),
     path('historico/', views.OrdemServicoHistoricoView.as_view(), name='historico_os'),
+    path('relatorios/', views.RelatoriosView.as_view(), name='relatorios'),
+    path('reordenar/', views.ReordenarItensView.as_view(), name='reordenar_itens'),
     path('cancelar/<int:pk>/', views.OrdemServicoCancelarView.as_view(), name='cancelar_os'),
     
     # Gestão de Prédios
@@ -32,6 +34,7 @@ urlpatterns = [
 
     # Gestão de Tipos de Ambiente
     path('tipos-ambiente/', views.TipoAmbienteListView.as_view(), name='tipoambiente_list'),
+    path('tipos-ambiente/ajax-add/', views.TipoAmbienteAjaxCreateView.as_view(), name='tipoambiente_ajax_add'),
     path('tipos-ambiente/novo/', views.TipoAmbienteCreateView.as_view(), name='tipoambiente_novo'),
     path('tipos-ambiente/<int:pk>/editar/', views.TipoAmbienteUpdateView.as_view(), name='tipoambiente_editar'),
     path('tipos-ambiente/<int:pk>/excluir/', views.TipoAmbienteDeleteView.as_view(), name='tipoambiente_excluir'),
