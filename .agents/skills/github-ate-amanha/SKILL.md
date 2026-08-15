@@ -11,7 +11,7 @@ Siga os passos rigorosamente nesta ordem:
 
 1. **Atualizar Regras de Negócio e Diário:**
    - Antes de iniciar o versionamento, atualize o arquivo `.agents/rules/CONTEXTO_ARGUS.md` com novos aprendizados caso necessário.
-   - Atualize OBRIGATORIAMENTE o arquivo `diario_de_bordo.md` na raiz do projeto, adicionando uma nova entrada no topo do arquivo com a data atual, detalhando o que foi feito na sessão e o que está pendente.
+   - Atualize OBRIGATORIAMENTE o arquivo `diario_de_bordo.md` na raiz do projeto. ATENÇÃO: NUNCA sobrescreva o arquivo apagando o histórico anterior. Você deve INSERIR a nova entrada (com a data atual, o que foi feito e o que está pendente) logo abaixo do título principal do arquivo, empurrando todo o texto e os dias anteriores para baixo, preservando todo o histórico intocado.
 2. **Geração de Backup de Segurança:**
    - Garanta que a pasta `backups/` existe na raiz do projeto (crie se não existir).
    - Determine o próximo ID sequencial de 3 dígitos (NNN) analisando a pasta `backups/` e crie o backup adotando a regra de nomenclatura NNN:

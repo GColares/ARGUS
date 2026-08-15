@@ -1,5 +1,17 @@
 # Diário de Bordo - ARGUS
 
+## 14/08/2026 (Encerramento Extra)
+**Status Atual do Projeto:**
+O projeto encerra o dia com a consolidação das regras de preservação de histórico.
+
+**O que foi feito recentemente:**
+- **Diário de Bordo:** Reforço da regra no `github-ate-amanha` para proibir a sobrescrita do diário e garantir a inserção no topo. Este registro demonstra a regra em ação.
+
+**O que está pendente no nosso radar:**
+- **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
+
+---
+
 ## 14/08/2026
 **Status Atual do Projeto:**
 O projeto está avançando com foco na melhoria da usabilidade (ordenamento espacial) e consolidação de regras rígidas de segurança (backups) e documentação.
