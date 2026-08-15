@@ -9,8 +9,9 @@ Sempre que o usuário enviar o comando "ate-amanha" (ex: "até amanhã", "ate am
 
 Siga os passos rigorosamente nesta ordem:
 
-1. **Atualizar Regras de Negócio:**
-   - Antes de iniciar o versionamento, reflita sobre o que foi desenvolvido na sessão atual. Se você identificar novas definições de negócio, novos fluxos ou módulos criados que agreguem conhecimento ao sistema, atualize o arquivo `.agents/rules/CONTEXTO_ARGUS.md` com esses novos aprendizados.
+1. **Atualizar Regras de Negócio e Diário:**
+   - Antes de iniciar o versionamento, atualize o arquivo `.agents/rules/CONTEXTO_ARGUS.md` com novos aprendizados caso necessário.
+   - Atualize OBRIGATORIAMENTE o arquivo `diario_de_bordo.md` na raiz do projeto, adicionando uma nova entrada no topo do arquivo com a data atual, detalhando o que foi feito na sessão e o que está pendente.
 2. **Geração de Backup de Segurança:**
    - Garanta que a pasta `backups/` existe na raiz do projeto (crie se não existir).
    - Determine o próximo ID sequencial de 3 dígitos (NNN) analisando a pasta `backups/` e crie o backup adotando a regra de nomenclatura NNN:
