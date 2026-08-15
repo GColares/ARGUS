@@ -14,7 +14,9 @@ Sempre que você criar, planejar ou modificar funcionalidades de "Cadastro" (CRU
 Os cabeçalhos (`<th>` ou `<thead>`) de todas as tabelas criadas no sistema devem ter os rótulos centralizados obrigatoriamente (por exemplo, utilizando a classe utilitária `text-center` do Bootstrap). As colunas de "Ações" (editar/excluir) também devem acompanhar esse alinhamento para manter a uniformidade visual.
 
 ## Navegação e UX (Botão Voltar)
-Todas as páginas e telas desenvolvidas para o sistema Argus devem obrigatoriamente conter um botão ou link de "Voltar" (Back) funcionando adequadamente. Este botão deve apontar de volta para a tela lógica anterior na hierarquia do sistema ou utilizar mecanismos de fallback do navegador (ex: javascript:history.back()) caso a rota de origem seja dinâmica.
+Todas as páginas e telas desenvolvidas para o sistema Argus devem obrigatoriamente conter um link de "Voltar" (Back) padronizado sob o breadcrumb. 
+1. O texto deve ser sempre o mesmo: `<i class="fas fa-arrow-left me-1"></i> Voltar` (sem redundâncias como "Voltar para o painel").
+2. O direcionamento deve ser **estritamente dinâmico e inteligente** utilizando `javascript:history.back()`. Nunca utilize URLs hardcoded do Django (`{% url ... %}`) em botões de "Voltar", para garantir que o usuário retorne exatamente de onde veio (mantendo filtros, paginações e histórico do navegador).
 
 ## Padrão Visual de Telas de Listagem (Padrão Almoxarifado)
 Sempre que criar, refatorar ou modificar uma página de listagem de dados (ListView) no ARGUS, você deve obrigatoriamente seguir a anatomia de UI baseada no Almoxarifado:
@@ -35,3 +37,17 @@ Sempre que uma tabela HTML for processada via **DataTables (Javascript)** no lad
 1. **NÃO utilize a tag `{% empty %}`** do Django com colunas fundidas (`colspan`) dentro da tag `<tbody>`.
 2. Se a QuerySet for vazia, entregue o `<tbody></tbody>` completamente vazio ao HTML. 
 3. O próprio script nativo do DataTables irá detectar a ausência de nós filhos e se encarregará de renderizar de forma segura e responsiva a mensagem de tabela vazia ("Nenhum registro encontrado").
+
+## Agrupamento Semântico de Cadastros Base (Domain-Driven UI)
+Sempre que criar modais, menus ou painéis que listem entidades base do sistema (Cadastros Base/Domínios), **evite listas planas**. 
+As entidades devem ser obrigatoriamente agrupadas visualmente por **Contexto de Negócio** (Domain-Driven UI) utilizando subtítulos divisores.
+Isso é vital para lidar com entidades que possuem nomes genéricos em módulos diferentes (ex: Categoria de Serviço, Categoria de Elemento, Tipo de Ambiente, Tipo de Ativo).
+*Exemplo de Grupos:* "Infraestrutura (Espaços)", "Elementos Físicos", "Ativos/Equipamentos", "Parâmetros de O.S.".
+
+## Padronização de Atributos em Cadastros Base
+Sempre que criar ou modificar entidades de "Cadastro Base" (Tabelas de Domínio/Paramétricas como Categorias, Tipos, Finalidades, Status, etc.):
+1. **Descrição Obrigatória:** Elas devem sempre possuir, além de `nome`, um campo `descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")`. Isso é vital para explicar a outros usuários do sistema *quando* ou *como* usar aquela opção.
+2. **Auditoria:** Elas devem sempre incorporar `history = HistoricalRecords()` para rastrear quem adicionou ou editou esses parâmetros centrais do sistema.
+
+## Cobertura Completa de CRUD para Cadastros Base
+Todas as entidades de "Cadastro Base" definidas no `models.py` devem obrigatoriamente possuir um fluxo CRUD completo (List, Create, Update, Delete) implementado (com Views, URLs e Templates). Além disso, todas elas devem estar incondicionalmente acessíveis na interface do usuário (ex: dentro do modal "Cadastros Base do Sistema"), organizadas pelo seu Contexto de Negócio. Nenhuma entidade base deve ficar "oculta" ou inacessível no frontend.

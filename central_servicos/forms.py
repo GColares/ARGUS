@@ -143,6 +143,7 @@ class FinalidadeForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da Finalidade'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 class TipoAtivoForm(forms.ModelForm):
@@ -170,6 +171,7 @@ class CategoriaElementoForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 class TipoElementoForm(forms.ModelForm):
@@ -179,6 +181,7 @@ class TipoElementoForm(forms.ModelForm):
         widgets = {
             'categoria': forms.Select(attrs={'class': 'form-select'}),
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 class ElementoConstrutivoForm(forms.ModelForm):

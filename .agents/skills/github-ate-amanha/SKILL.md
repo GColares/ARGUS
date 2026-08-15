@@ -13,8 +13,8 @@ Siga os passos rigorosamente nesta ordem:
    - Antes de iniciar o versionamento, reflita sobre o que foi desenvolvido na sessão atual. Se você identificar novas definições de negócio, novos fluxos ou módulos criados que agreguem conhecimento ao sistema, atualize o arquivo `.agents/rules/CONTEXTO_ARGUS.md` com esses novos aprendizados.
 2. **Geração de Backup de Segurança:**
    - Garanta que a pasta `backups/` existe na raiz do projeto (crie se não existir).
-   - Execute o dump do banco de dados local com timestamp seguro usando:
-     `$env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -d argus_db -f backups/argus_backup_YYYYMMDD_HHMM.sql`
+   - Determine o próximo ID sequencial de 3 dígitos (NNN) analisando a pasta `backups/` e crie o backup adotando a regra de nomenclatura NNN:
+     `$env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -d argus_db -f backups/NNN_db_backup_YYYY-MM-DD_HH-MM.sql`
 3. **Salvar Pacotes (Requirements):**
    - Execute a exportação das dependências para garantir que qualquer pacote novo seja salvo:
      `.\.venv\Scripts\python.exe -m pip freeze > requirements.txt`

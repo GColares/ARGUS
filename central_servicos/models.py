@@ -9,6 +9,8 @@ import uuid
 
 class Finalidade(models.Model):
     nome = models.CharField(max_length=50, unique=True)
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.nome
@@ -117,10 +119,12 @@ class Ambiente(models.Model):
     def __str__(self):
         if self.andar:
             return f"{self.predio.sigla or self.predio.nome} - {self.andar.nome} - {self.nome}"
-        return f"{self.predio.sigla or self.predio.nome} - {self.nome} ({self.get_localizacao_display()})"
+        return f"{self.predio.sigla or self.predio.nome} - {self.nome} ({self.get_localizacao_display()})" # type: ignore
 
 class CategoriaElemento(models.Model):
     nome = models.CharField(max_length=100, unique=True, help_text="Ex: Piso, Parede, Janela, Forro")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    history = HistoricalRecords()
     
     def __str__(self):
         return self.nome
@@ -133,6 +137,8 @@ class CategoriaElemento(models.Model):
 class TipoElemento(models.Model):
     categoria = models.ForeignKey(CategoriaElemento, on_delete=models.CASCADE, related_name='tipos')
     nome = models.CharField(max_length=100, help_text="Ex: Piso Frio, Piso Acarpetado, Parede Drywall")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    history = HistoricalRecords()
     
     def __str__(self):
         return f"{self.categoria.nome}: {self.nome}"
@@ -180,6 +186,7 @@ class AtivoPredial(models.Model):
 class CategoriaServico(models.Model):
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField(blank=True, null=True)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Categoria de Serviço"

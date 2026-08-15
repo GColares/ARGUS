@@ -1,56 +1,57 @@
 {% extends 'base.html' %}
-{% block title %}Tipos de Ativos - Central de Serviços{% endblock %}
+{% block title %}Categorias de Elemento - Central de Serviços{% endblock %}
 {% block content %}
 <div class="container-fluid px-4 mt-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'central_servicos:home_central_servicos' %}" class="text-decoration-none text-primary">Central de Serviços</a></li>
-            <li class="breadcrumb-item active">Tipos de Ativos</li>
+            <li class="breadcrumb-item active">Categorias de Elemento</li>
         </ol>
     </nav>
     <div class="d-flex justify-content-between align-items-center mb-2">
         <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Voltar</a>
         <button type="button" class="btn btn-sm btn-outline-secondary border-0 text-muted" data-bs-toggle="modal" data-bs-target="#cadastrosModal">
-        <i class="fas fa-database me-1"></i> Cadastros Base
-    </button>
+            <i class="fas fa-database me-1"></i> Cadastros Base
+        </button>
     </div>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            
-            <h2 class="mb-0"><i class="fas fa-list text-primary me-2"></i> Gestão de Tipos de Ativos</h2>
+            <h2 class="mb-0"><i class="fas fa-tags text-primary me-2"></i> Gestão de Categorias de Elemento</h2>
         </div>
-        <a href="{% url 'central_servicos:tipoativo_novo' %}" class="btn btn-primary shadow-sm">
-            <i class="fas fa-plus me-1"></i> Novo Tipo de Ativo
+        <a href="{% url 'central_servicos:categoriaelemento_novo' %}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus me-1"></i> Nova Categoria
         </a>
     </div>
     <div class="card shadow-sm border-0 rounded-3">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <th class="text-center"ead class="table-light">
+                    <thead class="table-light">
                         <tr>
                             <th class="text-center px-4">ID</th>
                             <th class="text-center">Nome</th>
+                            <th class="text-center">Descrição</th>
                             <th class="text-center px-4">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for obj in object_list %}
+                        {% for obj in categoriaselemento %}
                         <tr>
                             <td class="text-center text-muted">#{{ obj.id }}</td>
                             <td class="text-center fw-semibold">{{ obj.nome }}</td>
+                            <td class="text-center">{{ obj.descricao|default:"-" }}</td>
                             <td class="text-center">
-                                <a href="{% url 'central_servicos:tipoativo_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
+                                <a href="{% url 'central_servicos:categoriaelemento_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <a href="{% url 'central_servicos:tipoativo_excluir' obj.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                <a href="{% url 'central_servicos:categoriaelemento_excluir' obj.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir">
                                     <i class="fas fa-trash-alt"></i>
                                 </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-4">
+                            <td colspan="4" class="text-center text-muted py-4">
                                 <i class="fas fa-inbox fa-3x mb-3 text-light"></i>
                                 <p class="mb-0">Nenhum registro encontrado.</p>
                             </td>

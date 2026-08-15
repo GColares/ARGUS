@@ -8,8 +8,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View, TemplateView
 # pyrefly: ignore [untyped-import]
 from django.urls import reverse_lazy
-from .models import OrdemServico, Predio, Andar, Ambiente, TipoAmbiente, TipoElemento, ElementoConstrutivo, TipoAtivo, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
-from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, AmbienteForm, TipoAmbienteForm, ElementoConstrutivoForm, TipoElementoForm, TipoAtivoForm, AtivoPredialForm, AtivoPredialLoteForm, CategoriaServicoForm, FinalidadeForm
+from .models import OrdemServico, Predio, Andar, Ambiente, TipoAmbiente, CategoriaElemento, TipoElemento, ElementoConstrutivo, TipoAtivo, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
+from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, AmbienteForm, TipoAmbienteForm, CategoriaElementoForm, ElementoConstrutivoForm, TipoElementoForm, TipoAtivoForm, AtivoPredialForm, AtivoPredialLoteForm, CategoriaServicoForm, FinalidadeForm
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import JsonResponse
@@ -555,6 +555,31 @@ class TipoAmbienteDeleteView(LoginRequiredMixin, DeleteView):
     model = TipoAmbiente
     template_name = 'central_servicos/tipoambiente_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:tipoambiente_list')
+
+# ==========================================
+# GESTÃO DE CATEGORIAS DE ELEMENTO CONSTRUTIVO
+# ==========================================
+class CategoriaElementoListView(LoginRequiredMixin, ListView):
+    model = CategoriaElemento
+    template_name = 'central_servicos/categoriaelemento_list.html'
+    context_object_name = 'categoriaselemento'
+
+class CategoriaElementoCreateView(LoginRequiredMixin, CreateView):
+    model = CategoriaElemento
+    form_class = CategoriaElementoForm
+    template_name = 'central_servicos/categoriaelemento_form.html'
+    success_url = reverse_lazy('central_servicos:categoriaelemento_list')
+
+class CategoriaElementoUpdateView(LoginRequiredMixin, UpdateView):
+    model = CategoriaElemento
+    form_class = CategoriaElementoForm
+    template_name = 'central_servicos/categoriaelemento_form.html'
+    success_url = reverse_lazy('central_servicos:categoriaelemento_list')
+
+class CategoriaElementoDeleteView(LoginRequiredMixin, DeleteView):
+    model = CategoriaElemento
+    template_name = 'central_servicos/categoriaelemento_confirm_delete.html'
+    success_url = reverse_lazy('central_servicos:categoriaelemento_list')
 
 # ==========================================
 # GESTÃO DE TIPOS DE ELEMENTO CONSTRUTIVO

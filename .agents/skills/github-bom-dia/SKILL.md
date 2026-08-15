@@ -1,11 +1,11 @@
 ---
-name: github-iniciar-dia
+name: github-bom-dia
 description: "Rotina completa de início do dia (Chegada). Sincroniza o código, instala bibliotecas, roda migrações e restaura backups do banco."
 ---
 
 # Instruções de Execução
 
-Sempre que o usuário enviar o comando "iniciar-dia" (ex: "iniciar dia", "bom dia", "pode começar"), você deverá preparar o ambiente local com base nas últimas atualizações do GitHub.
+Sempre que o usuário enviar o comando "bom dia" (ex: "bom dia", "pode começar"), você deverá preparar o ambiente local com base nas últimas atualizações do GitHub.
 
 Siga os passos rigorosamente nesta ordem:
 
@@ -16,7 +16,7 @@ Siga os passos rigorosamente nesta ordem:
 3. **Sincronizar Estrutura do Banco (Migrações):**
    - Execute as migrações para que a estrutura acompanhe o código: `.\.venv\Scripts\python.exe manage.py migrate`
 4. **Acionar Restauração de Dados (Restauração Opcional):**
-   - Verifique utilizando o PowerShell se há algum arquivo `.sql` na pasta `backups/`. Exemplo:
+   - Verifique utilizando o PowerShell qual o backup `.sql` de maior ID (NNN_) na pasta `backups/`. Exemplo:
      `$latest = Get-ChildItem -Path "c:\Projetos\ARGUS\backups\*.sql" -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1; if ($latest) { $latest.FullName } else { "NOT FOUND" }`
    - Se encontrar um backup, avise o usuário qual foi o backup mais recente que existe na pasta. Em seguida, **PERGUNTE** ao usuário se ele deseja injetar esse backup no banco atual dele.
    - **SE O USUÁRIO CONFIRMAR A INJEÇÃO (ex: "sim, pode injetar"):**

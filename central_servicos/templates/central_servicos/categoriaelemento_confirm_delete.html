@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Excluir Tipo de Ambiente{% endblock %}
+{% block title %}Excluir Categoria de Elemento{% endblock %}
 {% block content %}
 <div class="container-fluid px-4 mt-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'central_servicos:home_central_servicos' %}" class="text-decoration-none text-primary">Central de Serviços</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'central_servicos:tipoambiente_list' %}" class="text-decoration-none text-primary">Tipos de Ambiente</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'central_servicos:categoriaelemento_list' %}" class="text-decoration-none text-primary">Categorias de Elemento</a></li>
             <li class="breadcrumb-item active text-danger">Excluir</li>
         </ol>
     </nav>
@@ -25,7 +25,7 @@
                 </div>
                 <div class="card-body p-5">
                     <h2 class="fw-bold mb-3">Confirma a exclusão?</h2>
-                    <p class="text-muted fs-5 mb-4">Você está prestes a excluir o Tipo de Ambiente <strong>"{{ object }}"</strong>.</p>
+                    <p class="text-muted fs-5 mb-4">Você está prestes a excluir a Categoria de Elemento <strong>"{{ object }}"</strong>.</p>
                     
                     <div class="alert alert-warning text-start mb-4 border-start border-warning border-4">
                         <i class="fas fa-info-circle me-2"></i> Esta ação é irreversível.
@@ -34,7 +34,7 @@
                     <form method="post">
                         {% csrf_token %}
                         <div class="d-grid gap-3 d-md-flex justify-content-md-center">
-                            <a href="{% url 'central_servicos:tipoambiente_list' %}" class="btn btn-light btn-lg px-5 flex-grow-1">
+                            <a href="{% url 'central_servicos:categoriaelemento_list' %}" class="btn btn-light btn-lg px-5 flex-grow-1">
                                 Cancelar
                             </a>
                             <button type="submit" class="btn btn-danger btn-lg px-5 flex-grow-1 shadow-sm">

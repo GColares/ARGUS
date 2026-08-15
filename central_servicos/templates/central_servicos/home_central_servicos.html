@@ -284,6 +284,10 @@
                                 data-bs-target="#v-pills-estoque" type="button" role="tab">
                                 <i class="fas fa-cubes me-2 w-20px"></i> Baixa de Estoque
                             </button>
+                            <button class="nav-link text-start" id="v-pills-elementos-tab" data-bs-toggle="pill"
+                                data-bs-target="#v-pills-elementos" type="button" role="tab">
+                                <i class="fas fa-puzzle-piece me-2 w-20px"></i> Elementos Const.
+                            </button>
                         </div>
                     </div>
 
@@ -463,6 +467,25 @@
                                     <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
                                     <strong>Atenção:</strong> A baixa só ocorre uma vez por O.S. para evitar duplicação.
                                     O sistema trava a edição de materiais após a conclusão.
+                                </div>
+                            </div>
+
+                            <!-- Elementos Construtivos -->
+                            <div class="tab-pane fade" id="v-pills-elementos" role="tabpanel">
+                                <h3 class="fw-bold mb-4 text-primary">Elementos Construtivos</h3>
+                                <p class="lead">Para gestão detalhada (ex: IN 05/2017), organizamos as características físicas dos ambientes em 3 níveis.</p>
+
+                                <div class="concept-box">
+                                    <h5><i class="fas fa-folder-open text-primary me-2"></i> 1. Categoria (O Grande Grupo)</h5>
+                                    <p class="mb-0 text-muted">Agrupamento macro. (Ex: "Pisos", "Paredes", "Esquadrias").</p>
+                                </div>
+                                <div class="concept-box">
+                                    <h5><i class="fas fa-tag text-info me-2"></i> 2. Tipo (Material/Especificação)</h5>
+                                    <p class="mb-0 text-muted">O material ou modelo específico da categoria. Define os insumos de limpeza/manutenção. (Ex: "Piso Frio", "Parede Drywall").</p>
+                                </div>
+                                <div class="concept-box">
+                                    <h5><i class="fas fa-puzzle-piece text-success me-2"></i> 3. Elemento (A Instância)</h5>
+                                    <p class="mb-0 text-muted">A ocorrência real deste material numa sala com sua metragem. (Ex: "Piso Frio" na "Sala 101" com "45 m²").</p>
                                 </div>
                             </div>
 
