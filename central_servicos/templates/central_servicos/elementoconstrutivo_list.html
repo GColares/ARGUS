@@ -29,17 +29,19 @@
                     <thead class="table-light">
                         <tr>
                             <th class="text-center px-4">ID</th>
-                            <th class="text-center">Nome</th>
-                            <th class="text-center">Categoria</th>
+                            <th class="text-center">Ambiente</th>
+                            <th class="text-center">Tipo de Elemento</th>
+                            <th class="text-center">Área (m²)</th>
                             <th class="text-center px-4">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for obj in elementosconstrutivos %}
+                        {% for obj in object_list %}
                         <tr>
                             <td class="text-center text-muted">#{{ obj.id }}</td>
-                            <td class="text-center fw-semibold">{{ obj.nome }}</td>
-                            <td class="text-center">{{ obj.categoria.nome|default:"-" }}</td>
+                            <td class="text-center fw-semibold">{{ obj.ambiente.nome }}</td>
+                            <td class="text-center">{{ obj.tipo.nome }}</td>
+                            <td class="text-center">{{ obj.area_m2 }}</td>
                             <td class="text-center">
                                 <a href="{% url 'central_servicos:elementoconstrutivo_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
                                     <i class="fas fa-edit"></i>
@@ -51,7 +53,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center text-muted py-4">
+                            <td colspan="5" class="text-center text-muted py-4">
                                 <i class="fas fa-inbox fa-3x mb-3 text-light"></i>
                                 <p class="mb-0">Nenhum registro encontrado.</p>
                             </td>
