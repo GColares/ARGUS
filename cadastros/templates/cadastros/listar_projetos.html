@@ -24,35 +24,33 @@
                                 <th class="text-center">Convênio</th>
                                 <th class="text-center">Projeto</th>
                                 <th class="text-center">Financiador</th>
-                                <th class="text-center">Contas</th>
-                                <th class="text-center">Ações</th>
+                                <th class="text-center" style="width: 150px;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for projeto in projetos %}
                             <tr>
-                                <td class="fw-bold">{{ projeto.convenio }}</td>
+                                <td class="fw-bold text-center">{{ projeto.convenio }}</td>
                                 <td>{{ projeto.nome }}</td>
-                                <td class="small">{{ projeto.financiadores }}</td>
+                                <td class="small text-center">{{ projeto.financiadores|default:"-" }}</td>
                                 
                                 <td class="text-center">
-                                    <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-sm btn-outline-info rounded-pill fw-bold" title="Gerenciar Contas do Projeto">
-                                        <i class="fas fa-university me-1"></i> {{ projeto.contas.count }} Contas
-                                    </a>
-                                </td>
-                                
-                                <td class="text-center d-flex justify-content-center gap-2">
-                                    <a href="{% url 'cadastros:gerenciar_cotas' projeto.id %}" class="btn btn-sm btn-outline-success rounded-pill fw-bold" title="Gerenciar Cotas do Plano de Trabalho e Vínculos">
-                                        <i class="fas fa-users me-1"></i> Cotas
-                                    </a>
-                                    <a href="{% url 'cadastros:gerenciar_processos' projeto.id %}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" title="Gerenciar Processos de Compra e Pagamento">
-                                        <i class="fas fa-file-signature me-1"></i> Processos
-                                    </a>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="{% url 'cadastros:visualizar_projeto' projeto.id %}" class="btn btn-sm btn-outline-info" title="Visualizar Detalhes">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'cadastros:editar_projeto' projeto.id %}" class="btn btn-sm btn-outline-warning" title="Editar Projeto">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'cadastros:excluir_projeto' projeto.id %}" class="btn btn-sm btn-outline-danger" title="Excluir Projeto">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
+                                <td colspan="4" class="text-center py-5 text-muted">
                                     <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
                                     <p class="mb-0">Nenhum projeto cadastrado até ao momento.</p>
                                 </td>

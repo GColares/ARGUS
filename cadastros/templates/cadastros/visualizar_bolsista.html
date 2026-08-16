@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'cadastros:listar_bolsistas' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar para Bolsistas
+            </a>
+            <h4 class="fw-bold text-success"><i class="fas fa-user-graduate me-2"></i> {{ bolsista.nome }}</h4>
+            <p class="text-muted mb-0">Visão Geral do Bolsista / Colaborador</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'cadastros:editar_bolsista' bolsista.id %}" class="btn btn-warning shadow-sm fw-bold text-dark">
+                <i class="fas fa-edit me-2"></i> Editar
+            </a>
+            <a href="{% url 'cadastros:excluir_bolsista' bolsista.id %}" class="btn btn-danger shadow-sm fw-bold">
+                <i class="fas fa-trash-alt me-2"></i> Excluir
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-bottom border-success border-2">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-address-card me-2"></i> Dados Pessoais</h6>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Nome Completo</h6>
+                    <p class="fs-5">{{ bolsista.nome }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">CPF</h6>
+                    <p class="fs-5">{{ bolsista.cpf }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Data de Nascimento</h6>
+                    <p class="fs-5">{{ bolsista.data_nascimento|date:"d/m/Y"|default:"Não informado" }}</p>
+                </div>
+                
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">RG / Órgão Emissor</h6>
+                    <p class="fs-5">{{ bolsista.rg }} - {{ bolsista.orgao_emissor_rg }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Nacionalidade</h6>
+                    <p class="fs-5">{{ bolsista.nacionalidade }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Estado Civil</h6>
+                    <p class="fs-5">{{ bolsista.estado_civil }}</p>
+                </div>
+
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">E-mail</h6>
+                    <p class="fs-5">{{ bolsista.email|default:"-" }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Telefone</h6>
+                    <p class="fs-5">{{ bolsista.telefone|default:"-" }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">SIAPE (Servidores)</h6>
+                    <p class="fs-5">{{ bolsista.siape|default:"-" }}</p>
+                </div>
+
+                <div class="col-12">
+                    <hr class="text-muted">
+                </div>
+
+                <div class="col-md-8">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Endereço Completo</h6>
+                    <p class="fs-5">{{ bolsista.endereco|default:"-" }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">CEP</h6>
+                    <p class="fs-5">{{ bolsista.cep|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

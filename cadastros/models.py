@@ -5,6 +5,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from dateutil.relativedelta import relativedelta
+from simple_history.models import HistoricalRecords
 
 # =====================================================================
 # VALIDADORES DE PADRÃO TEXTUAL (REGEX)
@@ -282,15 +283,34 @@ class RubricaOrcamentariaPT(models.Model):
     def __str__(self):
         return f"{self.get_categoria_display()} ({self.get_fonte_recurso_display()}) - R$ {self.valor_previsto}" # type: ignore
 
+class FonteDeRecurso(models.Model):
+    """
+    Entidade de domínio (Cadastro Base) que define a fonte financiadora do projeto
+    (Ex: EMBRAPII, SEBRAE, FAPEAM, Empresa).
+    """
+    nome = models.CharField(max_length=100, verbose_name="Nome da Fonte")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = "Fonte de Recursos"
+        verbose_name_plural = "Fontes de Recursos"
+        ordering = ['nome']
+
+    def __str__(self):
+        return self.nome
+
 class ContaBancaria(models.Model):
     """Contas de repasse exclusivas gerenciadas pela Interveniente para o projeto."""
     projeto = models.ForeignKey(ProjetoPDI, on_delete=models.CASCADE, related_name='contas')
     
-    # Campo adicionado para identificação da origem orçamentária
-    fonte_recurso = models.CharField(
-        max_length=100, 
-        verbose_name="Fonte do Recurso", 
-        help_text="Ex: EMBRAPII, SEBRAE, Empresa Parceira"
+    # Campo alterado para Chave Estrangeira
+    fonte_recurso = models.ForeignKey(
+        FonteDeRecurso,
+        on_delete=models.PROTECT,
+        verbose_name="Fonte do Recurso",
+        help_text="Vincule a uma fonte existente (Ex: EMBRAPII, SEBRAE)",
+        null=True, blank=True # Temporário para permitir a migração, deve ser removido após inserir dados
     )
     
     banco = models.CharField(max_length=50, default="Banco do Brasil")

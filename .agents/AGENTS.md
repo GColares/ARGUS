@@ -7,8 +7,11 @@ O dicionário `modulos` dentro dessa view controla os painéis exibidos na tela 
 ## Idioma
 Responda sempre em **Português do Brasil (pt-BR)**.
 
-## Telas de Cadastro (CRUD)
-Sempre que você criar, planejar ou modificar funcionalidades de "Cadastro" (CRUD) no sistema, é OBRIGATÓRIO incluir e implementar a função de "Excluir" (Delete). Todas as telas de listagem ou formulários de edição devem prover um caminho claro e funcional para a exclusão do registro, preferencialmente com confirmação (ex: modal ou página de confirmação do Django) para evitar deleções acidentais.
+## Telas de Listagem e Ações (CRUD Completo)
+Sempre que você criar, planejar ou modificar uma tela contendo uma **lista de registros** (DataTables ou tabelas padrão):
+1. A coluna de "Ações" deve obrigatoriamente fornecer três botões para cada linha: **Visualizar**, **Editar** e **Deletar**.
+2. O botão **Deletar** deve direcionar para um fluxo seguro com confirmação (ex: modal ou página de confirmação do Django) para evitar deleções acidentais.
+3. **Limpeza Visual de Listas (Separação de Detalhes):** As telas de listagem principal (ex: lista de Projetos) devem ser limpas e objetivas. Informações pesadas, complexas ou listas de entidades relacionadas (ex: Cotas do Projeto, Processos do Projeto, etc.) **não devem** ser colocadas na tabela principal. Elas devem ser realocadas exclusivamente para a tela de **Visualizar** (Detalhes) daquele registro específico.
 
 ## Estilo de Tabelas
 Os cabeçalhos (`<th>` ou `<thead>`) de todas as tabelas criadas no sistema devem ter os rótulos centralizados obrigatoriamente (por exemplo, utilizando a classe utilitária `text-center` do Bootstrap). As colunas de "Ações" (editar/excluir) também devem acompanhar esse alinhamento para manter a uniformidade visual.
@@ -51,3 +54,8 @@ Sempre que criar ou modificar entidades de "Cadastro Base" (Tabelas de Domínio/
 
 ## Cobertura Completa de CRUD para Cadastros Base
 Todas as entidades de "Cadastro Base" definidas no `models.py` devem obrigatoriamente possuir um fluxo CRUD completo (List, Create, Update, Delete) implementado (com Views, URLs e Templates). Além disso, todas elas devem estar incondicionalmente acessíveis na interface do usuário (ex: dentro do modal "Cadastros Base do Sistema"), organizadas pelo seu Contexto de Negócio. Nenhuma entidade base deve ficar "oculta" ou inacessível no frontend.
+
+## Fidelidade de Atributos em Telas (Models vs Views/Forms)
+Sempre que você criar, modificar ou refatorar formulários (`forms.py`) e telas de leitura/edição (`_form.html`, `_list.html`), é **OBRIGATÓRIO** garantir que **todos os atributos e campos** daquela entidade definidos no `models.py` estejam contemplados e visíveis na interface do usuário. 
+1. Nenhum campo de negócio do modelo deve ficar de fora das telas de leitura e edição.
+2. É estritamente proibido omitir campos obrigatórios no `ModelForm` (o que causaria `IntegrityError`), a menos que o preenchimento deles seja automatizado/injetado exclusivamente via backend (ex: `request.user` ou data de criação automática).

@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.urls import reverse
 from pydantic import ValidationError
-from .models import Fornecedor, ProjetoPDI, ContaBancaria, Processo, TipoProcesso
-from .forms import ProjetoPDIForm, ContaBancariaForm, ProcessoForm
+from .models import Fornecedor, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso
+from .forms import ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
@@ -31,13 +32,49 @@ def novo_projeto(request):
         if form.is_valid():
             projeto = form.save()
             messages.success(request, f"Projeto '{projeto.convenio}' cadastrado com sucesso no sistema!")
-            return redirect('cadastros:home_cadastros')
+            return redirect('cadastros:listar_projetos')
         else:
             messages.error(request, "Erro ao cadastrar. Por favor, verifique os campos em vermelho.")
     else:
         form = ProjetoPDIForm()
 
     return render(request, 'cadastros/form_projeto.html', {'form': form})
+
+@login_required
+def visualizar_projeto(request, projeto_id):
+    from cadastros.models import CotaBolsaPT
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+    processos = projeto.processos.all().order_by('-id')
+    cotas = CotaBolsaPT.objects.filter(projeto=projeto).order_by('perfil_funcao')
+    
+    contexto = {
+        'projeto': projeto,
+        'processos': processos,
+        'cotas': cotas
+    }
+    return render(request, 'cadastros/visualizar_projeto.html', contexto)
+
+@login_required
+def editar_projeto(request, projeto_id):
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+    if request.method == 'POST':
+        form = ProjetoPDIForm(request.POST, instance=projeto)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Projeto '{projeto.convenio}' atualizado com sucesso!")
+            return redirect('cadastros:listar_projetos')
+    else:
+        form = ProjetoPDIForm(instance=projeto)
+    return render(request, 'cadastros/form_projeto.html', {'form': form, 'projeto': projeto})
+
+@login_required
+def excluir_projeto(request, projeto_id):
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+    if request.method == 'POST':
+        projeto.delete()
+        messages.success(request, "Projeto excluído com sucesso!")
+        return redirect('cadastros:listar_projetos')
+    return render(request, 'cadastros/confirmar_exclusao_projeto.html', {'projeto': projeto})
 
 @login_required
 def gerenciar_contas(request, projeto_id):
@@ -68,71 +105,76 @@ def cadastrar_processo(request):
     Cadastra um novo processo (Compra, Pagamento, etc.) vinculado a um projeto PDI.
     Captura sugestões automáticas via Query String para otimizar o fluxo de clique no botão '+'.
     """
-    # 1. Captura parâmetros opcionais vindos da URL (GET) para pré-preenchimento inteligente
     projeto_sugerido_id = request.GET.get('projeto')
     tipo_sugerido_nome = request.GET.get('tipo', '').strip().upper()
     retorno_termo_id = request.GET.get('retorno_termo')
 
-    if request.method == 'POST':
-        projeto_id = request.POST.get('projeto')
-        tipo_id = request.POST.get('tipo')
-        numero = request.POST.get('numero', '').strip()
-        origem = request.POST.get('origem')
-        descricao = request.POST.get('descricao', '').strip()
-
-        try:
-            # Instancia o objeto na memória
-            novo_processo = Processo(
-                projeto_id=projeto_id,
-                tipo_id=tipo_id,
-                numero=numero,
-                origem=origem,
-                descricao=descricao
-            )
-            
-            # Força a execução das validações do clean() do models.py (Regex de máscaras do IFAM/FAEPI)
-            novo_processo.full_clean()
-            novo_processo.save()
-
-            messages.success(request, f"Processo {numero} cadastrado com sucesso!")
-            
-            # Fluxo de retorno inteligente: se veio de um termo específico, volta para ele
-            if retorno_termo_id and retorno_termo_id.isdigit() :
-                return redirect(f"/incorporacao/termo/{retorno_termo_id}/?abrir_modal=1")
-            
-            return redirect('incorporacao:home_incorporacao')
-
-        except ValidationError as e:
-            # Trata erros de validação de formulário/regex de forma amigável para o usuário
-            if hasattr(e, 'message_dict'):
-                for campo, erros in e.message_dict.items():
-                    for erro in erros:
-                        messages.error(request, f"Erro no campo [{campo}]: {erro}")
-            else:
-                messages.error(request, f"Erro de validação: {', '.join(e.messages)}")
-        except Exception as e:
-            messages.error(request, f"Erro operacional ao salvar o processo: {str(e)}")
-
-    # 2. Tenta mapear o ID do tipo sugerido (COMPRA ou PAGAMENTO) para ajudar o HTML a marcar como 'selected'
     tipo_sugerido_id = None
     if tipo_sugerido_nome:
         tipo_obj = TipoProcesso.objects.filter(nome__icontains=tipo_sugerido_nome).first()
         if tipo_obj:
             tipo_sugerido_id = tipo_obj.id
 
-    # 3. Contexto rico para alimentar os componentes de seleção da View
+    initial_data = {}
+    if projeto_sugerido_id:
+        initial_data['projeto'] = projeto_sugerido_id
+    if tipo_sugerido_id:
+        initial_data['tipo'] = tipo_sugerido_id
+
+    if request.method == 'POST':
+        form = ProcessoForm(request.POST)
+        if form.is_valid():
+            try:
+                processo = form.save()
+                messages.success(request, f"Processo {processo.numero} cadastrado com sucesso!")
+                
+                if retorno_termo_id and str(retorno_termo_id).isdigit():
+                    return redirect(f"/incorporacao/termo/{retorno_termo_id}/?abrir_modal=1")
+                return redirect('cadastros:listar_processos_global')
+            except Exception as e:
+                messages.error(request, f"Erro operacional ao salvar o processo: {str(e)}")
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Erro no campo [{field}]: {error}")
+    else:
+        form = ProcessoForm(initial=initial_data)
+
     context = {
-        'projetos': ProjetoPDI.objects.all().order_by('-id'),
-        'tipos': TipoProcesso.objects.all().order_by('nome'),
-        'origens': Processo.ORIGEM_CHOICES,
-        
-        # Variáveis de controle de estado para o template
-        'projeto_sugerido_id': int(projeto_sugerido_id) if projeto_sugerido_id and projeto_sugerido_id.isdigit() else None,
-        'tipo_sugerido_id': tipo_sugerido_id,
+        'form': form,
         'retorno_termo_id': retorno_termo_id,
+        'projeto_sugerido_id': projeto_sugerido_id,
+        'tipo_sugerido_id': tipo_sugerido_id,
     }
-    
     return render(request, 'cadastros/form_processo.html', context)
+
+@login_required
+def editar_processo(request, id):
+    processo = get_object_or_404(Processo, id=id)
+    if request.method == 'POST':
+        form = ProcessoForm(request.POST, instance=processo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Processo '{processo.numero}' atualizado com sucesso!")
+            return redirect('cadastros:listar_processos_global')
+    else:
+        form = ProcessoForm(instance=processo)
+    return render(request, 'cadastros/form_processo.html', {'form': form, 'processo': processo})
+
+@login_required
+def visualizar_processo(request, id):
+    processo = get_object_or_404(Processo, id=id)
+    return render(request, 'cadastros/visualizar_processo.html', {'processo': processo})
+
+@login_required
+def excluir_processo(request, id):
+    processo = get_object_or_404(Processo, id=id)
+    if request.method == 'POST':
+        processo.delete()
+        messages.success(request, "Processo excluído com sucesso!")
+        return redirect('cadastros:listar_processos_global')
+    return render(request, 'cadastros/confirmar_exclusao_processo.html', {'processo': processo})
+
 
 @login_required
 def gerenciar_processos(request, projeto_id):
@@ -184,38 +226,49 @@ def cadastrar_fornecedor(request):
     retorno_termo_id = request.GET.get('retorno_termo')
 
     if request.method == 'POST':
-        nome = request.POST.get('nome', '').strip()
-        cnpj = request.POST.get('cnpj', '').strip()
-        sigla = request.POST.get('sigla', '').strip()
-        endereco = request.POST.get('endereco', '').strip()
-        email = request.POST.get('email', '').strip()
-
-        try:
-            # Cria a instância e salva no banco de dados
-            novo_fornecedor = Fornecedor.objects.create(
-                nome=nome,
-                cnpj=cnpj,
-                sigla=sigla,
-                endereco=endereco,
-                email=email
-            )
-
+        form = FornecedorForm(request.POST)
+        if form.is_valid():
+            novo_fornecedor = form.save()
             messages.success(request, f"Fornecedor '{novo_fornecedor.nome}' cadastrado com sucesso!")
             
-            # Retorna direto para a tela do termo reabrindo o modal de itens
-            if retorno_termo_id and retorno_termo_id.isdigit():
-                return redirect(f"/incorporacao/termo/{retorno_termo_id}/?abrir_modal=1")
-            
-            return redirect('incorporacao:home_incorporacao')
+            if retorno_termo_id:
+                return redirect(f"{reverse('central_servicos:editar_termo_bolsa', args=[retorno_termo_id])}?fornecedor={novo_fornecedor.id}")
+            return redirect('cadastros:listar_fornecedores_global')
+    else:
+        form = FornecedorForm(initial={'cnpj': cnpj_sugerido})
 
-        except Exception as e:
-            messages.error(request, f"Erro ao salvar o fornecedor: {str(e)}")
+    return render(request, 'cadastros/form_fornecedor.html', {
+        'form': form,
+        'retorno_termo_id': retorno_termo_id
+    })
 
-    context = {
-        'cnpj_sugerido': cnpj_sugerido,
-        'retorno_termo_id': retorno_termo_id,
-    }
-    return render(request, 'cadastros/form_fornecedor.html', context)
+@login_required
+def editar_fornecedor(request, id):
+    fornecedor = get_object_or_404(Fornecedor, id=id)
+    if request.method == 'POST':
+        form = FornecedorForm(request.POST, instance=fornecedor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Fornecedor '{fornecedor.nome}' atualizado com sucesso!")
+            return redirect('cadastros:listar_fornecedores_global')
+    else:
+        form = FornecedorForm(instance=fornecedor)
+    return render(request, 'cadastros/form_fornecedor.html', {'form': form, 'fornecedor': fornecedor})
+
+@login_required
+def visualizar_fornecedor(request, id):
+    fornecedor = get_object_or_404(Fornecedor, id=id)
+    return render(request, 'cadastros/visualizar_fornecedor.html', {'fornecedor': fornecedor})
+
+@login_required
+def excluir_fornecedor(request, id):
+    fornecedor = get_object_or_404(Fornecedor, id=id)
+    if request.method == 'POST':
+        fornecedor.delete()
+        messages.success(request, "Fornecedor excluído com sucesso!")
+        return redirect('cadastros:listar_fornecedores_global')
+    return render(request, 'cadastros/confirmar_exclusao_fornecedor.html', {'fornecedor': fornecedor})
+
 @login_required
 def gerenciar_cotas(request, projeto_id):
     from .models import ProjetoPDI, CotaBolsaPT
@@ -301,6 +354,12 @@ def editar_bolsista(request, id):
     return render(request, 'cadastros/form_bolsista.html', {'form': form, 'titulo': f'Editar Bolsista: {bolsista.nome}', 'bolsista': bolsista})
 
 @login_required
+def visualizar_bolsista(request, id):
+    from .models import Bolsista
+    bolsista = get_object_or_404(Bolsista, id=id)
+    return render(request, 'cadastros/visualizar_bolsista.html', {'bolsista': bolsista})
+
+@login_required
 def excluir_bolsista(request, id):
     from .models import Bolsista
     bolsista = get_object_or_404(Bolsista, id=id)
@@ -311,6 +370,51 @@ def excluir_bolsista(request, id):
         except Exception as e:
             messages.error(request, f'Não foi possível excluir o bolsista pois ele está vinculado a um ou mais Termos de Bolsa. Erro: {e}')
         return redirect('cadastros:listar_bolsistas')
-    # fallback se vier por GET direto e não quiser usar form post na listagem
-    return redirect('cadastros:listar_bolsistas')
+    return render(request, 'cadastros/confirmar_exclusao_bolsista.html', {'bolsista': bolsista})
 
+@login_required
+def listar_fontes_recurso(request):
+    fontes = FonteDeRecurso.objects.all()
+    return render(request, 'cadastros/listar_fontes_recurso.html', {'fontes': fontes})
+
+@login_required
+def nova_fonte_recurso(request):
+    if request.method == 'POST':
+        form = FonteDeRecursoForm(request.POST)
+        if form.is_valid():
+            fonte = form.save()
+            messages.success(request, f"Fonte de Recurso '{fonte.nome}' criada com sucesso!")
+            return redirect('cadastros:listar_fontes_recurso')
+    else:
+        form = FonteDeRecursoForm()
+    return render(request, 'cadastros/form_fonte_recurso.html', {'form': form, 'titulo': 'Nova Fonte de Recursos'})
+
+@login_required
+def editar_fonte_recurso(request, id):
+    fonte = get_object_or_404(FonteDeRecurso, id=id)
+    if request.method == 'POST':
+        form = FonteDeRecursoForm(request.POST, instance=fonte)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Fonte de Recurso '{fonte.nome}' atualizada com sucesso!")
+            return redirect('cadastros:listar_fontes_recurso')
+    else:
+        form = FonteDeRecursoForm(instance=fonte)
+    return render(request, 'cadastros/form_fonte_recurso.html', {'form': form, 'titulo': f'Editar Fonte: {fonte.nome}', 'fonte': fonte})
+
+@login_required
+def visualizar_fonte_recurso(request, id):
+    fonte = get_object_or_404(FonteDeRecurso, id=id)
+    return render(request, 'cadastros/visualizar_fonte_recurso.html', {'fonte': fonte})
+
+@login_required
+def excluir_fonte_recurso(request, id):
+    fonte = get_object_or_404(FonteDeRecurso, id=id)
+    if request.method == 'POST':
+        try:
+            fonte.delete()
+            messages.success(request, "Fonte de Recurso excluída com sucesso!")
+        except Exception as e:
+            messages.error(request, f"Não foi possível excluir a fonte pois ela está em uso. Erro: {e}")
+        return redirect('cadastros:listar_fontes_recurso')
+    return render(request, 'cadastros/confirmar_exclusao_fonte_recurso.html', {'fonte': fonte})

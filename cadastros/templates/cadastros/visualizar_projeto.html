@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'cadastros:listar_projetos' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar para Projetos
+            </a>
+            <h4 class="fw-bold text-info"><i class="fas fa-project-diagram me-2"></i> {{ projeto.convenio }} - {{ projeto.nome }}</h4>
+            <p class="text-muted mb-0">Visão Geral do Projeto PDI</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'cadastros:editar_projeto' projeto.id %}" class="btn btn-warning shadow-sm fw-bold text-dark">
+                <i class="fas fa-edit me-2"></i> Editar
+            </a>
+            <a href="{% url 'cadastros:excluir_projeto' projeto.id %}" class="btn btn-danger shadow-sm fw-bold">
+                <i class="fas fa-trash-alt me-2"></i> Excluir
+            </a>
+        </div>
+    </div>
+
+    <!-- Navegação em Abas -->
+    <ul class="nav nav-tabs fw-bold mb-4" id="projetoTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active text-info" id="detalhes-tab" data-bs-toggle="tab" data-bs-target="#detalhes" type="button" role="tab">
+                <i class="fas fa-info-circle me-1"></i> Detalhes
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-success" id="cotas-tab" data-bs-toggle="tab" data-bs-target="#cotas" type="button" role="tab">
+                <i class="fas fa-users me-1"></i> Cotas ({{ cotas.count }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-secondary" id="processos-tab" data-bs-toggle="tab" data-bs-target="#processos" type="button" role="tab">
+                <i class="fas fa-file-signature me-1"></i> Processos ({{ processos.count }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content bg-white p-4 border border-top-0 rounded-bottom shadow-sm" id="projetoTabsContent">
+        <!-- ABA: Detalhes -->
+        <div class="tab-pane fade show active" id="detalhes" role="tabpanel" tabindex="0">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Nome do Projeto</h6>
+                    <p class="fs-5">{{ projeto.nome }}</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Convênio</h6>
+                    <p class="fs-5 fw-bold text-primary">{{ projeto.convenio }}</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Interveniente</h6>
+                    <p class="fs-5">{{ projeto.interveniente }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Financiadores</h6>
+                    <p class="fs-5">{{ projeto.financiadores|default:"-" }}</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Início Vigência</h6>
+                    <p class="fs-5">{{ projeto.vigencia_inicio|date:"d/m/Y"|default:"-" }}</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Fim Vigência</h6>
+                    <p class="fs-5">{{ projeto.vigencia_fim|date:"d/m/Y"|default:"-" }}</p>
+                </div>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="text-muted small"><strong>Data de Cadastro:</strong> {{ projeto.data_cadastro|date:"d/m/Y H:i" }}</span>
+                <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-outline-info btn-sm fw-bold rounded-pill">
+                    <i class="fas fa-university me-1"></i> Gerenciar {{ projeto.contas.count }} Contas Bancárias
+                </a>
+            </div>
+        </div>
+
+        <!-- ABA: Cotas -->
+        <div class="tab-pane fade" id="cotas" role="tabpanel" tabindex="0">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-success">Cotas de Bolsas Vinculadas</h6>
+                <a href="{% url 'cadastros:gerenciar_cotas' projeto.id %}" class="btn btn-sm btn-success fw-bold shadow-sm">
+                    <i class="fas fa-cog me-1"></i> Gerenciar Cotas
+                </a>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th class="text-start">Perfil / Função</th>
+                            <th class="text-center">Vagas Totais</th>
+                            <th class="text-center">Termos Vinculados</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cota in cotas %}
+                        <tr>
+                            <td class="text-start fw-bold">{{ cota.perfil_funcao }}</td>
+                            <td class="text-center">{{ cota.quantidade_vagas }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-primary rounded-pill">{{ cota.termos_vinculados.count }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">Nenhuma cota registrada para este projeto.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ABA: Processos -->
+        <div class="tab-pane fade" id="processos" role="tabpanel" tabindex="0">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-secondary">Processos de Compra e Pagamento</h6>
+                <a href="{% url 'cadastros:gerenciar_processos' projeto.id %}" class="btn btn-sm btn-secondary fw-bold shadow-sm">
+                    <i class="fas fa-cog me-1"></i> Gerenciar Processos
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th class="text-center">Nº do Processo</th>
+                            <th class="text-center">Tipo</th>
+                            <th class="text-center">Descrição</th>
+                            <th class="text-center">Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in processos %}
+                        <tr>
+                            <td class="fw-bold text-center">{{ p.numero }}</td>
+                            <td class="text-center">{{ p.tipo.nome }}</td>
+                            <td>{{ p.descricao|default:"-" }}</td>
+                            <td class="text-center">{{ p.data_cadastro|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">Nenhum processo registrado para este projeto.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

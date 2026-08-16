@@ -1,6 +1,6 @@
 import re
 from django import forms
-from .models import ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Bolsista
+from .models import ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Bolsista, Fornecedor, FonteDeRecurso
 
 # ==============================================================================
 # MOTOR DE LIMPEZA GERAL
@@ -33,13 +33,15 @@ def higienizar_texto_pdf(texto):
 class ProjetoPDIForm(forms.ModelForm):
     class Meta:
         model = ProjetoPDI
-        fields = ['convenio', 'nome', 'interveniente', 'financiadores']
+        fields = ['convenio', 'nome', 'interveniente', 'financiadores', 'vigencia_inicio', 'vigencia_fim']
         
         widgets = {
             'convenio': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Ex: IFAM 2022-010', 'autofocus': True}),
             'nome': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Nome Oficial do Projeto'}),
             'interveniente': forms.TextInput(attrs={'class': 'form-control form-control-lg'}),
             'financiadores': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Empresas separadas por vírgula'}),
+            'vigencia_inicio': forms.DateInput(attrs={'class': 'form-control form-control-lg', 'type': 'date'}),
+            'vigencia_fim': forms.DateInput(attrs={'class': 'form-control form-control-lg', 'type': 'date'}),
         }
 
     def clean(self):
@@ -55,17 +57,33 @@ class ProjetoPDIForm(forms.ModelForm):
         return cleaned_data
 
 
+class FonteDeRecursoForm(forms.ModelForm):
+    class Meta:
+        model = FonteDeRecurso
+        fields = ['nome', 'descricao']
+        
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: EMBRAPII, SEBRAE'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Detalhes opcionais sobre a fonte'}),
+        }
+
 class ContaBancariaForm(forms.ModelForm):
     class Meta:
         model = ContaBancaria
-        fields = ['banco', 'agencia', 'conta', 'dv']
+        fields = ['fonte_recurso', 'banco', 'agencia', 'conta', 'dv']
         
         widgets = {
+            'fonte_recurso': forms.Select(attrs={'class': 'form-select fw-bold text-primary'}),
             'banco': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Banco do Brasil'}),
             'agencia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 1234-5'}),
             'conta': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apenas números'}),
             'dv': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '5', 'placeholder': 'Dígito'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['fonte_recurso'].empty_label = "--- Selecione a Fonte ---"
+        self.fields['fonte_recurso'].queryset = FonteDeRecurso.objects.all().order_by('nome')
         
     def clean(self):
         cleaned_data = super().clean()
@@ -78,11 +96,13 @@ class ContaBancariaForm(forms.ModelForm):
 class ProcessoForm(forms.ModelForm):
     class Meta:
         model = Processo
-        fields = ['tipo', 'numero', 'descricao']
+        fields = ['projeto', 'tipo', 'numero', 'origem', 'descricao']
         
         widgets = {
+            'projeto': forms.Select(attrs={'class': 'form-select'}),
             'tipo': forms.Select(attrs={'class': 'form-select fw-bold text-primary'}),
             'numero': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 23208.000123/2024-10'}),
+            'origem': forms.Select(attrs={'class': 'form-select'}),
             'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opcional (Ex: Equipamentos de TI)'}),
         }
 
@@ -143,4 +163,16 @@ class BolsistaForm(forms.ModelForm):
             'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'siape': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class FornecedorForm(forms.ModelForm):
+    class Meta:
+        model = Fornecedor
+        fields = ['nome', 'cnpj', 'sigla', 'endereco', 'email']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00'}),
+            'sigla': forms.TextInput(attrs={'class': 'form-control'}),
+            'endereco': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
         }

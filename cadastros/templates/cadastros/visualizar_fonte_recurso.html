@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'cadastros:listar_fontes_recurso' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar para Fontes
+            </a>
+            <h4 class="fw-bold text-success"><i class="fas fa-coins me-2"></i> {{ fonte.nome }}</h4>
+            <p class="text-muted mb-0">Detalhes da Fonte de Recurso</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'cadastros:editar_fonte_recurso' fonte.id %}" class="btn btn-warning shadow-sm fw-bold text-dark">
+                <i class="fas fa-edit me-2"></i> Editar
+            </a>
+            <a href="{% url 'cadastros:excluir_fonte_recurso' fonte.id %}" class="btn btn-danger shadow-sm fw-bold">
+                <i class="fas fa-trash-alt me-2"></i> Excluir
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-bottom border-success border-2">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2 text-success"></i> Informações Gerais</h6>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Nome / Título</h6>
+                    <p class="fs-5 fw-bold text-dark">{{ fonte.nome }}</p>
+                </div>
+                <div class="col-md-8">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Descrição</h6>
+                    <p class="fs-5 text-secondary">{{ fonte.descricao|default:"Nenhuma descrição informada." }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

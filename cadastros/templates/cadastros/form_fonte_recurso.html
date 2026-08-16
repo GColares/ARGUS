@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-3 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
+            </a>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-success text-white py-3 rounded-top-4">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-coins me-2"></i> {{ titulo|default:"Nova Fonte de Recursos" }}</h5>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row g-4">
+                            <!-- NOME -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-secondary">Nome / Título da Fonte <span class="text-danger">*</span></label>
+                                {{ form.nome }}
+                                {% if form.nome.errors %}
+                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.nome.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- DESCRIÇÃO -->
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-secondary">Descrição <span class="text-muted fw-normal">(Opcional)</span></label>
+                                {{ form.descricao }}
+                                {% if form.descricao.errors %}
+                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.descricao.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- BOTÕES -->
+                        <div class="d-flex justify-content-end gap-3 mt-5 pt-3 border-top">
+                            <a href="javascript:history.back()" class="btn btn-light border px-4 fw-bold">Cancelar</a>
+                            <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm">
+                                <i class="fas fa-save me-2"></i> Salvar Fonte
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

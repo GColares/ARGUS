@@ -5,8 +5,8 @@
         <div class="col-lg-8">
             
             <div class="mb-3">
-                <a href="{% url 'cadastros:home' %}" class="text-decoration-none text-muted fw-bold">
-                    <i class="fas fa-arrow-left me-1"></i> Voltar para Cadastros
+                <a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none text-muted fw-bold">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar para Projetos
                 </a>
             </div>
 
@@ -47,13 +47,29 @@
                                 <label class="form-label fw-bold text-muted text-uppercase small">Financiadores</label>
                                 {{ form.financiadores }}
                             </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Início da Vigência <span class="text-danger">*</span></label>
+                                {{ form.vigencia_inicio }}
+                                {% if form.vigencia_inicio.errors %}
+                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.vigencia_inicio.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Fim da Vigência <span class="text-danger">*</span></label>
+                                {{ form.vigencia_fim }}
+                                {% if form.vigencia_fim.errors %}
+                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.vigencia_fim.errors.0 }}</div>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <hr class="my-4 text-muted">
 
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="{% url 'cadastros:home' %}" class="btn btn-light btn-lg border fw-bold">Cancelar</a>
-                            <button type="submit" class="btn btn-info btn-lg text-white fw-bold shadow-sm">
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="{% url 'cadastros:home_cadastros' %}" class="btn btn-light btn-lg border fw-bold">Cancelar</a>
+                            <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm fw-bold">
                                 <i class="fas fa-save me-2"></i> Salvar Projeto
                             </button>
                         </div>
