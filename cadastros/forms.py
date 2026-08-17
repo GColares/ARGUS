@@ -1,6 +1,6 @@
 import re
 from django import forms
-from .models import ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Fornecedor, FonteDeRecurso, TermoDeParceria, PlanoDeTrabalho, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento
+from .models import ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Fornecedor, FonteDeRecurso, TermoDeParceria, PlanoDeTrabalho, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento
 
 # ==============================================================================
 # MOTOR DE LIMPEZA GERAL

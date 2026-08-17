@@ -159,12 +159,7 @@ class PlanoDeTrabalho(models.Model):
     def clean(self):
         super().clean()
 
-        if self.pessoa:
-            if not (hasattr(self.pessoa, 'perfil_servidor') or 
-                    hasattr(self.pessoa, 'perfil_aluno') or 
-                    hasattr(self.pessoa, 'perfil_colaborador_externo')):
-                from django.core.exceptions import ValidationError
-                raise ValidationError({"pessoa": "Apenas Servidores, Alunos ou Colaboradores Externos podem ser vinculados a um Termo de Bolsa. Terceirizados ou pessoas sem perfil não são permitidos."})
+
         if self.data_inicio and self.data_fim:
             from django.core.exceptions import ValidationError
             if self.data_inicio > self.data_fim:
@@ -198,7 +193,7 @@ class Fornecedor(PessoaJuridica):
     sigla = models.CharField(max_length=50, blank=True, null=True, verbose_name="Sigla / Nome Curto")
     email = models.EmailField(blank=True, null=True, verbose_name="E-mail de Contato")
 
-    class Meta:
+    class Meta: # type: ignore
         verbose_name = "Fornecedor"
         verbose_name_plural = "Fornecedores"
 
@@ -443,12 +438,7 @@ class DistribuicaoContaCota(models.Model):
     def clean(self):
         super().clean()
 
-        if self.pessoa:
-            if not (hasattr(self.pessoa, 'perfil_servidor') or 
-                    hasattr(self.pessoa, 'perfil_aluno') or 
-                    hasattr(self.pessoa, 'perfil_colaborador_externo')):
-                from django.core.exceptions import ValidationError
-                raise ValidationError({"pessoa": "Apenas Servidores, Alunos ou Colaboradores Externos podem ser vinculados a um Termo de Bolsa. Terceirizados ou pessoas sem perfil não são permitidos."})
+
         if self.parcela_inicio and self.parcela_fim:
             if self.parcela_inicio > self.parcela_fim:
                 raise ValidationError("A 'Parcela Início' não pode ser maior que a 'Parcela Fim'.")
@@ -631,7 +621,6 @@ class TermoBolsa(models.Model):
             if not (hasattr(self.pessoa, 'perfil_servidor') or 
                     hasattr(self.pessoa, 'perfil_aluno') or 
                     hasattr(self.pessoa, 'perfil_colaborador_externo')):
-                from django.core.exceptions import ValidationError
                 raise ValidationError({"pessoa": "Apenas Servidores, Alunos ou Colaboradores Externos podem ser vinculados a um Termo de Bolsa. Terceirizados ou pessoas sem perfil não são permitidos."})
         
         # Impede exceções matemáticas se os campos obrigatórios ainda não foram preenchidos na interface
@@ -674,7 +663,7 @@ class TermoBolsa(models.Model):
                     Parcela.objects.create(termo_bolsa=self, numero=i)
 
     def __str__(self):
-        return f"Termo {self.numero_termo} - {self.bolsista.nome} ({self.get_status_display()})" # type: ignore
+        return f"Termo {self.numero_termo} - {self.pessoa.nome} ({self.get_status_display()})"
 
 # =====================================================================
 # RH  

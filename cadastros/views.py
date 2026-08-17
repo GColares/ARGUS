@@ -421,62 +421,7 @@ def editar_cota(request, cota_id):
         'atividades_vinculadas': cota.atividades_vinculadas.values_list('id', flat=True)
     })
 
-# ==========================================
-# GESTÃO DE BOLSISTAS (BANCO DE TALENTOS)
-# ==========================================
 
-@login_required
-def listar_bolsistas(request):
-    from .models import Bolsista
-    bolsistas = Bolsista.objects.all().order_by('nome')
-    return render(request, 'cadastros/listar_bolsistas.html', {'bolsistas': bolsistas})
-
-@login_required
-def criar_bolsista(request):
-    from .forms import BolsistaForm
-    if request.method == 'POST':
-        form = BolsistaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Bolsista cadastrado com sucesso!')
-            return redirect('cadastros:listar_bolsistas')
-    else:
-        form = BolsistaForm()
-    return render(request, 'cadastros/form_bolsista.html', {'form': form, 'titulo': 'Cadastrar Novo Bolsista'})
-
-@login_required
-def editar_bolsista(request, id):
-    from .models import Bolsista
-    from .forms import BolsistaForm
-    bolsista = get_object_or_404(Bolsista, id=id)
-    if request.method == 'POST':
-        form = BolsistaForm(request.POST, instance=bolsista)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Bolsista atualizado com sucesso!')
-            return redirect('cadastros:listar_bolsistas')
-    else:
-        form = BolsistaForm(instance=bolsista)
-    return render(request, 'cadastros/form_bolsista.html', {'form': form, 'titulo': f'Editar Bolsista: {bolsista.nome}', 'bolsista': bolsista})
-
-@login_required
-def visualizar_bolsista(request, id):
-    from .models import Bolsista
-    bolsista = get_object_or_404(Bolsista, id=id)
-    return render(request, 'cadastros/visualizar_bolsista.html', {'bolsista': bolsista})
-
-@login_required
-def excluir_bolsista(request, id):
-    from .models import Bolsista
-    bolsista = get_object_or_404(Bolsista, id=id)
-    if request.method == 'POST':
-        try:
-            bolsista.delete()
-            messages.success(request, 'Bolsista excluído com sucesso!')
-        except Exception as e:
-            messages.error(request, f'Não foi possível excluir o bolsista pois ele está vinculado a um ou mais Termos de Bolsa. Erro: {e}')
-        return redirect('cadastros:listar_bolsistas')
-    return render(request, 'cadastros/confirmar_exclusao_bolsista.html', {'bolsista': bolsista})
 
 @login_required
 def listar_fontes_recurso(request):
