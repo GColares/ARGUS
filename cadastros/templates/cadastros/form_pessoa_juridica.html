@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="mb-3">
+        <a href="javascript:history.back()" class="text-decoration-none text-muted fw-bold mb-3 d-inline-block">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-4 border-bottom border-success border-3">
+            <h4 class="mb-0 fw-bold text-success">
+                <i class="fas fa-building me-2"></i> 
+                {% if editando %}Editar {{ nome_tipo }}{% else %}Cadastrar {{ nome_tipo }}{% endif %}
+            </h4>
+            <p class="text-muted small mb-0 mt-1">Preencha os dados abaixo. Campos marcados com * são obrigatórios.</p>
+        </div>
+        
+        <div class="card-body p-4 bg-light">
+            <form method="post" action="{% if editando %}{% url 'cadastros:editar_pessoa_juridica' pj.id %}{% else %}{% url 'cadastros:cadastrar_pessoa_juridica' %}?tipo={{ tipo }}{% endif %}">
+                {% csrf_token %}
+                
+                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Informações Principais</h5>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Nome / Razão Social *</label>
+                        {{ form.nome }}
+                        {% if form.nome.errors %}<div class="text-danger small mt-1">{{ form.nome.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-muted text-uppercase small">CNPJ *</label>
+                        {{ form.cnpj }}
+                        {% if form.cnpj.errors %}<div class="text-danger small mt-1">{{ form.cnpj.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Natureza Jurídica *</label>
+                        {{ form.natureza_juridica }}
+                        {% if form.natureza_juridica.errors %}<div class="text-danger small mt-1">{{ form.natureza_juridica.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Endereço Completo *</label>
+                        {{ form.endereco }}
+                        {% if form.endereco.errors %}<div class="text-danger small mt-1">{{ form.endereco.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Representação Legal</h5>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Representante Legal *</label>
+                        {{ form.representante_legal }}
+                        {% if form.representante_legal.errors %}<div class="text-danger small mt-1">{{ form.representante_legal.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted text-uppercase small">Cargo do Representante *</label>
+                        {{ form.cargo_representante }}
+                        {% if form.cargo_representante.errors %}<div class="text-danger small mt-1">{{ form.cargo_representante.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                {% if tipo == 'ict' or tipo == 'empresa' or tipo == 'fundacao' or tipo == 'agencia' or tipo == 'fornecedor' %}
+                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Informações Específicas ({{ nome_tipo }})</h5>
+                <div class="row g-4 mb-4">
+                    {% for field in form %}
+                        {% if field.name not in 'nome cnpj natureza_juridica endereco representante_legal cargo_representante' %}
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted text-uppercase small">{{ field.label }} {% if field.field.required %}*{% endif %}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-end gap-2 mt-5">
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary fw-bold px-4">Cancelar</a>
+                    <button type="submit" class="btn btn-success fw-bold px-4">
+                        <i class="fas fa-save me-1"></i> Salvar Cadastro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

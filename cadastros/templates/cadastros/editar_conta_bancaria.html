@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="text-decoration-none text-muted small fw-bold mb-3 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar para Contas do Projeto
+            </a>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-warning py-3 rounded-top-4">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-edit me-2"></i> Editar Conta Bancária</h5>
+                    <p class="mb-0 small text-dark">Projeto: <strong>{{ projeto.nome }}</strong></p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-secondary">Fonte de Recurso <span class="text-danger">*</span></label>
+                                {{ form.fonte_recurso }}
+                                {% if form.fonte_recurso.errors %}
+                                    <div class="text-danger small mt-1">{{ form.fonte_recurso.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-secondary">Banco <span class="text-danger">*</span></label>
+                                {{ form.banco }}
+                                {% if form.banco.errors %}
+                                    <div class="text-danger small mt-1">{{ form.banco.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-secondary">Agência</label>
+                                {{ form.agencia }}
+                                {% if form.agencia.errors %}
+                                    <div class="text-danger small mt-1">{{ form.agencia.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold text-secondary">Conta <span class="text-danger">*</span></label>
+                                {{ form.conta }}
+                                {% if form.conta.errors %}
+                                    <div class="text-danger small mt-1">{{ form.conta.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-secondary">Dígito (DV) <span class="text-danger">*</span></label>
+                                {{ form.dv }}
+                                {% if form.dv.errors %}
+                                    <div class="text-danger small mt-1">{{ form.dv.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- BOTÕES -->
+                        <div class="d-flex justify-content-end gap-3 mt-5 pt-3 border-top">
+                            <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-light border px-4 fw-bold">Cancelar</a>
+                            <button type="submit" class="btn btn-warning text-dark px-5 fw-bold shadow-sm">
+                                <i class="fas fa-save me-2"></i> Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

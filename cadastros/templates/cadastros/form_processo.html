@@ -41,7 +41,7 @@
                                     <option value="">Selecione o Projeto...</option>
                                     {% for proj in projetos %}
                                         <option value="{{ proj.id }}" {% if proj.id == projeto_sugerido_id %}selected{% endif %}>
-                                            CV nº {{ proj.convenio }} - {{ proj.nome }}
+                                            CV nº {{ proj.termo_parceria.numero|default:"Sem Termo" }} - {{ proj.nome }}
                                         </option>
                                     {% endfor %}
                                 </select>

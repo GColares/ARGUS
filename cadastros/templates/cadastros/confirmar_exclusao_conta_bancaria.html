@@ -8,15 +8,14 @@
                     <h5 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2"></i> Confirmar Exclusão</h5>
                 </div>
                 <div class="card-body p-4 text-center">
-                    <p class="fs-5 mb-4">Tem certeza que deseja excluir o Projeto <strong>{{ projeto.termo_parceria.numero|default:"Sem Termo" }} - {{ projeto.nome }}</strong>?</p>
-                    <p class="text-muted small mb-4">Esta ação não pode ser desfeita e todas as contas e vinculações associadas serão permanentemente apagadas.</p>
+                    <p class="fs-5 mb-4">Tem certeza que deseja excluir a Conta Bancária <strong>{{ conta.conta }}-{{ conta.dv }}</strong> ({{ conta.banco }}) vinculada ao projeto <strong>{{ projeto.nome }}</strong>?</p>
                     
                     <form method="post">
                         {% csrf_token %}
                         <div class="d-flex justify-content-center gap-3">
-                            <a href="{% url 'cadastros:listar_projetos' %}" class="btn btn-light btn-lg border fw-bold px-4">Cancelar</a>
+                            <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-light btn-lg border fw-bold px-4">Cancelar</a>
                             <button type="submit" class="btn btn-danger btn-lg fw-bold px-4 shadow-sm">
-                                <i class="fas fa-trash-alt me-2"></i> Sim, Excluir Projeto
+                                <i class="fas fa-trash-alt me-2"></i> Sim, Excluir Conta
                             </button>
                         </div>
                     </form>

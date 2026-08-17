@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, MembroEquipe, BolsistaProjeto, AtividadePlanoAcao
+from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho
 
 class AtividadePlanoAcaoInline(admin.TabularInline):
     model = AtividadePlanoAcao
@@ -10,10 +10,45 @@ class ContaBancariaInline(admin.TabularInline):
     model = ContaBancaria
     extra = 1 # Linha em branco pronta para adicionar uma conta
 
+@admin.register(PessoaJuridica)
+class PessoaJuridicaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'cnpj', 'natureza_juridica', 'representante_legal')
+    search_fields = ('nome', 'cnpj')
+
+@admin.register(ICT)
+class ICTAdmin(admin.ModelAdmin):
+    list_display = ('sigla', 'nome', 'cnpj', 'nome_nit')
+    search_fields = ('sigla', 'nome', 'cnpj')
+
+@admin.register(EmpresaParceira)
+class EmpresaParceiraAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'cnpj', 'porte')
+    search_fields = ('nome', 'cnpj')
+
+@admin.register(FundacaoApoio)
+class FundacaoApoioAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'cnpj', 'validade_credenciamento')
+    search_fields = ('nome', 'cnpj')
+
+@admin.register(AgenciaFomento)
+class AgenciaFomentoAdmin(admin.ModelAdmin):
+    list_display = ('sigla', 'nome', 'esfera')
+    search_fields = ('sigla', 'nome')
+
+class PlanoDeTrabalhoInline(admin.TabularInline):
+    model = PlanoDeTrabalho
+    extra = 1
+
+@admin.register(TermoDeParceria)
+class TermoDeParceriaAdmin(admin.ModelAdmin):
+    list_display = ('numero', 'concedente', 'convenente', 'interveniente', 'ativo')
+    search_fields = ('numero',)
+    inlines = [PlanoDeTrabalhoInline]
+
 @admin.register(ProjetoPDI)
 class ProjetoPDIAdmin(admin.ModelAdmin):
-    list_display = ('convenio', 'projeto', 'nome', 'interveniente', 'data_cadastro')
-    search_fields = ('convenio', 'projeto', 'nome')
+    list_display = ('termo_parceria', 'projeto', 'nome', 'data_cadastro')
+    search_fields = ('projeto', 'nome')
     inlines = [ContaBancariaInline, AtividadePlanoAcaoInline]
 
 @admin.register(TipoProcesso)
@@ -37,7 +72,7 @@ class FornecedorAdmin(admin.ModelAdmin):
     search_fields = ('cnpj', 'nome', 'sigla')
     list_filter = ('cnpj', 'nome', 'sigla')
 
-from .models import CotaBolsaPT, TermoBolsa, PlanoTrabalho, RubricaOrcamentariaPT, DistribuicaoContaCota
+from .models import CotaBolsaPT, TermoBolsa, PlanoDeTrabalho, RubricaOrcamentariaPT, DistribuicaoContaCota, MembroEquipePT, CronogramaDesembolso
 
 class RubricaOrcamentariaPTInline(admin.TabularInline):
     model = RubricaOrcamentariaPT
@@ -51,16 +86,24 @@ class MacroentregaInline(admin.TabularInline):
     extra = 1
     fields = ('numero', 'nome', 'mes_inicio_relativo', 'mes_fim_relativo')
 
-@admin.register(PlanoTrabalho)
-class PlanoTrabalhoAdmin(admin.ModelAdmin):
-    list_display = ('projeto', 'versao', 'data_inicio', 'data_fim', 'valor_global')
-    search_fields = ('projeto__nome', 'projeto__convenio')
+class MembroEquipePTInline(admin.TabularInline):
+    model = MembroEquipePT
+    extra = 1
+
+class CronogramaDesembolsoInline(admin.TabularInline):
+    model = CronogramaDesembolso
+    extra = 1
+
+@admin.register(PlanoDeTrabalho)
+class PlanoDeTrabalhoAdmin(admin.ModelAdmin):
+    list_display = ('termo_parceria', 'versao', 'data_inicio', 'data_fim', 'valor_global')
+    search_fields = ('termo_parceria__numero',)
     list_filter = ('versao',)
     readonly_fields = ('valor_global', 'total_i_v', 'total_vi', 'total_i_vi', 'total_vii', 'total_bruto')
     
     fieldsets = (
         ('Dados Gerais do Plano', {
-            'fields': ('projeto', 'versao', 'arquivo_pdf', 'data_inicio', 'data_fim')
+            'fields': ('termo_parceria', 'versao', 'arquivo_pdf', 'data_inicio', 'data_fim')
         }),
         ('Receitas (Aportes)', {
             'fields': ('aporte_empresa', 'aporte_embrapii', 'aporte_sebrae', 'aporte_contrapartida')
@@ -81,15 +124,13 @@ class DistribuicaoContaCotaInline(admin.TabularInline):
 class CotaBolsaPTAdmin(admin.ModelAdmin):
     list_display = ('perfil_funcao', 'projeto', 'quantidade_vagas', 'parcelas_previstas', 'valor_global_previsto')
     list_filter = ('projeto',)
-    search_fields = ('perfil_funcao', 'projeto__nome', 'projeto__convenio')
+    search_fields = ('perfil_funcao', 'projeto__nome', 'projeto__termo_parceria__numero')
     autocomplete_fields = ['projeto']
     inlines = [DistribuicaoContaCotaInline]
     filter_horizontal = ('atividades_vinculadas',)
 
 @admin.register(TermoBolsa)
 class TermoBolsaAdmin(admin.ModelAdmin):
-    list_display = ('numero_termo', 'bolsista', 'cota_pt', 'quantidade_parcelas', 'status')
-    list_filter = ('status', 'cota_pt__projeto')
-    search_fields = ('numero_termo', 'bolsista', 'bolsista__cpf')
-
-
+    list_display = ('numero_termo', 'pessoa', 'cota_pt', 'modalidade_bolsa', 'status')
+    search_fields = ('numero_termo', 'pessoa__nome')
+    list_filter = ('status', 'modalidade_bolsa')

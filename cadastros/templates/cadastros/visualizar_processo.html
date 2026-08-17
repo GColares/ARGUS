@@ -39,7 +39,7 @@
                 </div>
                 <div class="col-md-3">
                     <h6 class="fw-bold text-muted mb-1 text-uppercase small">Projeto Vinculado</h6>
-                    <p class="fs-5 text-success fw-bold">{{ processo.projeto.convenio }}</p>
+                    <p class="fs-5 text-success fw-bold">{{ processo.projeto.termo_parceria.numero|default:"Sem Termo" }}</p>
                 </div>
                 
                 <div class="col-md-12">

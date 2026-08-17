@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="mb-3">
+        <a href="javascript:history.back()" class="text-decoration-none text-muted fw-bold mb-3 d-inline-block">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-4 border-bottom border-success border-3">
+            <h4 class="mb-0 fw-bold text-success"><i class="fas fa-plus-circle me-2"></i> Cadastrar Pessoa Jurídica</h4>
+            <p class="text-muted small mb-0 mt-1">Selecione o perfil da entidade que deseja cadastrar no sistema.</p>
+        </div>
+        
+        <div class="card-body p-5 bg-light">
+            <div class="row g-4 justify-content-center">
+                <!-- ICT -->
+                <div class="col-md-4">
+                    <a href="{% url 'cadastros:cadastrar_pessoa_juridica' %}?tipo=ict" class="text-decoration-none">
+                        <div class="card h-100 border-0 shadow-sm cs-card text-center p-4 hover-lift">
+                            <i class="fas fa-university fa-3x text-primary mb-3"></i>
+                            <h5 class="fw-bold text-dark">ICT</h5>
+                            <p class="text-muted small mb-0">Instituição Científica, Tecnológica e de Inovação (ex: IFAM).</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Empresa Parceira -->
+                <div class="col-md-4">
+                    <a href="{% url 'cadastros:cadastrar_pessoa_juridica' %}?tipo=empresa" class="text-decoration-none">
+                        <div class="card h-100 border-0 shadow-sm cs-card text-center p-4 hover-lift">
+                            <i class="fas fa-industry fa-3x text-warning mb-3"></i>
+                            <h5 class="fw-bold text-dark">Empresa Parceira</h5>
+                            <p class="text-muted small mb-0">Indústrias ou Empresas Concedentes de financiamento.</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Fundação de Apoio -->
+                <div class="col-md-4">
+                    <a href="{% url 'cadastros:cadastrar_pessoa_juridica' %}?tipo=fundacao" class="text-decoration-none">
+                        <div class="card h-100 border-0 shadow-sm cs-card text-center p-4 hover-lift">
+                            <i class="fas fa-hands-helping fa-3x text-info mb-3"></i>
+                            <h5 class="fw-bold text-dark">Fundação de Apoio</h5>
+                            <p class="text-muted small mb-0">Fundação interveniente administrativa (ex: FAEPI).</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Agência de Fomento -->
+                <div class="col-md-4">
+                    <a href="{% url 'cadastros:cadastrar_pessoa_juridica' %}?tipo=agencia" class="text-decoration-none">
+                        <div class="card h-100 border-0 shadow-sm cs-card text-center p-4 hover-lift">
+                            <i class="fas fa-landmark fa-3x text-secondary mb-3"></i>
+                            <h5 class="fw-bold text-dark">Agência de Fomento</h5>
+                            <p class="text-muted small mb-0">Órgão público ou privado apoiador (ex: EMBRAPII).</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Fornecedor -->
+                <div class="col-md-4">
+                    <a href="{% url 'cadastros:cadastrar_pessoa_juridica' %}?tipo=fornecedor" class="text-decoration-none">
+                        <div class="card h-100 border-0 shadow-sm cs-card text-center p-4 hover-lift">
+                            <i class="fas fa-box-open fa-3x text-dark mb-3"></i>
+                            <h5 class="fw-bold text-dark">Fornecedor / Credor</h5>
+                            <p class="text-muted small mb-0">Empresas que prestam serviços ou vendem materiais.</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-lift {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+</style>
+{% endblock %}

@@ -30,9 +30,9 @@
                         <tbody>
                             {% for projeto in projetos %}
                             <tr>
-                                <td class="fw-bold text-center">{{ projeto.convenio }}</td>
-                                <td>{{ projeto.nome }}</td>
-                                <td class="small text-center">{{ projeto.financiadores|default:"-" }}</td>
+                                <td class="fw-bold text-center">{{ projeto.termo_parceria.numero|default:"S/T" }}</td>
+                                <td class="fw-bold text-center">{{ projeto.nome }}</td>
+                                <td class="small text-center">{{ projeto.termo_parceria.concedente.nome|default:"-" }}</td>
                                 
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">

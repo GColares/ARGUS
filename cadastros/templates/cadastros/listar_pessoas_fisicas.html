@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros Base</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Pessoas Físicas</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-success"><i class="fas fa-users me-2"></i> Pessoas Físicas</h4>
+            <p class="text-muted mb-0">Gestão de Servidores, Alunos e Colaboradores.</p>
+        </div>
+        <div>
+            <a href="{% url 'cadastros:cadastrar_pessoa_fisica' %}" class="btn btn-success fw-bold shadow-sm rounded-pill">
+                <i class="fas fa-plus me-1"></i> Nova Pessoa
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Nome</th>
+                        <th>CPF</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pessoa in pessoas %}
+                    <tr>
+                        <td class="ps-4 fw-bold">{{ pessoa.nome }}</td>
+                        <td>{{ pessoa.cpf }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'cadastros:editar_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'cadastros:excluir_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-4 text-muted">Nenhuma pessoa física cadastrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

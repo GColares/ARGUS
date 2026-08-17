@@ -28,41 +28,174 @@ validar_convenio = RegexValidator(
 # =====================================================================
 # ENTIDADES GLOBAIS DE PARCERIAS E CONVÊNIOS (CENTRALIZADAS)
 # =====================================================================
-class InstituicaoParceira(models.Model):
-    """Cadastro global de empresas e órgãos parceiros do Polo."""
-    nome = models.CharField(max_length=100, unique=True, verbose_name="Nome da Instituição")
-    sigla = models.CharField(max_length=20, unique=True)
-    cnpj = models.CharField(max_length=18, blank=True, null=True)
+class PessoaJuridica(models.Model):
+    """Cadastro global de entidades jurídicas base."""
+    nome = models.CharField(max_length=255, verbose_name="Nome da Instituição (Razão Social)")
+    natureza_juridica = models.CharField(max_length=255, verbose_name="Natureza Jurídica")
+    cnpj = models.CharField(max_length=18, unique=True, verbose_name="CNPJ")
+    endereco = models.CharField(max_length=255, verbose_name="Endereço")
+    representante_legal = models.CharField(max_length=255, verbose_name="Representante Legal")
+    nacionalidade_representante = models.CharField(max_length=50, blank=True, null=True, verbose_name="Nacionalidade")
+    estado_civil_representante = models.CharField(max_length=50, blank=True, null=True, verbose_name="Estado Civil")
+    cargo_representante = models.CharField(max_length=100, verbose_name="Cargo do Representante")
+    ato_nomeacao = models.CharField(max_length=255, blank=True, null=True, verbose_name="Ato de Nomeação")
 
     class Meta:
-        verbose_name = "Instituição Parceira"
-        verbose_name_plural = "Instituições Parceiras"
+        verbose_name = "Pessoa Jurídica"
+        verbose_name_plural = "Pessoas Jurídicas"
 
     def __str__(self):
-        return self.sigla
+        return self.nome
 
-class Convenio(models.Model):
-    """Entidade macro jurídica que rege os repasses financeiros e metas."""
-    instituicao = models.ForeignKey(InstituicaoParceira, on_delete=models.PROTECT, related_name='convenios')
-    numero_convenio = models.CharField(max_length=50, unique=True, verbose_name="Número do Convênio")
+class ICT(PessoaJuridica):
+    """Instituição Científica, Tecnológica e de Inovação (ex: IFAM, UFAM)"""
+    sigla = models.CharField(max_length=20, verbose_name="Sigla da Instituição")
+    campus_unidade = models.CharField(max_length=100, verbose_name="Campus ou Unidade", blank=True, null=True)
+    nome_nit = models.CharField(max_length=100, verbose_name="Nome do NIT", default="Núcleo de Inovação Tecnológica")
+
+    class Meta: # type: ignore
+        verbose_name = "ICT"
+        verbose_name_plural = "ICTs"
+
+class EmpresaParceira(PessoaJuridica):
+    """Empresas de Base Tecnológica ou Indústrias (Concedentes)"""
+    PORTE_CHOICES = [
+        ('ME', 'Microempresa'),
+        ('EPP', 'Empresa de Pequeno Porte'),
+        ('MGE', 'Média ou Grande Empresa'),
+    ]
+    porte = models.CharField(max_length=3, choices=PORTE_CHOICES, default='MGE', verbose_name="Porte da Empresa")
+    segmento_atuacao = models.CharField(max_length=100, verbose_name="Segmento de Atuação", blank=True, null=True)
+
+    class Meta: # type: ignore
+        verbose_name = "Empresa Parceira"
+        verbose_name_plural = "Empresas Parceiras"
+
+class FundacaoApoio(PessoaJuridica):
+    """Fundações de Apoio (ex: FAEPI) - Gestão Financeira"""
+    registro_mec = models.CharField(max_length=100, verbose_name="Registro de Credenciamento MEC/MCTI", blank=True, null=True)
+    validade_credenciamento = models.DateField(verbose_name="Validade do Credenciamento", blank=True, null=True)
+
+    class Meta: # type: ignore
+        verbose_name = "Fundação de Apoio"
+        verbose_name_plural = "Fundações de Apoio"
+
+class AgenciaFomento(PessoaJuridica):
+    """Agências de Fomento ou Apoiadores (ex: EMBRAPII, SEBRAE, FAPEAM)"""
+    ESFERA_CHOICES = [
+        ('FEDERAL', 'Pública Federal'),
+        ('ESTADUAL', 'Pública Estadual'),
+        ('MUNICIPAL', 'Pública Municipal'),
+        ('PRIVADA', 'Entidade Privada'),
+    ]
+    esfera = models.CharField(max_length=20, choices=ESFERA_CHOICES, default='FEDERAL', verbose_name="Esfera")
+    sigla = models.CharField(max_length=20, verbose_name="Sigla")
+
+    class Meta: # type: ignore
+        verbose_name = "Agência de Fomento"
+        verbose_name_plural = "Agências de Fomento"
+
+
+class TermoDeParceria(models.Model):
+    """Entidade macro jurídica que rege a parceria e união de interesses."""
+    numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo")
     objeto = models.TextField(blank=True, null=True, verbose_name="Objeto / Descrição")
-    data_inicio = models.DateField(blank=True, null=True)
-    data_fim = models.DateField(blank=True, null=True)
+    
+    concedente = models.ForeignKey(EmpresaParceira, on_delete=models.PROTECT, related_name='concedente_em', verbose_name="Concedente")
+    convenente = models.ForeignKey(ICT, on_delete=models.PROTECT, related_name='convenente_em', verbose_name="Convenente")
+    interveniente = models.ForeignKey(FundacaoApoio, on_delete=models.PROTECT, related_name='interveniente_em', verbose_name="Interveniente")
+    
+    data_assinatura = models.DateField(blank=True, null=True, verbose_name="Data de Assinatura")
     ativo = models.BooleanField(default=True)
 
     class Meta:
-        verbose_name = "Convênio"
-        verbose_name_plural = "Convênios"
+        verbose_name = "Termo de Parceria"
+        verbose_name_plural = "Termos de Parceria"
 
     def __str__(self):
-        return f"{self.instituicao.sigla} - {self.numero_convenio}"
+        return f"{self.numero} ({self.concedente.nome})"
 
-class Fornecedor(models.Model):
+class PlanoDeTrabalho(models.Model):
+    """Detalha a abordagem técnica, financeira e produto entregue do termo."""
+    termo_parceria = models.ForeignKey(TermoDeParceria, on_delete=models.CASCADE, related_name='planos_trabalho')
+    versao = models.IntegerField(default=1, verbose_name="Versão do Plano")
+    arquivo_pdf = models.FileField(upload_to='projetos/planos_trabalho/', null=True, blank=True, verbose_name="Plano de Trabalho Vigente (PDF)")
+    
+    # Abordagens
+    abordagem_tecnica = models.TextField(blank=True, null=True, verbose_name="Abordagem Técnica")
+    abordagem_financeira = models.TextField(blank=True, null=True, verbose_name="Abordagem Financeira")
+    produto_entregue = models.TextField(blank=True, null=True, verbose_name="Produto Entregue")
+    
+    # Cronograma Geral
+    data_inicio = models.DateField(verbose_name="Início do Plano de Trabalho", null=True, blank=True)
+    data_fim = models.DateField(verbose_name="Fim do Plano de Trabalho", null=True, blank=True)
+    total_meses = models.PositiveIntegerField(verbose_name="Total de Meses do Projeto", default=1)
+    
+    # Valores Globais
+    valor_global = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Valor Global (R$)")
+    aporte_empresa = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Aporte Empresa (R$)")
+    aporte_embrapii = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Aporte EMBRAPII (R$)")
+    aporte_sebrae = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Aporte SEBRAE (R$)")
+    aporte_contrapartida = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Contrapartida (R$)")
+    
+    ativo = models.BooleanField(default=True, verbose_name="Versão Vigente")
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Plano de Trabalho"
+        verbose_name_plural = "Planos de Trabalho"
+        unique_together = ('termo_parceria', 'versao')
+
+    def save(self, *args, **kwargs):
+        # Soma automática dos aportes
+        self.valor_global = (
+            self.aporte_empresa +
+            self.aporte_embrapii +
+            self.aporte_sebrae +
+            self.aporte_contrapartida
+        )
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+
+        if self.pessoa:
+            if not (hasattr(self.pessoa, 'perfil_servidor') or 
+                    hasattr(self.pessoa, 'perfil_aluno') or 
+                    hasattr(self.pessoa, 'perfil_colaborador_externo')):
+                from django.core.exceptions import ValidationError
+                raise ValidationError({"pessoa": "Apenas Servidores, Alunos ou Colaboradores Externos podem ser vinculados a um Termo de Bolsa. Terceirizados ou pessoas sem perfil não são permitidos."})
+        if self.data_inicio and self.data_fim:
+            from django.core.exceptions import ValidationError
+            if self.data_inicio > self.data_fim:
+                raise ValidationError({"data_fim": "A data fim do plano de trabalho não pode ser anterior ao início."})
+
+    @property
+    def total_i_v(self):
+        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria in ['I', 'II', 'III', 'IV', 'V']) # type: ignore
+
+    @property
+    def total_vi(self):
+        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria == 'VI') # type: ignore
+
+    @property
+    def total_i_vi(self):
+        return self.total_i_v + self.total_vi
+
+    @property
+    def total_vii(self):
+        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria == 'VII') # type: ignore
+
+    @property
+    def total_bruto(self):
+        return self.total_i_vi + self.total_vii
+
+    def __str__(self):
+        return f"Plano V{self.versao} - Termo {self.termo_parceria.numero}"
+
+class Fornecedor(PessoaJuridica):
     """Cadastro de Credores e Empresas fornecedoras com dados estendidos."""
-    nome = models.CharField(max_length=255, verbose_name="Razão Social / Nome")
-    cnpj = models.CharField(max_length=20, unique=True, verbose_name="CNPJ")
     sigla = models.CharField(max_length=50, blank=True, null=True, verbose_name="Sigla / Nome Curto")
-    endereco = models.CharField(max_length=255, blank=True, null=True, verbose_name="Endereço Completo")
     email = models.EmailField(blank=True, null=True, verbose_name="E-mail de Contato")
 
     class Meta:
@@ -80,20 +213,13 @@ class ProjetoPDI(models.Model):
     projeto = models.CharField(max_length=50, verbose_name="Projeto", null=True, blank=True, help_text="Campo opcional para nomear o projeto de forma resumida (ex: 'Projeto de Robótica').")
     nome = models.CharField(max_length=255, verbose_name="Nome Completo do Projeto")
 
-    convenio = models.CharField(
-        max_length=9, 
-        validators=[validar_convenio], 
-        unique=True, 
-        verbose_name="Número do Convênio"
-    )
-    
-    convenio_oficial = models.ForeignKey(
-        'Convenio',
-        on_delete=models.SET_NULL,
+    termo_parceria = models.ForeignKey(
+        TermoDeParceria,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name='projetos_pdi',
-        verbose_name="Convênio Oficial (Estruturado)"
+        verbose_name="Termo de Parceria"
     )
     
     processo = models.CharField(
@@ -105,13 +231,11 @@ class ProjetoPDI(models.Model):
         verbose_name="Processo de Contratação do Projeto (IFAM)"
     )
 
-    termo_de_convenio = models.FileField(upload_to='convenios/termos/', null=True, blank=True, verbose_name="Termo de Convênio (PDF)")
-    convenente = models.CharField(max_length=100, default="IFAM", verbose_name="Convenente")
-    interveniente = models.CharField(max_length=100, default="FAEPI", verbose_name="Interveniente")
-    financiadores = models.TextField(verbose_name="Concedentes / Financiador(es)", help_text="Razão social dos financiadores")
+    termo_de_convenio = models.FileField(upload_to='convenios/termos/', null=True, blank=True, verbose_name="Termo de Parceria (PDF)")
 
     vigencia_inicio = models.DateField(verbose_name="Início da Vigência Geral")
     vigencia_fim = models.DateField(verbose_name="Fim da Vigência Geral")
+    vigencia_meses = models.IntegerField(default=1, verbose_name="Total de Meses Previstos")
 
     data_cadastro = models.DateTimeField(auto_now_add=True)
 
@@ -120,7 +244,8 @@ class ProjetoPDI(models.Model):
         verbose_name_plural = "Projetos PDI"
 
     def __str__(self):
-        return f"{self.convenio} - {self.nome}"
+        numero = self.termo_parceria.numero if self.termo_parceria else "Sem Termo"
+        return f"{numero} - {self.nome}"
 
     def clean(self):
         """Validação lógica dos intervalos matemáticos de tempo."""
@@ -137,7 +262,7 @@ class ProjetoPDI(models.Model):
         if not self.atividades_plano.exists(): # type: ignore
             pendencias.append("O Plano de Ação (Cronograma de Atividades) não foi desdobrado no sistema.")
             
-        if not hasattr(self, 'planotrabalho'):
+        if not self.termo_parceria or not self.termo_parceria.planos_trabalho.exists():
             pendencias.append("O Plano de Trabalho financeiro/cronológico não foi registrado no sistema para este projeto.")
             
         return pendencias
@@ -162,92 +287,24 @@ class AtividadePlanoAcao(models.Model):
     @property
     def data_inicio_real(self):
         """Calcula a data absoluta de início baseada no 'Calendário ARGUS' do projeto."""
-        if not hasattr(self.projeto, 'planotrabalho') or not self.projeto.planotrabalho.data_inicio:
+        plano = self.projeto.termo_parceria.planos_trabalho.first() if self.projeto.termo_parceria else None
+        if not plano or not plano.data_inicio:
             return None
         # Se inicia no Mês 1, a data é a mesma do plano. Se Mês 2, soma 1 mês.
-        return self.projeto.planotrabalho.data_inicio + relativedelta(months=(self.mes_inicio_relativo - 1))
+        return plano.data_inicio + relativedelta(months=(self.mes_inicio_relativo - 1))
 
     @property
     def data_fim_real(self):
         """Calcula a data absoluta de término. Subtrai 1 dia para não invadir o mês seguinte."""
-        if not hasattr(self.projeto, 'planotrabalho') or not self.projeto.planotrabalho.data_inicio:
+        plano = self.projeto.termo_parceria.planos_trabalho.first() if self.projeto.termo_parceria else None
+        if not plano or not plano.data_inicio:
             return None
         # Se termina no Mês 9, soma 9 meses a partir do início e subtrai 1 dia (último dia do mês 9)
-        return self.projeto.planotrabalho.data_inicio + relativedelta(months=self.mes_fim_relativo) - relativedelta(days=1)
+        return plano.data_inicio + relativedelta(months=self.mes_fim_relativo) - relativedelta(days=1)
 
     def __str__(self):
-        return f"{self.projeto.convenio} | {self.numero}: {self.nome}"
-
-class PlanoTrabalho(models.Model):
-    """
-    Entidade Mestre do Módulo Financeiro.
-    Representa o documento orçamentário e cronológico do projeto.
-    """
-    projeto = models.OneToOneField(ProjetoPDI, on_delete=models.CASCADE, related_name='planotrabalho')
-    versao = models.IntegerField(default=1, verbose_name="Versão do Plano (Aditivos)")
-    arquivo_pdf = models.FileField(upload_to='projetos/planos_trabalho/', null=True, blank=True, verbose_name="Plano de Trabalho Vigente (PDF)")
-    
-    data_inicio = models.DateField(verbose_name="Início do Plano de Trabalho")
-    data_fim = models.DateField(verbose_name="Fim do Plano de Trabalho")
-    total_meses = models.PositiveIntegerField(verbose_name="Total de Meses do Projeto", default=1)
-    
-    valor_global = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Valor Global (R$)")
-    aporte_empresa = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Aporte Empresa (R$)")
-    aporte_embrapii = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Aporte EMBRAPII (R$)")
-    aporte_sebrae = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Aporte SEBRAE (R$)")
-    aporte_contrapartida = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, verbose_name="Contrapartida (R$)")
-
-    def save(self, *args, **kwargs):
-        # Soma automática dos aportes
-        self.valor_global = (
-            self.aporte_empresa +
-            self.aporte_embrapii +
-            self.aporte_sebrae +
-            self.aporte_contrapartida
-        )
-        super().save(*args, **kwargs)
-
-    def clean(self):
-        super().clean()
-        if self.data_inicio and self.data_fim:
-            from django.core.exceptions import ValidationError
-            if self.data_inicio > self.data_fim:
-                raise ValidationError({"data_fim": "A data fim do plano de trabalho não pode ser anterior ao início."})
-
-        # Verifica se as datas do plano estão dentro da vigência do projeto
-        if hasattr(self, 'projeto') and self.projeto.vigencia_inicio and self.projeto.vigencia_fim:
-            if self.data_inicio < self.projeto.vigencia_inicio or self.data_fim > self.projeto.vigencia_fim:
-                from django.core.exceptions import ValidationError
-                raise ValidationError(
-                    "Regra Administrativa: O período do Plano de Trabalho deve estar estritamente contido dentro do intervalo de Vigência Geral do Convênio."
-                )
-
-    @property
-    def total_i_v(self):
-        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria in ['I', 'II', 'III', 'IV', 'V']) # type: ignore
-
-    @property
-    def total_vi(self):
-        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria == 'VI') # type: ignore
-
-    @property
-    def total_i_vi(self):
-        return self.total_i_v + self.total_vi
-
-    @property
-    def total_vii(self):
-        return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria == 'VII') # type: ignore
-
-    @property
-    def total_bruto(self):
-        return self.total_i_vi + self.total_vii
-
-    class Meta:
-        verbose_name = "Plano de Trabalho"
-        verbose_name_plural = "Planos de Trabalho"
-
-    def __str__(self):
-        return f"PT V{self.versao} - {self.projeto.convenio}"
+        termo = self.projeto.termo_parceria.numero if self.projeto.termo_parceria else "Sem Termo"
+        return f"{termo} | {self.numero}: {self.nome}"
 
 class RubricaOrcamentariaPT(models.Model):
     """
@@ -270,7 +327,7 @@ class RubricaOrcamentariaPT(models.Model):
         ('CONTRAPARTIDA', 'Contrapartida ICT'),
     ]
 
-    plano_trabalho = models.ForeignKey(PlanoTrabalho, on_delete=models.CASCADE, related_name='rubricas')
+    plano_trabalho = models.ForeignKey(PlanoDeTrabalho, on_delete=models.CASCADE, related_name='rubricas')
     categoria = models.CharField(max_length=50, choices=CATEGORIAS, verbose_name="Categoria / Dispêndio")
     descricao = models.CharField(max_length=255, blank=True, null=True, verbose_name="Descrição do Item")
     valor_previsto = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Valor Previsto (R$)")
@@ -340,7 +397,8 @@ class TermoAditivo(models.Model):
         verbose_name_plural = "Termos Aditivos"
 
     def __str__(self):
-        return f"Aditivo {self.numero} - {self.projeto.convenio}"
+        termo = self.projeto.termo_parceria.numero if self.projeto.termo_parceria else "Sem Termo"
+        return f"Aditivo {self.numero} - {termo}"
 
 class CotaBolsaPT(models.Model):
     """
@@ -364,7 +422,8 @@ class CotaBolsaPT(models.Model):
     valor_global_previsto = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Valor Global Previsto (R$)")
 
     def __str__(self):
-        return f"{self.perfil_funcao} ({self.quantidade_vagas} vaga/s) - {self.projeto.convenio}"
+        termo = self.projeto.termo_parceria.numero if self.projeto.termo_parceria else "Sem Termo"
+        return f"{self.perfil_funcao} ({self.quantidade_vagas} vaga/s) - {termo}"
 
 class DistribuicaoContaCota(models.Model):
     """
@@ -383,6 +442,13 @@ class DistribuicaoContaCota(models.Model):
 
     def clean(self):
         super().clean()
+
+        if self.pessoa:
+            if not (hasattr(self.pessoa, 'perfil_servidor') or 
+                    hasattr(self.pessoa, 'perfil_aluno') or 
+                    hasattr(self.pessoa, 'perfil_colaborador_externo')):
+                from django.core.exceptions import ValidationError
+                raise ValidationError({"pessoa": "Apenas Servidores, Alunos ou Colaboradores Externos podem ser vinculados a um Termo de Bolsa. Terceirizados ou pessoas sem perfil não são permitidos."})
         if self.parcela_inicio and self.parcela_fim:
             if self.parcela_inicio > self.parcela_fim:
                 raise ValidationError("A 'Parcela Início' não pode ser maior que a 'Parcela Fim'.")
@@ -405,9 +471,12 @@ class DistribuicaoContaCota(models.Model):
         return f"Parcelas {self.parcela_inicio} a {self.parcela_fim} -> {self.conta_pagamento.fonte_recurso}"
 
 
-class Bolsista(models.Model):
+
+
+class PessoaFisica(models.Model):
     """
-    Representa a pessoa física que recebe a bolsa.
+    Entidade Canônica Central (Identidade).
+    Contém apenas a identificação universal mínima e intrínseca do indivíduo.
     """
     ESTADO_CIVIL_CHOICES = [
         ('Solteiro', 'Solteiro(a)'),
@@ -417,21 +486,114 @@ class Bolsista(models.Model):
         ('Outro', 'Outro'),
     ]
 
-    nome = models.CharField(max_length=255)
-    cpf = models.CharField(max_length=14, unique=True)
-    rg = models.CharField(max_length=30)
-    orgao_emissor_rg = models.CharField(max_length=20)
-    data_nascimento = models.DateField(null=True, blank=True)
-    nacionalidade = models.CharField(max_length=100, default='Brasileiro')
-    estado_civil = models.CharField(max_length=20, choices=ESTADO_CIVIL_CHOICES, default='Solteiro')
-    endereco = models.CharField(max_length=255, null=True, blank=True)
-    cep = models.CharField(max_length=10, null=True, blank=True)
-    telefone = models.CharField(max_length=20, null=True, blank=True)
-    email = models.EmailField(null=True, blank=True)
-    siape = models.CharField(max_length=20, null=True, blank=True, help_text='Apenas para servidores')
+    nome = models.CharField(max_length=255, verbose_name="Nome Completo")
+    cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF")
+    rg = models.CharField(max_length=30, blank=True, null=True, verbose_name="RG")
+    orgao_emissor_rg = models.CharField(max_length=20, blank=True, null=True, verbose_name="Órgão Emissor (RG)")
+    data_nascimento = models.DateField(null=True, blank=True, verbose_name="Data de Nascimento")
+    nacionalidade = models.CharField(max_length=100, default='Brasileiro', verbose_name="Nacionalidade")
+    estado_civil = models.CharField(max_length=20, choices=ESTADO_CIVIL_CHOICES, default='Solteiro', verbose_name="Estado Civil")
+    endereco = models.CharField(max_length=255, null=True, blank=True, verbose_name="Endereço Completo")
+    cep = models.CharField(max_length=10, null=True, blank=True, verbose_name="CEP")
+    telefone = models.CharField(max_length=20, null=True, blank=True, verbose_name="Telefone / Celular")
+    email = models.EmailField(null=True, blank=True, verbose_name="E-mail")
+
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Pessoa Física"
+        verbose_name_plural = "Pessoas Físicas"
 
     def __str__(self):
-        return self.nome
+        return f"{self.nome} ({self.cpf})"
+
+class DadoBancario(models.Model):
+    """
+    Dados Financeiros Sensíveis vinculados à Pessoa Física.
+    """
+    pessoa = models.ForeignKey(PessoaFisica, on_delete=models.CASCADE, related_name='dados_bancarios')
+    finalidade = models.CharField(
+        max_length=50, 
+        choices=[('PAGAMENTO_BOLSA', 'Pagamento de Bolsa'), ('HONORARIOS', 'Honorários / Serviços'), ('RESSARCIMENTO', 'Ressarcimento')],
+        default='PAGAMENTO_BOLSA',
+        verbose_name="Finalidade"
+    )
+    banco_codigo = models.CharField(max_length=10, verbose_name="Código do Banco")
+    agencia = models.CharField(max_length=10, verbose_name="Agência")
+    conta = models.CharField(max_length=20, verbose_name="Conta Corrente")
+    chave_pix = models.CharField(max_length=100, blank=True, null=True, verbose_name="Chave PIX")
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Dado Bancário"
+        verbose_name_plural = "Dados Bancários"
+
+    def __str__(self):
+        return f"{self.banco_codigo} - Ag: {self.agencia} CC: {self.conta}"
+
+class PerfilServidor(models.Model):
+    """Papel: Servidor Público (Docente ou Técnico)."""
+    pessoa = models.OneToOneField(PessoaFisica, on_delete=models.CASCADE, related_name='perfil_servidor')
+    siape = models.CharField(max_length=20, unique=True, verbose_name="Matrícula SIAPE")
+    cargo = models.CharField(max_length=100, verbose_name="Cargo Efetivo")
+    lotacao = models.CharField(max_length=100, verbose_name="Unidade / Campus de Lotação")
+    interno = models.BooleanField(default=True, verbose_name="Servidor Interno (IFAM)?")
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Perfil de Servidor"
+
+    def __str__(self):
+        return f"Servidor: {self.siape}"
+
+class PerfilAluno(models.Model):
+    """Papel: Aluno (Graduação, Técnico, Pós)."""
+    pessoa = models.OneToOneField(PessoaFisica, on_delete=models.CASCADE, related_name='perfil_aluno')
+    matricula = models.CharField(max_length=30, unique=True, verbose_name="Matrícula")
+    nivel = models.CharField(
+        max_length=30, 
+        choices=[('Tecnico', 'Técnico'), ('Graduacao', 'Graduação'), ('Pos', 'Pós-Graduação'), ('Outro', 'Outro')],
+        default='Graduacao',
+        verbose_name="Nível"
+    )
+    curso = models.CharField(max_length=150, verbose_name="Curso")
+    interno = models.BooleanField(default=True, verbose_name="Aluno Interno (IFAM)?")
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Perfil de Aluno"
+
+    def __str__(self):
+        return f"Aluno: {self.matricula}"
+
+class PerfilColaboradorExterno(models.Model):
+    """Papel: Colaborador Externo (Profissional do mercado, sem vínculo discente ou estatutário)."""
+    pessoa = models.OneToOneField(PessoaFisica, on_delete=models.CASCADE, related_name='perfil_colaborador_externo')
+    instituicao_origem = models.CharField(max_length=150, blank=True, null=True, verbose_name="Instituição/Empresa de Origem")
+    expertise = models.CharField(max_length=255, blank=True, null=True, verbose_name="Área de Expertise")
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Perfil de Colaborador Externo"
+
+    def __str__(self):
+        return f"Colaborador Externo"
+
+class PerfilTerceirizado(models.Model):
+    """Papel: Funcionário Terceirizado (Apoio)."""
+    pessoa = models.OneToOneField(PessoaFisica, on_delete=models.CASCADE, related_name='perfil_terceirizado')
+    empresa_contratada = models.CharField(max_length=150, verbose_name="Empresa Contratada")
+    funcao = models.CharField(max_length=100, verbose_name="Função / Cargo")
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Perfil de Terceirizado"
+
+    def __str__(self):
+        return f"Terceirizado: {self.empresa_contratada}"
+
+
 
 class TermoBolsa(models.Model):
     """
@@ -445,7 +607,7 @@ class TermoBolsa(models.Model):
     ]
 
     cota_pt = models.ForeignKey(CotaBolsaPT, on_delete=models.PROTECT, related_name='termos_vinculados')
-    bolsista = models.ForeignKey('Bolsista', on_delete=models.PROTECT, related_name='termos')
+    pessoa = models.ForeignKey(PessoaFisica, on_delete=models.PROTECT, related_name='termos_bolsa', null=True, blank=True)
     modalidade_bolsa = models.CharField(max_length=100, choices=[('Pesquisa', 'Pesquisa'), ('Ensino', 'Ensino'), ('Extensao', 'Extensão'), ('Desenvolvimento', 'Desenvolvimento Institucional'), ('Inovacao', 'Inovação')], default='Pesquisa')
     carga_horaria_total = models.PositiveIntegerField(verbose_name="Carga Horária Total (horas)", default=0)
 
@@ -464,6 +626,13 @@ class TermoBolsa(models.Model):
 
     def clean(self):
         super().clean()
+
+        if self.pessoa:
+            if not (hasattr(self.pessoa, 'perfil_servidor') or 
+                    hasattr(self.pessoa, 'perfil_aluno') or 
+                    hasattr(self.pessoa, 'perfil_colaborador_externo')):
+                from django.core.exceptions import ValidationError
+                raise ValidationError({"pessoa": "Apenas Servidores, Alunos ou Colaboradores Externos podem ser vinculados a um Termo de Bolsa. Terceirizados ou pessoas sem perfil não são permitidos."})
         
         # Impede exceções matemáticas se os campos obrigatórios ainda não foram preenchidos na interface
         if not self.quantidade_parcelas or not self.valor_parcela or not self.cota_pt:
@@ -652,7 +821,7 @@ class NotaFiscal(models.Model):
         return f"NF {self.numero} - {nome_fornecedor}"
 
 class Macroentrega(models.Model):
-    plano_trabalho = models.ForeignKey(PlanoTrabalho, on_delete=models.CASCADE, related_name='macroentregas')
+    plano_trabalho = models.ForeignKey(PlanoDeTrabalho, on_delete=models.CASCADE, related_name='macroentregas')
     numero = models.IntegerField(verbose_name="Número (Ex: 1, 2, 3)")
     nome = models.CharField(max_length=200, verbose_name="Nome da Macroentrega")
     mes_inicio_relativo = models.PositiveIntegerField(verbose_name="Mês Início")
@@ -682,3 +851,38 @@ class Parcela(models.Model):
 
     def __str__(self):
         return f"Parcela {self.numero} - {self.termo_bolsa.bolsista.nome}"
+
+class MembroEquipePT(models.Model):
+    TIPOS_RECURSO = [
+        ('DIRETO', 'Recurso Humano Direto'),
+        ('INDIRETO', 'Recurso Humano Indireto'),
+    ]
+
+    plano_trabalho = models.ForeignKey(PlanoDeTrabalho, on_delete=models.CASCADE, related_name='equipe')
+    nome = models.CharField(max_length=255, verbose_name="Nome Completo")
+    funcao = models.CharField(max_length=100, verbose_name="Função no Projeto (Ex: Coordenador, Pesquisador)")
+    titulacao = models.CharField(max_length=100, verbose_name="Titulação")
+    tipo_recurso = models.CharField(max_length=50, choices=TIPOS_RECURSO, verbose_name="Tipo de Recurso")
+    carga_horaria = models.PositiveIntegerField(verbose_name="Carga Horária Dedicada (hs)", default=0)
+    valor_hora = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Hora (R$)", default=0.00)
+
+    class Meta:
+        verbose_name = "Membro da Equipe do PT"
+        verbose_name_plural = "Equipe do PT"
+
+    def __str__(self):
+        return f"{self.nome} - {self.funcao}"
+
+class CronogramaDesembolso(models.Model):
+    plano_trabalho = models.ForeignKey(PlanoDeTrabalho, on_delete=models.CASCADE, related_name='desembolsos')
+    parcela = models.PositiveIntegerField(verbose_name="Nº da Parcela")
+    mes_previsto = models.CharField(max_length=50, verbose_name="Mês Previsto (Ex: Mês 1 ou Jan/2026)")
+    valor_parcela = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Valor da Parcela (R$)")
+
+    class Meta:
+        verbose_name = "Cronograma de Desembolso"
+        verbose_name_plural = "Cronogramas de Desembolso"
+        ordering = ['parcela']
+
+    def __str__(self):
+        return f"Parcela {self.parcela} - {self.mes_previsto}"

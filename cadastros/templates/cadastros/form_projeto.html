@@ -1,82 +1,169 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            
+<div class="container-fluid px-4 mt-4">
             <div class="mb-3">
-                <a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none text-muted fw-bold">
-                    <i class="fas fa-arrow-left me-1"></i> Voltar para Projetos
+                <a href="javascript:history.back()" class="text-decoration-none text-muted fw-bold mb-3 d-inline-block">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar
                 </a>
             </div>
 
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white py-4 border-bottom border-info border-3">
-                    <h4 class="mb-0 fw-bold text-info"><i class="fas fa-folder-plus me-2"></i> Cadastrar Novo Projeto PDI</h4>
-                    <p class="text-muted small mb-0 mt-1">Preencha os dados oficiais do convênio para a "Espinha Dorsal" do ARGUS.</p>
+                    <h4 class="mb-0 fw-bold text-info"><i class="fas fa-folder-plus me-2"></i> {% if projeto %}Editar Projeto PDI{% else %}Cadastrar Novo Projeto PDI{% endif %}</h4>
+                    <p class="text-muted small mb-0 mt-1">Preencha os dados da parceria nas abas abaixo para unificar Termo de Parceria e Plano de Trabalho.</p>
                 </div>
                 
                 <div class="card-body p-4 bg-light">
                     <form method="post">
                         {% csrf_token %}
-                        
-                        <div class="row g-4">
-                            <div class="col-md-5">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Nº do Convênio <span class="text-danger">*</span></label>
-                                {{ form.convenio }}
-                                {% if form.convenio.errors %}
-                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.convenio.errors.0 }}</div>
-                                {% endif %}
-                            </div>
+
+                        <!-- Abas Navegação -->
+                        <ul class="nav nav-tabs mb-4" id="projetoTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active fw-bold" id="termo-tab" data-bs-toggle="tab" data-bs-target="#termo" type="button" role="tab" aria-controls="termo" aria-selected="true">
+                                    <i class="fas fa-file-contract me-1"></i> 1. Termo de Parceria
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-bold" id="plano-tab" data-bs-toggle="tab" data-bs-target="#plano" type="button" role="tab" aria-controls="plano" aria-selected="false">
+                                    <i class="fas fa-tasks me-1"></i> 2. Plano de Trabalho
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Conteúdo das Abas -->
+                        <div class="tab-content bg-white p-4 border border-top-0 rounded-bottom mb-4" id="projetoTabsContent">
                             
-                            <div class="col-md-7">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Nome do Projeto <span class="text-danger">*</span></label>
-                                {{ form.nome }}
-                                {% if form.nome.errors %}
-                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.nome.errors.0 }}</div>
-                                {% endif %}
+                            <!-- ABA 1: Termo de Parceria e Dados Básicos -->
+                            <div class="tab-pane fade show active" id="termo" role="tabpanel" aria-labelledby="termo-tab" tabindex="0">
+                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Qualificação da Parceria</h5>
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Nº do Termo <span class="text-danger">*</span></label>
+                                        {{ form_termo.numero }}
+                                        {% if form_termo.numero.errors %}<div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form_termo.numero.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Objeto <span class="text-danger">*</span></label>
+                                        {{ form_termo.objeto }}
+                                        {% if form_termo.objeto.errors %}<div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form_termo.objeto.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+
+                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Atores / Partícipes</h5>
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Concedente (Financiador) <span class="text-danger">*</span></label>
+                                        {{ form_termo.concedente }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Convenente (Executor) <span class="text-danger">*</span></label>
+                                        {{ form_termo.convenente }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Interveniente (Fundação) <span class="text-danger">*</span></label>
+                                        {{ form_termo.interveniente }}
+                                    </div>
+                                    <div class="col-md-4 mt-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Data de Assinatura <span class="text-danger">*</span></label>
+                                        {{ form_termo.data_assinatura }}
+                                    </div>
+                                </div>
+
+                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Configuração do Projeto no ARGUS</h5>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Nome do Projeto <span class="text-danger">*</span></label>
+                                        {{ form_projeto.nome }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Início Vigência <span class="text-danger">*</span></label>
+                                        {{ form_projeto.vigencia_inicio }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Fim Vigência <span class="text-danger">*</span></label>
+                                        {{ form_projeto.vigencia_fim }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Total de Meses <span class="text-danger">*</span></label>
+                                        {{ form_projeto.vigencia_meses }}
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Interveniente <span class="text-danger">*</span></label>
-                                {{ form.interveniente }}
-                                <div class="form-text small"><i class="fas fa-info-circle"></i> O padrão institucional é FAEPI.</div>
+                            <!-- ABA 2: Plano de Trabalho -->
+                            <div class="tab-pane fade" id="plano" role="tabpanel" aria-labelledby="plano-tab" tabindex="0">
+                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">1. Cronograma do Plano de Trabalho</h5>
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Início do Plano <span class="text-danger">*</span></label>
+                                        {{ form_plano.data_inicio }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Fim do Plano <span class="text-danger">*</span></label>
+                                        {{ form_plano.data_fim }}
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Nº Meses <span class="text-danger">*</span></label>
+                                        {{ form_plano.total_meses }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Anexo PDF (Opcional)</label>
+                                        {{ form_plano.arquivo_pdf }}
+                                    </div>
+                                </div>
+
+                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">2. Composição Financeira (Aportes)</h5>
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small text-primary">Aporte Empresa (R$)</label>
+                                        {{ form_plano.aporte_empresa }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small text-success">Aporte EMBRAPII (R$)</label>
+                                        {{ form_plano.aporte_embrapii }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small text-warning">Aporte SEBRAE (R$)</label>
+                                        {{ form_plano.aporte_sebrae }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small text-secondary">Contrapartida (R$)</label>
+                                        {{ form_plano.aporte_contrapartida }}
+                                    </div>
+                                </div>
+
+                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">3. Detalhes Executivos</h5>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Abordagem Técnica</label>
+                                        {{ form_plano.abordagem_tecnica }}
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Abordagem Financeira</label>
+                                        {{ form_plano.abordagem_financeira }}
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Produto Esperado / Entregue</label>
+                                        {{ form_plano.produto_entregue }}
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Financiadores</label>
-                                {{ form.financiadores }}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Início da Vigência <span class="text-danger">*</span></label>
-                                {{ form.vigencia_inicio }}
-                                {% if form.vigencia_inicio.errors %}
-                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.vigencia_inicio.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Fim da Vigência <span class="text-danger">*</span></label>
-                                {{ form.vigencia_fim }}
-                                {% if form.vigencia_fim.errors %}
-                                    <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.vigencia_fim.errors.0 }}</div>
-                                {% endif %}
-                            </div>
                         </div>
 
-                        <hr class="my-4 text-muted">
-
-                        <div class="d-flex justify-content-end gap-3 mt-4">
-                            <a href="{% url 'cadastros:home_cadastros' %}" class="btn btn-light btn-lg border fw-bold">Cancelar</a>
+                        <div class="d-flex justify-content-end gap-3 mt-2">
+                            {% if projeto %}
+                                <a href="{% url 'cadastros:visualizar_projeto' projeto.id %}" class="btn btn-light btn-lg border fw-bold">Cancelar</a>
+                            {% else %}
+                                <a href="javascript:history.back()" class="btn btn-light btn-lg border fw-bold">Cancelar</a>
+                            {% endif %}
                             <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm fw-bold">
                                 <i class="fas fa-save me-2"></i> Salvar Projeto
                             </button>
                         </div>
                     </form>
                 </div>
-            </div>
-
         </div>
     </div>
 </div>

@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
 from pydantic import ValidationError
+from django.db import transaction
 from .models import Fornecedor, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso
-from .forms import ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm
+from .forms import ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
@@ -17,28 +18,48 @@ def listar_projetos(request):
     return render(request, 'cadastros/listar_projetos.html', {'projetos': projetos})
 
 @login_required
-def listar_fornecedores_global(request):
-    fornecedores = Fornecedor.objects.all().order_by('nome')
-    return render(request, 'cadastros/listar_fornecedores_global.html', {'fornecedores': fornecedores})
+def listar_pessoas_juridicas(request):
+    from .models import PessoaJuridica
+    pessoas = PessoaJuridica.objects.all().order_by('nome')
+    return render(request, 'cadastros/listar_pessoas_juridicas.html', {'pessoas': pessoas})
 
 @login_required
 def listar_processos_global(request):
     processos = Processo.objects.select_related('projeto').all().order_by('-id')
     return render(request, 'cadastros/listar_processos_global.html', {'processos': processos})
 @login_required
+@transaction.atomic
 def novo_projeto(request):
     if request.method == 'POST':
-        form = ProjetoPDIForm(request.POST)
-        if form.is_valid():
-            projeto = form.save()
-            messages.success(request, f"Projeto '{projeto.convenio}' cadastrado com sucesso no sistema!")
+        form_termo = TermoDeParceriaForm(request.POST)
+        form_plano = PlanoDeTrabalhoForm(request.POST)
+        form_projeto = ProjetoPDIForm(request.POST)
+        
+        if form_termo.is_valid() and form_plano.is_valid() and form_projeto.is_valid():
+            termo = form_termo.save()
+            
+            plano = form_plano.save(commit=False)
+            plano.termo_parceria = termo
+            plano.save()
+            
+            projeto = form_projeto.save(commit=False)
+            projeto.termo_parceria = termo
+            projeto.save()
+            
+            messages.success(request, f"Projeto '{projeto.nome}' cadastrado com sucesso no sistema!")
             return redirect('cadastros:listar_projetos')
         else:
             messages.error(request, "Erro ao cadastrar. Por favor, verifique os campos em vermelho.")
     else:
-        form = ProjetoPDIForm()
+        form_termo = TermoDeParceriaForm()
+        form_plano = PlanoDeTrabalhoForm()
+        form_projeto = ProjetoPDIForm()
 
-    return render(request, 'cadastros/form_projeto.html', {'form': form})
+    return render(request, 'cadastros/form_projeto.html', {
+        'form_termo': form_termo,
+        'form_plano': form_plano,
+        'form_projeto': form_projeto
+    })
 
 @login_required
 def visualizar_projeto(request, projeto_id):
@@ -46,26 +67,53 @@ def visualizar_projeto(request, projeto_id):
     projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
     processos = projeto.processos.all().order_by('-id')
     cotas = CotaBolsaPT.objects.filter(projeto=projeto).order_by('perfil_funcao')
-    
+    termo = projeto.termo_parceria
+    plano_ativo = termo.planos_trabalho.filter(ativo=True).first() if termo else None
+
     contexto = {
         'projeto': projeto,
+        'plano_ativo': plano_ativo,
         'processos': processos,
         'cotas': cotas
     }
     return render(request, 'cadastros/visualizar_projeto.html', contexto)
 
 @login_required
+@transaction.atomic
 def editar_projeto(request, projeto_id):
     projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+    termo = projeto.termo_parceria
+    plano = termo.planos_trabalho.filter(ativo=True).first() if termo else None
+
     if request.method == 'POST':
-        form = ProjetoPDIForm(request.POST, instance=projeto)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f"Projeto '{projeto.convenio}' atualizado com sucesso!")
+        form_termo = TermoDeParceriaForm(request.POST, instance=termo)
+        form_plano = PlanoDeTrabalhoForm(request.POST, instance=plano)
+        form_projeto = ProjetoPDIForm(request.POST, instance=projeto)
+        
+        if form_termo.is_valid() and form_plano.is_valid() and form_projeto.is_valid():
+            termo_salvo = form_termo.save()
+            
+            plano_salvo = form_plano.save(commit=False)
+            plano_salvo.termo_parceria = termo_salvo
+            plano_salvo.save()
+            
+            projeto_salvo = form_projeto.save(commit=False)
+            projeto_salvo.termo_parceria = termo_salvo
+            projeto_salvo.save()
+            
+            messages.success(request, f"Projeto '{projeto.nome}' atualizado com sucesso!")
             return redirect('cadastros:listar_projetos')
     else:
-        form = ProjetoPDIForm(instance=projeto)
-    return render(request, 'cadastros/form_projeto.html', {'form': form, 'projeto': projeto})
+        form_termo = TermoDeParceriaForm(instance=termo)
+        form_plano = PlanoDeTrabalhoForm(instance=plano)
+        form_projeto = ProjetoPDIForm(instance=projeto)
+        
+    return render(request, 'cadastros/form_projeto.html', {
+        'form_termo': form_termo,
+        'form_plano': form_plano,
+        'form_projeto': form_projeto,
+        'projeto': projeto
+    })
 
 @login_required
 def excluir_projeto(request, projeto_id):
@@ -98,6 +146,40 @@ def gerenciar_contas(request, projeto_id):
         'form': form
     }
     return render(request, 'cadastros/gerenciar_contas.html', contexto)
+
+@login_required
+def editar_conta_bancaria(request, conta_id):
+    conta = get_object_or_404(ContaBancaria, id=conta_id)
+    if request.method == 'POST':
+        form = ContaBancariaForm(request.POST, instance=conta)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Conta {conta.conta}-{conta.dv} atualizada com sucesso!")
+            return redirect('cadastros:gerenciar_contas', projeto_id=conta.projeto.id)
+    else:
+        form = ContaBancariaForm(instance=conta)
+    
+    contexto = {
+        'form': form,
+        'conta': conta,
+        'projeto': conta.projeto
+    }
+    return render(request, 'cadastros/editar_conta_bancaria.html', contexto)
+
+@login_required
+def excluir_conta_bancaria(request, conta_id):
+    conta = get_object_or_404(ContaBancaria, id=conta_id)
+    projeto_id = conta.projeto.id
+    if request.method == 'POST':
+        conta.delete()
+        messages.success(request, "Conta bancária excluída com sucesso!")
+        return redirect('cadastros:gerenciar_contas', projeto_id=projeto_id)
+    
+    contexto = {
+        'conta': conta,
+        'projeto': conta.projeto
+    }
+    return render(request, 'cadastros/confirmar_exclusao_conta_bancaria.html', contexto)
 
 @login_required
 def cadastrar_processo(request):
@@ -216,58 +298,82 @@ def listar_processos_projeto(request, projeto_id):
     
     return JsonResponse({'processos': lista_processos})
 
+from .models import PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, Fornecedor
+from .forms import ICTForm, EmpresaParceiraForm, FundacaoApoioForm, AgenciaFomentoForm, FornecedorForm
+
+def get_pj_class_and_form(tipo):
+    mapping = {
+        'ict': (ICT, ICTForm),
+        'empresa': (EmpresaParceira, EmpresaParceiraForm),
+        'fundacao': (FundacaoApoio, FundacaoApoioForm),
+        'agencia': (AgenciaFomento, AgenciaFomentoForm),
+        'fornecedor': (Fornecedor, FornecedorForm)
+    }
+    return mapping.get(tipo, (None, None))
+
 @login_required
-def cadastrar_fornecedor(request):
-    """
-    Cadastra um novo fornecedor (empresa/credor) no sistema ARGUS.
-    Captura o CNPJ por Query String para evitar digitação duplicada e gerencia o retorno.
-    """
-    cnpj_sugerido = request.GET.get('cnpj', '').strip()
-    retorno_termo_id = request.GET.get('retorno_termo')
+def cadastrar_pessoa_juridica(request):
+    tipo = request.GET.get('tipo')
+    model_class, form_class = get_pj_class_and_form(tipo)
+    
+    if not model_class:
+        # Se não escolheu o tipo, exibe a tela de escolha
+        return render(request, 'cadastros/escolher_tipo_pj.html')
 
     if request.method == 'POST':
-        form = FornecedorForm(request.POST)
+        form = form_class(request.POST)
         if form.is_valid():
-            novo_fornecedor = form.save()
-            messages.success(request, f"Fornecedor '{novo_fornecedor.nome}' cadastrado com sucesso!")
+            nova_pj = form.save()
+            messages.success(request, f"{nova_pj.nome} cadastrado(a) com sucesso!")
             
-            if retorno_termo_id:
-                return redirect(f"{reverse('central_servicos:editar_termo_bolsa', args=[retorno_termo_id])}?fornecedor={novo_fornecedor.id}")
-            return redirect('cadastros:listar_fornecedores_global')
+            # Suporte a retorno para outras telas (ex: edição de termo de bolsa)
+            retorno_termo_id = request.GET.get('retorno_termo')
+            if retorno_termo_id and tipo == 'fornecedor':
+                return redirect(f"{reverse('central_servicos:editar_termo_bolsa', args=[retorno_termo_id])}?fornecedor={nova_pj.id}")
+            
+            return redirect('cadastros:listar_pessoas_juridicas')
     else:
-        form = FornecedorForm(initial={'cnpj': cnpj_sugerido})
+        form = form_class()
 
-    return render(request, 'cadastros/form_fornecedor.html', {
+    return render(request, 'cadastros/form_pessoa_juridica.html', {
         'form': form,
-        'retorno_termo_id': retorno_termo_id
+        'tipo': tipo,
+        'nome_tipo': model_class._meta.verbose_name
     })
 
 @login_required
-def editar_fornecedor(request, id):
-    fornecedor = get_object_or_404(Fornecedor, id=id)
+def editar_pessoa_juridica(request, id):
+    pj_base = get_object_or_404(PessoaJuridica, id=id)
+    
+    # Descobre qual é a subclasse correta
+    if hasattr(pj_base, 'ict'): instance, form_class, tipo = pj_base.ict, ICTForm, 'ict' # type: ignore
+    elif hasattr(pj_base, 'empresaparceira'): instance, form_class, tipo = pj_base.empresaparceira, EmpresaParceiraForm, 'empresa' # type: ignore
+    elif hasattr(pj_base, 'fundacaoapoio'): instance, form_class, tipo = pj_base.fundacaoapoio, FundacaoApoioForm, 'fundacao' # type: ignore
+    elif hasattr(pj_base, 'agenciafomento'): instance, form_class, tipo = pj_base.agenciafomento, AgenciaFomentoForm, 'agencia' # type: ignore
+    elif hasattr(pj_base, 'fornecedor'): instance, form_class, tipo = pj_base.fornecedor, FornecedorForm, 'fornecedor' # type: ignore
+    else: return redirect('cadastros:listar_pessoas_juridicas')
+
     if request.method == 'POST':
-        form = FornecedorForm(request.POST, instance=fornecedor)
+        form = form_class(request.POST, instance=instance)
         if form.is_valid():
             form.save()
-            messages.success(request, f"Fornecedor '{fornecedor.nome}' atualizado com sucesso!")
-            return redirect('cadastros:listar_fornecedores_global')
+            messages.success(request, f"Cadastro de '{instance.nome}' atualizado com sucesso!")
+            return redirect('cadastros:listar_pessoas_juridicas')
     else:
-        form = FornecedorForm(instance=fornecedor)
-    return render(request, 'cadastros/form_fornecedor.html', {'form': form, 'fornecedor': fornecedor})
+        form = form_class(instance=instance)
+        
+    return render(request, 'cadastros/form_pessoa_juridica.html', {
+        'form': form, 'tipo': tipo, 'nome_tipo': instance._meta.verbose_name, 'editando': True, 'pj': instance
+    })
 
 @login_required
-def visualizar_fornecedor(request, id):
-    fornecedor = get_object_or_404(Fornecedor, id=id)
-    return render(request, 'cadastros/visualizar_fornecedor.html', {'fornecedor': fornecedor})
-
-@login_required
-def excluir_fornecedor(request, id):
-    fornecedor = get_object_or_404(Fornecedor, id=id)
+def excluir_pessoa_juridica(request, id):
+    pj = get_object_or_404(PessoaJuridica, id=id)
     if request.method == 'POST':
-        fornecedor.delete()
-        messages.success(request, "Fornecedor excluído com sucesso!")
-        return redirect('cadastros:listar_fornecedores_global')
-    return render(request, 'cadastros/confirmar_exclusao_fornecedor.html', {'fornecedor': fornecedor})
+        pj.delete()
+        messages.success(request, "Cadastro excluído com sucesso!")
+        return redirect('cadastros:listar_pessoas_juridicas')
+    return render(request, 'cadastros/confirmar_exclusao_pj.html', {'pj': pj})
 
 @login_required
 def gerenciar_cotas(request, projeto_id):
@@ -418,3 +524,31 @@ def excluir_fonte_recurso(request, id):
             messages.error(request, f"Não foi possível excluir a fonte pois ela está em uso. Erro: {e}")
         return redirect('cadastros:listar_fontes_recurso')
     return render(request, 'cadastros/confirmar_exclusao_fonte_recurso.html', {'fonte': fonte})
+
+# --- CADASTRO DE PESSOAS FÍSICAS ---
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PessoaFisica
+
+def listar_pessoas_fisicas(request):
+    pessoas = PessoaFisica.objects.all().order_by('nome')
+    return render(request, 'cadastros/listar_pessoas_fisicas.html', {'pessoas': pessoas})
+
+def cadastrar_pessoa_fisica(request):
+    # TODO: Implement form wizard
+    messages.info(request, "Interface de cadastro de Pessoa Física em desenvolvimento.")
+    return redirect('cadastros:listar_pessoas_fisicas')
+
+def editar_pessoa_fisica(request, id):
+    # TODO: Implement form wizard
+    messages.info(request, "Interface de edição de Pessoa Física em desenvolvimento.")
+    return redirect('cadastros:listar_pessoas_fisicas')
+
+def excluir_pessoa_fisica(request, id):
+    pessoa = get_object_or_404(PessoaFisica, id=id)
+    if request.method == 'POST':
+        pessoa.delete()
+        messages.success(request, 'Pessoa Física excluída com sucesso!')
+        return redirect('cadastros:listar_pessoas_fisicas')
+    return render(request, 'cadastros/confirmar_exclusao_pf.html', {'pessoa': pessoa})

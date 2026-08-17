@@ -23,30 +23,30 @@
             </div>
         </div>
 
-        <!-- Card: Bolsistas -->
+        <!-- Card: Pessoas Físicas -->
         <div class="col-md-6 col-lg-3">
             <div class="card h-100 shadow-sm border-0 border-top border-primary border-4 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-                        <i class="fas fa-user-graduate fa-2x text-primary"></i>
+                        <i class="fas fa-users fa-2x text-primary"></i>
                     </div>
-                    <h5 class="fw-bold">Banco de Bolsistas</h5>
-                    <p class="text-muted small mb-4">Gestão central de Termos de Bolsa e Talentos.</p>
-                    <a href="{% url 'cadastros:listar_bolsistas' %}" class="btn btn-outline-primary w-100 rounded-pill fw-bold">Acessar Bolsistas</a>
+                    <h5 class="fw-bold">Pessoas Físicas</h5>
+                    <p class="text-muted small mb-4">Gestão de Servidores, Alunos e Colaboradores Externos.</p>
+                    <a href="{% url 'cadastros:listar_pessoas_fisicas' %}" class="btn btn-outline-primary w-100 rounded-pill fw-bold">Acessar Pessoas Físicas</a>
                 </div>
             </div>
         </div>
 
-        <!-- Card: Fornecedores -->
+        <!-- Card: Pessoas Jurídicas -->
         <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm border-0 border-top border-warning border-4 hover-shadow transition-all">
+            <div class="card h-100 shadow-sm border-0 border-top border-success border-4 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
-                    <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-                        <i class="fas fa-building fa-2x text-warning"></i>
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                        <i class="fas fa-building fa-2x text-success"></i>
                     </div>
-                    <h5 class="fw-bold">Fornecedores</h5>
-                    <p class="text-muted small mb-4">Base de Credores, Empresas e CNPJs.</p>
-                    <a href="{% url 'cadastros:listar_fornecedores_global' %}" class="btn btn-outline-warning w-100 rounded-pill fw-bold">Acessar Fornecedores</a>
+                    <h5 class="fw-bold">Pessoas Jurídicas</h5>
+                    <p class="text-muted small mb-4">ICTs, Empresas, Fundações e Fornecedores.</p>
+                    <a href="{% url 'cadastros:listar_pessoas_juridicas' %}" class="btn btn-outline-success w-100 rounded-pill fw-bold">Acessar Cadastros</a>
                 </div>
             </div>
         </div>

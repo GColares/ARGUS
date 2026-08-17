@@ -6,7 +6,7 @@
             <a href="{% url 'cadastros:listar_projetos' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
                 <i class="fas fa-arrow-left me-1"></i> Voltar para Projetos
             </a>
-            <h4 class="fw-bold text-info"><i class="fas fa-project-diagram me-2"></i> {{ projeto.convenio }} - {{ projeto.nome }}</h4>
+            <h4 class="fw-bold text-info"><i class="fas fa-project-diagram me-2"></i> {{ projeto.termo_parceria.numero|default:"Sem Termo" }} - {{ projeto.nome }}</h4>
             <p class="text-muted mb-0">Visão Geral do Projeto PDI</p>
         </div>
         <div class="d-flex gap-2">
@@ -22,8 +22,18 @@
     <!-- Navegação em Abas -->
     <ul class="nav nav-tabs fw-bold mb-4" id="projetoTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active text-info" id="detalhes-tab" data-bs-toggle="tab" data-bs-target="#detalhes" type="button" role="tab">
-                <i class="fas fa-info-circle me-1"></i> Detalhes
+            <button class="nav-link active text-info" id="termo-tab" data-bs-toggle="tab" data-bs-target="#termo" type="button" role="tab">
+                <i class="fas fa-file-contract me-1"></i> Termo de Parceria
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-primary" id="plano-tab" data-bs-toggle="tab" data-bs-target="#plano" type="button" role="tab">
+                <i class="fas fa-tasks me-1"></i> Plano de Trabalho
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-warning" id="orcamento-tab" data-bs-toggle="tab" data-bs-target="#orcamento" type="button" role="tab">
+                <i class="fas fa-hand-holding-usd me-1"></i> Orçamento
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -39,24 +49,37 @@
     </ul>
 
     <div class="tab-content bg-white p-4 border border-top-0 rounded-bottom shadow-sm" id="projetoTabsContent">
-        <!-- ABA: Detalhes -->
-        <div class="tab-pane fade show active" id="detalhes" role="tabpanel" tabindex="0">
+        
+        <!-- ABA 1: Termo de Parceria -->
+        <div class="tab-pane fade show active" id="termo" role="tabpanel" tabindex="0">
             <div class="row g-4">
                 <div class="col-md-6">
                     <h6 class="fw-bold text-muted mb-1 text-uppercase small">Nome do Projeto</h6>
                     <p class="fs-5">{{ projeto.nome }}</p>
                 </div>
                 <div class="col-md-3">
-                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Convênio</h6>
-                    <p class="fs-5 fw-bold text-primary">{{ projeto.convenio }}</p>
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Termo de Parceria</h6>
+                    <p class="fs-5 fw-bold text-primary">{{ projeto.termo_parceria.numero|default:"Sem Termo" }}</p>
                 </div>
                 <div class="col-md-3">
                     <h6 class="fw-bold text-muted mb-1 text-uppercase small">Interveniente</h6>
-                    <p class="fs-5">{{ projeto.interveniente }}</p>
+                    <p class="fs-5">{{ projeto.termo_parceria.interveniente.nome|default:"-" }}</p>
                 </div>
                 <div class="col-md-6">
-                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Financiadores</h6>
-                    <p class="fs-5">{{ projeto.financiadores|default:"-" }}</p>
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Concedente</h6>
+                    <p class="fs-5">{{ projeto.termo_parceria.concedente.nome|default:"-" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Convenente</h6>
+                    <p class="fs-5">{{ projeto.termo_parceria.convenente.nome|default:"-" }}</p>
+                </div>
+                <div class="col-md-12">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Objeto</h6>
+                    <p class="fs-6 text-muted">{{ projeto.termo_parceria.objeto|default:"-"|linebreaksbr }}</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Data Assinatura</h6>
+                    <p class="fs-5">{{ projeto.termo_parceria.data_assinatura|date:"d/m/Y"|default:"-" }}</p>
                 </div>
                 <div class="col-md-3">
                     <h6 class="fw-bold text-muted mb-1 text-uppercase small">Início Vigência</h6>
@@ -66,17 +89,233 @@
                     <h6 class="fw-bold text-muted mb-1 text-uppercase small">Fim Vigência</h6>
                     <p class="fs-5">{{ projeto.vigencia_fim|date:"d/m/Y"|default:"-" }}</p>
                 </div>
+                <div class="col-md-3">
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Total Meses</h6>
+                    <p class="fs-5">{{ projeto.vigencia_meses }} <span class="text-muted fs-6">meses</span></p>
+                </div>
             </div>
             <hr>
-            <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="text-end mt-3">
                 <span class="text-muted small"><strong>Data de Cadastro:</strong> {{ projeto.data_cadastro|date:"d/m/Y H:i" }}</span>
-                <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-outline-info btn-sm fw-bold rounded-pill">
-                    <i class="fas fa-university me-1"></i> Gerenciar {{ projeto.contas.count }} Contas Bancárias
-                </a>
             </div>
         </div>
 
-        <!-- ABA: Cotas -->
+        <!-- ABA 2: Plano de Trabalho -->
+        <div class="tab-pane fade" id="plano" role="tabpanel" tabindex="0">
+            {% if plano_ativo %}
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <h6 class="fw-bold text-primary mb-3 text-uppercase small"><i class="fas fa-list-alt me-2"></i> Abordagem Técnica</h6>
+                        <div class="p-3 bg-light rounded text-muted">
+                            {{ plano_ativo.abordagem_tecnica|default:"Não detalhado."|linebreaksbr }}
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <h6 class="fw-bold text-primary mb-3 text-uppercase small"><i class="fas fa-file-invoice-dollar me-2"></i> Abordagem Financeira</h6>
+                        <div class="p-3 bg-light rounded text-muted">
+                            {{ plano_ativo.abordagem_financeira|default:"Não detalhado."|linebreaksbr }}
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <h6 class="fw-bold text-primary mb-3 text-uppercase small"><i class="fas fa-box-open me-2"></i> Produto Esperado / Entregue</h6>
+                        <div class="p-3 bg-light rounded text-muted">
+                            {{ plano_ativo.produto_entregue|default:"Não detalhado."|linebreaksbr }}
+                        </div>
+                    </div>
+                    <div class="col-md-12 mt-4">
+                        <h6 class="fw-bold text-primary mb-3 text-uppercase small"><i class="fas fa-users me-2"></i> Equipe do Projeto</h6>
+                        {% if plano_ativo.equipe.exists %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th class="text-start">Nome</th>
+                                        <th>Função</th>
+                                        <th>Titulação</th>
+                                        <th>Tipo</th>
+                                        <th>Carga Horária</th>
+                                        <th>Valor/Hora</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for membro in plano_ativo.equipe.all %}
+                                    <tr class="text-center">
+                                        <td class="text-start fw-bold">{{ membro.nome }}</td>
+                                        <td>{{ membro.funcao }}</td>
+                                        <td>{{ membro.titulacao }}</td>
+                                        <td><span class="badge {% if membro.tipo_recurso == 'DIRETO' %}bg-primary{% else %}bg-secondary{% endif %}">{{ membro.get_tipo_recurso_display }}</span></td>
+                                        <td>{{ membro.carga_horaria }}h</td>
+                                        <td>R$ {{ membro.valor_hora }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="p-3 bg-light rounded text-muted text-center">Nenhum membro vinculado à equipe do plano de trabalho.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-exclamation-triangle fs-1 text-warning mb-3"></i>
+                    <h5>Plano de Trabalho não encontrado</h5>
+                    <p>Este projeto não possui um plano de trabalho ativo cadastrado.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ABA 3: Orçamento / Financeiro -->
+        <div class="tab-pane fade" id="orcamento" role="tabpanel" tabindex="0">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold text-warning mb-0"><i class="fas fa-university me-2"></i> Gestão Financeira</h5>
+                <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-warning fw-bold shadow-sm text-dark">
+                    <i class="fas fa-cog me-1"></i> Gerenciar Contas
+                </a>
+            </div>
+            
+            {% if plano_ativo %}
+            <!-- Cards de Aportes -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white shadow-sm border-0 h-100">
+                        <div class="card-body py-3">
+                            <h6 class="text-uppercase small mb-1 opacity-75">Valor Global do Projeto</h6>
+                            <h3 class="mb-0 fw-bold">R$ {{ plano_ativo.valor_global }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-success text-white shadow-sm border-0 h-100">
+                        <div class="card-body py-3">
+                            <h6 class="text-uppercase small mb-1 opacity-75">Aporte EMBRAPII</h6>
+                            <h4 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_embrapii }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-info text-white shadow-sm border-0 h-100">
+                        <div class="card-body py-3">
+                            <h6 class="text-uppercase small mb-1 opacity-75">Aporte Empresa</h6>
+                            <h4 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_empresa }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-warning text-dark shadow-sm border-0 h-100">
+                        <div class="card-body py-3">
+                            <h6 class="text-uppercase small mb-1 opacity-75">Aporte SEBRAE</h6>
+                            <h4 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_sebrae }}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-secondary text-white shadow-sm border-0 h-100">
+                        <div class="card-body py-3">
+                            <h6 class="text-uppercase small mb-1 opacity-75">Contrapartida</h6>
+                            <h4 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_contrapartida }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Rubricas Orçamentárias -->
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-muted text-uppercase small mb-3"><i class="fas fa-list-ol me-2"></i> Rubricas Orçamentárias</h6>
+                    {% if plano_ativo.rubricas.exists %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Categoria</th>
+                                    <th>Fonte</th>
+                                    <th class="text-end">Valor (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rubrica in plano_ativo.rubricas.all %}
+                                <tr>
+                                    <td><span class="badge bg-secondary">{{ rubrica.categoria }}</span> <small>{{ rubrica.descricao|truncatechars:30 }}</small></td>
+                                    <td>{{ rubrica.get_fonte_recurso_display }}</td>
+                                    <td class="text-end fw-bold">{{ rubrica.valor_previsto }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="p-3 bg-light rounded text-muted text-center small">Nenhuma rubrica cadastrada.</div>
+                    {% endif %}
+                </div>
+
+                <!-- Cronograma de Desembolso -->
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-muted text-uppercase small mb-3"><i class="fas fa-calendar-check me-2"></i> Cronograma de Desembolso</h6>
+                    {% if plano_ativo.desembolsos.exists %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Parcela</th>
+                                    <th>Mês Previsto</th>
+                                    <th class="text-end">Valor (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for parcela in plano_ativo.desembolsos.all %}
+                                <tr>
+                                    <td class="text-center fw-bold">{{ parcela.parcela }}</td>
+                                    <td>{{ parcela.mes_previsto }}</td>
+                                    <td class="text-end fw-bold text-success">{{ parcela.valor_parcela }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="p-3 bg-light rounded text-muted text-center small">Nenhum cronograma de desembolso cadastrado.</div>
+                    {% endif %}
+                </div>
+            </div>
+            <hr class="my-4">
+            {% endif %}
+
+            <div class="row g-4">
+                <!-- Sumário de Contas Bancárias (Apenas informacional rápido) -->
+                <div class="col-md-12">
+                    <h6 class="fw-bold text-muted text-uppercase small mb-3"><i class="fas fa-money-check-alt me-2"></i> Contas Bancárias do Projeto ({{ projeto.contas.count }})</h6>
+                    {% if projeto.contas.exists %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Banco</th>
+                                        <th>Agência</th>
+                                        <th>Conta</th>
+                                        <th>Natureza</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for conta in projeto.contas.all %}
+                                        <tr>
+                                            <td>{{ conta.banco }}</td>
+                                            <td>{{ conta.agencia }}</td>
+                                            <td class="fw-bold">{{ conta.conta }}</td>
+                                            <td><span class="badge bg-secondary">{{ conta.get_natureza_conta_display }}</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-3 bg-light rounded text-muted text-center">Nenhuma conta bancária vinculada.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 4: Cotas -->
         <div class="tab-pane fade" id="cotas" role="tabpanel" tabindex="0">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-bold mb-0 text-success">Cotas de Bolsas Vinculadas</h6>
@@ -113,7 +352,7 @@
             </div>
         </div>
 
-        <!-- ABA: Processos -->
+        <!-- ABA 5: Processos -->
         <div class="tab-pane fade" id="processos" role="tabpanel" tabindex="0">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-bold mb-0 text-secondary">Processos de Compra e Pagamento</h6>
