@@ -82,10 +82,18 @@
   }
 },
 {
+  "model": "sessions.session",
+  "pk": "zulwxpa6v6zgwkafl4ddodij1fdzo8h4",
+  "fields": {
+    "session_data": ".eJxVjM0OgjAQBt9lz6ZplwVajt59huajWyxqIOHnZHx3Q8JBrzOTeVPEvpW4r3mJo1JHji6_rEd65ukQ-sB0n02ap20Ze3Mk5rSruc2aX9ez_RsUrIU6ChkiISRfJWGwBFu3UD9UaLKINDYDoi61gxMV9gPX8KosreWaGfT5AtgmN2s:1wwMXd:VDPgjwvwWUOdSlVvXoBDcLsoGGx66377ZxaAevhfy4I",
+    "expire_date": "2026-09-01T16:19:57.853Z"
+  }
+},
+{
   "model": "cadastros.pessoajuridica",
   "pk": 1,
   "fields": {
-    "nome": "Instituto Federal De EducaþÒo, CiÛncia E Tecnologia Do Amazonas - IFAM",
+    "nome": "Instituto Federal De Educação, Ciência E Tecnologia Do Amazonas - IFAM",
     "natureza_juridica": "Autarquia Federal",
     "cnpj": "10.792.928/0001-00",
     "endereco": "Rua Ferreira Pena, 1109, Centro, Cidade: Manaus - AM CEP: 69025-010",
@@ -93,18 +101,18 @@
     "nacionalidade_representante": "Brasileira",
     "estado_civil_representante": "Casado",
     "cargo_representante": "Reitor",
-    "ato_nomeacao": "Decreto de 21 de junho de 2023, publicado em: 21/06/2023 | EdiþÒo: 116-A | SeþÒo: 2 - Extra A | Pßgina: 1"
+    "ato_nomeacao": "Decreto de 21 de junho de 2023, publicado em: 21/06/2023 | Edição: 116-A | Seção: 2 - Extra A | Página: 1"
   }
 },
 {
   "model": "cadastros.pessoajuridica",
   "pk": 2,
   "fields": {
-    "nome": "LC Ind·stria e Comercio de Frutas LTDA.",
-    "natureza_juridica": "Sociedade Empresßria Limitada (LTDA)",
+    "nome": "LC Indústria e Comercio de Frutas LTDA.",
+    "natureza_juridica": "Sociedade Empresária Limitada (LTDA)",
     "cnpj": "60.369.979/0001-00",
-    "endereco": "Avenida Bom Jesus, no 888, Col¶nia Terra Nova, Manaus - AM, CEP: 69.015-300",
-    "representante_legal": "LetÝcia Castro Barreto",
+    "endereco": "Avenida Bom Jesus, no 888, Colônia Terra Nova, Manaus - AM, CEP: 69.015-300",
+    "representante_legal": "Letícia Castro Barreto",
     "nacionalidade_representante": "Brasileira",
     "estado_civil_representante": "Solteira",
     "cargo_representante": "Representante",
@@ -115,8 +123,8 @@
   "model": "cadastros.pessoajuridica",
   "pk": 3,
   "fields": {
-    "nome": "FundaþÒo de Apoio ao Ensino, Pesquisa, ExtensÒo e InteriorizaþÒo do IFAM -FAEPI",
-    "natureza_juridica": "FundaþÒo de direito privado",
+    "nome": "Fundação de Apoio ao Ensino, Pesquisa, Extensão e Interiorização do IFAM -FAEPI",
+    "natureza_juridica": "Fundação de direito privado",
     "cnpj": "04.623.300/0001-88",
     "endereco": "Av. Borba, 144 - Cidade: Manaus-AM CEP: 69065-030",
     "representante_legal": "Luana Marinho Monteiro",
@@ -132,7 +140,7 @@
   "fields": {
     "sigla": "IFAM",
     "campus_unidade": null,
-    "nome_nit": "N·cleo de InovaþÒo Tecnol¾gica"
+    "nome_nit": "Núcleo de Inovação Tecnológica"
   }
 },
 {
@@ -156,7 +164,7 @@
   "pk": 1,
   "fields": {
     "numero": "0002/2026",
-    "objeto": "[Bio Caroþo] - Desenvolvimento de um Sistema de GestÒo Inteligente de Coletas",
+    "objeto": "[Bio Caroço] - Desenvolvimento de um Sistema de Gestão Inteligente de Coletas",
     "concedente": 2,
     "convenente": 1,
     "interveniente": 3,
@@ -186,7 +194,7 @@
     "arquivo_pdf": "",
     "abordagem_tecnica": "Desenvolvimento experimental",
     "abordagem_financeira": "Repasse de recursos",
-    "produto_entregue": "Relat¾rio de Pesquisa",
+    "produto_entregue": "Relatório de Pesquisa",
     "data_inicio": null,
     "data_fim": null,
     "total_meses": 1,
@@ -226,7 +234,7 @@
   "pk": 2,
   "fields": {
     "projeto": null,
-    "nome": "Bio Caroþo",
+    "nome": "Bio Caroço",
     "termo_parceria": 1,
     "processo": null,
     "termo_de_convenio": "",
@@ -242,7 +250,7 @@
   "fields": {
     "id": 1,
     "nome": "EMBRAPII",
-    "descricao": "Empresa Brasileira de Pesquisa e InovaþÒo Industrial",
+    "descricao": "Empresa Brasileira de Pesquisa e Inovação Industrial",
     "history_date": "2026-08-16T20:54:56.281Z",
     "history_change_reason": null,
     "history_type": "+",
@@ -255,7 +263,7 @@
   "fields": {
     "id": 2,
     "nome": "SEBRAE",
-    "descricao": "Serviþo Brasileiro de Apoio Ós Micro e Pequenas Empresas",
+    "descricao": "Serviço Brasileiro de Apoio às Micro e Pequenas Empresas",
     "history_date": "2026-08-16T20:54:56.316Z",
     "history_change_reason": null,
     "history_type": "+",
@@ -276,11 +284,37 @@
   }
 },
 {
+  "model": "cadastros.historicalfontederecurso",
+  "pk": 4,
+  "fields": {
+    "id": 1,
+    "nome": "EMBRAPII",
+    "descricao": "Empresa Brasileira de Pesquisa e Inovação Industrial",
+    "history_date": "2026-08-18T16:49:14.694Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.historicalfontederecurso",
+  "pk": 5,
+  "fields": {
+    "id": 2,
+    "nome": "SEBRAE",
+    "descricao": "Serviço Brasileiro de Apoio às Micro e Pequenas Empresas",
+    "history_date": "2026-08-18T16:49:14.699Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
   "model": "cadastros.fontederecurso",
   "pk": 1,
   "fields": {
     "nome": "EMBRAPII",
-    "descricao": "Empresa Brasileira de Pesquisa e InovaþÒo Industrial"
+    "descricao": "Empresa Brasileira de Pesquisa e Inovação Industrial"
   }
 },
 {
@@ -288,7 +322,7 @@
   "pk": 2,
   "fields": {
     "nome": "SEBRAE",
-    "descricao": "Serviþo Brasileiro de Apoio Ós Micro e Pequenas Empresas"
+    "descricao": "Serviço Brasileiro de Apoio às Micro e Pequenas Empresas"
   }
 },
 {
@@ -390,10 +424,49 @@
   }
 },
 {
+  "model": "central_servicos.historicalfinalidade",
+  "pk": 1,
+  "fields": {
+    "id": 1,
+    "nome": "Laboratório",
+    "descricao": null,
+    "history_date": "2026-08-18T16:49:14.744Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalfinalidade",
+  "pk": 2,
+  "fields": {
+    "id": 7,
+    "nome": "Galpão de Testes",
+    "descricao": null,
+    "history_date": "2026-08-18T16:49:14.749Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalfinalidade",
+  "pk": 3,
+  "fields": {
+    "id": 8,
+    "nome": "Refeitório",
+    "descricao": null,
+    "history_date": "2026-08-18T16:49:14.753Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
   "model": "central_servicos.finalidade",
   "pk": 1,
   "fields": {
-    "nome": "Laborat¾rio",
+    "nome": "Laboratório",
     "descricao": null
   }
 },
@@ -441,7 +514,7 @@
   "model": "central_servicos.finalidade",
   "pk": 7,
   "fields": {
-    "nome": "GalpÒo de Testes",
+    "nome": "Galpão de Testes",
     "descricao": null
   }
 },
@@ -449,15 +522,54 @@
   "model": "central_servicos.finalidade",
   "pk": 8,
   "fields": {
-    "nome": "Refeit¾rio",
+    "nome": "Refeitório",
     "descricao": null
+  }
+},
+{
+  "model": "central_servicos.historicalpredio",
+  "pk": 1,
+  "fields": {
+    "id": 2,
+    "nome": "Polo de Inovação Manaus",
+    "sigla": "INOVA",
+    "area_total_m2": null,
+    "capacidade_pessoas": null,
+    "possui_geracao_solar": null,
+    "capacidade_geracao_solar_kwp": null,
+    "quantidade_placas_solares": null,
+    "possui_gerador_emergencia": null,
+    "possui_subestacao_propria": null,
+    "possui_climatizacao_central": null,
+    "possui_rede_gases_especiais": null,
+    "possui_sala_limpa": null,
+    "risco_quimico": null,
+    "risco_biologico": null,
+    "armazena_inflamaveis": null,
+    "possui_ete_sanitaria": null,
+    "possui_ete_especial": null,
+    "avcb_numero": null,
+    "avcb_validade": null,
+    "avcb_arquivo": "",
+    "licenca_ambiental_numero": null,
+    "licenca_ambiental_validade": null,
+    "licenca_ambiental_arquivo": "",
+    "licenca_vigilancia_sanitaria_numero": null,
+    "licenca_vigilancia_sanitaria_validade": null,
+    "licenca_vigilancia_sanitaria_arquivo": "",
+    "brigada_incendio_ativa": null,
+    "ordem": 0,
+    "history_date": "2026-08-18T16:49:14.763Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
   }
 },
 {
   "model": "central_servicos.predio",
   "pk": 2,
   "fields": {
-    "nome": "Polo de InovaþÒo Manaus",
+    "nome": "Polo de Inovação Manaus",
     "sigla": "INOVA",
     "area_total_m2": null,
     "capacidade_pessoas": null,
@@ -528,7 +640,7 @@
   "pk": 3,
   "fields": {
     "id": 1,
-    "nome": "1║ Andar",
+    "nome": "1º Andar",
     "ordem": 0,
     "predio": 2,
     "history_date": "2026-08-13T00:37:35.219Z",
@@ -542,7 +654,7 @@
   "pk": 4,
   "fields": {
     "id": 2,
-    "nome": "2║ Andar",
+    "nome": "2º Andar",
     "ordem": 0,
     "predio": 2,
     "history_date": "2026-08-13T00:37:45.542Z",
@@ -552,11 +664,39 @@
   }
 },
 {
+  "model": "central_servicos.historicalandar",
+  "pk": 5,
+  "fields": {
+    "id": 1,
+    "nome": "1º Andar",
+    "ordem": 0,
+    "predio": 2,
+    "history_date": "2026-08-18T16:49:14.776Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalandar",
+  "pk": 6,
+  "fields": {
+    "id": 2,
+    "nome": "2º Andar",
+    "ordem": 1,
+    "predio": 2,
+    "history_date": "2026-08-18T16:49:14.778Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
   "model": "central_servicos.andar",
   "pk": 1,
   "fields": {
     "predio": 2,
-    "nome": "1║ Andar",
+    "nome": "1º Andar",
     "ordem": 0
   }
 },
@@ -565,7 +705,7 @@
   "pk": 2,
   "fields": {
     "predio": 2,
-    "nome": "2║ Andar",
+    "nome": "2º Andar",
     "ordem": 1
   }
 },
@@ -597,6 +737,71 @@
   }
 },
 {
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 1,
+  "fields": {
+    "id": 3,
+    "nome": "Auditório",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.786Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 2,
+  "fields": {
+    "id": 10,
+    "nome": "Galpão",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.792Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 3,
+  "fields": {
+    "id": 4,
+    "nome": "Laboratório",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.793Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 4,
+  "fields": {
+    "id": 8,
+    "nome": "Pátio Externo",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.795Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 5,
+  "fields": {
+    "id": 5,
+    "nome": "Recepção",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.796Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
   "model": "central_servicos.tipoambiente",
   "pk": 1,
   "fields": {
@@ -616,7 +821,7 @@
   "model": "central_servicos.tipoambiente",
   "pk": 3,
   "fields": {
-    "nome": "Audit¾rio",
+    "nome": "Auditório",
     "descricao": ""
   }
 },
@@ -624,7 +829,7 @@
   "model": "central_servicos.tipoambiente",
   "pk": 4,
   "fields": {
-    "nome": "Laborat¾rio",
+    "nome": "Laboratório",
     "descricao": ""
   }
 },
@@ -632,7 +837,7 @@
   "model": "central_servicos.tipoambiente",
   "pk": 5,
   "fields": {
-    "nome": "RecepþÒo",
+    "nome": "Recepção",
     "descricao": ""
   }
 },
@@ -656,7 +861,7 @@
   "model": "central_servicos.tipoambiente",
   "pk": 8,
   "fields": {
-    "nome": "Pßtio Externo",
+    "nome": "Pátio Externo",
     "descricao": ""
   }
 },
@@ -672,7 +877,7 @@
   "model": "central_servicos.tipoambiente",
   "pk": 10,
   "fields": {
-    "nome": "GalpÒo",
+    "nome": "Galpão",
     "descricao": ""
   }
 },
@@ -697,7 +902,7 @@
   "pk": 1,
   "fields": {
     "id": 9,
-    "nome": "RecepþÒo 2",
+    "nome": "Recepção 2",
     "localizacao": "INTERNO",
     "ordem": 0,
     "predio": 2,
@@ -710,12 +915,114 @@
   }
 },
 {
+  "model": "central_servicos.historicalambiente",
+  "pk": 2,
+  "fields": {
+    "id": 9,
+    "nome": "Recepção 2",
+    "localizacao": "INTERNO",
+    "ordem": 0,
+    "predio": 2,
+    "andar": 1,
+    "tipo": 5,
+    "history_date": "2026-08-18T16:49:14.808Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 3,
+  "fields": {
+    "id": 7,
+    "nome": "LRI - Laboratório de Robótica Industrial",
+    "localizacao": "INTERNO",
+    "ordem": 1,
+    "predio": 2,
+    "andar": 1,
+    "tipo": 4,
+    "history_date": "2026-08-18T16:49:14.811Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 4,
+  "fields": {
+    "id": 6,
+    "nome": "LABCONDIG - Laboratório de Convergência Digital",
+    "localizacao": "INTERNO",
+    "ordem": 2,
+    "predio": 2,
+    "andar": 1,
+    "tipo": 4,
+    "history_date": "2026-08-18T16:49:14.813Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 5,
+  "fields": {
+    "id": 1,
+    "nome": "Recepção Principal",
+    "localizacao": "INTERNO",
+    "ordem": 3,
+    "predio": 2,
+    "andar": 1,
+    "tipo": 5,
+    "history_date": "2026-08-18T16:49:14.815Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 6,
+  "fields": {
+    "id": 5,
+    "nome": "LEMAS - Laboratório de Ensaios Mecânicos",
+    "localizacao": "INTERNO",
+    "ordem": 5,
+    "predio": 2,
+    "andar": 1,
+    "tipo": 4,
+    "history_date": "2026-08-18T16:49:14.817Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 7,
+  "fields": {
+    "id": 8,
+    "nome": "Depósito",
+    "localizacao": "INTERNO",
+    "ordem": 6,
+    "predio": 2,
+    "andar": 1,
+    "tipo": 10,
+    "history_date": "2026-08-18T16:49:14.821Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
   "model": "central_servicos.ambiente",
   "pk": 1,
   "fields": {
     "predio": 2,
     "andar": 1,
-    "nome": "RecepþÒo Principal",
+    "nome": "Recepção Principal",
     "tipo": 5,
     "localizacao": "INTERNO",
     "ordem": 3
@@ -763,7 +1070,7 @@
   "fields": {
     "predio": 2,
     "andar": 1,
-    "nome": "LEMAS - Laborat¾rio de Ensaios MecÔnicos",
+    "nome": "LEMAS - Laboratório de Ensaios Mecânicos",
     "tipo": 4,
     "localizacao": "INTERNO",
     "ordem": 5
@@ -775,7 +1082,7 @@
   "fields": {
     "predio": 2,
     "andar": 1,
-    "nome": "LABCONDIG - Laborat¾rio de ConvergÛncia Digital",
+    "nome": "LABCONDIG - Laboratório de Convergência Digital",
     "tipo": 4,
     "localizacao": "INTERNO",
     "ordem": 2
@@ -787,7 +1094,7 @@
   "fields": {
     "predio": 2,
     "andar": 1,
-    "nome": "LRI - Laborat¾rio de Rob¾tica Industrial",
+    "nome": "LRI - Laboratório de Robótica Industrial",
     "tipo": 4,
     "localizacao": "INTERNO",
     "ordem": 1
@@ -799,7 +1106,7 @@
   "fields": {
     "predio": 2,
     "andar": 1,
-    "nome": "Dep¾sito",
+    "nome": "Depósito",
     "tipo": 10,
     "localizacao": "INTERNO",
     "ordem": 6
@@ -811,7 +1118,7 @@
   "fields": {
     "predio": 2,
     "andar": 1,
-    "nome": "RecepþÒo 2",
+    "nome": "Recepção 2",
     "tipo": 5,
     "localizacao": "INTERNO",
     "ordem": 0
@@ -1081,6 +1388,110 @@
   }
 },
 {
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 1,
+  "fields": {
+    "id": 28,
+    "nome": "Armário",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.843Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 2,
+  "fields": {
+    "id": 15,
+    "nome": "Câmera",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.846Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 3,
+  "fields": {
+    "id": 35,
+    "nome": "Corrimão",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.848Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 4,
+  "fields": {
+    "id": 33,
+    "nome": "Fogão",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.851Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 5,
+  "fields": {
+    "id": 6,
+    "nome": "Luminária",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.853Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 6,
+  "fields": {
+    "id": 16,
+    "nome": "Maçaneta",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.856Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 7,
+  "fields": {
+    "id": 19,
+    "nome": "Televisão",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.859Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 8,
+  "fields": {
+    "id": 13,
+    "nome": "Vaso Sanintário",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.861Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
   "model": "central_servicos.tipoativo",
   "pk": 2,
   "fields": {
@@ -1116,7 +1527,7 @@
   "model": "central_servicos.tipoativo",
   "pk": 6,
   "fields": {
-    "nome": "Luminßria",
+    "nome": "Luminária",
     "descricao": ""
   }
 },
@@ -1172,7 +1583,7 @@
   "model": "central_servicos.tipoativo",
   "pk": 13,
   "fields": {
-    "nome": "Vaso Sanintßrio",
+    "nome": "Vaso Sanintário",
     "descricao": ""
   }
 },
@@ -1188,7 +1599,7 @@
   "model": "central_servicos.tipoativo",
   "pk": 15,
   "fields": {
-    "nome": "CÔmera",
+    "nome": "Câmera",
     "descricao": ""
   }
 },
@@ -1196,7 +1607,7 @@
   "model": "central_servicos.tipoativo",
   "pk": 16,
   "fields": {
-    "nome": "Maþaneta",
+    "nome": "Maçaneta",
     "descricao": ""
   }
 },
@@ -1220,7 +1631,7 @@
   "model": "central_servicos.tipoativo",
   "pk": 19,
   "fields": {
-    "nome": "TelevisÒo",
+    "nome": "Televisão",
     "descricao": ""
   }
 },
@@ -1292,7 +1703,7 @@
   "model": "central_servicos.tipoativo",
   "pk": 28,
   "fields": {
-    "nome": "Armßrio",
+    "nome": "Armário",
     "descricao": ""
   }
 },
@@ -1332,7 +1743,7 @@
   "model": "central_servicos.tipoativo",
   "pk": 33,
   "fields": {
-    "nome": "FogÒo",
+    "nome": "Fogão",
     "descricao": ""
   }
 },
@@ -1348,7 +1759,7 @@
   "model": "central_servicos.tipoativo",
   "pk": 35,
   "fields": {
-    "nome": "CorrimÒo",
+    "nome": "Corrimão",
     "descricao": ""
   }
 },
@@ -1637,7 +2048,7 @@
   "pk": 1,
   "fields": {
     "id": 6,
-    "nome": "InstalaþÒo",
+    "nome": "Instalação",
     "descricao": "",
     "history_date": "2026-08-16T18:34:26.697Z",
     "history_change_reason": null,
@@ -1646,18 +2057,83 @@
   }
 },
 {
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 2,
+  "fields": {
+    "id": 1,
+    "nome": "Elétrica",
+    "descricao": "Troca de lâmpadas, curtos-circuitos, instalação de tomadas e disjuntores.",
+    "history_date": "2026-08-18T16:49:14.878Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 3,
+  "fields": {
+    "id": 2,
+    "nome": "Hidráulica",
+    "descricao": "Vazamentos, desentupimentos, reparos em pias, vasos e encanamentos.",
+    "history_date": "2026-08-18T16:49:14.882Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 4,
+  "fields": {
+    "id": 4,
+    "nome": "Climatização",
+    "descricao": "Limpeza de filtros, recarga de gás e manutenção de ar-condicionado.",
+    "history_date": "2026-08-18T16:49:14.884Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 5,
+  "fields": {
+    "id": 5,
+    "nome": "Geral",
+    "descricao": "Serviços gerais de infraestrutura e logística.",
+    "history_date": "2026-08-18T16:49:14.889Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 6,
+  "fields": {
+    "id": 6,
+    "nome": "Instalação",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.891Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
   "model": "central_servicos.categoriaservico",
   "pk": 1,
   "fields": {
-    "nome": "ElÚtrica",
-    "descricao": "Troca de lÔmpadas, curtos-circuitos, instalaþÒo de tomadas e disjuntores."
+    "nome": "Elétrica",
+    "descricao": "Troca de lâmpadas, curtos-circuitos, instalação de tomadas e disjuntores."
   }
 },
 {
   "model": "central_servicos.categoriaservico",
   "pk": 2,
   "fields": {
-    "nome": "Hidrßulica",
+    "nome": "Hidráulica",
     "descricao": "Vazamentos, desentupimentos, reparos em pias, vasos e encanamentos."
   }
 },
@@ -1673,8 +2149,8 @@
   "model": "central_servicos.categoriaservico",
   "pk": 4,
   "fields": {
-    "nome": "ClimatizaþÒo",
-    "descricao": "Limpeza de filtros, recarga de gßs e manutenþÒo de ar-condicionado."
+    "nome": "Climatização",
+    "descricao": "Limpeza de filtros, recarga de gás e manutenção de ar-condicionado."
   }
 },
 {
@@ -1682,14 +2158,14 @@
   "pk": 5,
   "fields": {
     "nome": "Geral",
-    "descricao": "Serviþos gerais de infraestrutura e logÝstica."
+    "descricao": "Serviços gerais de infraestrutura e logística."
   }
 },
 {
   "model": "central_servicos.categoriaservico",
   "pk": 6,
   "fields": {
-    "nome": "InstalaþÒo",
+    "nome": "Instalação",
     "descricao": ""
   }
 }
