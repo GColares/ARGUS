@@ -15,8 +15,8 @@ Siga os passos rigorosamente nesta ordem:
 2. **Geração de Backups Híbridos de Segurança:**
    - Garanta que as pastas `backups/sql/` e `backups/json/` existem na raiz do projeto (crie se não existirem).
    - Determine o próximo ID sequencial de 3 dígitos (NNN) analisando as subpastas em `backups/`.
-   - Gere PRIMEIRO o backup SQL (rápido para disaster recovery):
-     `$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm" ; $env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -d argus_db -f "backups/sql/NNN_db_backup_${timestamp}.sql"`
+   - Gere PRIMEIRO o backup SQL forçando o encoding (rápido para disaster recovery):
+     `$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm" ; $env:PGCLIENTENCODING='utf8'; $env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -d argus_db -f "backups/sql/NNN_db_backup_${timestamp}.sql"`
    - Gere EM SEGUIDA o backup JSON (seguro para mudanças de estrutura), forçando UTF-8:
      `$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm" ; .\.venv\Scripts\python.exe -X utf8 manage.py dumpdata -e contenttypes -e auth.Permission --indent 2 > "backups/json/NNN_db_backup_${timestamp}.json"`
 3. **Salvar Pacotes (Requirements):**

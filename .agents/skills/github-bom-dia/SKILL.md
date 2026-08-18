@@ -24,7 +24,7 @@ Siga os passos rigorosamente nesta ordem:
      - Limpe o banco de forma segura: `.\.venv\Scripts\python.exe manage.py flush --no-input`
      - Restaure os dados: `.\.venv\Scripts\python.exe manage.py loaddata <CAMINHO_DO_JSON>`
    - **SE O USUÁRIO ESCOLHER SQL:**
-     - Limpe o banco bruto: `$env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d argus_db -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"`
-     - Restaure bruto: `$env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d argus_db -f <CAMINHO_DO_SQL>`
+     - Limpe o banco bruto: `$env:PGCLIENTENCODING='utf8'; $env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d argus_db -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"`
+     - Restaure bruto: `$env:PGCLIENTENCODING='utf8'; $env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d argus_db -f <CAMINHO_DO_SQL>`
 6. **Reportar ao Usuário:**
    - Deseje um bom dia de trabalho, resuma brevemente o que você leu no diário de bordo e confirme que o ambiente está totalmente sincronizado!
