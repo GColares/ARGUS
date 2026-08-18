@@ -1,5 +1,19 @@
 # Diário de Bordo - ARGUS
 
+## 17/08/2026
+**Status Atual do Projeto:**
+O sistema de backups foi completamente refatorado para garantir maior segurança em transições e migrações. O erro de estáticos locais no modo desenvolvedor foi resolvido.
+
+**O que foi feito recentemente:**
+- **Sincronização:** Recebemos uma massiva atualização da nuvem (mais de 50 arquivos), reestruturando completamente Pessoas Físicas e Jurídicas. As migrações foram aplicadas com sucesso.
+- **Backups Híbridos:** A regra de backups (`BACKUP_NAMING.md`) e as rotinas diárias foram reescritas para suportar um sistema híbrido. Agora geramos backups SQL e JSON, arquivados em subpastas correspondentes (`backups/sql/` e `backups/json/`).
+- **WhiteNoise Local:** O erro 500 no `runserver` foi diagnosticado como ausência de estáticos devido ao `DEBUG=False`. Criamos um arquivo `.env` forçando `DEBUG=True` no ambiente de desenvolvimento local.
+
+**O que está pendente no nosso radar:**
+- **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
+
+---
+
 ## 14/08/2026 (Encerramento Extra)
 **Status Atual do Projeto:**
 O projeto encerra o dia com a consolidação das regras de preservação de histórico.

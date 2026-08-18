@@ -17,12 +17,14 @@ Siga os passos rigorosamente nesta ordem:
    - Execute a instalação do que houver de novo no requirements: `.\.venv\Scripts\python.exe -m pip install -r requirements.txt`
 4. **Sincronizar Estrutura do Banco (Migrações):**
    - Execute as migrações para que a estrutura acompanhe o código: `.\.venv\Scripts\python.exe manage.py migrate`
-5. **Acionar Restauração de Dados (Restauração Opcional):**
-   - Verifique utilizando o PowerShell qual o backup `.sql` de maior ID (NNN_) na pasta `backups/`. Exemplo:
-     `$latest = Get-ChildItem -Path "c:\Projetos\ARGUS\backups\*.sql" -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1; if ($latest) { $latest.FullName } else { "NOT FOUND" }`
-   - Se encontrar um backup, avise o usuário qual foi o backup mais recente que existe na pasta. Em seguida, **PERGUNTE** ao usuário se ele deseja injetar esse backup no banco atual dele.
-   - **SE O USUÁRIO CONFIRMAR A INJEÇÃO (ex: "sim, pode injetar"):**
-     - Limpe o banco: `$env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d argus_db -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"`
-     - Restaure: `$env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d argus_db -f <CAMINHO_ENCONTRADO>`
+5. **Acionar Restauração de Dados (Restauração Opcional e Híbrida):**
+   - Verifique as pastas `backups/sql/` e `backups/json/` para encontrar os arquivos do maior ID sequencial (NNN_).
+   - Avise o usuário qual foi o ID do backup mais recente encontrado. Em seguida, **PERGUNTE** se ele deseja restaurar o banco e de qual forma: (A) Via JSON (Recomendado se houveram novas migrações vindas da nuvem) ou (B) Via SQL (Restauração bruta local).
+   - **SE O USUÁRIO ESCOLHER JSON:**
+     - Limpe o banco de forma segura: `.\.venv\Scripts\python.exe manage.py flush --no-input`
+     - Restaure os dados: `.\.venv\Scripts\python.exe manage.py loaddata <CAMINHO_DO_JSON>`
+   - **SE O USUÁRIO ESCOLHER SQL:**
+     - Limpe o banco bruto: `$env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d argus_db -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"`
+     - Restaure bruto: `$env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d argus_db -f <CAMINHO_DO_SQL>`
 6. **Reportar ao Usuário:**
    - Deseje um bom dia de trabalho, resuma brevemente o que você leu no diário de bordo e confirme que o ambiente está totalmente sincronizado!

@@ -12,10 +12,13 @@ Siga os passos rigorosamente nesta ordem:
 1. **Atualizar Regras de Negócio e Diário:**
    - Antes de iniciar o versionamento, atualize o arquivo `.agents/rules/CONTEXTO_ARGUS.md` com novos aprendizados caso necessário.
    - Atualize OBRIGATORIAMENTE o arquivo `diario_de_bordo.md` na raiz do projeto. ATENÇÃO: NUNCA sobrescreva o arquivo apagando o histórico anterior. Você deve INSERIR a nova entrada (com a data atual, o que foi feito e o que está pendente) logo abaixo do título principal do arquivo, empurrando todo o texto e os dias anteriores para baixo, preservando todo o histórico intocado.
-2. **Geração de Backup de Segurança:**
-   - Garanta que a pasta `backups/` existe na raiz do projeto (crie se não existir).
-   - Determine o próximo ID sequencial de 3 dígitos (NNN) analisando a pasta `backups/` e crie o backup adotando a regra de nomenclatura NNN:
-     `$env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -d argus_db -f backups/NNN_db_backup_YYYY-MM-DD_HH-MM.sql`
+2. **Geração de Backups Híbridos de Segurança:**
+   - Garanta que as pastas `backups/sql/` e `backups/json/` existem na raiz do projeto (crie se não existirem).
+   - Determine o próximo ID sequencial de 3 dígitos (NNN) analisando as subpastas em `backups/`.
+   - Gere PRIMEIRO o backup SQL (rápido para disaster recovery):
+     `$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm" ; $env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -d argus_db -f "backups/sql/NNN_db_backup_${timestamp}.sql"`
+   - Gere EM SEGUIDA o backup JSON (seguro para mudanças de estrutura), forçando UTF-8:
+     `$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm" ; .\.venv\Scripts\python.exe -X utf8 manage.py dumpdata -e contenttypes -e auth.Permission --indent 2 > "backups/json/NNN_db_backup_${timestamp}.json"`
 3. **Salvar Pacotes (Requirements):**
    - Execute a exportação das dependências para garantir que qualquer pacote novo seja salvo:
      `.\.venv\Scripts\python.exe -m pip freeze > requirements.txt`
