@@ -435,7 +435,7 @@ def listar_relatorios(request):
     relatorios = RelatorioAtividade.objects.select_related(
         'termo_bolsa', 
         'termo_bolsa__cota_pt__projeto'
-    ).order_by('termo_bolsa__cota_pt__projeto__convenio', 'termo_bolsa__bolsista__nome', 'parcela_referencia__numero', 'versao')
+    ).order_by('termo_bolsa__cota_pt__projeto__convenio', 'termo_bolsa__pessoa__nome', 'parcela_referencia__numero', 'versao')
 
     # Captura dos parâmetros de filtro da URL (GET) com suporte a múltiplos valores
     if 'clear' in request.GET:
@@ -467,7 +467,7 @@ def listar_relatorios(request):
         relatorios = relatorios.filter(status__in=status_list)
 
     from cadastros.models import TermoBolsa
-    termos = TermoBolsa.objects.all().order_by('bolsista__nome')
+    termos = TermoBolsa.objects.all().order_by('pessoa__nome')
 
     contexto = {
         'relatorios': relatorios,

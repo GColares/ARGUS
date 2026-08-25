@@ -233,10 +233,26 @@
                                 </div>
                                 <div class="sala-grid">
                                     {% for ambiente in andar.ambientes.all %}
-                                        <div class="sala-item shadow-sm">
-                                            <i class="fas fa-door-closed text-muted"></i>
-                                            <span class="fw-semibold text-truncate">{{ ambiente.nome }}</span>
+                                      {% if not ambiente.ambiente_pai and ambiente.ativo %}
+                                        <div class="sala-item shadow-sm d-flex flex-column align-items-start h-100">
+                                            <div class="w-100 d-flex align-items-center">
+                                                <i class="fas fa-door-closed text-primary me-2"></i>
+                                                <span class="fw-bold text-truncate">{{ ambiente.nome }}</span>
+                                            </div>
+                                            {% if ambiente.sub_ambientes.all %}
+                                            <div class="w-100 ps-2 mt-2 border-start border-primary border-opacity-25" style="margin-left: 0.5rem;">
+                                                {% for sub in ambiente.sub_ambientes.all %}
+                                                  {% if sub.ativo %}
+                                                  <div class="d-flex align-items-center mb-1">
+                                                      <i class="fas fa-level-up-alt fa-rotate-90 text-muted me-2 small"></i>
+                                                      <span class="small fw-semibold text-muted text-truncate">{{ sub.nome }}</span>
+                                                  </div>
+                                                  {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
                                         </div>
+                                      {% endif %}
                                     {% empty %}
                                         <div class="p-2 text-muted small fst-italic">Nenhum ambiente neste andar.</div>
                                     {% endfor %}

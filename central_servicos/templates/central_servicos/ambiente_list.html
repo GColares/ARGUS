@@ -26,19 +26,30 @@
     <div class="card shadow-sm border-0 rounded-3">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <th class="text-center"ead class="table-light">
+                <table class="table table-hover align-middle mb-0" id="tabela-ambientes">
+                    <thead class="table-light">
                         <tr>
                             <th class="text-center px-4">ID</th>
-                            <th class="text-center">Nome</th>
+                            <th class="text-center">Andar/Prédio</th>
+                            <th class="text-start">Ambiente</th>
                             <th class="text-center px-4">Ações</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="sortable-table">
                         {% for obj in ambientes %}
-                        <tr>
-                            <td class="text-center text-muted">#{{ obj.id }}</td>
-                            <td class="text-center fw-semibold">{{ obj.nome }}</td>
+                        <tr data-id="{{ obj.id }}" class="sortable-row">
+                            <td class="text-center text-muted">
+                                <i class="fas fa-grip-vertical text-black-50 me-2 drag-handle" style="cursor: grab;" title="Arraste para reordenar"></i>#{{ obj.id }}
+                            </td>
+                            <td class="text-center">{{ obj.andar|default:"Área Externa" }}</td>
+                            <td class="text-start fw-semibold">
+                                {% if obj.ambiente_pai %}
+                                    <span class="badge bg-secondary me-1" title="Sub-ambiente de {{ obj.ambiente_pai.nome }}">
+                                        <i class="fas fa-level-up-alt fa-rotate-90"></i> {{ obj.ambiente_pai.nome }}
+                                    </span>
+                                {% endif %}
+                                {{ obj.nome }}
+                            </td>
                             <td class="text-center">
                                 <a href="{% url 'central_servicos:ambiente_editar' obj.pk %}" class="btn btn-sm btn-outline-secondary me-2" title="Editar">
                                     <i class="fas fa-edit"></i>
@@ -48,13 +59,6 @@
                                 </a>
                             </td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center text-muted py-4">
-                                <i class="fas fa-inbox fa-3x mb-3 text-light"></i>
-                                <p class="mb-0">Nenhum registro encontrado.</p>
-                            </td>
-                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -62,4 +66,59 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- SortableJS -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Inicializar DataTables
+    var table = $('#tabela-ambientes').DataTable({
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json' },
+        pageLength: 50,
+        order: [], // Mantém a ordem original do banco (ordem manual)
+        columnDefs: [
+            { orderable: false, targets: [0, 3] } // Desabilita ordenação nativa do DT no ID (por causa do arraste) e nas Ações
+        ]
+    });
+
+    // Inicializar Drag-and-Drop (SortableJS)
+    var el = document.getElementById('sortable-table');
+    if (el) {
+        Sortable.create(el, {
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'bg-light',
+            onEnd: function (evt) {
+                var ids = Array.from(el.querySelectorAll('.sortable-row')).map(row => row.getAttribute('data-id'));
+                
+                fetch("{% url 'central_servicos:reordenar_itens' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        'modelo': 'Ambiente',
+                        'ids': ids
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Ordem salva com sucesso!');
+                    }
+                })
+                .catch(err => console.error('Erro na requisição:', err));
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

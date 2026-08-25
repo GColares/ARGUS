@@ -4,7 +4,7 @@ from .models import OrdemServico, Predio, Ambiente
 
 class OrdemServicoForm(forms.ModelForm):
     ambientes = forms.ModelMultipleChoiceField(
-        queryset=Ambiente.objects.all(),
+        queryset=Ambiente.objects.filter(ativo=True),
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'd-none real-checkboxes'}),
         label="Salas / Ambientes",
         help_text="Selecione os ambientes onde a manutenção será realizada."
@@ -93,11 +93,21 @@ class AmbienteForm(forms.ModelForm):
         widgets = {
             'predio': forms.Select(attrs={'class': 'form-select'}),
             'andar': forms.Select(attrs={'class': 'form-select'}),
+            'ambiente_pai': forms.Select(attrs={'class': 'form-select'}),
             'tipo': forms.Select(attrs={'class': 'form-select'}),
             'localizacao': forms.Select(attrs={'class': 'form-select'}),
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Ambiente'}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'ambiente_pai' in self.fields:
+            qs = Ambiente.objects.filter(ativo=True)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+                qs = qs.exclude(ambiente_pai=self.instance)
+            self.fields['ambiente_pai'].queryset = qs
 class AtivoPredialForm(forms.ModelForm):
     class Meta:
         model = AtivoPredial
@@ -113,7 +123,7 @@ class AtivoPredialForm(forms.ModelForm):
 
 class AtivoPredialLoteForm(forms.ModelForm):
     ambientes = forms.ModelMultipleChoiceField(
-        queryset=Ambiente.objects.all(),
+        queryset=Ambiente.objects.filter(ativo=True),
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'd-none real-checkboxes'}),
         label="Salas / Ambientes",
         help_text="Selecione um ou mais ambientes onde este ativo será criado."

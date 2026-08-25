@@ -114,6 +114,7 @@ class ContaBancariaForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # pyrefly: ignore [missing-attribute]
         self.fields['fonte_recurso'].empty_label = "--- Selecione a Fonte ---" # pyright: ignore
         self.fields['fonte_recurso'].queryset = FonteDeRecurso.objects.all().order_by('nome') # type: ignore
         

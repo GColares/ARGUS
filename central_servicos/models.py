@@ -3,6 +3,7 @@ from simple_history.models import HistoricalRecords
 from django.db import models
 # pyrefly: ignore [untyped-import]
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from cadastros.models import Fornecedor
 from almoxarifado.models import ProdutoAlmoxarifado
 import uuid
@@ -107,19 +108,33 @@ class Ambiente(models.Model):
     ]
     predio = models.ForeignKey(Predio, on_delete=models.CASCADE, related_name='ambientes')
     andar = models.ForeignKey(Andar, on_delete=models.SET_NULL, null=True, blank=True, related_name='ambientes', help_text="Deixe em branco para áreas externas")
+    ambiente_pai = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='sub_ambientes', verbose_name="Ambiente Pai (Laboratório/Setor Maior)")
     nome = models.CharField(max_length=100)
     tipo = models.ForeignKey(TipoAmbiente, on_delete=models.PROTECT, related_name='ambientes')
     localizacao = models.CharField(max_length=10, choices=LOCALIZACAO_CHOICES, default='INTERNO')
     ordem = models.PositiveIntegerField(default=0, verbose_name="Ordem")
+    ativo = models.BooleanField(default=True, verbose_name="Ambiente Ativo?")
     history = HistoricalRecords()
 
     class Meta:
         ordering = ['ordem']
 
+    def clean(self):
+        super().clean()
+        if self.ambiente_pai:
+            if self.ambiente_pai == self:
+                raise ValidationError({'ambiente_pai': "Um ambiente não pode ser pai de si mesmo."})
+            if self.ambiente_pai.ambiente_pai:
+                raise ValidationError({'ambiente_pai': "Para manter a performance e clareza, é permitido apenas 1 nível de sub-ambiente (Macro -> Micro)."})
+
     def __str__(self):
+        nome_completo = self.nome
+        if self.ambiente_pai:
+            nome_completo = f"{self.ambiente_pai.nome} - {self.nome}"
+            
         if self.andar:
-            return f"{self.predio.sigla or self.predio.nome} - {self.andar.nome} - {self.nome}"
-        return f"{self.predio.sigla or self.predio.nome} - {self.nome} ({self.get_localizacao_display()})" # type: ignore
+            return f"{self.predio.sigla or self.predio.nome} - {self.andar.nome} - {nome_completo}"
+        return f"{self.predio.sigla or self.predio.nome} - {nome_completo} ({self.get_localizacao_display()})"
 
 class CategoriaElemento(models.Model):
     nome = models.CharField(max_length=100, unique=True, help_text="Ex: Piso, Parede, Janela, Forro")

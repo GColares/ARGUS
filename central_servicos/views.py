@@ -228,6 +228,9 @@ class AmbienteListView(LoginRequiredMixin, ListView):
     template_name = 'central_servicos/ambiente_list.html'
     context_object_name = 'ambientes'
 
+    def get_queryset(self):
+        return Ambiente.objects.filter(ativo=True)
+
 class AmbienteCreateView(LoginRequiredMixin, CreateView):
     model = Ambiente
     form_class = AmbienteForm
