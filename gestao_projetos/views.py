@@ -46,10 +46,12 @@ def montar_contexto_relatorio(relatorio_id):
         atividades_vinculadas = list(termo.cota_pt.atividades_vinculadas.all().order_by('numero'))
     else:
         termo = None
+        # pyrefly: ignore [missing-attribute]
         projeto = relatorio.bolsista.projeto
         atividades_vinculadas = list(projeto.atividades_plano.all().order_by('numero'))
 
     # Dicionário mapeando rigorosamente as seções do documento oficial
+    # pyrefly: ignore [missing-attribute]
     total_parcelas = termo.quantidade_parcelas if termo else relatorio.bolsista.total_parcelas_previstas
     
     conta_final = relatorio.conta_pagamento
@@ -59,7 +61,9 @@ def montar_contexto_relatorio(relatorio_id):
         from cadastros.models import DistribuicaoContaCota
         dist = DistribuicaoContaCota.objects.filter(
             cota_pt=termo.cota_pt,
+            # pyrefly: ignore [missing-attribute]
             parcela_inicio__lte=relatorio.parcela_referencia.numero,
+            # pyrefly: ignore [missing-attribute]
             parcela_fim__gte=relatorio.parcela
         ).first()
         if dist:
@@ -82,6 +86,7 @@ def montar_contexto_relatorio(relatorio_id):
         
         # Seção 3: Identificação do Período e Parcela
         'parcelas_previstas': total_parcelas,
+        # pyrefly: ignore [missing-attribute]
         'parcela': str(relatorio.parcela_referencia.numero),
         'periodo_inicio': relatorio.periodo_inicio.strftime('%d/%m/%Y'),
         'periodo_fim': relatorio.periodo_fim.strftime('%d/%m/%Y'),
@@ -120,16 +125,26 @@ def montar_contexto_relatorio(relatorio_id):
     else:
         bolsista = relatorio.bolsista
         contexto.update({
+            # pyrefly: ignore [missing-attribute]
             'bolsista_nome': bolsista.nome_completo,
+            # pyrefly: ignore [missing-attribute]
             'bolsista_cpf': bolsista.cpf,
+            # pyrefly: ignore [missing-attribute]
             'bolsista_rg': bolsista.rg,
+            # pyrefly: ignore [missing-attribute]
             'bolsista_email': bolsista.email,
+            # pyrefly: ignore [missing-attribute]       
             'bolsista_fone': bolsista.telefone,
-            'bolsista_funcao': bolsista.funcao,
+            # pyrefly: ignore [missing-attribute]
+            'bolsista_funcao': bolsista.funcao, 
+            # pyrefly: ignore [missing-attribute]
             'bolsista_termodebolsa': bolsista.termo_bolsa,
+            # pyrefly: ignore [missing-attribute]
             'bolsista_contratacao': f"{bolsista.data_inicio.strftime('%d/%m/%Y')} a {bolsista.data_fim.strftime('%d/%m/%Y')}",
+            # pyrefly: ignore [missing-attribute]
             'bolsista_ch': bolsista.carga_horaria_total,
-            'assinatura_bolsita': bolsista.nome_completo,
+            # pyrefly: ignore [missing-attribute]
+            'assinatura_bolsita': bolsista.nome_completo,   
         })
         
     # Injeta variáveis de atividade (1 a 15) para liberdade no DOCX
@@ -142,7 +157,9 @@ def montar_contexto_relatorio(relatorio_id):
     # Mantém um texto_atividades geral para caso queiram fallback
     texto_atividades = ""
     for atv in atividades_vinculadas:
+        # pyrefly: ignore [missing-attribute]
         tarefas = relatorio.itens_atividade.filter(atividade_mae=atv)
+        # pyrefly: ignore [missing-attribute]
         desc = " | ".join(t.descricao for t in tarefas) if tarefas.exists() else "Não se aplica"
         texto_atividades += f"- {atv.nome}: {desc}\n"
     contexto['atividade_mae_nome'] = texto_atividades
@@ -173,6 +190,7 @@ def gerar_documento_relatorio(request, relatorio_id):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     # Calcula total de parcelas
     total_parcelas = relatorio.termo_bolsa.quantidade_parcelas if relatorio.termo_bolsa else getattr(relatorio.bolsista, 'total_parcelas_previstas', '?')
+    # pyrefly: ignore [missing-attribute]
     nome_arquivo = f"Relatorio_Parcela_{relatorio.parcela_referencia.numero}_de_{total_parcelas}_{relatorio.bolsista.nome_completo.replace(' ', '_')}.docx"
     response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
     
@@ -209,6 +227,7 @@ def visualizar_relatorio(request, relatorio_id):
     if relatorio.termo_bolsa:
         projeto = relatorio.termo_bolsa.cota_pt.projeto
     else:
+        # pyrefly: ignore [missing-attribute]
         projeto = relatorio.bolsista.projeto
         
     if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
@@ -222,6 +241,7 @@ def visualizar_relatorio(request, relatorio_id):
     if relatorio.termo_bolsa:
         atvs = relatorio.termo_bolsa.cota_pt.atividades_vinculadas.all().order_by('numero')
     else:
+        # pyrefly: ignore [missing-attribute]
         atvs = relatorio.bolsista.projeto.atividades_plano.all().order_by('numero')
         
     for atv in atvs:
@@ -370,6 +390,7 @@ def criar_relatorio(request):
 
                 novo_relatorio = RelatorioAtividade.objects.create(
                     termo_bolsa=termo,
+                    # pyrefly: ignore [missing-attribute]
                     parcela_referencia=termo.parcelas.get(numero=p),
                     versao=1,
                     periodo_inicio=dt_inicio,
@@ -410,6 +431,7 @@ def excluir_relatorio(request, relatorio_id):
     if relatorio.termo_bolsa:
         projeto = relatorio.termo_bolsa.cota_pt.projeto
     else:
+        # pyrefly: ignore [missing-attribute]
         projeto = relatorio.bolsista.projeto
         
     if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
@@ -435,7 +457,7 @@ def listar_relatorios(request):
     relatorios = RelatorioAtividade.objects.select_related(
         'termo_bolsa', 
         'termo_bolsa__cota_pt__projeto'
-    ).order_by('termo_bolsa__cota_pt__projeto__convenio', 'termo_bolsa__pessoa__nome', 'parcela_referencia__numero', 'versao')
+    ).order_by('termo_bolsa__cota_pt__projeto__termo_parceria', 'termo_bolsa__pessoa__nome', 'parcela_referencia__numero', 'versao')
 
     # Captura dos parâmetros de filtro da URL (GET) com suporte a múltiplos valores
     if 'clear' in request.GET:
@@ -615,6 +637,7 @@ def baixar_relatorio_docx(request, relatorio_id):
     if relatorio.termo_bolsa:
         projeto = relatorio.termo_bolsa.cota_pt.projeto
     else:
+        # pyrefly: ignore [missing-attribute]
         projeto = relatorio.bolsista.projeto
         
     if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
@@ -637,15 +660,22 @@ def baixar_relatorio_docx(request, relatorio_id):
     
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     if relatorio.termo_bolsa:
+        # pyrefly: ignore [missing-attribute]
+        # pyrefly: ignore [missing-attribute]
         bolsista_nome = relatorio.termo_bolsa.bolsista.nome
+        # pyrefly: ignore [missing-attribute]
         total_parcelas = relatorio.termo_bolsa.quantidade_parcelas
     else:
+        # pyrefly: ignore [missing-attribute]
         bolsista_nome = relatorio.bolsista.nome_completo
+        # pyrefly: ignore [missing-attribute]
         total_parcelas = getattr(relatorio.bolsista, 'total_parcelas_previstas', '?')
 
+    # pyrefly: ignore [missing-attribute]
     nome_arquivo = f"Relatorio_Atividades_{bolsista_nome.replace(' ', '_')}_Parcela_{relatorio.parcela_referencia.numero}_de_{total_parcelas}.docx"
     response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
     
+    # pyrefly: ignore [bad-argument-type]
     doc.save(response)
     
     if request.GET.get('concluir') == '1':
@@ -723,9 +753,11 @@ def exportar_relatorios_zip(request):
                 bolsista_nome = relatorio.termo_bolsa.bolsista.nome
                 total_parcelas = relatorio.termo_bolsa.quantidade_parcelas
             else:
+                # pyrefly: ignore [missing-attribute]
                 bolsista_nome = relatorio.bolsista.nome_completo
                 total_parcelas = getattr(relatorio.bolsista, 'total_parcelas_previstas', '?')
 
+            # pyrefly: ignore [missing-attribute]
             nome_arquivo = f"Relatorio_Atividades_{bolsista_nome.replace(' ', '_')}_Parcela_{relatorio.parcela_referencia.numero}_de_{total_parcelas}.docx"
             
             # Adiciona ao ZIP
@@ -756,6 +788,7 @@ def relatorio_orcamento_financeiro(request):
     
     if projeto_id:
         projeto_selecionado = get_object_or_404(ProjetoPDI, id=projeto_id, id__in=projetos_permitidos)
+        # pyrefly: ignore [missing-attribute]
         contas_projeto = projeto_selecionado.contas.all()
         cotas = CotaBolsaPT.objects.filter(projeto=projeto_selecionado)
         
