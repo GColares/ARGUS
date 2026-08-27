@@ -115,17 +115,51 @@ class TermoDeParceria(models.Model):
     def __str__(self):
         return f"{self.numero} ({self.concedente.nome})"
 
+
+class IndicadorResultado(models.Model):
+    nome = models.CharField(max_length=150, unique=True)
+    descricao = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return self.nome
+
 class PlanoDeTrabalho(models.Model):
     """Detalha a abordagem técnica, financeira e produto entregue do termo."""
     termo_parceria = models.ForeignKey(TermoDeParceria, on_delete=models.CASCADE, related_name='planos_trabalho')
     versao = models.IntegerField(default=1, verbose_name="Versão do Plano")
     arquivo_pdf = models.FileField(upload_to='projetos/planos_trabalho/', null=True, blank=True, verbose_name="Plano de Trabalho Vigente (PDF)")
     
-    # Abordagens
-    abordagem_tecnica = models.TextField(blank=True, null=True, verbose_name="Abordagem Técnica")
-    abordagem_financeira = models.TextField(blank=True, null=True, verbose_name="Abordagem Financeira")
-    produto_entregue = models.TextField(blank=True, null=True, verbose_name="Produto Entregue")
+    # 3. Motivação
+    motivacao = models.TextField(blank=True, null=True, verbose_name="Motivação (Rich Text)")
     
+    # 4. Objetivos
+    objetivo_geral = models.TextField(blank=True, null=True, verbose_name="Objetivo Geral")
+    objetivos_especificos = models.TextField(blank=True, null=True, verbose_name="Objetivos Específicos (Rich Text)")
+    
+    # 5. Escopo e WBS
+    escopo_geral = models.TextField(blank=True, null=True, verbose_name="Escopo Geral (Rich Text)")
+    estrutura_analitica = models.TextField(blank=True, null=True, verbose_name="Estrutura Analítica / WBS (Rich Text)")
+    tecnologias_utilizadas = models.TextField(blank=True, null=True, verbose_name="Tecnologias e Ferramentas (Rich Text)")
+    vulnerabilidades = models.TextField(blank=True, null=True, verbose_name="Vulnerabilidades do Projeto (Rich Text)")
+    plano_riscos = models.TextField(blank=True, null=True, verbose_name="Plano de Riscos (Rich Text)")
+    
+    # 6. Estratégia
+    estrategia = models.TextField(blank=True, null=True, verbose_name="Estratégia (Rich Text)")
+    
+    # 9. Indicadores
+    indicadores = models.ManyToManyField(IndicadorResultado, blank=True, related_name='planos_trabalho')
+    
+    # 10. e 11. Resultados e Inovação
+    caracteristicas_inovadoras = models.TextField(blank=True, null=True, verbose_name="Características Inovadoras (Rich Text)")
+    resultados_esperados = models.TextField(blank=True, null=True, verbose_name="Resultados Esperados (Rich Text)")
+    
+    # 13. e 14. Desafios e Solução
+    desafios_tecnologicos = models.TextField(blank=True, null=True, verbose_name="Desafios Científicos e Tecnológicos (Rich Text)")
+    solucao_proposta = models.TextField(blank=True, null=True, verbose_name="Solução Proposta (Rich Text)")
+    
+    # 15. Orçamento (Descritivo)
+    orcamento_descricao = models.TextField(blank=True, null=True, verbose_name="Descrição do Orçamento (Rich Text)")
+
     # Cronograma Geral
     data_inicio = models.DateField(verbose_name="Início do Plano de Trabalho", null=True, blank=True)
     data_fim = models.DateField(verbose_name="Fim do Plano de Trabalho", null=True, blank=True)
@@ -225,6 +259,9 @@ class ProjetoPDI(models.Model):
         validators=[validar_processo_ifam], 
         verbose_name="Processo de Contratação do Projeto (IFAM)"
     )
+    
+    local_execucao = models.CharField(max_length=255, blank=True, null=True, verbose_name="Local de Execução")
+    coordenador = models.ForeignKey('PessoaFisica', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_coordenados', verbose_name="Coordenador do Projeto")
 
     termo_de_convenio = models.FileField(upload_to='convenios/termos/', null=True, blank=True, verbose_name="Termo de Parceria (PDF)")
 
@@ -263,43 +300,47 @@ class ProjetoPDI(models.Model):
         return pendencias
 
 class AtividadePlanoAcao(models.Model):
-    projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='atividades_plano')
+    plano_trabalho = models.ForeignKey('PlanoDeTrabalho', on_delete=models.CASCADE, related_name='atividades', null=True)
     numero = models.CharField(max_length=10, verbose_name="Item (Ex: 1)")
     nome = models.CharField(max_length=255, verbose_name="Nome da Atividade")
-    descricao = models.TextField(verbose_name="Descrição da Atividade")
-    justificativa = models.TextField(blank=True, null=True)
-    entregaveis = models.TextField(blank=True, null=True)
+    descricao = models.TextField(verbose_name="Descrição da Atividade (Rich Text)")
+    justificativa = models.TextField(blank=True, null=True, verbose_name="Justificativa (Rich Text)")
     
-    # Armazenamento do cronograma relativo extraído do .docx
-    mes_inicio_relativo = models.PositiveIntegerField(help_text="Mês de início (Ex: 1)")
-    mes_fim_relativo = models.PositiveIntegerField(help_text="Mês de fim (Ex: 9)")
+    data_inicio = models.DateField(verbose_name="Data Início Absoluta", null=True, blank=True)
+    data_fim = models.DateField(verbose_name="Data Fim Absoluta", null=True, blank=True)
 
     class Meta:
         verbose_name = "Atividade do Plano de Ação"
         verbose_name_plural = "Matriz de Atividades"
-        unique_together = ('projeto', 'numero')
-
+        unique_together = ('plano_trabalho', 'numero')
+        
     @property
-    def data_inicio_real(self):
-        """Calcula a data absoluta de início baseada no 'Calendário ARGUS' do projeto."""
-        plano = self.projeto.termo_parceria.planos_trabalho.first() if self.projeto.termo_parceria else None
-        if not plano or not plano.data_inicio:
+    def mes_inicio_calculado(self):
+        """Calcula em qual mês relativo (M1, M2) essa data cai em relação ao início do plano."""
+        if not self.data_inicio or not self.plano_trabalho or not self.plano_trabalho.data_inicio:
             return None
-        # Se inicia no Mês 1, a data é a mesma do plano. Se Mês 2, soma 1 mês.
-        return plano.data_inicio + relativedelta(months=(self.mes_inicio_relativo - 1))
-
+        diff_years = self.data_inicio.year - self.plano_trabalho.data_inicio.year
+        diff_months = self.data_inicio.month - self.plano_trabalho.data_inicio.month
+        return (diff_years * 12 + diff_months) + 1
+        
     @property
-    def data_fim_real(self):
-        """Calcula a data absoluta de término. Subtrai 1 dia para não invadir o mês seguinte."""
-        plano = self.projeto.termo_parceria.planos_trabalho.first() if self.projeto.termo_parceria else None
-        if not plano or not plano.data_inicio:
+    def mes_fim_calculado(self):
+        if not self.data_fim or not self.plano_trabalho or not self.plano_trabalho.data_inicio:
             return None
-        # Se termina no Mês 9, soma 9 meses a partir do início e subtrai 1 dia (último dia do mês 9)
-        return plano.data_inicio + relativedelta(months=self.mes_fim_relativo) - relativedelta(days=1)
+        diff_years = self.data_fim.year - self.plano_trabalho.data_inicio.year
+        diff_months = self.data_fim.month - self.plano_trabalho.data_inicio.month
+        return (diff_years * 12 + diff_months) + 1
 
     def __str__(self):
-        termo = self.projeto.termo_parceria.numero if self.projeto.termo_parceria else "Sem Termo"
-        return f"{termo} | {self.numero}: {self.nome}"
+        return f"{self.numero} - {self.nome}"
+
+class EntregavelAtividade(models.Model):
+    atividade = models.ForeignKey(AtividadePlanoAcao, on_delete=models.CASCADE, related_name='entregaveis')
+    nome = models.CharField(max_length=255, verbose_name="Nome do Entregável")
+    descricao = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return self.nome
 
 class RubricaOrcamentariaPT(models.Model):
     """
@@ -813,8 +854,10 @@ class Macroentrega(models.Model):
     plano_trabalho = models.ForeignKey(PlanoDeTrabalho, on_delete=models.CASCADE, related_name='macroentregas')
     numero = models.IntegerField(verbose_name="Número (Ex: 1, 2, 3)")
     nome = models.CharField(max_length=200, verbose_name="Nome da Macroentrega")
-    mes_inicio_relativo = models.PositiveIntegerField(verbose_name="Mês Início")
-    mes_fim_relativo = models.PositiveIntegerField(verbose_name="Mês Fim")
+    micro_entregas = models.TextField(blank=True, null=True, verbose_name="Micro-Entregas (Rich Text)")
+    
+    data_inicio = models.DateField(verbose_name="Data Início Absoluta", null=True, blank=True)
+    data_fim = models.DateField(verbose_name="Data Fim Absoluta", null=True, blank=True)
 
     class Meta:
         verbose_name = "Macroentrega"

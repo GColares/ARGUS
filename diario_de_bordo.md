@@ -1,5 +1,52 @@
 # Diário de Bordo - ARGUS
 
+## 27/08/2026
+**Status Atual do Projeto:**
+Sessão de arquitetura profunda concluída. Aprovada regra de 'Red Team' (análise crítica obrigatória).
+
+**O que foi feito recentemente:**
+- **Gêmeo Digital 2.5D:** Implementada a infraestrutura nos Ambientes (campos `pe_direito`, `perimetro`, `PlantaBaixa`) para permitir orçamentos automatizados de limpeza e pintura, e navegação via mapa SVG/PNG no futuro. Código salvo na nuvem com sucesso.
+
+---
+
+## 26/08/2026
+**Status Atual do Projeto:**
+O ambiente está limpo e consolidado. Removemos árvores de trabalho sobressalentes sem impactos.
+
+**O que foi feito recentemente:**
+- **Limpeza de Repositório:** Analisamos e excluímos uma pasta redundante de worktree (`C:\ARGUS.worktrees`) e a branch obsoleta `agents/git-pull-novidades` que não possuía commits novos em relação à branch `main`.
+
+**O que está pendente no nosso radar:**
+- **Gestão de Projetos:** Retomar a definição de como investigar e registrar dados de Relatórios de Atividade (RA) no módulo de gestão de projetos.
+
+---
+
+## 25/08/2026
+**Status Atual do Projeto:**
+O sistema agora lida de forma dinâmica e hierárquica com ambientes físicos e os relacionamentos de LGPD. As rotinas diárias e banco de dados continuam protegidos e os fluxos ajustados para maior precisão de visualização e busca de dados.
+
+**O que foi feito recentemente:**
+- **Central de Serviços (Ambientes):** Implementamos o conceito de Matriz Espacial Mutável. Ambientes agora podem possuir subdivisões (Ambientes Pais/Filhos) para maior precisão na localização de ativos. Adicionado flag `ativo` para soft-delete, resguardando relatórios e histórico financeiro ou ordens de serviço. Ajustamos `AmbienteListView` e `relatorios.html` para exibir e tratar as árvores de ambientes corretamente. DataTables de Ambientes fixado para 50 linhas padrão.
+- **Gestão de Projetos:** Corrigido o `FieldError: Cannot resolve keyword 'bolsista' into field` no relatório de atividades, ajustando as consultas nas views para usar `pessoa` (nova nomenclatura baseada no padrão LGPD da plataforma). Também adicionamos anotações do Pyright (pyrefly) nas views para evitar falsos positivos de linting.
+
+**O que está pendente no nosso radar:**
+- **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
+
+---
+
+## 24/08/2026
+**Status Atual do Projeto:**
+Ambiente totalmente estável, sem alterações estruturais no banco de dados e sincronizado perfeitamente com a nuvem (sem interrupções de token).
+
+**O que foi feito recentemente:**
+- **Análise Estrutural:** Fizemos um reconhecimento das entidades e templates do módulo de Gestão de Projetos focados no Relatório de Atividade (RA) (`RelatorioAtividade`, `ItemAtividade`). Identificamos que o CRUD já existe nos arquivos.
+- O dia foi encerrado enquanto aguardamos definições de negócio sobre como proceder com a pendência dos RAs (se vamos gerar *mock data*, corrigir bugs de tela ou importar legados).
+
+**O que está pendente no nosso radar:**
+- **Gestão de Projetos:** Retomar a definição de como investigar e registrar dados de Relatórios de Atividade (RA) no módulo de gestão de projetos.
+
+---
+
 ## 19/08/2026
 **Status Atual do Projeto:**
 O banco de dados está purificado e as rotinas diárias e o repositório Git estão totalmente blindados contra travamentos e corrupção de caracteres.
@@ -52,5 +99,3 @@ O projeto está avançando com foco na melhoria da usabilidade (ordenamento espa
 
 **O que está pendente no nosso radar:**
 - **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
-
-- **27/08/2026**: Sessão de arquitetura profunda. Aprovada regra de 'Red Team' (análise crítica obrigatória). Foi implementada a infraestrutura do 'Gêmeo Digital 2.5D' nos Ambientes (campos pe_direito, perimetro, PlantaBaixa) para permitir orçamentos automatizados de limpeza e pintura, e navegação via mapa SVG/PNG no futuro. Código salvo na nuvem com sucesso.

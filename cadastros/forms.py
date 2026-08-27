@@ -33,13 +33,16 @@ def higienizar_texto_pdf(texto):
 class ProjetoPDIForm(forms.ModelForm):
     class Meta:
         model = ProjetoPDI
-        fields = ['nome', 'vigencia_inicio', 'vigencia_fim', 'vigencia_meses']
+        fields = ['nome', 'local_execucao', 'coordenador', 'processo', 'vigencia_inicio', 'vigencia_fim', 'vigencia_meses']
         
         widgets = {
-            'nome': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Nome Oficial do Projeto', 'autofocus': True}),
-            'vigencia_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control form-control-lg', 'type': 'date'}),
-            'vigencia_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control form-control-lg', 'type': 'date'}),
-            'vigencia_meses': forms.NumberInput(attrs={'class': 'form-control form-control-lg', 'min': '1'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Oficial do Projeto', 'autofocus': True}),
+            'local_execucao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Manaus-AM / Sede da Empresa'}),
+            'coordenador': forms.Select(attrs={'class': 'form-select'}),
+            'processo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 23200.000000/2026-00'}),
+            'vigencia_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'vigencia_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'vigencia_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
         }
 
     def clean(self):
@@ -69,11 +72,7 @@ class TermoDeParceriaForm(forms.ModelForm):
 class PlanoDeTrabalhoForm(forms.ModelForm):
     class Meta:
         model = PlanoDeTrabalho
-        fields = [
-            'data_inicio', 'data_fim', 'total_meses', 'arquivo_pdf',
-            'aporte_empresa', 'aporte_embrapii', 'aporte_sebrae', 'aporte_contrapartida',
-            'abordagem_tecnica', 'abordagem_financeira', 'produto_entregue'
-        ]
+        exclude = ['termo_parceria', 'versao', 'ativo', 'data_criacao', 'valor_global']
         widgets = {
             'data_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
             'data_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
@@ -83,9 +82,24 @@ class PlanoDeTrabalhoForm(forms.ModelForm):
             'aporte_embrapii': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'aporte_sebrae': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'aporte_contrapartida': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'abordagem_tecnica': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva a abordagem técnica...'}),
-            'abordagem_financeira': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva a abordagem financeira...'}),
-            'produto_entregue': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descreva o produto esperado/entregue...'}),
+            
+            # Rich Text Fields (Will be initialized by Javascript/Quill on frontend)
+            'motivacao': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'objetivo_geral': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'objetivos_especificos': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'escopo_geral': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'estrutura_analitica': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'tecnologias_utilizadas': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'vulnerabilidades': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'plano_riscos': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'estrategia': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'caracteristicas_inovadoras': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'resultados_esperados': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'desafios_tecnologicos': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'solucao_proposta': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            'orcamento_descricao': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
+            
+            'indicadores': forms.SelectMultiple(attrs={'class': 'form-select select2-multiple', 'multiple': 'multiple'}),
         }
 
 

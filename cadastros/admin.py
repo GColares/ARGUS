@@ -49,7 +49,7 @@ class TermoDeParceriaAdmin(admin.ModelAdmin):
 class ProjetoPDIAdmin(admin.ModelAdmin):
     list_display = ('termo_parceria', 'projeto', 'nome', 'data_cadastro')
     search_fields = ('projeto', 'nome')
-    inlines = [ContaBancariaInline, AtividadePlanoAcaoInline]
+    inlines = [ContaBancariaInline]
 
 @admin.register(TipoProcesso)
 class TipoProcessoAdmin(admin.ModelAdmin):

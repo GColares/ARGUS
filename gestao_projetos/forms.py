@@ -4,14 +4,13 @@ from cadastros.models import AtividadePlanoAcao
 class AtividadePlanoAcaoForm(forms.ModelForm):
     class Meta:
         model = AtividadePlanoAcao
-        # Excluímos 'projeto' pois será injetado no back-end, e omitimos as datas reais (properties)
-        fields = ['numero', 'nome', 'descricao', 'justificativa', 'entregaveis', 'mes_inicio_relativo', 'mes_fim_relativo']
+        # Excluímos 'plano_trabalho' pois será injetado no back-end
+        fields = ['numero', 'nome', 'descricao', 'justificativa', 'data_inicio', 'data_fim']
         widgets = {
-            'descricao': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'justificativa': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
-            'entregaveis': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'rows': 3, 'class': 'form-control richtext'}),
+            'justificativa': forms.Textarea(attrs={'rows': 2, 'class': 'form-control richtext'}),
             'numero': forms.TextInput(attrs={'class': 'form-control'}),
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
-            'mes_inicio_relativo': forms.NumberInput(attrs={'class': 'form-control'}),
-            'mes_fim_relativo': forms.NumberInput(attrs={'class': 'form-control'}),
+            'data_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'data_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
         }
