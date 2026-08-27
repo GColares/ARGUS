@@ -84,12 +84,13 @@ class AndarForm(forms.ModelForm):
         widgets = {
             'predio': forms.Select(attrs={'class': 'form-select'}),
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Andar'}),
+            'pe_direito_padrao': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
 class AmbienteForm(forms.ModelForm):
     class Meta:
         model = Ambiente
-        exclude = ['ordem']
+        exclude = ['ordem', 'planta_baixa']
         widgets = {
             'predio': forms.Select(attrs={'class': 'form-select'}),
             'andar': forms.Select(attrs={'class': 'form-select'}),
@@ -97,6 +98,11 @@ class AmbienteForm(forms.ModelForm):
             'tipo': forms.Select(attrs={'class': 'form-select'}),
             'localizacao': forms.Select(attrs={'class': 'form-select'}),
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Ambiente'}),
+
+            'pe_direito': forms.NumberInput(attrs={'class': 'form-control'}),
+            'area_piso_m2': forms.NumberInput(attrs={'class': 'form-control'}),
+            'perimetro_m': forms.NumberInput(attrs={'class': 'form-control'}),
+            'coordenadas_mapa': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'readonly': True, 'placeholder': 'Gerado automaticamente ao desenhar na planta'}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         

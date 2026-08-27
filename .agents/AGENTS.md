@@ -108,3 +108,12 @@ A infraestrutura do INOVA é mapeada como uma matriz espacial de coordenadas ond
 2. **Vínculo Granular de Ativos:** Ativos Prediais e Ordens de Serviço devem **sempre** ser vinculados ao nível mais profundo possível da árvore (o sub-ambiente exato), para que equipes de manutenção encontrem o equipamento pela geografia, não pelo número de série.
 3. **Ciclo de Vida (Soft-Delete):** É terminantemente proibido deletar permanentemente ou sobrescrever ambientes que sofreram mutação (mudaram de propósito). Eles devem ser inativados (`ativo = models.BooleanField(default=True)`) para preservar o histórico de Ordens de Serviço antigas, criando-se um novo ambiente na mesma "posição matriz".
 4. **Nomenclatura Contextual:** A identificação visual (`__str__`) deve refletir a rota do ambiente herdando o nome do pai (ex: "LSCN - Copa") para eliminar ambiguidades no uso do sistema.
+
+## Postura de Análise Crítica (Red Team)
+Sempre que o usuário propor uma nova ideia, solução de negócio, modelagem de banco de dados ou arquitetura, é **OBRIGATÓRIO** realizar uma análise crítica profunda antes de executá-la ou concordar.
+Sua resposta deve estruturar-se identificando:
+1. **Pontos Fortes:** O que faz sentido e resolve o problema.
+2. **Erros, Fragilidades e Riscos:** Casos extremos, limitações tecnológicas, gargalos de UX, dívidas técnicas ou falhas lógicas da proposta.
+3. **Melhorias e Soluções:** Propostas arquiteturais ou fluxos alternativos que mitiguem os riscos encontrados e elevem o nível técnico do sistema.
+Jamais aceite uma ideia complexa passivamente sem submetê-la a esse crivo analítico.
+

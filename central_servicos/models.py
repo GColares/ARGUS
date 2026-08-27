@@ -79,6 +79,7 @@ class Predio(models.Model):
 class Andar(models.Model):
     predio = models.ForeignKey(Predio, on_delete=models.CASCADE, related_name='andares')
     nome = models.CharField(max_length=50)
+    pe_direito_padrao = models.DecimalField(max_digits=5, decimal_places=2, default=3.00, verbose_name="Pé-Direito Padrão (m)")
     ordem = models.PositiveIntegerField(default=0, verbose_name="Ordem")
     history = HistoricalRecords()
 
@@ -87,6 +88,23 @@ class Andar(models.Model):
 
     def __str__(self):
         return f"{self.predio.sigla or self.predio.nome} - {self.nome}"
+
+class PlantaBaixa(models.Model):
+    andar = models.ForeignKey(Andar, on_delete=models.CASCADE, related_name='plantas')
+    imagem = models.FileField(upload_to='plantas_raster/', help_text="Utilize formatos web otimizados (PNG, WebP, SVG)")
+    descricao = models.CharField(max_length=150, help_text="Ex: As-Built Original 2024")
+    vigente = models.BooleanField(default=True)
+    fator_escala = models.DecimalField(max_digits=10, decimal_places=4, default=1.0, help_text="Quantos pixels representam 1 metro na imagem original")
+    data_upload = models.DateTimeField(auto_now_add=True)
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = "Planta Baixa"
+        verbose_name_plural = "Plantas Baixas"
+        ordering = ['-data_upload']
+
+    def __str__(self):
+        return f"{self.andar} - {self.descricao} ({'Vigente' if self.vigente else 'Arquivada'})"
 
 class TipoAmbiente(models.Model):
     nome = models.CharField(max_length=100, unique=True, verbose_name="Tipo de Ambiente")
@@ -112,12 +130,38 @@ class Ambiente(models.Model):
     nome = models.CharField(max_length=100)
     tipo = models.ForeignKey(TipoAmbiente, on_delete=models.PROTECT, related_name='ambientes')
     localizacao = models.CharField(max_length=10, choices=LOCALIZACAO_CHOICES, default='INTERNO')
+    
+    # 2.5D Digital Twin Fields
+    planta_baixa = models.ForeignKey(PlantaBaixa, on_delete=models.SET_NULL, null=True, blank=True, related_name='ambientes')
+    coordenadas_mapa = models.JSONField(null=True, blank=True, help_text="Coordenadas do polígono no mapa")
+    pe_direito = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Sobrescreve a altura padrão do andar se preenchido")
+    area_piso_m2 = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Área do Piso (m²)")
+    perimetro_m = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Perímetro (m)")
+    
     ordem = models.PositiveIntegerField(default=0, verbose_name="Ordem")
     ativo = models.BooleanField(default=True, verbose_name="Ambiente Ativo?")
     history = HistoricalRecords()
 
     class Meta:
         ordering = ['ordem']
+
+    @property
+    def altura_efetiva(self):
+        if self.pe_direito:
+            return self.pe_direito
+        if self.andar and self.andar.pe_direito_padrao:
+            return self.andar.pe_direito_padrao
+        return 3.00  # Fallback final
+
+    @property
+    def area_parede_interna(self):
+        if self.perimetro_m:
+            return self.perimetro_m * self.altura_efetiva
+        return 0
+
+    @property
+    def area_teto_m2(self):
+        return self.area_piso_m2 or 0
 
     def clean(self):
         super().clean()
