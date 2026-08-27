@@ -1,6 +1,18 @@
 # Diário de Bordo - ARGUS
 
-## 27/08/2026
+## 27/08/2026 (Parte 2)
+**Status Atual do Projeto:**
+Modelagem do Plano de Trabalho totalmente concluída no banco e nas telas iniciais de cadastro (Wizard).
+
+**O que foi feito recentemente:**
+- **Plano de Trabalho Backend:** Modelamos os 15 itens do plano seguindo padrão EMBRAPII com campos Rich Text e cálculos de calendário relativos (M1, M2...). As migrações (`0044`, `0045`) foram aplicadas.
+- **Plano de Trabalho Frontend:** A tela de cadastro (`form_projeto.html`) foi dividida em áreas de Negócio (Motivação, Estratégia, Desafios) com integração nativa da biblioteca `Quill.js` via CDN para permitir edição rica de texto ao usuário, além do `Select2` para indicadores múltiplos.
+- **Salvar Nuvem:** Projeto salvo via `/github-salvar`.
+
+**O que está pendente no nosso radar:**
+- **Gestão de Projetos:** Construir a interface visual e dashboard de detalhamento do projeto (Dashboard do Projeto), onde as Macroentregas e Atividades (Plano de Ação) serão gerenciadas, além da visualização financeira (Aba 3).
+
+---## 27/08/2026
 **Status Atual do Projeto:**
 Sessão de arquitetura profunda concluída. Aprovada regra de 'Red Team' (análise crítica obrigatória).
 
