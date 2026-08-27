@@ -28,7 +28,6 @@ def listar_processos_global(request):
     processos = Processo.objects.select_related('projeto').all().order_by('-id')
     return render(request, 'cadastros/listar_processos_global.html', {'processos': processos})
 @login_required
-@transaction.atomic
 def novo_projeto(request):
     if request.method == 'POST':
         form_termo = TermoDeParceriaForm(request.POST)
@@ -36,18 +35,23 @@ def novo_projeto(request):
         form_projeto = ProjetoPDIForm(request.POST)
         
         if form_termo.is_valid() and form_plano.is_valid() and form_projeto.is_valid():
-            termo = form_termo.save()
-            
-            plano = form_plano.save(commit=False)
-            plano.termo_parceria = termo
-            plano.save()
-            
-            projeto = form_projeto.save(commit=False)
-            projeto.termo_parceria = termo
-            projeto.save()
-            
-            messages.success(request, f"Projeto '{projeto.nome}' cadastrado com sucesso no sistema!")
-            return redirect('cadastros:listar_projetos')
+            try:
+                with transaction.atomic():
+                    termo = form_termo.save()
+                    
+                    plano = form_plano.save(commit=False)
+                    plano.termo_parceria = termo
+                    plano.save()
+                    form_plano.save_m2m() # Salva as dependências ManyToMany (ex: indicadores)
+                    
+                    projeto = form_projeto.save(commit=False)
+                    projeto.termo_parceria = termo
+                    projeto.save()
+                
+                messages.success(request, f"Projeto '{projeto.nome}' cadastrado com sucesso no sistema!")
+                return redirect('cadastros:listar_projetos')
+            except Exception as e:
+                messages.error(request, f"Erro interno ao salvar os dados: {e}")
         else:
             messages.error(request, "Erro ao cadastrar. Por favor, verifique os campos em vermelho.")
     else:
