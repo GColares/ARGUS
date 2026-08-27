@@ -52,3 +52,5 @@ O projeto está avançando com foco na melhoria da usabilidade (ordenamento espa
 
 **O que está pendente no nosso radar:**
 - **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
+
+- **27/08/2026**: Sessão de arquitetura profunda. Aprovada regra de 'Red Team' (análise crítica obrigatória). Foi implementada a infraestrutura do 'Gêmeo Digital 2.5D' nos Ambientes (campos pe_direito, perimetro, PlantaBaixa) para permitir orçamentos automatizados de limpeza e pintura, e navegação via mapa SVG/PNG no futuro. Código salvo na nuvem com sucesso.
