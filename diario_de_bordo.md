@@ -1,6 +1,17 @@
 # Diário de Bordo - ARGUS
 
-## 27/08/2026 (Parte 2)
+## 27/08/2026 (Parte 3)
+**Status Atual do Projeto:**
+Regras de negócio de Finanças (SUFRAMA) e P&D (EMBRAPII) foram absorvidas pelo motor do sistema.
+
+**O que foi feito recentemente:**
+- **Estudo Legislativo (/learn):** Analisamos a Portaria 9835/2022 (Suframa) e o Manual de Operações (Embrapii). Fixamos o modelo de *7 Rubricas Orçamentárias* e as travas de limites (ex: 30% Terceiros, 15% Suporte Operacional).
+- **Trancas de Cronograma:** Adicionamos validação no backend (`AtividadePlanoAcao.clean()`) para garantir que Macroentregas não sobreponham datas no cronograma (regra EMBRAPII). As rubricas de banco de dados foram refatoradas para as 7 categorias exatas.
+
+**O que está pendente no nosso radar:**
+- **Gestão de Projetos:** Construir a interface visual e dashboard de detalhamento do projeto (Dashboard do Projeto), onde as Macroentregas e Atividades (Plano de Ação) serão gerenciadas, além da visualização financeira e orçamentária que usará essas novas regras (Aba 3).
+
+---## 27/08/2026 (Parte 2)
 **Status Atual do Projeto:**
 Modelagem do Plano de Trabalho totalmente concluída no banco e nas telas iniciais de cadastro (Wizard).
 
