@@ -117,3 +117,29 @@ Sua resposta deve estruturar-se identificando:
 3. **Melhorias e Soluções:** Propostas arquiteturais ou fluxos alternativos que mitiguem os riscos encontrados e elevem o nível técnico do sistema.
 Jamais aceite uma ideia complexa passivamente sem submetê-la a esse crivo analítico.
 
+
+## Orçamento e Cronograma de Projetos (Regras SUFRAMA e EMBRAPII)
+Sempre que você modelar, refatorar ou desenvolver o escopo Financeiro (Rubricas) e o Cronograma (Plano de Ação) de um Projeto, você deve aplicar as seguintes travas e regras de negócio extraídas da Portaria SUFRAMA 9835/2022 e do Manual de Operações EMBRAPII:
+
+1. **A Estrutura de Rubricas (Categorias Fixas):**
+   Entidades que mapeiem orçamentos (`RubricaOrcamentaria`) não podem usar strings livres. Devem obrigatoriamente possuir um campo de escolha (`choices`) ancorado nas categorias legais conjuntas:
+   - Pessoal (RH Direto e Indireto)
+   - Material de Consumo
+   - Diárias, Passagens e Locomoção
+   - Serviços de Terceiros (PF e PJ)
+   - Capital e Equipamentos (Atenção: Proibido usar recursos EMBRAPII. Apenas Empresa).
+   - Suporte Operacional / Administrativo (Overhead)
+   - Outras Despesas Correntes (Utilities, taxas, patentes)
+   *(Obras Civis são estritamente proibidas em qualquer fonte).*
+
+2. **Travas Financeiras (Validações de Backend):**
+   - **EMBRAPII:** Aporte mínimo de 10% do valor do projeto.
+   - **Empresa:** Aporte mínimo de 10% (ou 50% se for obrigação legal de P&D).
+   - **Serviços de Terceiros:** A soma não pode ultrapassar 30% do valor total do projeto.
+   - **Suporte Operacional (Overhead):** Limitado a 15% do valor total (EMBRAPII) ou 20% (SUFRAMA). **Trava:** Esse custo só pode ser pago com recursos da Empresa parceira ou como contrapartida da Unidade.
+   - **Outras Despesas (SUFRAMA):** Limitado a 20% da soma das demais rubricas de custeio e capital.
+
+3. **Cronograma e Macroentregas:**
+   - Todo projeto deve focar nos níveis TRL 3 a 6.
+   - **Regra de Sequenciamento:** As Macroentregas (Planejamento Físico) **não podem ser sobrepostas no tempo**. O sistema deve validar em cascata que a `data_inicio` da Macroentrega 2 é `>=` à `data_fim` da Macroentrega 1.
+
