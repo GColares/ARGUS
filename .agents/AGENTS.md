@@ -143,3 +143,10 @@ Sempre que você modelar, refatorar ou desenvolver o escopo Financeiro (Rubricas
    - Todo projeto deve focar nos níveis TRL 3 a 6.
    - **Regra de Sequenciamento:** As Macroentregas (Planejamento Físico) **não podem ser sobrepostas no tempo**. O sistema deve validar em cascata que a `data_inicio` da Macroentrega 2 é `>=` à `data_fim` da Macroentrega 1.
 
+
+## Padronização de Formulários Extensos (Wizard Híbrido)
+Sempre que o sistema exigir a entrada de formulários complexos e longos (ex: Gestão de Projetos, Planos de Trabalho):
+1. **Foco na Altura da Tela:** É proibido exigir do usuário rolagens intermináveis. O conteúdo deve ser encapsulado em passos (Steps/Abas) que se ajustem à *viewport*.
+2. **Salvamento Progressivo Híbrido (Offline-First):** O sistema deve implementar salvamento assíncrono combinando `LocalStorage` (Frontend) para tolerância a quedas de rede, e Sessões/Tabelas de Rascunho (Backend) para garantir a mobilidade do usuário entre dispositivos.
+3. **Integridade do Banco (Proibição de Projetos Órfãos):** O salvamento parcial (ao clicar em "Avançar") NUNCA deve acionar o comando `.save()` em tabelas finais de negócio de forma incompleta, burlando a Transação Atômica. Apenas quando o fluxo é finalizado as entidades definitivas devem ser consolidadas.
+
