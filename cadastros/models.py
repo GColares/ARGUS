@@ -331,6 +331,23 @@ class AtividadePlanoAcao(models.Model):
         diff_months = self.data_fim.month - self.plano_trabalho.data_inicio.month
         return (diff_years * 12 + diff_months) + 1
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.data_inicio and self.data_fim:
+            if self.data_inicio > self.data_fim:
+                raise ValidationError({"data_fim": "A data de fim não pode ser anterior à data de início."})
+            
+            # Regra EMBRAPII: Macroentregas não podem ser sobrepostas no tempo.
+            if self.plano_trabalho:
+                sobrepostas = AtividadePlanoAcao.objects.filter(
+                    plano_trabalho=self.plano_trabalho,
+                    data_inicio__lt=self.data_fim,
+                    data_fim__gt=self.data_inicio
+                ).exclude(pk=self.pk)
+                
+                if sobrepostas.exists():
+                    raise ValidationError("Regra EMBRAPII: As Atividades/Macroentregas não podem ter períodos sobrepostos no cronograma.")
+
     def __str__(self):
         return f"{self.numero} - {self.nome}"
 
@@ -347,13 +364,13 @@ class RubricaOrcamentariaPT(models.Model):
     Tabela de categorias de dispêndio atreladas ao Plano de Trabalho.
     """
     CATEGORIAS = [
-        ('I', 'I - Programas de Computador ou Equipamentos'),
-        ('II', 'II - Aquisição, Implantação, Ampliação ou Modernização de laboratório de P&D'),
-        ('III', 'III - Recursos Humanos Diretos e Indiretos'),
-        ('IV', 'IV - Serviço de Terceiros Técnicos'),
-        ('V', 'V - Material de Consumo'),
-        ('VI', 'VI - Outros Dispêndios Correlatos'),
-        ('VII', 'VII - Custos Incorridos (DOAS/Reserva)'),
+        ('PESSOAL', 'Pessoal (RH Direto e Indireto)'),
+        ('CONSUMO', 'Material de Consumo'),
+        ('DIARIAS', 'Diárias, Passagens e Locomoção'),
+        ('TERCEIROS', 'Serviços de Terceiros (PF e PJ)'),
+        ('CAPITAL', 'Capital e Equipamentos'),
+        ('SUPORTE', 'Suporte Operacional / Administrativo'),
+        ('OUTRAS', 'Outras Despesas Correntes'),
     ]
     
     FONTES = [
