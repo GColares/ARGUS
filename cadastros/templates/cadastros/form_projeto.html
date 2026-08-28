@@ -32,238 +32,390 @@
     .wizard-step.active {
         display: block;
     }
-    .step-indicator {
-        width: 2rem;
-        height: 2rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background-color: #e9ecef;
-        color: #6c757d;
-        font-weight: bold;
+    
+    /* Layout Vertical do Wizard */
+    .vertical-wizard .nav-link {
+        color: #495057;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.25rem;
+        text-align: left;
+        font-size: 0.9rem;
+        border: 1px solid transparent;
+        transition: all 0.2s ease-in-out;
     }
-    .nav-link.active .step-indicator {
+    .vertical-wizard .nav-link:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+    .vertical-wizard .nav-link.active {
         background-color: var(--bs-info);
         color: white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transform: translateX(5px);
+    }
+    .vertical-wizard .step-number {
+        display: inline-block;
+        width: 1.5rem;
+        height: 1.5rem;
+        line-height: 1.5rem;
+        text-align: center;
+        margin-right: 0.5rem;
+        background: rgba(0,0,0,0.05);
+        border-radius: 50%;
+        font-size: 0.8rem;
+    }
+    .vertical-wizard .nav-link.active .step-number {
+        background: rgba(255,255,255,0.2);
+    }
+    
+    .placeholder-box {
+        background-color: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 0.5rem;
+        padding: 3rem;
+        text-align: center;
+        color: #6c757d;
     }
 </style>
 
-<div class="container-fluid px-4 mt-4">
+<div class="container-fluid px-4 mt-4 mb-5">
     <div class="mb-3">
         <a href="javascript:history.back()" class="text-decoration-none text-muted fw-bold mb-3 d-inline-block">
             <i class="fas fa-arrow-left me-1"></i> Voltar
         </a>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-3 mb-5">
+    <div class="card border-0 shadow-sm rounded-3">
         <div class="card-header bg-white py-4 border-bottom border-info border-3">
-            <h4 class="mb-0 fw-bold text-info"><i class="fas fa-magic me-2"></i> {% if projeto %}Editar Projeto PDI{% else %}Assistente de Cadastro de Projeto PDI{% endif %}</h4>
-            <p class="text-muted small mb-0 mt-1">Preencha os dados em etapas. O seu progresso será <strong>salvo automaticamente</strong> no seu navegador (Offline-First).</p>
+            <h4 class="mb-0 fw-bold text-info"><i class="fas fa-project-diagram me-2"></i> {% if projeto %}Editar Projeto PDI{% else %}Cadastro de Projeto PDI (Termo e Plano de Trabalho){% endif %}</h4>
+            <p class="text-muted small mb-0 mt-1">Navegue pelas seções laterais. O progresso é <strong>salvo automaticamente</strong> no seu navegador (Offline-First).</p>
         </div>
         
         <div class="card-body p-4 bg-light">
             <form method="post" id="projetoWizardForm">
                 {% csrf_token %}
                 
-                <!-- Ocultar erros gerais do django se houver -->
                 {% if form_projeto.errors or form_termo.errors or form_plano.errors %}
-                <div class="alert alert-danger">
+                <div class="alert alert-danger shadow-sm rounded-3 border-0 mb-4">
                     <i class="fas fa-exclamation-triangle me-2"></i> <strong>Atenção:</strong> Verifique os erros no formulário antes de prosseguir.
                 </div>
                 {% endif %}
 
-                <!-- Abas Visuais (Progress) -->
-                <ul class="nav nav-pills nav-justified mb-4" id="wizardTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-bold" id="step1-tab" type="button" role="tab" disabled>
-                            <span class="step-indicator me-2">1</span> Termo
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold" id="step2-tab" type="button" role="tab" disabled>
-                            <span class="step-indicator me-2">2</span> Escopo
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold" id="step3-tab" type="button" role="tab" disabled>
-                            <span class="step-indicator me-2">3</span> Estratégia
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-bold" id="step4-tab" type="button" role="tab" disabled>
-                            <span class="step-indicator me-2">4</span> Desafios
-                        </button>
-                    </li>
-                </ul>
-
-                <div class="tab-content bg-white p-4 border rounded shadow-sm" id="wizardTabsContent">
-                    
-                    <!-- Passo 1: Termo -->
-                    <div class="wizard-step active" id="step1">
-                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-file-contract me-2"></i> 1. Dados do Termo de Parceria</h5>
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Título do Projeto (Projeto PDI)</label>
-                                {{ form_projeto.titulo }}
-                                {{ form_projeto.titulo.errors }}
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Sigla</label>
-                                {{ form_projeto.sigla }}
-                                {{ form_projeto.sigla.errors }}
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Número do Processo</label>
-                                {{ form_projeto.numero_processo }}
-                                {{ form_projeto.numero_processo.errors }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Número do Termo</label>
-                                {{ form_termo.numero }}
-                                {{ form_termo.numero.errors }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Data de Início da Vigência</label>
-                                {{ form_termo.data_inicio }}
-                                {{ form_termo.data_inicio.errors }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Data de Fim da Vigência</label>
-                                {{ form_termo.data_fim }}
-                                {{ form_termo.data_fim.errors }}
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Objeto da Parceria</label>
-                                {{ form_termo.objeto }}
-                                {{ form_termo.objeto.errors }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Concedente (Empresa)</label>
-                                {{ form_termo.concedente }}
-                                {{ form_termo.concedente.errors }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Convenente (ICT)</label>
-                                {{ form_termo.convenente }}
-                                {{ form_termo.convenente.errors }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase">Interveniente (Fundação)</label>
-                                {{ form_termo.interveniente }}
-                                {{ form_termo.interveniente.errors }}
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-                            <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step2">
-                                Avançar <i class="fas fa-arrow-right ms-2"></i>
-                            </button>
+                <div class="row">
+                    <!-- Menu Lateral Vertical -->
+                    <div class="col-md-4 col-lg-3 vertical-wizard border-end pe-4">
+                        <div class="nav flex-column nav-pills sticky-top" style="top: 20px;" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <button class="nav-link active" id="step1-tab" type="button" role="tab"><span class="step-number">1</span> Dados Cadastrais</button>
+                            <button class="nav-link" id="step2-tab" type="button" role="tab"><span class="step-number">2</span> Descrição do Projeto</button>
+                            <button class="nav-link" id="step3-tab" type="button" role="tab"><span class="step-number">3</span> Motivação</button>
+                            <button class="nav-link" id="step4-tab" type="button" role="tab"><span class="step-number">4</span> Objetivos e Metas</button>
+                            <button class="nav-link" id="step5-tab" type="button" role="tab"><span class="step-number">5</span> Escopo</button>
+                            <button class="nav-link" id="step6-tab" type="button" role="tab"><span class="step-number">6</span> Estratégia</button>
+                            <button class="nav-link" id="step7-tab" type="button" role="tab"><span class="step-number">7</span> Plano de Ação</button>
+                            <button class="nav-link" id="step8-tab" type="button" role="tab"><span class="step-number">8</span> Macro-Entregas</button>
+                            <button class="nav-link" id="step9-tab" type="button" role="tab"><span class="step-number">9</span> Indicadores</button>
+                            <button class="nav-link" id="step10-tab" type="button" role="tab"><span class="step-number">10</span> Inovação</button>
+                            <button class="nav-link" id="step11-tab" type="button" role="tab"><span class="step-number">11</span> Resultados</button>
+                            <button class="nav-link" id="step12-tab" type="button" role="tab"><span class="step-number">12</span> Cronograma</button>
+                            <button class="nav-link" id="step13-tab" type="button" role="tab"><span class="step-number">13</span> Desafios</button>
+                            <button class="nav-link" id="step14-tab" type="button" role="tab"><span class="step-number">14</span> Solução</button>
+                            <button class="nav-link" id="step15-tab" type="button" role="tab"><span class="step-number">15</span> Orçamento</button>
                         </div>
                     </div>
 
-                    <!-- Passo 2: Escopo e Motivação -->
-                    <div class="wizard-step" id="step2">
-                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-align-left me-2"></i> 2. Descrição Técnica e Escopo</h5>
-                        <div class="row g-4">
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Motivação</label>
-                                {{ form_plano.motivacao }}
+                    <!-- Área de Conteúdo do Formulário -->
+                    <div class="col-md-8 col-lg-9 ps-4">
+                        <div class="bg-white p-4 border rounded shadow-sm" style="min-height: 500px;">
+                            
+                            <!-- 1. Dados Cadastrais -->
+                            <div class="wizard-step active" id="step1">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">1. Dados Cadastrais</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">1.1 Proponente / Convenente (IFAM)</label>
+                                        {{ form_termo.convenente }}
+                                        {{ form_termo.convenente.errors }}
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">1.2 Concedente (Empresa)</label>
+                                        {{ form_termo.concedente }}
+                                        {{ form_termo.concedente.errors }}
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">1.3 Interveniente (Fundação de Apoio)</label>
+                                        {{ form_termo.interveniente }}
+                                        {{ form_termo.interveniente.errors }}
+                                    </div>
+                                    <div class="col-md-12 mt-4 pt-3 border-top">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Objeto da Parceria (do Termo)</label>
+                                        {{ form_termo.objeto }}
+                                        {{ form_termo.objeto.errors }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step2">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Objetivo Geral</label>
-                                {{ form_plano.objetivo_geral }}
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Objetivos Específicos</label>
-                                {{ form_plano.objetivos_especificos }}
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Escopo Geral</label>
-                                {{ form_plano.escopo_geral }}
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Estrutura Analítica do Projeto (WBS)</label>
-                                {{ form_plano.estrutura_analitica }}
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                            <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step1">
-                                <i class="fas fa-arrow-left me-2"></i> Voltar
-                            </button>
-                            <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step3">
-                                Avançar <i class="fas fa-arrow-right ms-2"></i>
-                            </button>
-                        </div>
-                    </div>
 
-                    <!-- Passo 3: Estratégia -->
-                    <div class="wizard-step" id="step3">
-                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-bullseye me-2"></i> 3. Estratégia e Resultados</h5>
-                        <div class="row g-4">
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Estratégia</label>
-                                {{ form_plano.estrategia }}
+                            <!-- 2. Descrição do Projeto -->
+                            <div class="wizard-step" id="step2">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">2. Descrição do Projeto</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">2.1 Título Completo do Projeto</label>
+                                        {{ form_projeto.titulo }}
+                                        {{ form_projeto.titulo.errors }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">2.2 Período de Execução (em meses)</label>
+                                        {{ form_plano.total_meses }}
+                                        {{ form_plano.total_meses.errors }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">2.3 Identificação / Sigla</label>
+                                        {{ form_projeto.sigla }}
+                                        {{ form_projeto.sigla.errors }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Número do Processo (Opcional)</label>
+                                        {{ form_projeto.numero_processo }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Número do Termo (Opcional)</label>
+                                        {{ form_termo.numero }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Data Início</label>
+                                        {{ form_termo.data_inicio }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Data Fim</label>
+                                        {{ form_termo.data_fim }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step1"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step3">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Indicadores de Resultados</label>
-                                {{ form_plano.indicadores }}
-                                <div class="form-text">Selecione as opções pertinentes ao projeto.</div>
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Características Inovadoras</label>
-                                {{ form_plano.caracteristicas_inovadoras }}
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Resultados Esperados</label>
-                                {{ form_plano.resultados_esperados }}
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                            <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step2">
-                                <i class="fas fa-arrow-left me-2"></i> Voltar
-                            </button>
-                            <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step4">
-                                Avançar <i class="fas fa-arrow-right ms-2"></i>
-                            </button>
-                        </div>
-                    </div>
 
-                    <!-- Passo 4: Desafios e Orçamento -->
-                    <div class="wizard-step" id="step4">
-                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-exclamation-circle me-2"></i> 4. Desafios e Orçamento</h5>
-                        <div class="row g-4">
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Tecnologias e Ferramentas Utilizadas</label>
-                                {{ form_plano.tecnologias_utilizadas }}
+                            <!-- 3. Motivação -->
+                            <div class="wizard-step" id="step3">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">3. Motivação</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        {{ form_plano.motivacao }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step2"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step4">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Vulnerabilidades do Projeto</label>
-                                {{ form_plano.vulnerabilidades }}
+
+                            <!-- 4. Objetivos e Metas -->
+                            <div class="wizard-step" id="step4">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">4. Objetivos e Metas</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">4.1 Objetivo Geral</label>
+                                        {{ form_plano.objetivo_geral }}
+                                    </div>
+                                    <div class="col-md-12 mt-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">4.2 Objetivos Específicos</label>
+                                        {{ form_plano.objetivos_especificos }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step3"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step5">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Plano de Riscos</label>
-                                {{ form_plano.plano_riscos }}
+
+                            <!-- 5. Escopo -->
+                            <div class="wizard-step" id="step5">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">5. Escopo</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">5.1 Escopo Geral</label>
+                                        {{ form_plano.escopo_geral }}
+                                    </div>
+                                    <div class="col-md-12 mt-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">5.2 Estrutura Analítica do Projeto (WBS)</label>
+                                        {{ form_plano.estrutura_analitica }}
+                                    </div>
+                                    <div class="col-md-12 mt-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">5.3 Tecnologias e Ferramentas Utilizadas</label>
+                                        {{ form_plano.tecnologias_utilizadas }}
+                                    </div>
+                                    <div class="col-md-12 mt-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">5.4 Vulnerabilidades do Projeto</label>
+                                        {{ form_plano.vulnerabilidades }}
+                                    </div>
+                                    <div class="col-md-12 mt-4">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">5.5 Plano de Riscos</label>
+                                        {{ form_plano.plano_riscos }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step4"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step6">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Problemas e/ou Desafios Científicos</label>
-                                {{ form_plano.desafios_tecnologicos }}
+
+                            <!-- 6. Estratégia -->
+                            <div class="wizard-step" id="step6">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">6. Estratégia</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        {{ form_plano.estrategia }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step5"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step7">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Solução Proposta</label>
-                                {{ form_plano.solucao_proposta }}
+
+                            <!-- 7. Plano de Ação -->
+                            <div class="wizard-step" id="step7">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">7. Plano de Ação</h4>
+                                <div class="placeholder-box">
+                                    <i class="fas fa-table fa-3x mb-3 text-secondary"></i>
+                                    <h5>Matriz de Atividades (Em Breve)</h5>
+                                    <p>Nesta etapa, você adicionará blocos dinâmicos para cada Atividade (Nome, Descrição, Entregáveis, Data Início/Fim).</p>
+                                    <p class="text-info small"><i class="fas fa-info-circle me-1"></i> O modelo <code>EntregavelAtividade</code> já existe no banco e será integrado aqui nos próximos ajustes.</p>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step6"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step8">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold text-muted text-uppercase small">Descrição e Justificativa do Orçamento</label>
-                                {{ form_plano.orcamento_descricao }}
+                            
+                            <!-- 8. Macro-Entregas -->
+                            <div class="wizard-step" id="step8">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">8. Macro-Entregas</h4>
+                                <div class="placeholder-box">
+                                    <i class="fas fa-boxes fa-3x mb-3 text-secondary"></i>
+                                    <h5>Matriz de Macro-Entregas (Em Breve)</h5>
+                                    <p>Nesta etapa, você detalhará as Macro-Entregas e suas sub-Micro-Entregas, com validação anti-sobreposição de datas.</p>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step7"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step9">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                            <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step3">
-                                <i class="fas fa-arrow-left me-2"></i> Voltar
-                            </button>
-                            <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm fw-bold">
-                                <i class="fas fa-save me-2"></i> Salvar Projeto
-                            </button>
+
+                            <!-- 9. Indicadores -->
+                            <div class="wizard-step" id="step9">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">9. Indicadores de Resultados</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Selecione os Indicadores Aplicáveis</label>
+                                        {{ form_plano.indicadores }}
+                                        <div class="form-text mt-2"><i class="fas fa-mouse-pointer me-1"></i> Você pode selecionar múltiplas opções.</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step8"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step10">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- 10. Inovação -->
+                            <div class="wizard-step" id="step10">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">10. Características Inovadoras</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        {{ form_plano.caracteristicas_inovadoras }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step9"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step11">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- 11. Resultados -->
+                            <div class="wizard-step" id="step11">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">11. Resultados Esperados</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        {{ form_plano.resultados_esperados }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step10"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step12">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- 12. Cronograma -->
+                            <div class="wizard-step" id="step12">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">12. Cronograma</h4>
+                                <div class="placeholder-box">
+                                    <i class="fas fa-calendar-alt fa-3x mb-3 text-secondary"></i>
+                                    <h5>Gantt / Cronograma (Em Breve)</h5>
+                                    <p>Tabela interativa cruzando as Atividades (coluna 1) com os meses do projeto (M1, M2...).</p>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step11"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step13">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- 13. Desafios -->
+                            <div class="wizard-step" id="step13">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">13. Desafios Científicos e Tecnológicos</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        {{ form_plano.desafios_tecnologicos }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step12"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step14">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- 14. Solução Proposta -->
+                            <div class="wizard-step" id="step14">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">14. Solução Proposta</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        {{ form_plano.solucao_proposta }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step13"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step15">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- 15. Orçamento -->
+                            <div class="wizard-step" id="step15">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">15. Orçamento</h4>
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Descrição Geral do Orçamento</label>
+                                        {{ form_plano.orcamento_descricao }}
+                                    </div>
+                                </div>
+                                <div class="placeholder-box">
+                                    <i class="fas fa-money-check-alt fa-3x mb-3 text-secondary"></i>
+                                    <h5>Plano de Aplicação de Recursos (Em Breve)</h5>
+                                    <p>Tabela dinâmica para alocação de Rubricas e resumo percentual das Fontes (Empresa, Embrapii, Sebrae, Contrapartida).</p>
+                                </div>
+                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step14"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm fw-bold">
+                                        <i class="fas fa-save me-2"></i> Salvar Projeto Definitivo
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -278,25 +430,19 @@ document.addEventListener("DOMContentLoaded", function() {
     const storageKey = 'argus_projeto_draft';
     const isEditMode = {% if projeto %}true{% else %}false{% endif %};
     const form = document.getElementById(formId);
-
-    // Quill instances registry
     const quillInstances = {};
 
-    // 1. Inicializa o Select2
     if(typeof jQuery !== 'undefined') {
         jQuery('.select2-multiple').select2({
             theme: 'bootstrap-5',
             width: '100%',
             placeholder: "Selecione as opções..."
         });
-        
-        // Auto-save on select2 change
         jQuery('.select2-multiple').on('change', function() {
             autoSave();
         });
     }
 
-    // 2. Inicializa o Quill para cada textarea
     const textareas = document.querySelectorAll('textarea.richtext');
     textareas.forEach(function(textarea) {
         textarea.style.display = 'none';
@@ -319,63 +465,55 @@ document.addEventListener("DOMContentLoaded", function() {
 
         quillInstances[textarea.id] = quill;
 
-        // Sync Quill to textarea and Auto-save
         quill.on('text-change', function() {
             textarea.value = quill.root.innerHTML;
             autoSave();
         });
     });
 
-    // 3. Logic for Wizard Navigation
     function showStep(stepId) {
-        // Hide all
+        syncQuills();
         document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('#wizardTabs .nav-link').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.vertical-wizard .nav-link').forEach(el => el.classList.remove('active'));
         
-        // Show current
         document.getElementById(stepId).classList.add('active');
         document.getElementById(stepId + '-tab').classList.add('active');
         
-        // Scroll to top of card smoothly
         window.scrollTo({
             top: document.querySelector('.card').offsetTop - 20,
             behavior: 'smooth'
         });
+        
+        autoSave();
     }
 
     document.querySelectorAll('.btn-next').forEach(btn => {
         btn.addEventListener('click', function() {
-            // Sincroniza textareas ocultas por segurança
-            syncQuills();
             showStep(this.getAttribute('data-next'));
-            autoSave();
-            
-            // Aqui enviaria AJAX se fizessemos a Estratégia B pura também, 
-            // mas como é Híbrida (Offline-first focado no Frontend), e a view
-            // no backend só recebe POST final, manteremos no localStorage.
         });
     });
 
     document.querySelectorAll('.btn-prev').forEach(btn => {
         btn.addEventListener('click', function() {
-            syncQuills();
             showStep(this.getAttribute('data-prev'));
-            autoSave();
+        });
+    });
+    
+    document.querySelectorAll('.vertical-wizard .nav-link').forEach(btn => {
+        btn.removeAttribute('disabled');
+        btn.addEventListener('click', function() {
+            const targetId = this.id.replace('-tab', '');
+            showStep(targetId);
         });
     });
 
-    // 4. Offline-First Auto-Save Logic (Local Storage)
     function autoSave() {
-        // Não sobrescrevemos rascunho em modo de edição de projeto existente (para evitar confusões)
         if (isEditMode) return;
         
         const formData = new FormData(form);
         const data = {};
         for (let [key, value] of formData.entries()) {
-            // Ignorar csrf token e files
             if (key === 'csrfmiddlewaretoken') continue;
-            
-            // Lidar com arrays (ex: selects multiplos)
             if (data[key]) {
                 if (!Array.isArray(data[key])) {
                     data[key] = [data[key]];
@@ -389,7 +527,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function loadDraft() {
-        if (isEditMode) return; // Em modo edição, prevalece o banco de dados
+        if (isEditMode) return;
         
         const draft = localStorage.getItem(storageKey);
         if (draft) {
@@ -404,7 +542,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     if (input.type === 'checkbox' || input.type === 'radio') {
                         input.checked = (input.value === value);
                     } else if (input.tagName === 'SELECT' && input.multiple) {
-                        // Multi-select logic (Select2)
                         const vals = Array.isArray(value) ? value : [value];
                         if(typeof jQuery !== 'undefined') {
                             jQuery(input).val(vals).trigger('change');
@@ -414,12 +551,10 @@ document.addEventListener("DOMContentLoaded", function() {
                             });
                         }
                     } else if (input.length) {
-                        // Radio node list
                         const radio = Array.from(input).find(r => r.value === value);
                         if (radio) radio.checked = true;
                     } else {
                         input.value = value;
-                        // Load to Quill if it's a richtext
                         if (input.classList && input.classList.contains('richtext') && quillInstances[input.id]) {
                             quillInstances[input.id].clipboard.dangerouslyPasteHTML(value);
                         }
@@ -431,14 +566,12 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Escuta mudanças nos inputs normais para autosave
     form.addEventListener('input', function(e) {
         if(e.target.name !== 'csrfmiddlewaretoken') {
             autoSave();
         }
     });
 
-    // 5. Final Submit Logic
     function syncQuills() {
         textareas.forEach(function(textarea) {
             if (quillInstances[textarea.id]) {
@@ -449,17 +582,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     form.addEventListener('submit', function() {
         syncQuills();
-        // Limpa o rascunho do navegador após submissão bem-sucedida!
         if (!isEditMode) {
             localStorage.removeItem(storageKey);
         }
     });
 
-    // Inicializa carregando do Banco ou do Rascunho
     if (!isEditMode) {
         loadDraft();
     } else {
-        // Se for edição, apenas carrega os Quills com os valores do backend
         textareas.forEach(function(textarea) {
             if (textarea.value && quillInstances[textarea.id]) {
                 quillInstances[textarea.id].clipboard.dangerouslyPasteHTML(textarea.value);
