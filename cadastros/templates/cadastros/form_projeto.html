@@ -25,268 +25,284 @@
     }
     .richtext-wrapper {
         margin-bottom: 1rem;
+    }
+    .wizard-step {
+        display: none;
+    }
+    .wizard-step.active {
+        display: block;
+    }
+    .step-indicator {
+        width: 2rem;
+        height: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        color: #6c757d;
+        font-weight: bold;
+    }
+    .nav-link.active .step-indicator {
+        background-color: var(--bs-info);
+        color: white;
+    }
 </style>
 
 <div class="container-fluid px-4 mt-4">
-            <div class="mb-3">
-                <a href="javascript:history.back()" class="text-decoration-none text-muted fw-bold mb-3 d-inline-block">
-                    <i class="fas fa-arrow-left me-1"></i> Voltar
-                </a>
-            </div>
+    <div class="mb-3">
+        <a href="javascript:history.back()" class="text-decoration-none text-muted fw-bold mb-3 d-inline-block">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
 
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white py-4 border-bottom border-info border-3">
-                    <h4 class="mb-0 fw-bold text-info"><i class="fas fa-folder-plus me-2"></i> {% if projeto %}Editar Projeto PDI{% else %}Cadastrar Novo Projeto PDI{% endif %}</h4>
-                    <p class="text-muted small mb-0 mt-1">Preencha os dados da parceria nas abas abaixo para unificar Termo de Parceria e Plano de Trabalho.</p>
-                </div>
+    <div class="card border-0 shadow-sm rounded-3 mb-5">
+        <div class="card-header bg-white py-4 border-bottom border-info border-3">
+            <h4 class="mb-0 fw-bold text-info"><i class="fas fa-magic me-2"></i> {% if projeto %}Editar Projeto PDI{% else %}Assistente de Cadastro de Projeto PDI{% endif %}</h4>
+            <p class="text-muted small mb-0 mt-1">Preencha os dados em etapas. O seu progresso será <strong>salvo automaticamente</strong> no seu navegador (Offline-First).</p>
+        </div>
+        
+        <div class="card-body p-4 bg-light">
+            <form method="post" id="projetoWizardForm">
+                {% csrf_token %}
                 
-                <div class="card-body p-4 bg-light">
-                    <form method="post">
-                        {% csrf_token %}
+                <!-- Ocultar erros gerais do django se houver -->
+                {% if form_projeto.errors or form_termo.errors or form_plano.errors %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i> <strong>Atenção:</strong> Verifique os erros no formulário antes de prosseguir.
+                </div>
+                {% endif %}
 
-                        <!-- Abas Navegação -->
-                        <ul class="nav nav-tabs mb-4" id="projetoTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active fw-bold" id="termo-tab" data-bs-toggle="tab" data-bs-target="#termo" type="button" role="tab" aria-controls="termo" aria-selected="true">
-                                    <i class="fas fa-file-contract me-1"></i> 1. Termo de Parceria
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-bold" id="plano-tab" data-bs-toggle="tab" data-bs-target="#plano" type="button" role="tab" aria-controls="plano" aria-selected="false">
-                                    <i class="fas fa-tasks me-1"></i> 2. Plano de Trabalho
-                                </button>
-                            </li>
-                        </ul>
+                <!-- Abas Visuais (Progress) -->
+                <ul class="nav nav-pills nav-justified mb-4" id="wizardTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold" id="step1-tab" type="button" role="tab" disabled>
+                            <span class="step-indicator me-2">1</span> Termo
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="step2-tab" type="button" role="tab" disabled>
+                            <span class="step-indicator me-2">2</span> Escopo
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="step3-tab" type="button" role="tab" disabled>
+                            <span class="step-indicator me-2">3</span> Estratégia
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="step4-tab" type="button" role="tab" disabled>
+                            <span class="step-indicator me-2">4</span> Desafios
+                        </button>
+                    </li>
+                </ul>
 
-                        <!-- Conteúdo das Abas -->
-                        <div class="tab-content bg-white p-4 border border-top-0 rounded-bottom mb-4" id="projetoTabsContent">
-                            
-                            <!-- ABA 1: Termo de Parceria e Dados Básicos -->
-                            <div class="tab-pane fade show active" id="termo" role="tabpanel" aria-labelledby="termo-tab" tabindex="0">
-                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Qualificação da Parceria</h5>
-                                <div class="row g-4 mb-4">
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Nº do Termo <span class="text-danger">*</span></label>
-                                        {{ form_termo.numero }}
-                                        {% if form_termo.numero.errors %}<div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form_termo.numero.errors.0 }}</div>{% endif %}
-                                    </div>
-                                    <div class="col-md-8">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Objeto <span class="text-danger">*</span></label>
-                                        {{ form_termo.objeto }}
-                                        {% if form_termo.objeto.errors %}<div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form_termo.objeto.errors.0 }}</div>{% endif %}
-                                    </div>
-                                </div>
-
-                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Atores / Partícipes</h5>
-                                <div class="row g-4 mb-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Concedente (Financiador) <span class="text-danger">*</span></label>
-                                        {{ form_termo.concedente }}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Convenente (Executor) <span class="text-danger">*</span></label>
-                                        {{ form_termo.convenente }}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Interveniente (Fundação) <span class="text-danger">*</span></label>
-                                        {{ form_termo.interveniente }}
-                                    </div>
-                                    <div class="col-md-4 mt-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Data de Assinatura <span class="text-danger">*</span></label>
-                                        {{ form_termo.data_assinatura }}
-                                    </div>
-                                </div>
-
-                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">Configuração do Projeto no ARGUS</h5>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Nome Completo do Projeto <span class="text-danger">*</span></label>
-                                        {{ form_projeto.nome }}
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Local de Execução</label>
-                                        {{ form_projeto.local_execucao }}
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Coordenador</label>
-                                        {{ form_projeto.coordenador }}
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Processo (Contratação)</label>
-                                        {{ form_projeto.processo }}
-                                    </div>
-                                    
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Início Vigência <span class="text-danger">*</span></label>
-                                        {{ form_projeto.vigencia_inicio }}
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Fim Vigência <span class="text-danger">*</span></label>
-                                        {{ form_projeto.vigencia_fim }}
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Total de Meses <span class="text-danger">*</span></label>
-                                        {{ form_projeto.vigencia_meses }}
-                                    </div>
-                                </div>
+                <div class="tab-content bg-white p-4 border rounded shadow-sm" id="wizardTabsContent">
+                    
+                    <!-- Passo 1: Termo -->
+                    <div class="wizard-step active" id="step1">
+                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-file-contract me-2"></i> 1. Dados do Termo de Parceria</h5>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Título do Projeto (Projeto PDI)</label>
+                                {{ form_projeto.titulo }}
+                                {{ form_projeto.titulo.errors }}
                             </div>
-
-                            <!-- ABA 2: Plano de Trabalho -->
-                            <div class="tab-pane fade" id="plano" role="tabpanel" aria-labelledby="plano-tab" tabindex="0">
-                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">1. Cronograma do Plano de Trabalho</h5>
-                                <div class="row g-4 mb-4">
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Início do Plano <span class="text-danger">*</span></label>
-                                        {{ form_plano.data_inicio }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Fim do Plano <span class="text-danger">*</span></label>
-                                        {{ form_plano.data_fim }}
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Nº Meses <span class="text-danger">*</span></label>
-                                        {{ form_plano.total_meses }}
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Anexo PDF (Opcional)</label>
-                                        {{ form_plano.arquivo_pdf }}
-                                    </div>
-                                </div>
-
-                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">2. Composição Financeira (Aportes)</h5>
-                                <div class="row g-4 mb-4">
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small text-primary">Aporte Empresa (R$)</label>
-                                        {{ form_plano.aporte_empresa }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small text-success">Aporte EMBRAPII (R$)</label>
-                                        {{ form_plano.aporte_embrapii }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small text-warning">Aporte SEBRAE (R$)</label>
-                                        {{ form_plano.aporte_sebrae }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small text-secondary">Contrapartida (R$)</label>
-                                        {{ form_plano.aporte_contrapartida }}
-                                    </div>
-                                </div>
-
-                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3 mt-4">3. Motivação, Objetivos e Escopo</h5>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Motivação</label>
-                                        {{ form_plano.motivacao }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Objetivo Geral</label>
-                                        {{ form_plano.objetivo_geral }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Objetivos Específicos</label>
-                                        {{ form_plano.objetivos_especificos }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Escopo Geral</label>
-                                        {{ form_plano.escopo_geral }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Estrutura Analítica do Projeto (WBS)</label>
-                                        {{ form_plano.estrutura_analitica }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Tecnologias e Ferramentas Utilizadas</label>
-                                        {{ form_plano.tecnologias_utilizadas }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Vulnerabilidades do Projeto</label>
-                                        {{ form_plano.vulnerabilidades }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Plano de Riscos</label>
-                                        {{ form_plano.plano_riscos }}
-                                    </div>
-                                </div>
-
-                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3 mt-4">4. Estratégia e Resultados</h5>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Estratégia</label>
-                                        {{ form_plano.estrategia }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Indicadores de Resultados</label>
-                                        {{ form_plano.indicadores }}
-                                        <div class="form-text">Selecione as opções pertinentes ao projeto.</div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Características Inovadoras</label>
-                                        {{ form_plano.caracteristicas_inovadoras }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Resultados Esperados</label>
-                                        {{ form_plano.resultados_esperados }}
-                                    </div>
-                                </div>
-
-                                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3 mt-4">5. Desafios e Orçamento</h5>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Problemas e/ou Desafios Científicos</label>
-                                        {{ form_plano.desafios_tecnologicos }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Solução Proposta</label>
-                                        {{ form_plano.solucao_proposta }}
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Descrição e Justificativa do Orçamento</label>
-                                        {{ form_plano.orcamento_descricao }}
-                                    </div>
-                                </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Sigla</label>
+                                {{ form_projeto.sigla }}
+                                {{ form_projeto.sigla.errors }}
                             </div>
-
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Número do Processo</label>
+                                {{ form_projeto.numero_processo }}
+                                {{ form_projeto.numero_processo.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Número do Termo</label>
+                                {{ form_termo.numero }}
+                                {{ form_termo.numero.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Data de Início da Vigência</label>
+                                {{ form_termo.data_inicio }}
+                                {{ form_termo.data_inicio.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Data de Fim da Vigência</label>
+                                {{ form_termo.data_fim }}
+                                {{ form_termo.data_fim.errors }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Objeto da Parceria</label>
+                                {{ form_termo.objeto }}
+                                {{ form_termo.objeto.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Concedente (Empresa)</label>
+                                {{ form_termo.concedente }}
+                                {{ form_termo.concedente.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Convenente (ICT)</label>
+                                {{ form_termo.convenente }}
+                                {{ form_termo.convenente.errors }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Interveniente (Fundação)</label>
+                                {{ form_termo.interveniente }}
+                                {{ form_termo.interveniente.errors }}
+                            </div>
                         </div>
+                        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step2">
+                                Avançar <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
 
-                        <div class="d-flex justify-content-end gap-3 mt-2">
-                            {% if projeto %}
-                                <a href="{% url 'cadastros:visualizar_projeto' projeto.id %}" class="btn btn-light btn-lg border fw-bold">Cancelar</a>
-                            {% else %}
-                                <a href="javascript:history.back()" class="btn btn-light btn-lg border fw-bold">Cancelar</a>
-                            {% endif %}
+                    <!-- Passo 2: Escopo e Motivação -->
+                    <div class="wizard-step" id="step2">
+                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-align-left me-2"></i> 2. Descrição Técnica e Escopo</h5>
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Motivação</label>
+                                {{ form_plano.motivacao }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Objetivo Geral</label>
+                                {{ form_plano.objetivo_geral }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Objetivos Específicos</label>
+                                {{ form_plano.objetivos_especificos }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Escopo Geral</label>
+                                {{ form_plano.escopo_geral }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Estrutura Analítica do Projeto (WBS)</label>
+                                {{ form_plano.estrutura_analitica }}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step1">
+                                <i class="fas fa-arrow-left me-2"></i> Voltar
+                            </button>
+                            <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step3">
+                                Avançar <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Passo 3: Estratégia -->
+                    <div class="wizard-step" id="step3">
+                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-bullseye me-2"></i> 3. Estratégia e Resultados</h5>
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Estratégia</label>
+                                {{ form_plano.estrategia }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Indicadores de Resultados</label>
+                                {{ form_plano.indicadores }}
+                                <div class="form-text">Selecione as opções pertinentes ao projeto.</div>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Características Inovadoras</label>
+                                {{ form_plano.caracteristicas_inovadoras }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Resultados Esperados</label>
+                                {{ form_plano.resultados_esperados }}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step2">
+                                <i class="fas fa-arrow-left me-2"></i> Voltar
+                            </button>
+                            <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step4">
+                                Avançar <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Passo 4: Desafios e Orçamento -->
+                    <div class="wizard-step" id="step4">
+                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-exclamation-circle me-2"></i> 4. Desafios e Orçamento</h5>
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Tecnologias e Ferramentas Utilizadas</label>
+                                {{ form_plano.tecnologias_utilizadas }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Vulnerabilidades do Projeto</label>
+                                {{ form_plano.vulnerabilidades }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Plano de Riscos</label>
+                                {{ form_plano.plano_riscos }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Problemas e/ou Desafios Científicos</label>
+                                {{ form_plano.desafios_tecnologicos }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Solução Proposta</label>
+                                {{ form_plano.solucao_proposta }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-muted text-uppercase small">Descrição e Justificativa do Orçamento</label>
+                                {{ form_plano.orcamento_descricao }}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step3">
+                                <i class="fas fa-arrow-left me-2"></i> Voltar
+                            </button>
                             <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm fw-bold">
                                 <i class="fas fa-save me-2"></i> Salvar Projeto
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Inicializa o Select2
+    const formId = 'projetoWizardForm';
+    const storageKey = 'argus_projeto_draft';
+    const isEditMode = {% if projeto %}true{% else %}false{% endif %};
+    const form = document.getElementById(formId);
+
+    // Quill instances registry
+    const quillInstances = {};
+
+    // 1. Inicializa o Select2
     if(typeof jQuery !== 'undefined') {
         jQuery('.select2-multiple').select2({
             theme: 'bootstrap-5',
             width: '100%',
             placeholder: "Selecione as opções..."
         });
+        
+        // Auto-save on select2 change
+        jQuery('.select2-multiple').on('change', function() {
+            autoSave();
+        });
     }
 
-    // Inicializa o Quill para cada textarea com a classe 'richtext'
+    // 2. Inicializa o Quill para cada textarea
     const textareas = document.querySelectorAll('textarea.richtext');
     textareas.forEach(function(textarea) {
-        // Esconde o textarea original
         textarea.style.display = 'none';
-
-        // Cria um container para o Quill
         const editorContainer = document.createElement('div');
         textarea.parentNode.insertBefore(editorContainer, textarea.nextSibling);
 
-        // Inicializa o Quill
         const quill = new Quill(editorContainer, {
             theme: 'snow',
             modules: {
@@ -301,19 +317,155 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        // Carrega o valor inicial (se for edição)
-        if (textarea.value) {
-            quill.clipboard.dangerouslyPasteHTML(textarea.value);
-        }
+        quillInstances[textarea.id] = quill;
 
-        // Quando o formulário for enviado, joga o HTML de volta no textarea
-        const form = textarea.closest('form');
-        if (form) {
-            form.addEventListener('submit', function() {
-                textarea.value = quill.root.innerHTML;
-            });
+        // Sync Quill to textarea and Auto-save
+        quill.on('text-change', function() {
+            textarea.value = quill.root.innerHTML;
+            autoSave();
+        });
+    });
+
+    // 3. Logic for Wizard Navigation
+    function showStep(stepId) {
+        // Hide all
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('#wizardTabs .nav-link').forEach(el => el.classList.remove('active'));
+        
+        // Show current
+        document.getElementById(stepId).classList.add('active');
+        document.getElementById(stepId + '-tab').classList.add('active');
+        
+        // Scroll to top of card smoothly
+        window.scrollTo({
+            top: document.querySelector('.card').offsetTop - 20,
+            behavior: 'smooth'
+        });
+    }
+
+    document.querySelectorAll('.btn-next').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Sincroniza textareas ocultas por segurança
+            syncQuills();
+            showStep(this.getAttribute('data-next'));
+            autoSave();
+            
+            // Aqui enviaria AJAX se fizessemos a Estratégia B pura também, 
+            // mas como é Híbrida (Offline-first focado no Frontend), e a view
+            // no backend só recebe POST final, manteremos no localStorage.
+        });
+    });
+
+    document.querySelectorAll('.btn-prev').forEach(btn => {
+        btn.addEventListener('click', function() {
+            syncQuills();
+            showStep(this.getAttribute('data-prev'));
+            autoSave();
+        });
+    });
+
+    // 4. Offline-First Auto-Save Logic (Local Storage)
+    function autoSave() {
+        // Não sobrescrevemos rascunho em modo de edição de projeto existente (para evitar confusões)
+        if (isEditMode) return;
+        
+        const formData = new FormData(form);
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+            // Ignorar csrf token e files
+            if (key === 'csrfmiddlewaretoken') continue;
+            
+            // Lidar com arrays (ex: selects multiplos)
+            if (data[key]) {
+                if (!Array.isArray(data[key])) {
+                    data[key] = [data[key]];
+                }
+                data[key].push(value);
+            } else {
+                data[key] = value;
+            }
+        }
+        localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+
+    function loadDraft() {
+        if (isEditMode) return; // Em modo edição, prevalece o banco de dados
+        
+        const draft = localStorage.getItem(storageKey);
+        if (draft) {
+            try {
+                const data = JSON.parse(draft);
+                for (let key in data) {
+                    const input = form.elements[key];
+                    if (!input) continue;
+                    
+                    const value = data[key];
+                    
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = (input.value === value);
+                    } else if (input.tagName === 'SELECT' && input.multiple) {
+                        // Multi-select logic (Select2)
+                        const vals = Array.isArray(value) ? value : [value];
+                        if(typeof jQuery !== 'undefined') {
+                            jQuery(input).val(vals).trigger('change');
+                        } else {
+                            Array.from(input.options).forEach(opt => {
+                                opt.selected = vals.includes(opt.value);
+                            });
+                        }
+                    } else if (input.length) {
+                        // Radio node list
+                        const radio = Array.from(input).find(r => r.value === value);
+                        if (radio) radio.checked = true;
+                    } else {
+                        input.value = value;
+                        // Load to Quill if it's a richtext
+                        if (input.classList && input.classList.contains('richtext') && quillInstances[input.id]) {
+                            quillInstances[input.id].clipboard.dangerouslyPasteHTML(value);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Erro ao carregar rascunho:", e);
+            }
+        }
+    }
+
+    // Escuta mudanças nos inputs normais para autosave
+    form.addEventListener('input', function(e) {
+        if(e.target.name !== 'csrfmiddlewaretoken') {
+            autoSave();
         }
     });
+
+    // 5. Final Submit Logic
+    function syncQuills() {
+        textareas.forEach(function(textarea) {
+            if (quillInstances[textarea.id]) {
+                textarea.value = quillInstances[textarea.id].root.innerHTML;
+            }
+        });
+    }
+
+    form.addEventListener('submit', function() {
+        syncQuills();
+        // Limpa o rascunho do navegador após submissão bem-sucedida!
+        if (!isEditMode) {
+            localStorage.removeItem(storageKey);
+        }
+    });
+
+    // Inicializa carregando do Banco ou do Rascunho
+    if (!isEditMode) {
+        loadDraft();
+    } else {
+        // Se for edição, apenas carrega os Quills com os valores do backend
+        textareas.forEach(function(textarea) {
+            if (textarea.value && quillInstances[textarea.id]) {
+                quillInstances[textarea.id].clipboard.dangerouslyPasteHTML(textarea.value);
+            }
+        });
+    }
 });
 </script>
 
