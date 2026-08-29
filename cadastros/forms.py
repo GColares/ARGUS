@@ -33,10 +33,14 @@ def higienizar_texto_pdf(texto):
 class ProjetoPDIForm(forms.ModelForm):
     class Meta:
         model = ProjetoPDI
-        fields = ['nome', 'local_execucao', 'coordenador', 'processo', 'vigencia_inicio', 'vigencia_fim', 'vigencia_meses']
+        fields = ['nome', 'concedente', 'convenente', 'interveniente', 'termo_cooperacao', 'local_execucao', 'coordenador', 'processo', 'vigencia_inicio', 'vigencia_fim', 'vigencia_meses']
         
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Oficial do Projeto', 'autofocus': True}),
+            'concedente': forms.Select(attrs={'class': 'form-select'}),
+            'convenente': forms.Select(attrs={'class': 'form-select'}),
+            'interveniente': forms.Select(attrs={'class': 'form-select'}),
+            'termo_cooperacao': forms.Select(attrs={'class': 'form-select'}),
             'local_execucao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Manaus-AM / Sede da Empresa'}),
             'coordenador': forms.Select(attrs={'class': 'form-select'}),
             'processo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 23200.000000/2026-00'}),
@@ -44,6 +48,38 @@ class ProjetoPDIForm(forms.ModelForm):
             'vigencia_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
             'vigencia_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
         }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from cadastros.models import EmpresaParceira, AgenciaFomento
+        
+        # O campo concedente deve listar apenas Empresas e Agências de Fomento (nunca ICT ou Fundação),
+        # agrupadas usando optgroups na lista.
+        empresas = EmpresaParceira.objects.all().order_by('nome')
+        agencias = AgenciaFomento.objects.all().order_by('sigla')
+        
+        choices = [('', 'Selecione a empresa ou agência...')]
+        
+        if empresas.exists():
+            choices.append(
+                ('Empresas Parceiras', [(e.pessoajuridica_ptr_id, e.nome) for e in empresas])
+            )
+            
+        if agencias.exists():
+            choices.append(
+                ('Agências de Fomento', [(a.pessoajuridica_ptr_id, f"{a.sigla} - {a.nome}") for a in agencias])
+            )
+            
+        self.fields['concedente'].choices = choices
+
+        # Configurar valores padrão (IFAM e FAEPI) para evitar cliques desnecessários
+        from cadastros.models import ICT, FundacaoApoio
+        ifam = ICT.objects.filter(sigla__icontains='IFAM').first()
+        faepi = FundacaoApoio.objects.filter(nome__icontains='FAEPI').first()
+        if ifam:
+            self.fields['convenente'].initial = ifam.pk
+        if faepi:
+            self.fields['interveniente'].initial = faepi.pk
 
     def clean(self):
         cleaned_data = super().clean()
@@ -72,7 +108,7 @@ class TermoDeParceriaForm(forms.ModelForm):
 class PlanoDeTrabalhoForm(forms.ModelForm):
     class Meta:
         model = PlanoDeTrabalho
-        exclude = ['termo_parceria', 'versao', 'ativo', 'data_criacao', 'valor_global']
+        exclude = ['projeto', 'termo_homologador', 'status', 'congelado', 'versao', 'ativo', 'data_criacao', 'valor_global']
         widgets = {
             'data_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
             'data_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),

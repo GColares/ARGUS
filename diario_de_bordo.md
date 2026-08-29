@@ -1,5 +1,20 @@
 # Diário de Bordo - ARGUS
 
+## [28/08/2026] - Desacoplamento do Wizard de Projetos e Polimorfismo
+
+### 📝 O que foi feito:
+- Refatoração do modelo de `ProjetoPDI` para incorporar a Chave Estrangeira `concedente` com polimorfismo para a classe-mãe `PessoaJuridica`. Isso resolve a restrição onde a EMBRAPII (Agência de Fomento) não conseguia ser a parceira/financiadora exclusiva de um projeto (ex: Programa de Desenvolvimento de Competências - PDC).
+- Separação Arquitetural do "Nascimento" de Projetos e Termos (adequação às regras do SIPAC): a Aba 1 do Wizard não exige e não cadastra mais um Termo em paralelo. O Pesquisador apenas seleciona a Empresa/Agência, as Instituições (IFAM e FAEPI por padrão), e a Aba 2 busca Termos abertos via AJAX.
+- Implementação e registro de uma nova entidade mestre no banco e no painel administrativo: `TermoCooperacao` (Acordo Guarda-Chuva). Essa tabela permite relacionar a relação matriz de 5 anos do IFAM-EMBRAPII com os projetos filhos (os PDCs anuais).
+- O HTML do Formulário do Wizard foi todo polido: removemos os múltiplos botões "Próximo" duplicados que confundiam a UI, padronizamos as *labels* com a terminologia da Lei de P&D (10.973/04), e o filtro do Concedente agora carrega dividido em grupos (`<optgroup>`) ordenados: Empresas Parceiras e Agências de Fomento, não mostrando mais ICTs ou Fundações na raiz.
+
+### ⏳ O que ficou pendente:
+- **Painel Financeiro (Aba 3) / Dashboard Visual:** Implementar a visualização dos dados consolidados do projeto, orçamentos, gráficos e tabelas (Aba 3 da tela visualizar_projeto.html).
+- **Validação de Travas Financeiras:** Precisamos programar os gatilhos no formulário de Orçamento para bloquear a submissão se a porcentagem das rubricas não bater a regra de Contrapartida da EMBRAPII (33%) vs Empresa (10%). Atenção: se o projeto for de Capacitação (PDC), a trava da contrapartida empresarial deve ser desativada.
+- Criar endpoints da API (ou carregar na própria view) os recursos gráficos/painéis da "Aba 3 Financeiro".
+
+
+
 ## 27/08/2026 (Parte 3)
 **Status Atual do Projeto:**
 Regras de negócio de Finanças (SUFRAMA) e P&D (EMBRAPII) foram absorvidas pelo motor do sistema.

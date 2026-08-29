@@ -7,6 +7,7 @@ app_name = 'cadastros'
 urlpatterns = [
     path('', views.home_cadastros, name='home_cadastros'), # Dashboard de Projetos/Contas
     path('projeto/novo/', views.novo_projeto, name='novo_projeto'),
+    path('api/termos-por-empresa/<int:empresa_id>/', views.api_termos_por_empresa, name='api_termos_por_empresa'),
     path('projeto/<int:projeto_id>/visualizar/', views.visualizar_projeto, name='visualizar_projeto'),
     path('projeto/<int:projeto_id>/editar/', views.editar_projeto, name='editar_projeto'),
     path('projeto/<int:projeto_id>/excluir/', views.excluir_projeto, name='excluir_projeto'),

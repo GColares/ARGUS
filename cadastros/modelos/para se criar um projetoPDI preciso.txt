@@ -1,0 +1,119 @@
+Para se criar um projetoPDI preciso de, mas não somente: 
+
+1.Dados Cadastrais
+1.1.Proponente = Convenente = IFAM <<dados do representante legal>>
+1.2.Concedente = empresa <<dados do representante legal>>
+1.3.Interveniente = Fundação de Apoio <<dados do representante legal>>
+1.4.local de execução
+1.5.Coordenador
+1.6.processo-contratação
+
+
+2.Termo de Parceria
+2.1.Título: É o nome completo do Projeto
+2.1.Descrição do Projeto
+2.2.Período de Execução: (em meses, exemplo: 9 meses)
+2.3.Identificação:[projeto.sigla]& "Convenio: " TermoDeParceria.numero
+
+3.Motivação
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+
+4.Objetivos e Metas
+4.1.Objetivo Geral
+4.2.Objetivos Específicos
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+
+5.Escopo
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+5.1.Escopo Geral
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+5.2. Estrutura Analítica do Projeto
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+Exemplo:
+5.2.1.●	Planejamento e Definição de Requisitos
+		- item 1
+		- item 2
+		- item n
+5.2.2.●	Arquitetura e Design da Solução
+		idem
+5.2.3.●	Desenvolvimento e Integração de Sistemas
+		idem
+Fim do exemplo
+5.3.Tecnologias e Ferramentas Utilizadas
+Exemplo: idem 5.2.
+...
+5.4.Vulnerabilidades do projeto
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+5.5.Plano de Riscos
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+
+6.Estratégia
+Exemplo: idem item 5.
+
+7.Plano de Ação << nossa pedra preciosa >>
+<< aqui estação todas as atividades que nos interessam para fazer constar no RA dos bolsistas mais a frente. >>
+
+<<Bloco-Atividades, talvez organizado como tabela fique mais simples quando o texto for pequeno apenas>>
+Atividade 1: <geralmente é a mesma para todos os projetos, então podemos sugerir somente a primeira como: Planejamento e Gestão do Projeto >>
+Descrição: << texto longo >>
+Justificativa: << texto longo >>
+Entregáveis: << aqui acho que precisamos criar essa classe no banco de dados e vincular com o plano de trabalho. Exemplos de entregáveis: Documento de Especificação de Requisitos de Software. Cronograma detalhado. Backlog do Produto priorizado. Atas de reunião de alinhamento quinzenal.>>
+Data de Início: << usa o calendário do projeto como base, exemplo: Mês 1>>
+Data de Término: << usa o calendário do projeto como base, exemplo: Mês 2 >>
+ 
+<<Bloco-Atividades>> +1
+
+
+8.Macro-Entregas
+
+<<Bloco-Macro-Entrega>>
+8.1.Macro-Entrega: [Título]
+8.1.1.a.Data Início: << usa o calendário do projeto como base, exemplo: Mês 1>>
+8.1.1.b.Data Término: << usa o calendário do projeto como base, exemplo: Mês 2 >>
+8.1.2.Micro-Entregas:
+	<< marcadores, listas e indentação>>
+
+<<Bloco-Macro-Entrega>> + 1
+
+
+9.INDICADORES DE RESULTADOS
+<< é uma tabela padrão para todos os projetos, com exatamente os mesmos itens para mais de uma escolha possível:
+( ) Patentes Depositadas. ( ) Concessão de Co-titularidade ou de participação.
+( ) Protótipos com inovação científica ou tecnológica. ( ) Processo com inovação científica ou tecnológica.
+( ) Produto com inovação científica ou tecnológica. ( ) Programa de Computador com inovação científica ou tecnológica.
+( ) Publicação científica e tecnológica. ( ) Profissionais formados ou capacitados.
+( ) Conservação dos ecossistemas. ( ) Outros indicadores.
+>>
+
+10.CARACTERÍSTICAS INOVADORAS 
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+
+11.RESULTADOS ESPERADOS
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+
+12.CRONOGRAMA
+<< o cronograma é uma tabela, primeira coluna sãos as atividades cadastradas acima e as demais colunas serão cada um dos meses da vigência da execução do projeto identificados como M1, M2, M3, .., Mn. Com isso, vamos assinalar quais meses cada atividade está prevista para ser realizada.>>
+
+13.DETALHAR OS PROBLEMAS E/OU DESAFIOS CIENTÍFICOS E TECNOLÓGICOS DO PROJETO
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+
+14.SOLUÇÃO PROPOSTA PARA OS DESAFIOS E/OU PROBLEMA CIENTÍFICOS E TECNOLÓGICOS DO PROJETO
+<< deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+
+15.ORÇAMENTO
+Descrição: << deve permitir longo texto com possibilidade de inserção de imagens, tabelas, marcadores, listas e indentação. >>
+
+15.1.PLANO DE APLICAÇÃO DOS RECURSOS FINANCEIROS 
+
+
+15.1.1.Tabela Resumo dos Recursos por Fonte de Fomento:
+<<exemplo:
+Empresa				R$  10.000,00
+Embrapii			R$  20.000,00
+Contrapartida IFAM (Polo)	R$  10.000,00
+Sebrae				R$  60.000,00
+xxxx				R$  00.000,00 
+Total do Projeto		R$ 100.000,00
+
+
+<<vamos ver se consigo chegar até aqui>>

@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.urls import reverse
 from pydantic import ValidationError
 from django.db import transaction
-from .models import Fornecedor, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso
+from .models import Fornecedor, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega
 from .forms import ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -27,26 +27,91 @@ def listar_pessoas_juridicas(request):
 def listar_processos_global(request):
     processos = Processo.objects.select_related('projeto').all().order_by('-id')
     return render(request, 'cadastros/listar_processos_global.html', {'processos': processos})
+
 @login_required
 def novo_projeto(request):
     if request.method == 'POST':
-        form_termo = TermoDeParceriaForm(request.POST)
-        form_plano = PlanoDeTrabalhoForm(request.POST)
         form_projeto = ProjetoPDIForm(request.POST)
+        form_plano = PlanoDeTrabalhoForm(request.POST)
         
-        if form_termo.is_valid() and form_plano.is_valid() and form_projeto.is_valid():
+        if form_projeto.is_valid() and form_plano.is_valid():
             try:
                 with transaction.atomic():
-                    termo = form_termo.save()
+                    # 1. Salva o Projeto primeiro (Mestre)
+                    projeto = form_projeto.save()
                     
+                    # Opcional: Vincular um Termo Existente se houver seleção no Wizard
+                    termo_id = request.POST.get('termo_existente')
+                    if termo_id:
+                        termo = TermoDeParceria.objects.filter(id=termo_id).first()
+                        if termo:
+                            termo.projeto = projeto
+                            termo.save()
+
+                    # 2. Salva o Plano de Trabalho e vincula ao Projeto
                     plano = form_plano.save(commit=False)
-                    plano.termo_parceria = termo
+                    plano.projeto = projeto
+                    # Na criação, o plano nasce como rascunho na fase de prospecção (ainda não homologado)
                     plano.save()
                     form_plano.save_m2m() # Salva as dependências ManyToMany (ex: indicadores)
                     
-                    projeto = form_projeto.save(commit=False)
-                    projeto.termo_parceria = termo
-                    projeto.save()
+                    # --- SALVAMENTO DINÂMICO ---
+                    # 1. Atividades
+                    atividades_numero = request.POST.getlist('atividade_numero[]')
+                    atividades_nome = request.POST.getlist('atividade_nome[]')
+                    atividades_desc = request.POST.getlist('atividade_descricao[]')
+                    atividades_inicio = request.POST.getlist('atividade_data_inicio[]')
+                    atividades_fim = request.POST.getlist('atividade_data_fim[]')
+                    
+                    for i in range(len(atividades_nome)):
+                        if atividades_nome[i].strip():
+                            AtividadePlanoAcao.objects.create(
+                                plano_trabalho=plano,
+                                numero=atividades_numero[i] if i < len(atividades_numero) else str(i+1),
+                                nome=atividades_nome[i],
+                                descricao=atividades_desc[i] if i < len(atividades_desc) else '',
+                                data_inicio=atividades_inicio[i] if (i < len(atividades_inicio) and atividades_inicio[i]) else None,
+                                data_fim=atividades_fim[i] if (i < len(atividades_fim) and atividades_fim[i]) else None,
+                            )
+                            
+                    # 2. Macro-Entregas
+                    macros_numero = request.POST.getlist('macro_numero[]')
+                    macros_nome = request.POST.getlist('macro_nome[]')
+                    macros_micro = request.POST.getlist('macro_micro_entregas[]')
+                    macros_inicio = request.POST.getlist('macro_data_inicio[]')
+                    macros_fim = request.POST.getlist('macro_data_fim[]')
+                    
+                    for i in range(len(macros_nome)):
+                        if macros_nome[i].strip():
+                            Macroentrega.objects.create(
+                                plano_trabalho=plano,
+                                numero=macros_numero[i] if (i < len(macros_numero) and macros_numero[i]) else (i+1),
+                                nome=macros_nome[i],
+                                micro_entregas=macros_micro[i] if i < len(macros_micro) else '',
+                                data_inicio=macros_inicio[i] if (i < len(macros_inicio) and macros_inicio[i]) else None,
+                                data_fim=macros_fim[i] if (i < len(macros_fim) and macros_fim[i]) else None,
+                            )
+                            
+                    # 3. Rubricas Orçamentárias
+                    from cadastros.models import RubricaOrcamentariaPT
+                    rubricas_cat = request.POST.getlist('rubrica_categoria[]')
+                    rubricas_fonte = request.POST.getlist('rubrica_fonte[]')
+                    rubricas_valor = request.POST.getlist('rubrica_valor[]')
+                    rubricas_desc = request.POST.getlist('rubrica_descricao[]')
+                    
+                    for i in range(len(rubricas_cat)):
+                        if rubricas_cat[i] and rubricas_valor[i]:
+                            try:
+                                RubricaOrcamentariaPT.objects.create(
+                                    plano_trabalho=plano,
+                                    categoria=rubricas_cat[i],
+                                    fonte_recurso=rubricas_fonte[i] if i < len(rubricas_fonte) else '',
+                                    valor_previsto=rubricas_valor[i].replace(',', '.'),
+                                    descricao=rubricas_desc[i] if i < len(rubricas_desc) else ''
+                                )
+                            except ValueError:
+                                pass # ignora valores invalidos silenciosamente por agora
+
                 
                 messages.success(request, f"Projeto '{projeto.nome}' cadastrado com sucesso no sistema!")
                 return redirect('cadastros:listar_projetos')
@@ -55,15 +120,26 @@ def novo_projeto(request):
         else:
             messages.error(request, "Erro ao cadastrar. Por favor, verifique os campos em vermelho.")
     else:
-        form_termo = TermoDeParceriaForm()
-        form_plano = PlanoDeTrabalhoForm()
         form_projeto = ProjetoPDIForm()
+        form_plano = PlanoDeTrabalhoForm()
 
-    return render(request, 'cadastros/form_projeto.html', {
-        'form_termo': form_termo,
+    context = {
+        'form_projeto': form_projeto,
         'form_plano': form_plano,
-        'form_projeto': form_projeto
-    })
+    }
+    return render(request, 'cadastros/form_projeto.html', context)
+
+@login_required
+def api_termos_por_empresa(request, empresa_id):
+    # Fetch termos that belong to this empresa and are NOT linked to a project yet
+    # Or maybe linked to this project if editing... for now just not linked to any
+    termos = TermoDeParceria.objects.filter(concedente_id=empresa_id, projeto__isnull=True)
+    data = []
+    for termo in termos:
+        display = f"Termo {termo.numero} - {termo.objeto[:30]}..." if termo.numero else f"Termo s/n (Rascunho) - {termo.objeto[:30]}..."
+        data.append({'id': termo.id, 'display_name': display})
+    
+    return JsonResponse({'termos': data})
 
 @login_required
 def visualizar_projeto(request, projeto_id):
@@ -71,8 +147,8 @@ def visualizar_projeto(request, projeto_id):
     projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
     processos = projeto.processos.all().order_by('-id')
     cotas = CotaBolsaPT.objects.filter(projeto=projeto).order_by('perfil_funcao')
-    termo = projeto.termo_parceria
-    plano_ativo = termo.planos_trabalho.filter(ativo=True).first() if termo else None
+    termo = projeto.termos_parceria.first() # Pega o termo principal (ou o mais recente)
+    plano_ativo = projeto.planos_trabalho.filter(ativo=True).first()
 
     contexto = {
         'projeto': projeto,
@@ -86,8 +162,8 @@ def visualizar_projeto(request, projeto_id):
 @transaction.atomic
 def editar_projeto(request, projeto_id):
     projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
-    termo = projeto.termo_parceria
-    plano = termo.planos_trabalho.filter(ativo=True).first() if termo else None
+    termo = projeto.termos_parceria.first()
+    plano = projeto.planos_trabalho.filter(ativo=True).first()
 
     if request.method == 'POST':
         form_termo = TermoDeParceriaForm(request.POST, instance=termo)
@@ -95,15 +171,16 @@ def editar_projeto(request, projeto_id):
         form_projeto = ProjetoPDIForm(request.POST, instance=projeto)
         
         if form_termo.is_valid() and form_plano.is_valid() and form_projeto.is_valid():
-            termo_salvo = form_termo.save()
+            projeto_salvo = form_projeto.save()
+            
+            termo_salvo = form_termo.save(commit=False)
+            termo_salvo.projeto = projeto_salvo
+            termo_salvo.save()
             
             plano_salvo = form_plano.save(commit=False)
-            plano_salvo.termo_parceria = termo_salvo
+            plano_salvo.projeto = projeto_salvo
             plano_salvo.save()
-            
-            projeto_salvo = form_projeto.save(commit=False)
-            projeto_salvo.termo_parceria = termo_salvo
-            projeto_salvo.save()
+            form_plano.save_m2m()
             
             messages.success(request, f"Projeto '{projeto.nome}' atualizado com sucesso!")
             return redirect('cadastros:listar_projetos')

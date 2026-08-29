@@ -47,7 +47,7 @@ class TermoDeParceriaAdmin(admin.ModelAdmin):
 
 @admin.register(ProjetoPDI)
 class ProjetoPDIAdmin(admin.ModelAdmin):
-    list_display = ('termo_parceria', 'projeto', 'nome', 'data_cadastro')
+    list_display = ('fase', 'projeto', 'nome', 'data_cadastro')
     search_fields = ('projeto', 'nome')
     inlines = [ContaBancariaInline]
 
@@ -96,14 +96,14 @@ class CronogramaDesembolsoInline(admin.TabularInline):
 
 @admin.register(PlanoDeTrabalho)
 class PlanoDeTrabalhoAdmin(admin.ModelAdmin):
-    list_display = ('termo_parceria', 'versao', 'data_inicio', 'data_fim', 'valor_global')
-    search_fields = ('termo_parceria__numero',)
+    list_display = ('projeto', 'versao', 'status', 'congelado', 'data_inicio', 'data_fim')
+    search_fields = ('projeto__nome',)
     list_filter = ('versao',)
     readonly_fields = ('valor_global', 'total_i_v', 'total_vi', 'total_i_vi', 'total_vii', 'total_bruto')
     
     fieldsets = (
         ('Dados Gerais do Plano', {
-            'fields': ('termo_parceria', 'versao', 'arquivo_pdf', 'data_inicio', 'data_fim')
+            'fields': ('projeto', 'termo_homologador', 'versao', 'status', 'congelado', 'arquivo_pdf', 'data_inicio', 'data_fim')
         }),
         ('Receitas (Aportes)', {
             'fields': ('aporte_empresa', 'aporte_embrapii', 'aporte_sebrae', 'aporte_contrapartida')
@@ -134,3 +134,11 @@ class TermoBolsaAdmin(admin.ModelAdmin):
     list_display = ('numero_termo', 'pessoa', 'cota_pt', 'modalidade_bolsa', 'status')
     search_fields = ('numero_termo', 'pessoa__nome')
     list_filter = ('status', 'modalidade_bolsa')
+
+
+from .models import TermoCooperacao
+@admin.register(TermoCooperacao)
+class TermoCooperacaoAdmin(admin.ModelAdmin):
+    list_display = ('numero', 'concedente', 'convenente', 'vigencia_inicio', 'vigencia_fim', 'ativo')
+    list_filter = ('ativo', 'concedente')
+    search_fields = ('numero', 'objeto')

@@ -75,14 +75,11 @@ Sem a definição de `format`, o Django renderizará a data no padrão localizad
 3. **Atores (Partícipes):** As parcerias são assinadas por três papéis estritos: **CONCEDENTE** (Empresa financiadora), **CONVENENTE** (IFAM/Polo de Inovação) e **INTERVENIENTE** (Fundação de Apoio, ex: FAEPI). 
 4. **Pessoa Jurídica (Herança Multi-tabela):** As entidades participantes abandonaram modelagens rasas e agora seguem estritamente os papéis da Hélice Tríplice da Lei 10.973/04. A entidade base `PessoaJuridica` guarda os dados globais (CNPJ, Endereço, Representante), mas o sistema ramifica-se em 4 filhos diretos: `ICT` (Convenente), `EmpresaParceira` (Concedente), `FundacaoApoio` (Interveniente) e `AgenciaFomento` (Apoiadores). No `TermoDeParceria`, as ForeignKeys apontam estritamente para essas subclasses.
 
-## Fluxo Unificado de Cadastro de Projetos (Wizard)
-O conceito de "Projeto" na visão do usuário encapsula a formalização do **Termo de Parceria** e do seu **Plano de Trabalho** correspondente. 
-Sempre que você criar, editar ou refatorar o fluxo de cadastro principal de um Projeto PDI:
-1. **Interface em Abas (UI):** O formulário deve ser dividido em abas (ex: abas do Bootstrap). 
-   - **Aba 1:** Informações do Termo de Parceria (Atores, Vigência, Objeto, Número).
-   - **Aba 2:** Informações do Plano de Trabalho (Abordagem Técnica, Financeira, Entregas).
-2. **Submissão Única (Backend):** A view responsável por receber o POST (ex: `novo_projeto` ou `editar_projeto`) deve orquestrar a validação múltipla (usando múltiplos formulários de Django: `TermoDeParceriaForm`, `PlanoDeTrabalhoForm` e `ProjetoPDIForm` se necessário) e salvar todas as entidades de forma atômica utilizando `transaction.atomic()`.
-3. **Seleção Inteligente:** Não se deve forçar o usuário a cadastrar um Termo de Parceria em uma tela separada para depois vinculá-lo via dropdown na tela de Projeto. A criação do Projeto **é** a criação da Parceria e do seu Plano.
+## Separação de Nascimentos (Projeto vs Termo) e Fluxo do Wizard
+O ciclo de vida burocrático público (SIPAC) exige que o **ProjetoPDI** e o **TermoDeParceria** nasçam em momentos e por atores diferentes, sendo vinculados depois:
+1. **Intenção do Projeto (Pesquisador):** O Pesquisador cria o `ProjetoPDI` e o `PlanoDeTrabalho` via Wizard. Na Aba 1, ele informa qual é a **Empresa Parceira** (Concedente), pois o projeto nasce com uma intenção comercial.
+2. **Registro do Termo (Contratos):** O Núcleo de Contratos abre o processo no SIPAC, gerando um número e cadastrando o `TermoDeParceria` no sistema (ainda em tramitação).
+3. **Vínculo Inteligente:** Na Aba 2 do Wizard de Projeto, o sistema faz um filtro AJAX buscando Termos de Parceria "em aberto" pertencentes à Empresa informada na Aba 1, permitindo o vínculo imediato.
 4. **Visualização em Abas (Dashboard do Projeto):** A tela de detalhes do projeto (`visualizar_projeto.html`) deve espelhar o modelo mental do fluxo de cadastro. A leitura dos dados deve ser categorizada obrigatoriamente nas seguintes abas principais:
    - **Aba 1 (Termo de Parceria):** Dados de qualificação, vigência e atores (Concedente, Convenente, Interveniente).
    - **Aba 2 (Plano de Trabalho):** Além das Abordagens (Técnica/Financeira) e Produto, deve obrigatoriamente exibir a tabela de **Equipe do Projeto** (Recursos Humanos Diretos e Indiretos) extraída de `plano_ativo.equipe.all()`.
@@ -115,6 +112,7 @@ Sua resposta deve estruturar-se identificando:
 1. **Pontos Fortes:** O que faz sentido e resolve o problema.
 2. **Erros, Fragilidades e Riscos:** Casos extremos, limitações tecnológicas, gargalos de UX, dívidas técnicas ou falhas lógicas da proposta.
 3. **Melhorias e Soluções:** Propostas arquiteturais ou fluxos alternativos que mitiguem os riscos encontrados e elevem o nível técnico do sistema.
+4. **Governança e Perfis de Acesso (RBAC):** Identificar qual Perfil de Usuário (ex: Pesquisador, Gestor de PDI, Administrador do Sistema, Financeiro) deterá a permissão, a alçada ou a responsabilidade para aprovar, executar ou tratar as atividades críticas e os riscos mapeados.
 Jamais aceite uma ideia complexa passivamente sem submetê-la a esse crivo analítico.
 
 
@@ -150,3 +148,37 @@ Sempre que o sistema exigir a entrada de formulários complexos e longos (ex: Ge
 2. **Salvamento Progressivo Híbrido (Offline-First):** O sistema deve implementar salvamento assíncrono combinando `LocalStorage` (Frontend) para tolerância a quedas de rede, e Sessões/Tabelas de Rascunho (Backend) para garantir a mobilidade do usuário entre dispositivos.
 3. **Integridade do Banco (Proibição de Projetos Órfãos):** O salvamento parcial (ao clicar em "Avançar") NUNCA deve acionar o comando `.save()` em tabelas finais de negócio de forma incompleta, burlando a Transação Atômica. Apenas quando o fluxo é finalizado as entidades definitivas devem ser consolidadas.
 
+
+
+## Ciclo de Vida de Projetos PDI (Máquina de Estados)
+Todo projeto gerenciado no sistema deve prever uma máquina de estados (campo `fase` ou `status`) que represente fielmente a realidade da gestão pública e os marcos de auditoria. 
+Fases obrigatórias (no mínimo):
+1. **Prospecção:** Fase de rascunho, ideação e negociação. Dados podem ser alterados livremente.
+2. **Execução:** Iniciada após a formalização (Termo Assinado). O escopo técnico (Plano de Trabalho) entra em "congelamento integral".
+3. **Prestação de Contas:** Iniciada na conclusão técnica do projeto. Envolve auditoria financeira e entrega de relatórios finais. Regras estritas de travamento financeiro se aplicam.
+4. **Encerrado / Arquivado:** Fim do ciclo de vida.
+
+## Catálogo Vivo de Perfis de Acesso (RBAC)
+O sistema trabalha com um dicionário de perfis baseados em papéis. Nas Análises Críticas (Red Team), o agente deve sempre recorrer a este catálogo para sugerir quem terá a alçada sobre ações sensíveis.
+
+**1. Gestão e Governança Superior**
+- **Reitor / Alta Gestão IFAM:** Instância final, emite autorização formal (ex: Fundo de Reserva).
+- **Diretor-Geral do Polo:** Nível máximo local. Assina submissão de propostas e aprova chefias.
+- **Gestor do NIT:** Valida e emite parecer técnico de aprovação/rejeição das Prestações de Contas da Fundação de Apoio.
+- **Comitê de Inovação:** Avalia estritamente o cumprimento do objeto técnico dos projetos PDI.
+- **Pró-Reitoria de Administração (Coord. de Prestação de Contas):** Realiza auditoria contábil e analisa demonstrações financeiras.
+
+**2. Gestão Operacional do Polo**
+- **Diretor Administrativo/Financeiro:** Acompanha licitações e execução orçamentária dos Planos de Trabalho Anuais.
+- **Coordenador de Projetos (Polo):** Emite parecer técnico prévio sobre projetos apresentados.
+- **Núcleo de Gestão de Qualidade / PI:** Avalia grau de inovação e resguarda propriedade intelectual.
+- **Coordenador de RH / Seleção:** Gerencia banco de especialistas e processos seletivos de bolsistas.
+- **Coordenador de Laboratório:** Gerencia agendamentos da infraestrutura e aprova relatórios de ensaios.
+- **Fundação de Apoio (Interveniente):** Efetua pagamentos, gere contas e submete prestações de contas financeiras mensais.
+
+**3. Atores de Execução de Projeto (Equipe)**
+- **Gestor de Projeto (GPO) / Programa:** Responsável pela gestão administrativa/financeira da execução.
+- **Coordenador de Projeto (CPO):** Líder técnico. Elabora proposta, coordena pesquisa e prestação de contas técnica.
+- **Analista Administrativo (AAD):** Faz conciliação contábil do projeto e relatórios financeiros.
+- **Pesquisador (PEQ) / Docente:** Executa a pesquisa. **Trava (Docente):** Máximo de 20h/semanais de bolsa. Vedado pagamento para cargo CD-01.
+- **Estudante / Bolsista (EST):** Executa tarefas sob supervisão direta. Não tem poder de gestão.

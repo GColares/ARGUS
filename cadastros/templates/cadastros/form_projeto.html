@@ -134,24 +134,22 @@
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">1. Dados Cadastrais</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">1.1 Proponente / Convenente (IFAM)</label>
-                                        {{ form_termo.convenente }}
-                                        {{ form_termo.convenente.errors }}
+                                        <label class="form-label fw-bold text-muted small text-uppercase">1.1 Empresa Parceira / Agência de Fomento (Concedente)</label>
+                                        {{ form_projeto.concedente }}
+                                        {{ form_projeto.concedente.errors }}
                                     </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">1.2 Concedente (Empresa)</label>
-                                        {{ form_termo.concedente }}
-                                        {{ form_termo.concedente.errors }}
+                                    <div class="col-md-12 mt-3">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">1.2 Instituição Científica e Tecnológica - ICT (Convenente)</label>
+                                        {{ form_projeto.convenente }}
+                                        {{ form_projeto.convenente.errors }}
                                     </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">1.3 Interveniente (Fundação de Apoio)</label>
-                                        {{ form_termo.interveniente }}
-                                        {{ form_termo.interveniente.errors }}
+                                    <div class="col-md-12 mt-3">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">1.3 Fundação de Apoio (Interveniente)</label>
+                                        {{ form_projeto.interveniente }}
+                                        {{ form_projeto.interveniente.errors }}
                                     </div>
-                                    <div class="col-md-12 mt-4 pt-3 border-top">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Objeto da Parceria (do Termo)</label>
-                                        {{ form_termo.objeto }}
-                                        {{ form_termo.objeto.errors }}
+                                    <div class="col-md-12 mt-4">
+                                        <p class="text-muted small"><i class="fas fa-info-circle"></i> O projeto EMBRAPII de capacitação não exige Empresa Parceira. O IFAM e a FAEPI podem ser padronizados como convenente e interveniente.</p>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-end mt-5 pt-3 border-top">
@@ -165,38 +163,51 @@
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         <label class="form-label fw-bold text-muted small text-uppercase">2.1 Título Completo do Projeto</label>
-                                        {{ form_projeto.titulo }}
-                                        {{ form_projeto.titulo.errors }}
+                                        {{ form_projeto.nome }}
+                                        {{ form_projeto.nome.errors }}
                                     </div>
-                                    <div class="col-md-6">
+                                    
+                                    <div class="col-md-12 mt-4 pt-3 border-top bg-light p-3 rounded">
+                                        <label class="form-label fw-bold text-primary small text-uppercase"><i class="fas fa-sitemap me-2"></i>Acordo Mestre / Programa (Guarda-Chuva)</label>
+                                        <p class="text-muted small mb-2">Se este projeto pertence a um Programa maior (ex: PDC 2025) de um Termo de Cooperação Técnica de longa duração, selecione-o abaixo:</p>
+                                        {{ form_projeto.termo_cooperacao }}
+                                        {{ form_projeto.termo_cooperacao.errors }}
+                                    </div>
+                                    
+                                    <div class="col-md-12 mt-4 pt-3 border-top bg-light p-3 rounded">
+                                        <label class="form-label fw-bold text-primary small text-uppercase"><i class="fas fa-link me-2"></i>Vincular a Termo Específico Existente (Opcional)</label>
+                                        <p class="text-muted small mb-2">Se a Gestão de Contratos já iniciou um Termo no SIPAC específico para este projeto, selecione-o abaixo:</p>
+                                        <select name="termo_existente" id="termo_existente" class="form-select">
+                                            <option value="">Nenhum / Continuar em Prospecção Solta</option>
+                                            <!-- Preenchido via AJAX -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mt-4">
                                         <label class="form-label fw-bold text-muted small text-uppercase">2.2 Período de Execução (em meses)</label>
                                         {{ form_plano.total_meses }}
                                         {{ form_plano.total_meses.errors }}
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 mt-4">
                                         <label class="form-label fw-bold text-muted small text-uppercase">2.3 Identificação / Sigla</label>
-                                        {{ form_projeto.sigla }}
-                                        {{ form_projeto.sigla.errors }}
+                                        {{ form_projeto.projeto }}
+                                        {{ form_projeto.projeto.errors }}
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold text-muted small text-uppercase">Número do Processo (Opcional)</label>
-                                        {{ form_projeto.numero_processo }}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Número do Termo (Opcional)</label>
-                                        {{ form_termo.numero }}
+                                        {{ form_projeto.processo }}
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold text-muted small text-uppercase">Data Início</label>
-                                        {{ form_termo.data_inicio }}
+                                        {{ form_plano.data_inicio }}
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold text-muted small text-uppercase">Data Fim</label>
-                                        {{ form_termo.data_fim }}
+                                        {{ form_plano.data_fim }}
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step1"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-lg px-4 fw-bold btn-prev" data-prev="step1"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
                                     <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step3">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
@@ -282,11 +293,13 @@
                             <!-- 7. Plano de Ação -->
                             <div class="wizard-step" id="step7">
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">7. Plano de Ação</h4>
-                                <div class="placeholder-box">
-                                    <i class="fas fa-table fa-3x mb-3 text-secondary"></i>
-                                    <h5>Matriz de Atividades (Em Breve)</h5>
-                                    <p>Nesta etapa, você adicionará blocos dinâmicos para cada Atividade (Nome, Descrição, Entregáveis, Data Início/Fim).</p>
-                                    <p class="text-info small"><i class="fas fa-info-circle me-1"></i> O modelo <code>EntregavelAtividade</code> já existe no banco e será integrado aqui nos próximos ajustes.</p>
+                                <div id="atividades-container">
+                                    <!-- Dynamic Atividade Cards will go here -->
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button type="button" class="btn btn-outline-primary fw-bold" id="btn-add-atividade">
+                                        <i class="fas fa-plus me-2"></i> Adicionar Nova Atividade
+                                    </button>
                                 </div>
                                 <div class="d-flex justify-content-between mt-5 pt-3 border-top">
                                     <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step6"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
@@ -297,10 +310,13 @@
                             <!-- 8. Macro-Entregas -->
                             <div class="wizard-step" id="step8">
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">8. Macro-Entregas</h4>
-                                <div class="placeholder-box">
-                                    <i class="fas fa-boxes fa-3x mb-3 text-secondary"></i>
-                                    <h5>Matriz de Macro-Entregas (Em Breve)</h5>
-                                    <p>Nesta etapa, você detalhará as Macro-Entregas e suas sub-Micro-Entregas, com validação anti-sobreposição de datas.</p>
+                                <div id="macroentregas-container">
+                                    <!-- Dynamic Macro-Entrega Cards will go here -->
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button type="button" class="btn btn-outline-primary fw-bold" id="btn-add-macroentrega">
+                                        <i class="fas fa-plus me-2"></i> Adicionar Nova Macro-Entrega
+                                    </button>
                                 </div>
                                 <div class="d-flex justify-content-between mt-5 pt-3 border-top">
                                     <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step7"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
@@ -403,10 +419,18 @@
                                         {{ form_plano.orcamento_descricao }}
                                     </div>
                                 </div>
-                                <div class="placeholder-box">
-                                    <i class="fas fa-money-check-alt fa-3x mb-3 text-secondary"></i>
-                                    <h5>Plano de Aplicação de Recursos (Em Breve)</h5>
-                                    <p>Tabela dinâmica para alocação de Rubricas e resumo percentual das Fontes (Empresa, Embrapii, Sebrae, Contrapartida).</p>
+                                <div id="orcamento-container">
+                                    <!-- Dynamic Rubrica Cards will go here -->
+                                </div>
+                                <div class="text-center mt-3 mb-5">
+                                    <button type="button" class="btn btn-outline-success fw-bold" id="btn-add-rubrica">
+                                        <i class="fas fa-plus me-2"></i> Adicionar Nova Rubrica Orçamentária
+                                    </button>
+                                </div>
+                                
+                                <div class="alert alert-secondary shadow-sm">
+                                    <h5 class="fw-bold"><i class="fas fa-calculator me-2"></i>Resumo do Orçamento</h5>
+                                    <p class="mb-0 small text-muted">A soma total das rubricas será processada no backend após o salvamento.</p>
                                 </div>
                                 <div class="d-flex justify-content-between mt-5 pt-3 border-top">
                                     <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step14"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
@@ -470,6 +494,269 @@ document.addEventListener("DOMContentLoaded", function() {
             autoSave();
         });
     });
+
+    
+    // --- LÓGICA DINÂMICA: PLANO DE AÇÃO (ATIVIDADES) ---
+    const atividadesContainer = document.getElementById('atividades-container');
+    const btnAddAtividade = document.getElementById('btn-add-atividade');
+    let atividadeCount = 0;
+
+    function createAtividadeCard(data = {}) {
+        atividadeCount++;
+        const index = atividadeCount;
+        
+        const card = document.createElement('div');
+        card.className = 'card border-info mb-4 shadow-sm atividade-card';
+        card.innerHTML = `
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center py-2">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-tasks me-2"></i>Atividade ${index}</h6>
+                <button type="button" class="btn btn-sm btn-danger btn-remover-atividade" title="Remover Atividade"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="card-body bg-light">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">Item (Ex: 1.1)</label>
+                        <input type="text" name="atividade_numero[]" class="form-control" value="${data.numero || index}" required>
+                    </div>
+                    <div class="col-md-10">
+                        <label class="form-label small fw-bold">Nome da Atividade</label>
+                        <input type="text" name="atividade_nome[]" class="form-control" value="${data.nome || ''}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Data Início</label>
+                        <input type="date" name="atividade_data_inicio[]" class="form-control" value="${data.data_inicio || ''}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Data Fim</label>
+                        <input type="date" name="atividade_data_fim[]" class="form-control" value="${data.data_fim || ''}">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold">Descrição da Atividade</label>
+                        <textarea name="atividade_descricao[]" class="form-control" rows="2">${data.descricao || ''}</textarea>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        card.querySelector('.btn-remover-atividade').addEventListener('click', function() {
+            card.remove();
+            autoSave();
+        });
+        
+        card.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', autoSave);
+        });
+
+        atividadesContainer.appendChild(card);
+    }
+
+    if (btnAddAtividade) {
+        btnAddAtividade.addEventListener('click', function() {
+            createAtividadeCard();
+            autoSave();
+        });
+    }
+    
+    // Create at least one empty card if not in edit mode
+    if (!isEditMode && document.querySelectorAll('.atividade-card').length === 0) {
+        createAtividadeCard();
+    }
+
+    
+    // --- LÓGICA DINÂMICA: MACRO-ENTREGAS ---
+    const macroentregasContainer = document.getElementById('macroentregas-container');
+    const btnAddMacroentrega = document.getElementById('btn-add-macroentrega');
+    let macroentregaCount = 0;
+
+    function createMacroentregaCard(data = {}) {
+        macroentregaCount++;
+        const index = macroentregaCount;
+        
+        const card = document.createElement('div');
+        card.className = 'card border-primary mb-4 shadow-sm macroentrega-card';
+        card.innerHTML = `
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-box-open me-2"></i>Macro-Entrega ${index}</h6>
+                <button type="button" class="btn btn-sm btn-danger btn-remover-macroentrega" title="Remover Macro-Entrega"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="card-body bg-light">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">Número</label>
+                        <input type="number" name="macro_numero[]" class="form-control" value="${data.numero || index}" required>
+                    </div>
+                    <div class="col-md-10">
+                        <label class="form-label small fw-bold">Nome da Macro-Entrega</label>
+                        <input type="text" name="macro_nome[]" class="form-control" value="${data.nome || ''}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Data Início</label>
+                        <input type="date" name="macro_data_inicio[]" class="form-control" value="${data.data_inicio || ''}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Data Fim</label>
+                        <input type="date" name="macro_data_fim[]" class="form-control" value="${data.data_fim || ''}">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold">Micro-Entregas Relacionadas</label>
+                        <textarea name="macro_micro_entregas[]" class="form-control" rows="2" placeholder="Descreva os componentes ou entregas menores que formam esta Macro-Entrega...">${data.micro_entregas || ''}</textarea>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        card.querySelector('.btn-remover-macroentrega').addEventListener('click', function() {
+            card.remove();
+            autoSave();
+        });
+        
+        card.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', autoSave);
+        });
+
+        macroentregasContainer.appendChild(card);
+    }
+
+    if (btnAddMacroentrega) {
+        btnAddMacroentrega.addEventListener('click', function() {
+            createMacroentregaCard();
+            autoSave();
+        });
+    }
+    
+    if (!isEditMode && document.querySelectorAll('.macroentrega-card').length === 0 && macroentregasContainer) {
+        createMacroentregaCard();
+    }
+
+    
+    // --- LÓGICA DINÂMICA: ORÇAMENTO (RUBRICAS) ---
+    const orcamentoContainer = document.getElementById('orcamento-container');
+    const btnAddRubrica = document.getElementById('btn-add-rubrica');
+    let rubricaCount = 0;
+
+    function createRubricaCard(data = {}) {
+        rubricaCount++;
+        const index = rubricaCount;
+        
+        const card = document.createElement('div');
+        card.className = 'card border-success mb-3 shadow-sm rubrica-card';
+        card.innerHTML = `
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-2">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-money-bill-wave me-2"></i>Despesa ${index}</h6>
+                <button type="button" class="btn btn-sm btn-danger btn-remover-rubrica" title="Remover Rubrica"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="card-body bg-light">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Categoria</label>
+                        <select name="rubrica_categoria[]" class="form-select" required>
+                            <option value="">Selecione...</option>
+                            <option value="PESSOAL">Pessoal (RH Direto e Indireto)</option>
+                            <option value="CONSUMO">Material de Consumo</option>
+                            <option value="DIARIAS">Diárias, Passagens e Locomoção</option>
+                            <option value="TERCEIROS">Serviços de Terceiros (PF e PJ)</option>
+                            <option value="CAPITAL">Capital e Equipamentos</option>
+                            <option value="SUPORTE">Suporte Operacional / Administrativo</option>
+                            <option value="OUTRAS">Outras Despesas Correntes</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Fonte de Recurso</label>
+                        <select name="rubrica_fonte[]" class="form-select" required>
+                            <option value="">Selecione...</option>
+                            <option value="EMPRESA">Empresa Parceira</option>
+                            <option value="EMBRAPII">EMBRAPII</option>
+                            <option value="SEBRAE">SEBRAE</option>
+                            <option value="CONTRAPARTIDA">Contrapartida ICT</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Valor Previsto (R$)</label>
+                        <input type="number" step="0.01" name="rubrica_valor[]" class="form-control" value="${data.valor_previsto || ''}" required>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold">Descrição do Item</label>
+                        <input type="text" name="rubrica_descricao[]" class="form-control" placeholder="Descreva brevemente no que será gasto..." value="${data.descricao || ''}">
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Restore selects if data exists
+        if(data.categoria) {
+            card.querySelector(`select[name="rubrica_categoria[]"]`).value = data.categoria;
+        }
+        if(data.fonte) {
+            card.querySelector(`select[name="rubrica_fonte[]"]`).value = data.fonte;
+        }
+
+        card.querySelector('.btn-remover-rubrica').addEventListener('click', function() {
+            card.remove();
+            autoSave();
+        });
+        
+        card.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('change', autoSave);
+            input.addEventListener('input', autoSave);
+        });
+
+        orcamentoContainer.appendChild(card);
+    }
+
+    if (btnAddRubrica) {
+        btnAddRubrica.addEventListener('click', function() {
+            createRubricaCard();
+            autoSave();
+        });
+    }
+    
+    if (!isEditMode && document.querySelectorAll('.rubrica-card').length === 0 && orcamentoContainer) {
+        createRubricaCard();
+    }
+
+    
+    // --- LÓGICA AJAX: FILTRAR TERMOS DE PARCERIA PELA EMPRESA ---
+    const concedenteSelect = document.querySelector('select[name="concedente"]');
+    const termoSelect = document.getElementById('termo_existente');
+    
+    if (concedenteSelect && termoSelect) {
+        concedenteSelect.addEventListener('change', function() {
+            const concedenteId = this.value;
+            termoSelect.innerHTML = '<option value="">Nenhum / Continuar em Prospecção Solta</option>';
+            
+            if (concedenteId) {
+                fetch(`/cadastros/api/termos-por-empresa/${concedenteId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.termos.forEach(termo => {
+                            const option = document.createElement('option');
+                            option.value = termo.id;
+                            option.textContent = termo.display_name;
+                            termoSelect.appendChild(option);
+                        });
+                        
+                        // Restore draft selection if exists
+                        const draft = localStorage.getItem(storageKey);
+                        if(draft) {
+                            try {
+                                const draftData = JSON.parse(draft);
+                                if(draftData.termo_existente) {
+                                    termoSelect.value = draftData.termo_existente;
+                                }
+                            } catch(e){}
+                        }
+                    })
+                    .catch(error => console.error('Erro ao buscar termos:', error));
+            }
+        });
+        
+        // Trigger on load for draft restoration
+        if (concedenteSelect.value) {
+            concedenteSelect.dispatchEvent(new Event('change'));
+        }
+        
+        termoSelect.addEventListener('change', autoSave);
+    }
 
     function showStep(stepId) {
         syncQuills();

@@ -98,10 +98,11 @@ class AgenciaFomento(PessoaJuridica):
 
 class TermoDeParceria(models.Model):
     """Entidade macro jurídica que rege a parceria e união de interesses."""
+    projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='termos_parceria', null=True, blank=True, verbose_name="Projeto Mestre")
     numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo")
     objeto = models.TextField(blank=True, null=True, verbose_name="Objeto / Descrição")
     
-    concedente = models.ForeignKey(EmpresaParceira, on_delete=models.PROTECT, related_name='concedente_em', verbose_name="Concedente")
+    concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_concedidos', verbose_name="Concedente (Empresa/Agência)")
     convenente = models.ForeignKey(ICT, on_delete=models.PROTECT, related_name='convenente_em', verbose_name="Convenente")
     interveniente = models.ForeignKey(FundacaoApoio, on_delete=models.PROTECT, related_name='interveniente_em', verbose_name="Interveniente")
     
@@ -125,7 +126,17 @@ class IndicadorResultado(models.Model):
 
 class PlanoDeTrabalho(models.Model):
     """Detalha a abordagem técnica, financeira e produto entregue do termo."""
-    termo_parceria = models.ForeignKey(TermoDeParceria, on_delete=models.CASCADE, related_name='planos_trabalho')
+    projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='planos_trabalho', null=True)
+    termo_homologador = models.ForeignKey(TermoDeParceria, on_delete=models.SET_NULL, null=True, blank=True, related_name='planos_homologados', verbose_name="Termo Homologador")
+    
+    STATUS_CHOICES = [
+        ('RASCUNHO', 'Rascunho / Em Edição'),
+        ('CONGELADO_VIGENTE', 'Congelado Vigente (Em Execução)'),
+        ('HISTORICO', 'Histórico (Substituído)')
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='RASCUNHO', verbose_name="Status do Plano")
+    congelado = models.BooleanField(default=False, verbose_name="Plano Congelado (Bloqueio de Edição)")
+    
     versao = models.IntegerField(default=1, verbose_name="Versão do Plano")
     arquivo_pdf = models.FileField(upload_to='projetos/planos_trabalho/', null=True, blank=True, verbose_name="Plano de Trabalho Vigente (PDF)")
     
@@ -178,7 +189,7 @@ class PlanoDeTrabalho(models.Model):
     class Meta:
         verbose_name = "Plano de Trabalho"
         verbose_name_plural = "Planos de Trabalho"
-        unique_together = ('termo_parceria', 'versao')
+        unique_together = ('projeto', 'versao')
 
     def save(self, *args, **kwargs):
         # Soma automática dos aportes
@@ -220,7 +231,7 @@ class PlanoDeTrabalho(models.Model):
         return self.total_i_vi + self.total_vii
 
     def __str__(self):
-        return f"Plano V{self.versao} - Termo {self.termo_parceria.numero}"
+        return f"Plano V{self.versao} - Projeto {self.projeto.nome if self.projeto else 'Desconhecido'}"
 
 class Fornecedor(PessoaJuridica):
     """Cadastro de Credores e Empresas fornecedoras com dados estendidos."""
@@ -237,19 +248,47 @@ class Fornecedor(PessoaJuridica):
 # =====================================================================
 # PROJETO PDI 
 # =====================================================================
+class TermoCooperacao(models.Model):
+    """
+    Acordos Mestres ou Credenciamentos (Guarda-Chuva).
+    Ex: Termo de Cooperação Técnica de 5 anos com a EMBRAPII.
+    """
+    numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo (Ex: TC Nº 17/2020)")
+    concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_cooperacao_concedidos', verbose_name="Concedente Mestre")
+    convenente = models.ForeignKey('ICT', on_delete=models.CASCADE, related_name='termos_cooperacao_conveniados', verbose_name="Convenente Mestre")
+    objeto = models.TextField(verbose_name="Objeto do Acordo Mestre")
+    valor_global = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Valor Global (R$)")
+    vigencia_inicio = models.DateField(verbose_name="Início da Vigência")
+    vigencia_fim = models.DateField(verbose_name="Fim da Vigência")
+    ativo = models.BooleanField(default=True)
+    
+    class Meta:
+        verbose_name = "Termo de Cooperação / Credenciamento"
+        verbose_name_plural = "Termos de Cooperação / Credenciamentos"
+        ordering = ['-vigencia_inicio']
+
+    def __str__(self):
+        return f"{self.numero} - {self.concedente.nome_fantasia or self.concedente.razao_social}"
+
 class ProjetoPDI(models.Model):
     """Entidade Mestre do Polo de Inovação com regras estritas de vigência e conformidade."""
+    FASE_CHOICES = [
+        ('PROSPECCAO', 'Prospecção'),
+        ('EXECUCAO', 'Execução'),
+        ('PRESTACAO_CONTAS', 'Prestação de Contas'),
+        ('ENCERRADO', 'Encerrado'),
+        ('CANCELADO', 'Cancelado')
+    ]
+    fase = models.CharField(max_length=20, choices=FASE_CHOICES, default='PROSPECCAO', verbose_name="Fase do Projeto")
+    
     projeto = models.CharField(max_length=50, verbose_name="Projeto", null=True, blank=True, help_text="Campo opcional para nomear o projeto de forma resumida (ex: 'Projeto de Robótica').")
     nome = models.CharField(max_length=255, verbose_name="Nome Completo do Projeto")
+    concedente = models.ForeignKey('PessoaJuridica', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_concedidos', verbose_name="Concedente (Empresa/Agência)", help_text="Quem está financiando a demanda principal (ex: Empresa ou EMBRAPII no caso de PDC).")
+    convenente = models.ForeignKey('ICT', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_conveniados', verbose_name="Convenente (ICT Executora)")
+    interveniente = models.ForeignKey('FundacaoApoio', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_intervenientes', verbose_name="Interveniente (Fundação de Apoio)")
+    
+    termo_cooperacao = models.ForeignKey(TermoCooperacao, on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_vinculados', verbose_name="Termo de Cooperação (Guarda-Chuva)")
 
-    termo_parceria = models.ForeignKey(
-        TermoDeParceria,
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        related_name='projetos_pdi',
-        verbose_name="Termo de Parceria"
-    )
     
     processo = models.CharField(
         db_column='Processo',
@@ -276,7 +315,7 @@ class ProjetoPDI(models.Model):
         verbose_name_plural = "Projetos PDI"
 
     def __str__(self):
-        numero = self.termo_parceria.numero if self.termo_parceria else "Sem Termo"
+        numero = self.projeto if self.projeto else "Sem Sigla"
         return f"{numero} - {self.nome}"
 
     def clean(self):

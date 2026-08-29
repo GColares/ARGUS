@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DER Interativo - ProjetoPDI ARGUS</title>
+    <!-- Tailwind CSS (GStatic) -->
+    <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+    <!-- Mermaid CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <!-- Panzoom -->
+    <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        #diagram-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            background: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        #diagram-container:active {
+            cursor: grabbing;
+        }
+        #mermaid-wrapper {
+            transform-origin: 0 0;
+        }
+        .toolbar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .btn-tool {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #f1f5f9;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-tool:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+            color: #38bdf8;
+            transform: translateY(-1px);
+        }
+        .btn-primary-tool {
+            background: #0284c7;
+            border-color: #38bdf8;
+            color: #ffffff;
+        }
+        .btn-primary-tool:hover {
+            background: #0369a1;
+            color: #ffffff;
+        }
+        .info-card {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 18px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            max-width: 380px;
+        }
+        .legend-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Action Toolbar -->
+    <div class="toolbar">
+        <button class="btn-tool" onclick="panzoomInstance.zoomIn()" title="Aumentar Zoom (Ctrl +)">
+            <i class="fas fa-search-plus"></i>
+        </button>
+        <button class="btn-tool" onclick="panzoomInstance.zoomOut()" title="Diminuir Zoom (Ctrl -)">
+            <i class="fas fa-search-minus"></i>
+        </button>
+        <button class="btn-tool" onclick="panzoomInstance.reset()" title="Redefinir Posição">
+            <i class="fas fa-compress-arrows-alt"></i> Redefinir
+        </button>
+        <div style="width: 1px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+        <button class="btn-tool btn-primary-tool" onclick="exportSVG()" title="Baixar Vetor em Alta Resolução">
+            <i class="fas fa-file-code"></i> Baixar SVG
+        </button>
+        <button class="btn-tool btn-primary-tool" onclick="exportPNG(3)" title="Exportar Imagem em Ultra HD (3x Resolução)">
+            <i class="fas fa-file-image"></i> Baixar PNG HD
+        </button>
+    </div>
+
+    <!-- Info & Legend Card -->
+    <div class="info-card">
+        <h3 class="text-sm font-bold text-sky-400 flex items-center gap-2 mb-1">
+            <i class="fas fa-project-diagram"></i> Diagrama Entidade-Relacionamento (DER)
+        </h3>
+        <p class="text-xs text-slate-300 mb-2">Ecossistema ProjetoPDI - ARGUS Core</p>
+        <div class="text-[11px] text-slate-400 space-y-1">
+            <p>• <strong>Navegação:</strong> Use a roda do mouse para <strong>Zoom</strong> e arraste para <strong>Mover (Pan)</strong>.</p>
+            <p>• <strong>Exportação:</strong> Exporte em <strong>SVG</strong> (vetorial infinito) ou <strong>PNG Ultra HD</strong>.</p>
+        </div>
+    </div>
+
+    <!-- Diagram Canvas Area -->
+    <div id="diagram-container">
+        <div id="mermaid-wrapper">
+            <pre class="mermaid" id="mermaid-raw">
+erDiagram
+    %% HÉLICE TRÍPLICE / ATORES JURÍDICOS
+    PESSOA_JURIDICA ||--|| ICT : "herda (Multi-table)"
+    PESSOA_JURIDICA ||--|| EMPRESA_PARCEIRA : "herda (Multi-table)"
+    PESSOA_JURIDICA ||--|| FUNDACAO_APOIO : "herda (Multi-table)"
+    PESSOA_JURIDICA ||--|| AGENCIA_FOMENTO : "herda (Multi-table)"
+    PESSOA_JURIDICA ||--|| FORNECEDOR : "herda (Multi-table)"
+
+    PESSOA_JURIDICA {
+        bigint id PK
+        string nome
+        string cnpj UK
+        string natureza_juridica
+        string endereco
+        string representante_legal
+        string cargo_representante
+    }
+
+    ICT {
+        bigint pessoa_juridica_ptr_id PK,FK
+        string sigla
+        string campus_unidade
+        string nome_nit
+    }
+
+    EMPRESA_PARCEIRA {
+        bigint pessoa_juridica_ptr_id PK,FK
+        string porte
+        string segmento_atuacao
+    }
+
+    FUNDACAO_APOIO {
+        bigint pessoa_juridica_ptr_id PK,FK
+        string registro_mec
+        date validade_credenciamento
+    }
+
+    AGENCIA_FOMENTO {
+        bigint pessoa_juridica_ptr_id PK,FK
+        string esfera
+        string sigla
+    }
+
+    FORNECEDOR {
+        bigint pessoa_juridica_ptr_id PK,FK
+        string sigla
+        string email
+    }
+
+    %% NÚCLEO CONTRATUAL E GESTÃO DO PROJETO
+    EMPRESA_PARCEIRA ||--o{ TERMO_DE_PARCERIA : "concedente"
+    ICT ||--o{ TERMO_DE_PARCERIA : "convenente"
+    FUNDACAO_APOIO ||--o{ TERMO_DE_PARCERIA : "interveniente"
+
+    TERMO_DE_PARCERIA ||--o{ PROJETO_PDI : "formaliza"
+    TERMO_DE_PARCERIA ||--o{ PLANO_DE_TRABALHO : "rege_versoes"
+
+    PROJETO_PDI ||--o{ TERMO_ADITIVO : "possui"
+    PROJETO_PDI ||--o{ CONTA_BANCARIA : "movimenta"
+    PROJETO_PDI ||--o{ PROCESSO : "possui"
+    PROJETO_PDI ||--o{ MEMBRO_EQUIPE : "segrega_papeis"
+    PROJETO_PDI ||--o{ COTA_BOLSA_PT : "preve_cotas"
+    PESSOA_FISICA ||--o{ PROJETO_PDI : "coordena"
+
+    TERMO_DE_PARCERIA {
+        bigint id PK
+        string numero UK
+        text objeto
+        bigint concedente_id FK
+        bigint convenente_id FK
+        bigint interveniente_id FK
+        date data_assinatura
+        boolean ativo
+    }
+
+    PROJETO_PDI {
+        bigint id PK
+        string projeto "Sigla"
+        string nome "Título Completo"
+        bigint termo_parceria_id FK
+        bigint coordenador_id FK
+        string processo "SEI/IFAM"
+        string local_execucao
+        date vigencia_inicio
+        date vigencia_fim
+        int vigencia_meses
+        datetime data_cadastro
+    }
+
+    TERMO_ADITIVO {
+        bigint id PK
+        bigint projeto_id FK
+        string numero
+        text descricao
+        date nova_data_fim
+        date data_assinatura
+    }
+
+    %% PLANO DE TRABALHO E EXECUÇÃO
+    PLANO_DE_TRABALHO ||--o{ ATIVIDADE_PLANO_ACAO : "detalha"
+    PLANO_DE_TRABALHO ||--o{ MACROENTREGA : "estabelece"
+    PLANO_DE_TRABALHO ||--o{ RUBRICA_ORCAMENTARIA_PT : "orcamenta"
+    PLANO_DE_TRABALHO ||--o{ MEMBRO_EQUIPE_PT : "aloca_rh"
+    PLANO_DE_TRABALHO ||--o{ CRONOGRAMA_DESEMBOLSO : "planeja_fluxo"
+    PLANO_DE_TRABALHO }o--o{ INDICADOR_RESULTADO : "mensura"
+
+    ATIVIDADE_PLANO_ACAO ||--o{ ENTREGAVEL_ATIVIDADE : "gera"
+
+    PLANO_DE_TRABALHO {
+        bigint id PK
+        bigint termo_parceria_id FK
+        int versao
+        text motivacao
+        text objetivo_geral
+        text objetivos_especificos
+        text escopo_geral
+        text estrutura_analitica
+        text tecnologias_utilizadas
+        text vulnerabilidades
+        text plano_riscos
+        text estrategia
+        text caracteristicas_inovadoras
+        text resultados_esperados
+        text desafios_tecnologicos
+        text solucao_proposta
+        text orcamento_descricao
+        date data_inicio
+        date data_fim
+        int total_meses
+        decimal valor_global
+        decimal aporte_empresa
+        decimal aporte_embrapii
+        decimal aporte_sebrae
+        decimal aporte_contrapartida
+        boolean ativo
+    }
+
+    ATIVIDADE_PLANO_ACAO {
+        bigint id PK
+        bigint plano_trabalho_id FK
+        string numero
+        string nome
+        text descricao
+        text justificativa
+        date data_inicio
+        date data_fim
+    }
+
+    ENTREGAVEL_ATIVIDADE {
+        bigint id PK
+        bigint atividade_id FK
+        string nome
+        text descricao
+    }
+
+    MACROENTREGA {
+        bigint id PK
+        bigint plano_trabalho_id FK
+        int numero
+        string nome
+        text micro_entregas
+        date data_inicio
+        date data_fim
+    }
+
+    RUBRICA_ORCAMENTARIA_PT {
+        bigint id PK
+        bigint plano_trabalho_id FK
+        string categoria
+        string descricao
+        decimal valor_previsto
+        string fonte_recurso
+    }
+
+    MEMBRO_EQUIPE_PT {
+        bigint id PK
+        bigint plano_trabalho_id FK
+        string nome
+        string funcao
+        string titulacao
+        string tipo_recurso
+        int carga_horaria
+        decimal valor_hora
+    }
+
+    CRONOGRAMA_DESEMBOLSO {
+        bigint id PK
+        bigint plano_trabalho_id FK
+        int parcela
+        string mes_previsto
+        decimal valor_parcela
+    }
+
+    INDICADOR_RESULTADO {
+        bigint id PK
+        string nome UK
+        text descricao
+    }
+
+    %% FINANCEIRO E CONTAS
+    FONTE_DE_RECURSO ||--o{ CONTA_BANCARIA : "classifica"
+    CONTA_BANCARIA ||--o{ DISTRIBUICAO_CONTA_COTA : "financia"
+
+    FONTE_DE_RECURSO {
+        bigint id PK
+        string nome UK
+        text descricao
+    }
+
+    CONTA_BANCARIA {
+        bigint id PK
+        bigint projeto_id FK
+        bigint fonte_recurso_id FK
+        string banco
+        string agencia
+        string conta
+        string dv
+    }
+
+    %% RECURSOS HUMANOS / BOLSAS (LGPD & ROLES)
+    PESSOA_FISICA ||--o| PERFIL_SERVIDOR : "papel_1_1"
+    PESSOA_FISICA ||--o| PERFIL_ALUNO : "papel_1_1"
+    PESSOA_FISICA ||--o| PERFIL_COLABORADOR_EXTERNO : "papel_1_1"
+    PESSOA_FISICA ||--o| PERFIL_TERCEIRIZADO : "papel_1_1"
+    PESSOA_FISICA ||--o{ DADO_BANCARIO : "possui"
+    PESSOA_FISICA ||--o{ TERMO_BOLSA : "contratado_em"
+
+    COTA_BOLSA_PT ||--o{ DISTRIBUICAO_CONTA_COTA : "divide_parcelas"
+    COTA_BOLSA_PT ||--o{ TERMO_BOLSA : "aloca_bolsistas"
+    COTA_BOLSA_PT }o--o{ ATIVIDADE_PLANO_ACAO : "vincula_escopo"
+
+    TERMO_BOLSA ||--o{ PARCELA : "gera_parcelas"
+
+    PESSOA_FISICA {
+        bigint id PK
+        string nome
+        string cpf UK
+        string rg
+        date data_nascimento
+        string email
+        string telefone
+    }
+
+    COTA_BOLSA_PT {
+        bigint id PK
+        bigint projeto_id FK
+        string perfil_funcao
+        int quantidade_vagas
+        int parcelas_previstas
+        decimal valor_global_previsto
+    }
+
+    DISTRIBUICAO_CONTA_COTA {
+        bigint id PK
+        bigint cota_pt_id FK
+        bigint conta_pagamento_id FK
+        int parcela_inicio
+        int parcela_fim
+    }
+
+    TERMO_BOLSA {
+        bigint id PK
+        bigint cota_pt_id FK
+        bigint pessoa_id FK
+        string numero_termo
+        string modalidade_bolsa
+        int carga_horaria_total
+        date vigencia_inicio
+        date vigencia_fim
+        int quantidade_parcelas
+        decimal valor_parcela
+        string status
+    }
+
+    PARCELA {
+        bigint id PK
+        bigint termo_bolsa_id FK
+        int numero
+    }
+
+    %% PROCESSOS E GOVERNANÇA (RBAC)
+    TIPO_PROCESSO ||--o{ PROCESSO : "classifica"
+    USER ||--o{ MEMBRO_EQUIPE : "atribui_usuario"
+
+    PROCESSO {
+        bigint id PK
+        bigint projeto_id FK
+        bigint tipo_id FK
+        string numero
+        string descricao
+        string origem
+    }
+
+    TIPO_PROCESSO {
+        bigint id PK
+        string nome UK
+    }
+
+    MEMBRO_EQUIPE {
+        bigint id PK
+        bigint projeto_id FK
+        bigint usuario_id FK
+        string papel
+    }
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        let panzoomInstance = null;
+
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                darkMode: true,
+                background: '#0f172a',
+                primaryColor: '#1e293b',
+                primaryTextColor: '#f8fafc',
+                primaryBorderColor: '#38bdf8',
+                lineColor: '#94a3b8',
+                secondaryColor: '#334155',
+                tertiaryColor: '#1e293b'
+            },
+            er: {
+                useMaxWidth: false,
+                layoutDirection: 'TB'
+            }
+        });
+
+        // Initialize panzoom after mermaid renders
+        window.addEventListener('DOMContentLoaded', () => {
+            const elem = document.getElementById('mermaid-wrapper');
+            panzoomInstance = Panzoom(elem, {
+                maxScale: 15,
+                minScale: 0.1,
+                contain: false,
+                cursor: 'grab'
+            });
+
+            elem.parentElement.addEventListener('wheel', panzoomInstance.zoomWithWheel);
+
+            // Ajustar visualização inicial após render do SVG
+            setTimeout(() => {
+                const svg = elem.querySelector('svg');
+                if (svg) {
+                    svg.style.maxWidth = 'none';
+                    panzoomInstance.zoom(0.85);
+                }
+            }, 800);
+        });
+
+        // Export as Clean Vector SVG
+        function exportSVG() {
+            const svg = document.querySelector('#mermaid-wrapper svg');
+            if (!svg) {
+                alert('O diagrama ainda está sendo processado.');
+                return;
+            }
+            const serializer = new XMLSerializer();
+            let source = serializer.serializeToString(svg);
+
+            // Add namespaces if missing
+            if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            if (!source.match(/^<svg[^>]+xmlns\:xlink="http\:\/\/www\.w3\.org\/1999\/xlink"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+            }
+
+            const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'DER_ProjetoPDI_ARGUS.svg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Export as High Resolution Ultra HD PNG (scale factor: 3x)
+        function exportPNG(scaleFactor = 3) {
+            const svg = document.querySelector('#mermaid-wrapper svg');
+            if (!svg) {
+                alert('O diagrama ainda está sendo processado.');
+                return;
+            }
+
+            const bbox = svg.getBBox();
+            const width = (bbox.width || svg.clientWidth || 1800) * scaleFactor;
+            const height = (bbox.height || svg.clientHeight || 1200) * scaleFactor;
+
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svg);
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const URLObj = window.URL || window.webkitURL || window;
+            const blobURL = URLObj.createObjectURL(svgBlob);
+
+            const image = new Image();
+            image.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = width + 100;
+                canvas.height = height + 100;
+                const context = canvas.getContext('2d');
+
+                // Preenchimento com fundo escuro sólido
+                context.fillStyle = '#0f172a';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Renderiza imagem com antialiasing máximo
+                context.imageSmoothingEnabled = true;
+                context.imageSmoothingQuality = 'high';
+                context.drawImage(image, 50, 50, width, height);
+
+                const pngURL = canvas.toDataURL('image/png');
+                const downloadLink = document.createElement('a');
+                downloadLink.href = pngURL;
+                downloadLink.download = 'DER_ProjetoPDI_ARGUS_UltraHD.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                URLObj.revokeObjectURL(blobURL);
+            };
+            image.src = blobURL;
+        }
+    </script>
+</body>
+</html>
