@@ -71,6 +71,7 @@ class ICT(PessoaJuridica):
     sigla = models.CharField(max_length=20, verbose_name="Sigla da Instituição")
     campus_unidade = models.CharField(max_length=100, verbose_name="Campus ou Unidade", blank=True, null=True)
     nome_nit = models.CharField(max_length=100, verbose_name="Nome do NIT", default="Núcleo de Inovação Tecnológica")
+    is_executora = models.BooleanField(default=False, verbose_name="É a ICT Executora (Sede/Polo)?", help_text="Marque se esta for a instituição matriz do sistema (ex: IFAM). Ela não aparecerá como 'Parceiro' em novos acordos.")
 
     class Meta: # type: ignore
         verbose_name = "ICT"

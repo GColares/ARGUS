@@ -104,6 +104,13 @@ class TermoDeParceriaForm(forms.ModelForm):
             'data_assinatura': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control form-control-lg', 'type': 'date'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import PessoaJuridica, ICT
+        # Excluir a ICT Executora (Sede/Polo) da lista de possíveis Concedentes/Parceiros
+        executoras_ids = ICT.objects.filter(is_executora=True).values_list('pessoajuridica_ptr_id', flat=True)
+        self.fields['concedente'].queryset = PessoaJuridica.objects.exclude(id__in=executoras_ids).order_by('nome')
+
 
 class PlanoDeTrabalhoForm(forms.ModelForm):
     class Meta:
@@ -370,6 +377,20 @@ class TermoCooperacaoForm(forms.ModelForm):
             if len(parts) == 2:
                 self.fields['numero_sequencial'].initial = parts[0]
                 self.fields['ano_termo'].initial = parts[1]
+
+        # Auto-selecionar IFAM como convenente padrão em novos cadastros
+        from .models import ICT, PessoaJuridica
+        
+        if not self.instance.pk:
+            ifam = ICT.objects.filter(sigla__icontains="IFAM").first()
+            if not ifam:
+                ifam = ICT.objects.first()
+            if ifam:
+                self.fields['convenente'].initial = ifam.pk
+
+        # Excluir a ICT Executora da lista de possíveis Parceiros (concedente)
+        executoras_ids = ICT.objects.filter(is_executora=True).values_list('pessoajuridica_ptr_id', flat=True)
+        self.fields['concedente'].queryset = PessoaJuridica.objects.exclude(id__in=executoras_ids).order_by('nome')
 
     def clean(self):
         cleaned_data = super().clean()
