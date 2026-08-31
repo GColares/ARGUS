@@ -57,14 +57,12 @@ class PessoaJuridica(models.Model):
 
     def __str__(self):
         child = self.get_child()
-        if child != self:
-            sigla = getattr(child, 'sigla', None)
-            nome_fantasia = getattr(child, 'nome_fantasia', None)
-            prefix = sigla or nome_fantasia
-            if prefix:
-                return f"{prefix} - {child.nome}"
-            return child.nome
-        return self.nome
+        sigla = getattr(child, 'sigla', None)
+        nome_fantasia = getattr(child, 'nome_fantasia', None)
+        prefix = sigla or nome_fantasia
+        if prefix:
+            return f"{prefix} - {child.nome}"
+        return child.nome
 
 class ICT(PessoaJuridica):
     """Instituição Científica, Tecnológica e de Inovação (ex: IFAM, UFAM)"""
