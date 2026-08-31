@@ -269,18 +269,18 @@ class Fornecedor(PessoaJuridica):
 # =====================================================================
 class TermoCooperacao(models.Model):
     """
-    Acordos Mestres ou Credenciamentos (Guarda-Chuva).
-    Ex: Termo de Cooperação Técnica de 5 anos com a EMBRAPII.
+    Termos de Cooperação / Acordos Guarda-Chuva.
     """
-    numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo (Ex: TC Nº 17/2020)")
-    concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_cooperacao_concedidos', verbose_name="Concedente Mestre")
-    convenente = models.ForeignKey('ICT', on_delete=models.CASCADE, related_name='termos_cooperacao_conveniados', verbose_name="Convenente Mestre")
-    objeto = models.TextField(verbose_name="Objeto do Acordo Mestre")
+    numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo")
+    concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_cooperacao_concedidos', verbose_name="Concedente")
+    convenente = models.ForeignKey('ICT', on_delete=models.CASCADE, related_name='termos_cooperacao_conveniados', verbose_name="Convenente")
+    objeto = models.TextField(verbose_name="Objeto")
     valor_global = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Valor Global (R$)")
     vigencia_inicio = models.DateField(verbose_name="Início da Vigência")
     vigencia_fim = models.DateField(verbose_name="Fim da Vigência")
+    arquivo_pdf = models.FileField(upload_to='termos_cooperacao/', null=True, blank=True, verbose_name="Cópia do Documento (PDF)")
     ativo = models.BooleanField(default=True)
-    
+
     class Meta:
         verbose_name = "Termo de Cooperação / Credenciamento"
         verbose_name_plural = "Termos de Cooperação / Credenciamentos"
@@ -288,6 +288,25 @@ class TermoCooperacao(models.Model):
 
     def __str__(self):
         return f"{self.numero} - {self.concedente.nome_fantasia or self.concedente.razao_social}"
+
+class AditivoTermoCooperacao(models.Model):
+    """
+    Aditivos que alteram ou prorrogam o Termo de Cooperação
+    """
+    termo_cooperacao = models.ForeignKey(TermoCooperacao, on_delete=models.CASCADE, related_name='aditivos', verbose_name="Termo de Cooperação")
+    numero = models.CharField(max_length=20, verbose_name="Número do Aditivo")
+    descricao = models.TextField(verbose_name="Objeto da Alteração")
+    nova_data_fim = models.DateField(null=True, blank=True, verbose_name="Nova Data de Fim (se houver prorrogação)")
+    arquivo_pdf = models.FileField(upload_to='termos_cooperacao/aditivos/', null=True, blank=True, verbose_name="Cópia do Aditivo (PDF)")
+    data_assinatura = models.DateField(null=True, blank=True, verbose_name="Data de Assinatura")
+
+    class Meta:
+        verbose_name = "Aditivo de Termo de Cooperação"
+        verbose_name_plural = "Aditivos de Termo de Cooperação"
+        ordering = ['-data_assinatura']
+
+    def __str__(self):
+        return f"Aditivo {self.numero} - {self.termo_cooperacao.numero}"
 
 class Programa(models.Model):
     """

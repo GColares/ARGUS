@@ -17,19 +17,66 @@
             </h4>
         </div>
         <div class="card-body p-4">
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="row g-3">
-                    {% for field in form %}
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold text-muted small">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                        <div class="text-danger small mt-1">{{ field.errors }}</div>
-                        {% endif %}
+                
+                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-file-contract me-2"></i> Identificação</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-muted small">{{ form.numero_sequencial.label }}</label>
+                        {{ form.numero_sequencial }}
+                        {% if form.numero_sequencial.errors %}<div class="text-danger small mt-1">{{ form.numero_sequencial.errors }}</div>{% endif %}
                     </div>
-                    {% endfor %}
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-muted small">{{ form.ano_termo.label }}</label>
+                        {{ form.ano_termo }}
+                        {% if form.ano_termo.errors %}<div class="text-danger small mt-1">{{ form.ano_termo.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-muted small">{{ form.concedente.label }}</label>
+                        {{ form.concedente }}
+                        {% if form.concedente.errors %}<div class="text-danger small mt-1">{{ form.concedente.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-muted small">{{ form.convenente.label }}</label>
+                        {{ form.convenente }}
+                        {% if form.convenente.errors %}<div class="text-danger small mt-1">{{ form.convenente.errors }}</div>{% endif %}
+                    </div>
                 </div>
+
+                <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-info-circle me-2"></i> Detalhes do Acordo</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold text-muted small">{{ form.objeto.label }}</label>
+                        {{ form.objeto }}
+                        {% if form.objeto.errors %}<div class="text-danger small mt-1">{{ form.objeto.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-muted small">{{ form.valor_global.label }}</label>
+                        {{ form.valor_global }}
+                        {% if form.valor_global.errors %}<div class="text-danger small mt-1">{{ form.valor_global.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-muted small">{{ form.vigencia_inicio.label }}</label>
+                        {{ form.vigencia_inicio }}
+                        {% if form.vigencia_inicio.errors %}<div class="text-danger small mt-1">{{ form.vigencia_inicio.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-muted small">{{ form.vigencia_fim.label }}</label>
+                        {{ form.vigencia_fim }}
+                        {% if form.vigencia_fim.errors %}<div class="text-danger small mt-1">{{ form.vigencia_fim.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-muted small">{{ form.arquivo_pdf.label }}</label>
+                        {{ form.arquivo_pdf }}
+                        {% if form.arquivo_pdf.errors %}<div class="text-danger small mt-1">{{ form.arquivo_pdf.errors }}</div>{% endif %}
+                        <div class="form-check mt-3">
+                            {{ form.ativo }}
+                            <label class="form-check-label fw-bold text-muted small" for="{{ form.ativo.id_for_label }}">Termo Ativo?</label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mt-4 pt-3 border-top d-flex justify-content-end">
                     <button type="submit" class="btn btn-success fw-bold px-4"><i class="fas fa-save me-2"></i> Salvar</button>
                 </div>

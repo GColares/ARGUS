@@ -333,20 +333,63 @@ class FornecedorForm(forms.ModelForm):
         }
 
 
+import datetime
+
 class TermoCooperacaoForm(forms.ModelForm):
+    numero_sequencial = forms.CharField(
+        label="Número", 
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 17', 'style': 'text-align: right;'})
+    )
+    ano_termo = forms.ChoiceField(
+        label="Ano", 
+        choices=[], 
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
     class Meta:
         model = TermoCooperacao
-        fields = ['numero', 'concedente', 'convenente', 'objeto', 'valor_global', 'vigencia_inicio', 'vigencia_fim', 'ativo']
+        fields = ['concedente', 'convenente', 'objeto', 'valor_global', 'vigencia_inicio', 'vigencia_fim', 'arquivo_pdf', 'ativo']
         widgets = {
-            'numero': forms.TextInput(attrs={'class': 'form-control'}),
             'concedente': forms.Select(attrs={'class': 'form-select'}),
             'convenente': forms.Select(attrs={'class': 'form-select'}),
-            'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'valor_global': forms.NumberInput(attrs={'class': 'form-control'}),
+            'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descreva o objeto do termo de cooperação'}),
+            'valor_global': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'vigencia_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
             'vigencia_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate year choices from 2010 to next year
+        current_year = datetime.datetime.now().year
+        self.fields['ano_termo'].choices = [(str(y), str(y)) for y in range(current_year + 1, 2009, -1)]
+
+        if self.instance and self.instance.numero:
+            parts = self.instance.numero.split('/')
+            if len(parts) == 2:
+                self.fields['numero_sequencial'].initial = parts[0]
+                self.fields['ano_termo'].initial = parts[1]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        num = cleaned_data.get('numero_sequencial')
+        ano = cleaned_data.get('ano_termo')
+        if num and ano:
+            # We enforce exactly XX/YYYY format conceptually, but basically whatever user inputs for num
+            numero_concatenado = f"{num.strip()}/{ano}"
+            
+            # Check for uniqueness since we excluded it from fields
+            qs = TermoCooperacao.objects.filter(numero=numero_concatenado)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            
+            if qs.exists():
+                self.add_error('numero_sequencial', 'Já existe um Termo de Cooperação com este número/ano.')
+            else:
+                self.instance.numero = numero_concatenado
+                
+        return cleaned_data
 
 class ProgramaForm(forms.ModelForm):
     class Meta:
