@@ -216,3 +216,9 @@ No nível do banco de dados, isso se traduz em criar propriedades ou sobrescreve
 Sempre que gerenciar cadastros de entidades jurídicas (ICTs) ou construir formulários de Termos de Parceria e Projetos:
 1. **Identificação da Sede:** A instituição matriz do sistema (ex: IFAM) deve obrigatoriamente possuir um identificador booleano (ex: `is_executora=True` no modelo `ICT`) para distingui-la das demais ICTs externas.
 2. **Proibição de Autocontratação (Isolamento de Concedentes):** É estritamente proibido que a "ICT Executora" apareça na listagem de seleções para "Concedente/Parceiro" em qualquer formulário do sistema (ex: `TermoCooperacaoForm`, `TermoDeParceriaForm`). No `__init__` desses formulários, o `queryset` do campo correspondente deve utilizar `.exclude(id__in=ids_executoras)` para ocultar a sede.
+
+## Obrigatoriedade de Identificação Curta (Sigla/Nome Fantasia)
+Sempre que cadastrar ou modelar entidades jurídicas baseadas em `PessoaJuridica` (como `ICT`, `EmpresaParceira`, `FundacaoApoio`, `AgenciaFomento` e `Fornecedor`), é **obrigatório** garantir que o sistema exija a entrada tanto do nome longo (Razão Social) quanto de uma identificação curta.
+1. **Instituições e Entidades Públicas:** O campo `sigla` deve ser sempre obrigatório (jamais utilize `blank=True, null=True` na modelagem do banco).
+2. **Empresas Privadas:** O campo `nome_fantasia` deve ser sempre obrigatório.
+*Motivação:* Isso garante que a regra de exibição visual (que concatena `{Sigla} - {Razão Social}`) sempre possua dados íntegros para formatar as opções de seleção para o usuário, evitando campos em branco nas listas e quebras de design.
