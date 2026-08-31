@@ -28,55 +28,282 @@
         </div>
     </div>
 
-    <!-- Tabela Principal -->
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="tabelaPessoas">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="text-center">Tipo</th>
-                            <th>Razão Social / Nome</th>
-                            <th>CNPJ</th>
-                            <th>Natureza Jurídica</th>
-                            <th class="text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for pj in pessoas %}
-                        <tr>
-                            <td class="text-center">
-                                {% if pj.ict %}
-                                    <span class="badge bg-primary">ICT</span>
-                                {% elif pj.empresaparceira %}
-                                    <span class="badge bg-warning text-dark">Empresa</span>
-                                {% elif pj.fundacaoapoio %}
-                                    <span class="badge bg-info text-dark">Fundação</span>
-                                {% elif pj.agenciafomento %}
-                                    <span class="badge bg-secondary">Fomento</span>
-                                {% elif pj.fornecedor %}
-                                    <span class="badge bg-dark">Fornecedor</span>
-                                {% else %}
-                                    <span class="badge bg-light text-muted">Geral</span>
-                                {% endif %}
-                            </td>
-                            <td class="fw-bold">{{ pj.nome }}</td>
-                            <td>{{ pj.cnpj }}</td>
-                            <td>{{ pj.natureza_juridica }}</td>
-                            <td class="text-center">
-                                <a href="{% url 'cadastros:editar_pessoa_juridica' pj.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'cadastros:excluir_pessoa_juridica' pj.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- Navegação em Abas -->
+    <ul class="nav nav-tabs mb-4" id="pjTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold text-success" id="geral-tab" data-bs-toggle="tab" data-bs-target="#geral" type="button" role="tab" aria-controls="geral" aria-selected="true">
+                <i class="fas fa-globe me-1"></i> Visão Geral
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-secondary" id="empresas-tab" data-bs-toggle="tab" data-bs-target="#empresas" type="button" role="tab" aria-controls="empresas" aria-selected="false">
+                <i class="fas fa-industry me-1"></i> Empresas Parceiras <span class="badge bg-secondary ms-1">{{ empresas.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-secondary" id="icts-tab" data-bs-toggle="tab" data-bs-target="#icts" type="button" role="tab" aria-controls="icts" aria-selected="false">
+                <i class="fas fa-university me-1"></i> ICTs <span class="badge bg-secondary ms-1">{{ icts.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-secondary" id="fundacoes-tab" data-bs-toggle="tab" data-bs-target="#fundacoes" type="button" role="tab" aria-controls="fundacoes" aria-selected="false">
+                <i class="fas fa-hands-helping me-1"></i> Fundações <span class="badge bg-secondary ms-1">{{ fundacoes.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-secondary" id="agencias-tab" data-bs-toggle="tab" data-bs-target="#agencias" type="button" role="tab" aria-controls="agencias" aria-selected="false">
+                <i class="fas fa-landmark me-1"></i> Fomento <span class="badge bg-secondary ms-1">{{ agencias.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-secondary" id="fornecedores-tab" data-bs-toggle="tab" data-bs-target="#fornecedores" type="button" role="tab" aria-controls="fornecedores" aria-selected="false">
+                <i class="fas fa-truck me-1"></i> Fornecedores <span class="badge bg-secondary ms-1">{{ fornecedores.count }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <!-- Conteúdo das Abas -->
+    <div class="tab-content" id="pjTabsContent">
+        
+        <!-- ABA: VISÃO GERAL -->
+        <div class="tab-pane fade show active" id="geral" role="tabpanel" aria-labelledby="geral-tab">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 dataTable-pj" style="width:100%">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Tipo</th>
+                                    <th class="text-center">Razão Social / Nome</th>
+                                    <th class="text-center">CNPJ</th>
+                                    <th class="text-center">Natureza Jurídica</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pj in pessoas %}
+                                <tr>
+                                    <td class="text-center">
+                                        {% if pj.ict %}
+                                            <span class="badge bg-primary">ICT</span>
+                                        {% elif pj.empresaparceira %}
+                                            <span class="badge bg-warning text-dark">Empresa</span>
+                                        {% elif pj.fundacaoapoio %}
+                                            <span class="badge bg-info text-dark">Fundação</span>
+                                        {% elif pj.agenciafomento %}
+                                            <span class="badge bg-secondary">Fomento</span>
+                                        {% elif pj.fornecedor %}
+                                            <span class="badge bg-dark">Fornecedor</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-muted">Geral</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold">{{ pj.nome }}</td>
+                                    <td class="text-center">{{ pj.cnpj }}</td>
+                                    <td class="text-center">{{ pj.natureza_juridica }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'cadastros:editar_pessoa_juridica' pj.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'cadastros:excluir_pessoa_juridica' pj.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- ABA: EMPRESAS -->
+        <div class="tab-pane fade" id="empresas" role="tabpanel" aria-labelledby="empresas-tab">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 dataTable-pj" style="width:100%">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Razão Social / Nome Fantasia</th>
+                                    <th class="text-center">CNPJ</th>
+                                    <th class="text-center">Porte</th>
+                                    <th class="text-center">Segmento</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for empresa in empresas %}
+                                <tr>
+                                    <td class="fw-bold">{{ empresa.nome }}{% if empresa.nome_fantasia %} <br><small class="text-muted">{{ empresa.nome_fantasia }}</small>{% endif %}</td>
+                                    <td class="text-center">{{ empresa.cnpj }}</td>
+                                    <td class="text-center">{{ empresa.get_porte_display|default:"-" }}</td>
+                                    <td class="text-center">{{ empresa.segmento_atuacao|default:"-" }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'cadastros:editar_pessoa_juridica' empresa.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
+                                        <a href="{% url 'cadastros:excluir_pessoa_juridica' empresa.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: ICTs -->
+        <div class="tab-pane fade" id="icts" role="tabpanel" aria-labelledby="icts-tab">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 dataTable-pj" style="width:100%">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Sigla</th>
+                                    <th class="text-center">Nome Completo</th>
+                                    <th class="text-center">CNPJ</th>
+                                    <th class="text-center">Matriz/Executora</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ict in icts %}
+                                <tr>
+                                    <td class="text-center fw-bold text-primary">{{ ict.sigla }}</td>
+                                    <td>{{ ict.nome }}</td>
+                                    <td class="text-center">{{ ict.cnpj }}</td>
+                                    <td class="text-center">
+                                        {% if ict.is_executora %}
+                                            <span class="badge bg-success">Sim</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Não</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{% url 'cadastros:editar_pessoa_juridica' ict.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
+                                        <a href="{% url 'cadastros:excluir_pessoa_juridica' ict.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: FUNDAÇÕES -->
+        <div class="tab-pane fade" id="fundacoes" role="tabpanel" aria-labelledby="fundacoes-tab">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 dataTable-pj" style="width:100%">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Sigla</th>
+                                    <th class="text-center">Nome</th>
+                                    <th class="text-center">CNPJ</th>
+                                    <th class="text-center">Reg. MEC / Validade</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for f in fundacoes %}
+                                <tr>
+                                    <td class="text-center fw-bold text-info">{{ f.sigla|default:"-" }}</td>
+                                    <td>{{ f.nome }}</td>
+                                    <td class="text-center">{{ f.cnpj }}</td>
+                                    <td class="text-center">
+                                        {{ f.registro_mec|default:"-" }} 
+                                        {% if f.validade_credenciamento %}
+                                            <br><small class="text-muted">Válido até {{ f.validade_credenciamento|date:"d/m/Y" }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{% url 'cadastros:editar_pessoa_juridica' f.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
+                                        <a href="{% url 'cadastros:excluir_pessoa_juridica' f.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: AGÊNCIAS -->
+        <div class="tab-pane fade" id="agencias" role="tabpanel" aria-labelledby="agencias-tab">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 dataTable-pj" style="width:100%">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Sigla</th>
+                                    <th class="text-center">Nome</th>
+                                    <th class="text-center">CNPJ</th>
+                                    <th class="text-center">Esfera</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in agencias %}
+                                <tr>
+                                    <td class="text-center fw-bold text-secondary">{{ a.sigla|default:"-" }}</td>
+                                    <td>{{ a.nome }}</td>
+                                    <td class="text-center">{{ a.cnpj }}</td>
+                                    <td class="text-center">{{ a.get_esfera_display|default:"-" }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'cadastros:editar_pessoa_juridica' a.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
+                                        <a href="{% url 'cadastros:excluir_pessoa_juridica' a.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: FORNECEDORES -->
+        <div class="tab-pane fade" id="fornecedores" role="tabpanel" aria-labelledby="fornecedores-tab">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 dataTable-pj" style="width:100%">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Sigla/Fantasia</th>
+                                    <th class="text-center">Nome/Razão Social</th>
+                                    <th class="text-center">CNPJ</th>
+                                    <th class="text-center">Contato (E-mail)</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for forn in fornecedores %}
+                                <tr>
+                                    <td class="text-center fw-bold text-dark">{{ forn.sigla|default:"-" }}</td>
+                                    <td>{{ forn.nome }}</td>
+                                    <td class="text-center">{{ forn.cnpj }}</td>
+                                    <td class="text-center">{{ forn.email|default:"-" }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'cadastros:editar_pessoa_juridica' forn.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
+                                        <a href="{% url 'cadastros:excluir_pessoa_juridica' forn.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}
@@ -89,11 +316,21 @@
 
 <script>
     $(document).ready(function() {
-        $('#tabelaPessoas').DataTable({
+        // Inicializa todas as tabelas com a classe .dataTable-pj
+        var tables = $('.dataTable-pj').DataTable({
             language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json' },
             order: [[1, 'asc']],
             pageLength: 25,
-            dom: '<"row"<"col-md-6"l><"col-md-6"f>>rt<"row"<"col-md-6"i><"col-md-6"p>>'
+            dom: '<"row p-3"<"col-md-6"l><"col-md-6"f>>rt<"row p-3"<"col-md-6"i><"col-md-6"p>>'
+        });
+
+        // Recalcular colunas ao trocar de aba (Evita erro visual do DataTables)
+        $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            
+            // Tratamento visual para mudar a cor da aba ativa (efeito visual opcional)
+            $('.nav-link').removeClass('text-success').addClass('text-secondary');
+            $(e.target).removeClass('text-secondary').addClass('text-success');
         });
     });
 </script>

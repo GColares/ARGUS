@@ -20,9 +20,23 @@ def listar_projetos(request):
 
 @login_required
 def listar_pessoas_juridicas(request):
-    from .models import PessoaJuridica
+    from .models import PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, Fornecedor, AgenciaFomento
     pessoas = PessoaJuridica.objects.all().order_by('nome')
-    return render(request, 'cadastros/listar_pessoas_juridicas.html', {'pessoas': pessoas})
+    icts = ICT.objects.all().order_by('nome')
+    empresas = EmpresaParceira.objects.all().order_by('nome')
+    fundacoes = FundacaoApoio.objects.all().order_by('nome')
+    fornecedores = Fornecedor.objects.all().order_by('nome')
+    agencias = AgenciaFomento.objects.all().order_by('nome')
+    
+    context = {
+        'pessoas': pessoas,
+        'icts': icts,
+        'empresas': empresas,
+        'fundacoes': fundacoes,
+        'fornecedores': fornecedores,
+        'agencias': agencias,
+    }
+    return render(request, 'cadastros/listar_pessoas_juridicas.html', context)
 
 @login_required
 def listar_processos_global(request):
