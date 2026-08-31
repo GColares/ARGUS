@@ -1,6 +1,6 @@
 import re
 from django import forms
-from .models import ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Fornecedor, FonteDeRecurso, TermoDeParceria, PlanoDeTrabalho, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento
+from .models import TermoCooperacao, Programa, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Fornecedor, FonteDeRecurso, TermoDeParceria, PlanoDeTrabalho, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento
 
 # ==============================================================================
 # MOTOR DE LIMPEZA GERAL
@@ -330,4 +330,31 @@ class FornecedorForm(forms.ModelForm):
             'cargo_representante': forms.TextInput(attrs={'class': 'form-control'}),
             'sigla': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
+        }
+
+
+class TermoCooperacaoForm(forms.ModelForm):
+    class Meta:
+        model = TermoCooperacao
+        fields = ['numero', 'concedente', 'convenente', 'objeto', 'valor_global', 'vigencia_inicio', 'vigencia_fim', 'ativo']
+        widgets = {
+            'numero': forms.TextInput(attrs={'class': 'form-control'}),
+            'concedente': forms.Select(attrs={'class': 'form-select'}),
+            'convenente': forms.Select(attrs={'class': 'form-select'}),
+            'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'valor_global': forms.NumberInput(attrs={'class': 'form-control'}),
+            'vigencia_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'vigencia_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+class ProgramaForm(forms.ModelForm):
+    class Meta:
+        model = Programa
+        fields = ['termo_cooperacao', 'nome', 'descricao', 'ativo']
+        widgets = {
+            'termo_cooperacao': forms.Select(attrs={'class': 'form-select'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros Base</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Termos de Cooperação</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Voltar</a>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-handshake text-success me-2"></i> Termos de Cooperação (Guarda-Chuva) <span class="badge bg-secondary fs-6 ms-2">{{ termos.count }}</span></h2>
+            <p class="text-muted small mb-0 mt-1">Gerenciamento dos acordos jurídicos matrizes.</p>
+        </div>
+        <div>
+            <a href="{% url 'cadastros:cadastrar_termo' %}" class="btn btn-primary fw-bold shadow-sm">
+                <i class="fas fa-plus me-2"></i> Novo Termo
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Número</th>
+                        <th>Concedente</th>
+                        <th>Convenente</th>
+                        <th>Início</th>
+                        <th>Fim</th>
+                        <th>Status</th>
+                        <th class="text-center" style="width: 150px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for termo in termos %}
+                    <tr>
+                        <td class="fw-bold">{{ termo.numero }}</td>
+                        <td>{{ termo.concedente }}</td>
+                        <td>{{ termo.convenente }}</td>
+                        <td>{{ termo.vigencia_inicio|date:"d/m/Y" }}</td>
+                        <td>{{ termo.vigencia_fim|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if termo.ativo %}
+                                <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'cadastros:editar_termo' termo.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'cadastros:excluir_termo' termo.id %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

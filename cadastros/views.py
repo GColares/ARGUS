@@ -1,10 +1,11 @@
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
 from pydantic import ValidationError
 from django.db import transaction
-from .models import Fornecedor, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega
-from .forms import ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
+from .models import Fornecedor, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa
+from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
@@ -467,7 +468,7 @@ def excluir_pessoa_juridica(request, id):
 
 @login_required
 def gerenciar_cotas(request, projeto_id):
-    from .models import ProjetoPDI, CotaBolsaPT
+    from .models import ProjetoPDI, TermoCooperacao, Programa, CotaBolsaPT
     projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
     cotas = CotaBolsaPT.objects.filter(projeto=projeto).order_by('perfil_funcao')
     
@@ -562,6 +563,7 @@ def excluir_fonte_recurso(request, id):
 
 # --- CADASTRO DE PESSOAS FÍSICAS ---
 
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import PessoaFisica
@@ -587,3 +589,57 @@ def excluir_pessoa_fisica(request, id):
         messages.success(request, 'Pessoa Física excluída com sucesso!')
         return redirect('cadastros:listar_pessoas_fisicas')
     return render(request, 'cadastros/confirmar_exclusao_pf.html', {'pessoa': pessoa})
+
+
+# ==============================================================================
+# CRUD TERMO DE COOPERAÇÃO
+# ==============================================================================
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+
+class TermoCooperacaoListView(ListView):
+    model = TermoCooperacao
+    template_name = 'cadastros/termocooperacao_list.html'
+    context_object_name = 'termos'
+    
+class TermoCooperacaoCreateView(CreateView):
+    model = TermoCooperacao
+    form_class = TermoCooperacaoForm
+    template_name = 'cadastros/termocooperacao_form.html'
+    success_url = reverse_lazy('cadastros:listar_termos')
+
+class TermoCooperacaoUpdateView(UpdateView):
+    model = TermoCooperacao
+    form_class = TermoCooperacaoForm
+    template_name = 'cadastros/termocooperacao_form.html'
+    success_url = reverse_lazy('cadastros:listar_termos')
+
+class TermoCooperacaoDeleteView(DeleteView):
+    model = TermoCooperacao
+    template_name = 'cadastros/termocooperacao_confirm_delete.html'
+    success_url = reverse_lazy('cadastros:listar_termos')
+
+# ==============================================================================
+# CRUD PROGRAMA
+# ==============================================================================
+class ProgramaListView(ListView):
+    model = Programa
+    template_name = 'cadastros/programa_list.html'
+    context_object_name = 'programas'
+
+class ProgramaCreateView(CreateView):
+    model = Programa
+    form_class = ProgramaForm
+    template_name = 'cadastros/programa_form.html'
+    success_url = reverse_lazy('cadastros:listar_programas')
+
+class ProgramaUpdateView(UpdateView):
+    model = Programa
+    form_class = ProgramaForm
+    template_name = 'cadastros/programa_form.html'
+    success_url = reverse_lazy('cadastros:listar_programas')
+
+class ProgramaDeleteView(DeleteView):
+    model = Programa
+    template_name = 'cadastros/programa_confirm_delete.html'
+    success_url = reverse_lazy('cadastros:listar_programas')

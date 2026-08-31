@@ -5,6 +5,17 @@ from cadastros import views
 app_name = 'cadastros'
 
 urlpatterns = [
+
+    path('termos/', views.TermoCooperacaoListView.as_view(), name='listar_termos'),
+    path('termos/novo/', views.TermoCooperacaoCreateView.as_view(), name='cadastrar_termo'),
+    path('termos/<int:pk>/editar/', views.TermoCooperacaoUpdateView.as_view(), name='editar_termo'),
+    path('termos/<int:pk>/excluir/', views.TermoCooperacaoDeleteView.as_view(), name='excluir_termo'),
+    
+    path('programas/', views.ProgramaListView.as_view(), name='listar_programas'),
+    path('programas/novo/', views.ProgramaCreateView.as_view(), name='cadastrar_programa'),
+    path('programas/<int:pk>/editar/', views.ProgramaUpdateView.as_view(), name='editar_programa'),
+    path('programas/<int:pk>/excluir/', views.ProgramaDeleteView.as_view(), name='excluir_programa'),
+
     path('', views.home_cadastros, name='home_cadastros'), # Dashboard de Projetos/Contas
     path('projeto/novo/', views.novo_projeto, name='novo_projeto'),
     path('api/termos-por-empresa/<int:empresa_id>/', views.api_termos_por_empresa, name='api_termos_por_empresa'),
