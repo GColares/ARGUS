@@ -269,6 +269,7 @@ class ICTForm(forms.ModelForm):
         fields = ['nome', 'cnpj', 'natureza_juridica', 'endereco', 'representante_legal', 'cargo_representante', 'sigla', 'campus_unidade', 'nome_nit']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'sigla': forms.TextInput(attrs={'class': 'form-control'}),
             'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00'}),
             'natureza_juridica': forms.TextInput(attrs={'class': 'form-control', 'value': 'Pública'}),
             'endereco': forms.TextInput(attrs={'class': 'form-control'}),
@@ -282,10 +283,11 @@ class ICTForm(forms.ModelForm):
 class EmpresaParceiraForm(forms.ModelForm):
     class Meta:
         model = EmpresaParceira
-        fields = ['nome', 'cnpj', 'natureza_juridica', 'endereco', 'representante_legal', 'cargo_representante', 'porte', 'segmento_atuacao']
+        fields = ['nome', 'nome_fantasia', 'cnpj', 'natureza_juridica', 'endereco', 'representante_legal', 'cargo_representante', 'porte', 'segmento_atuacao']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
-            'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00'}),
+            'nome_fantasia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Apple, Microsoft...'}),
+            'cnpj': forms.TextInput(attrs={'class': 'form-control', 'data-mask': '00.000.000/0000-00'}),
             'natureza_juridica': forms.TextInput(attrs={'class': 'form-control', 'value': 'Privada'}),
             'endereco': forms.TextInput(attrs={'class': 'form-control'}),
             'representante_legal': forms.TextInput(attrs={'class': 'form-control'}),
@@ -297,9 +299,10 @@ class EmpresaParceiraForm(forms.ModelForm):
 class FundacaoApoioForm(forms.ModelForm):
     class Meta:
         model = FundacaoApoio
-        fields = ['nome', 'cnpj', 'natureza_juridica', 'endereco', 'representante_legal', 'cargo_representante', 'registro_mec', 'validade_credenciamento']
+        fields = ['nome', 'sigla', 'cnpj', 'natureza_juridica', 'endereco', 'representante_legal', 'cargo_representante', 'registro_mec', 'validade_credenciamento']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'sigla': forms.TextInput(attrs={'class': 'form-control'}),
             'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00'}),
             'natureza_juridica': forms.TextInput(attrs={'class': 'form-control', 'value': 'Privada sem fins lucrativos'}),
             'endereco': forms.TextInput(attrs={'class': 'form-control'}),
@@ -315,8 +318,9 @@ class AgenciaFomentoForm(forms.ModelForm):
         fields = ['nome', 'cnpj', 'natureza_juridica', 'endereco', 'representante_legal', 'cargo_representante', 'esfera', 'sigla']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'sigla': forms.TextInput(attrs={'class': 'form-control'}),
             'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00'}),
-            'natureza_juridica': forms.TextInput(attrs={'class': 'form-control'}),
+            'natureza_juridica': forms.TextInput(attrs={'class': 'form-control', 'value': 'Privada'}),
             'endereco': forms.TextInput(attrs={'class': 'form-control'}),
             'representante_legal': forms.TextInput(attrs={'class': 'form-control'}),
             'cargo_representante': forms.TextInput(attrs={'class': 'form-control'}),
@@ -330,6 +334,7 @@ class FornecedorForm(forms.ModelForm):
         fields = ['nome', 'cnpj', 'natureza_juridica', 'endereco', 'representante_legal', 'cargo_representante', 'sigla', 'email']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'sigla': forms.TextInput(attrs={'class': 'form-control'}),
             'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00'}),
             'natureza_juridica': forms.TextInput(attrs={'class': 'form-control', 'value': 'Privada'}),
             'endereco': forms.TextInput(attrs={'class': 'form-control'}),
