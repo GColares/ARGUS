@@ -222,3 +222,12 @@ Sempre que cadastrar ou modelar entidades jurídicas baseadas em `PessoaJuridica
 1. **Instituições e Entidades Públicas:** O campo `sigla` deve ser sempre obrigatório (jamais utilize `blank=True, null=True` na modelagem do banco).
 2. **Empresas Privadas:** O campo `nome_fantasia` deve ser sempre obrigatório.
 *Motivação:* Isso garante que a regra de exibição visual (que concatena `{Sigla} - {Razão Social}`) sempre possua dados íntegros para formatar as opções de seleção para o usuário, evitando campos em branco nas listas e quebras de design.
+
+## Modelagem do Aporte SEBRAE (Parceria EMBRAPII)
+Sempre que modelar o plano de trabalho e as rubricas financeiras de um projeto que envolva recursos do SEBRAE, aplique estritamente as seguintes regras:
+1. **Ausência de Vínculo Contratual Direto:** O SEBRAE **não** é parte signatária (Partícipe/Concedente) do Termo de Cooperação ou Convênio do Projeto. O recurso do SEBRAE é gerido e repassado diretamente pela **EMBRAPII Matriz** para a conta do projeto (gerida pela Fundação/ICT).
+2. **Natureza do Recurso:** O aporte do SEBRAE atua como um *subsídio à cota-parte financeira da Empresa*. Logo, a Empresa Concedente deve ser obrigatoriamente classificada como MEI, ME, EPP, MPE ou Startup.
+3. **Travas de Rubricas para SEBRAE:**
+   - **PROIBIDO** utilizar recursos do SEBRAE para pagamento de **Capital e Equipamentos** (assim como a restrição padrão da EMBRAPII).
+   - **PROIBIDO** utilizar recursos do SEBRAE para pagamento de **Suporte Operacional / Administrativo (Overhead)**. Esta rubrica continua sendo de responsabilidade exclusiva dos recursos diretos da Empresa (caixa) ou da Contrapartida da ICT.
+   - O recurso SEBRAE deve ser destinado majoritariamente a Despesas de Custeio direto da pesquisa (ex: Recursos Humanos Diretos e Consumo).
