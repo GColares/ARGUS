@@ -272,8 +272,8 @@ class TermoCooperacao(models.Model):
     Termos de Cooperação / Acordos Guarda-Chuva.
     """
     numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo")
-    concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_cooperacao_concedidos', verbose_name="Concedente")
-    convenente = models.ForeignKey('ICT', on_delete=models.CASCADE, related_name='termos_cooperacao_conveniados', verbose_name="Convenente")
+    concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_cooperacao_concedidos', verbose_name="Parceiro")
+    convenente = models.ForeignKey('ICT', on_delete=models.CASCADE, related_name='termos_cooperacao_conveniados', verbose_name="ICT")
     objeto = models.TextField(verbose_name="Objeto")
     valor_global = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Valor Global (R$)")
     vigencia_inicio = models.DateField(verbose_name="Início da Vigência")
