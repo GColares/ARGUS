@@ -44,7 +44,26 @@ class PessoaJuridica(models.Model):
         verbose_name = "Pessoa Jurídica"
         verbose_name_plural = "Pessoas Jurídicas"
 
+    def get_child(self):
+        for attr in ['ict', 'empresaparceira', 'agenciafomento', 'fundacaoapoio', 'fornecedor']:
+            if hasattr(self, attr):
+                try:
+                    child = getattr(self, attr)
+                    if child:
+                        return child
+                except Exception:
+                    continue
+        return self
+
     def __str__(self):
+        child = self.get_child()
+        if child != self:
+            sigla = getattr(child, 'sigla', None)
+            nome_fantasia = getattr(child, 'nome_fantasia', None)
+            prefix = sigla or nome_fantasia
+            if prefix:
+                return f"{prefix} - {child.nome}"
+            return child.nome
         return self.nome
 
 class ICT(PessoaJuridica):
@@ -287,7 +306,7 @@ class TermoCooperacao(models.Model):
         ordering = ['-vigencia_inicio']
 
     def __str__(self):
-        return f"{self.numero} - {self.concedente.nome_fantasia or self.concedente.razao_social}"
+        return f"{self.numero} - {self.concedente}"
 
 class AditivoTermoCooperacao(models.Model):
     """
