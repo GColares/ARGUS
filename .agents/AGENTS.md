@@ -211,3 +211,8 @@ O sistema trabalha com um dicionário de perfis baseados em papéis. Nas Anális
 Sempre que uma entidade (especialmente `PessoaJuridica` e suas filhas) for representada no sistema (seja no `__str__` do modelo, em dropdowns do HTML, templates ou listas), é **obrigatório** adotar o padrão de identificação colocando a Sigla (ou Nome Fantasia) antes do Nome Longo/Razão Social.
 *Exemplo correto:* `IFAM - Instituto Federal do Amazonas` ou `FAPEAM - Fundação de Amparo...`.
 No nível do banco de dados, isso se traduz em criar propriedades ou sobrescrever o `__str__` para testar a existência de `sigla` ou `nome_fantasia` na herança da classe antes de renderizar o `nome` raiz.
+
+## Segregação de Papéis: ICT Executora (Polo/Sede)
+Sempre que gerenciar cadastros de entidades jurídicas (ICTs) ou construir formulários de Termos de Parceria e Projetos:
+1. **Identificação da Sede:** A instituição matriz do sistema (ex: IFAM) deve obrigatoriamente possuir um identificador booleano (ex: `is_executora=True` no modelo `ICT`) para distingui-la das demais ICTs externas.
+2. **Proibição de Autocontratação (Isolamento de Concedentes):** É estritamente proibido que a "ICT Executora" apareça na listagem de seleções para "Concedente/Parceiro" em qualquer formulário do sistema (ex: `TermoCooperacaoForm`, `TermoDeParceriaForm`). No `__init__` desses formulários, o `queryset` do campo correspondente deve utilizar `.exclude(id__in=ids_executoras)` para ocultar a sede.
