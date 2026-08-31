@@ -79,6 +79,7 @@ class ICT(PessoaJuridica):
 
 class EmpresaParceira(PessoaJuridica):
     """Empresas de Base Tecnológica ou Indústrias (Concedentes)"""
+    nome_fantasia = models.CharField(max_length=255, verbose_name="Nome Fantasia", blank=True, null=True)
     PORTE_CHOICES = [
         ('ME', 'Microempresa'),
         ('EPP', 'Empresa de Pequeno Porte'),
@@ -93,6 +94,7 @@ class EmpresaParceira(PessoaJuridica):
 
 class FundacaoApoio(PessoaJuridica):
     """Fundações de Apoio (ex: FAEPI) - Gestão Financeira"""
+    sigla = models.CharField(max_length=20, verbose_name="Sigla da Fundação", blank=True, null=True)
     registro_mec = models.CharField(max_length=100, verbose_name="Registro de Credenciamento MEC/MCTI", blank=True, null=True)
     validade_credenciamento = models.DateField(verbose_name="Validade do Credenciamento", blank=True, null=True)
 
