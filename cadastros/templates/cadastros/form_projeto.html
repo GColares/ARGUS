@@ -97,7 +97,7 @@
             <form method="post" id="projetoWizardForm">
                 {% csrf_token %}
                 
-                {% if form_projeto.errors or form_termo.errors or form_plano.errors %}
+                                {% if form_projeto.errors or form_termo.errors or form_plano.errors %}
                 <div class="alert alert-danger shadow-sm rounded-3 border-0 mb-4" id="painel-pendencias">
                     <h5 class="alert-heading fw-bold mb-3"><i class="fas fa-search-dollar me-2"></i> Pendências Encontradas</h5>
                     <p class="small mb-3">O ARGUS identificou informações ausentes ou inválidas. Clique no item abaixo para ir direto ao campo com erro e corrigi-lo:</p>
@@ -107,22 +107,20 @@
                         <!-- Erros do form_projeto -->
                         {% for field in form_projeto %}
                             {% if field.errors %}
-                                <div class="list-group-item list-group-item-danger py-3 d-flex justify-content-between align-items-center">
+                                <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
                                         <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold text-nowrap ms-3" onclick="focarErro('{{ field.id_for_label }}')">
-                                        <i class="fas fa-arrow-right me-1"></i> Corrigir
-                                    </button>
-                                </div>
+                                    <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
+                                </a>
                             {% endif %}
                         {% endfor %}
                         {% if form_projeto.non_field_errors %}
                             {% for erro in form_projeto.non_field_errors %}
-                            <div class="list-group-item list-group-item-danger py-2">
-                                <strong class="mb-1"><i class="fas fa-exclamation-circle me-2"></i> Erro Geral de Validação (Projeto)</strong>
-                                <p class="mb-0 small text-danger fw-bold">{{ erro }}</p>
+                            <div class="list-group-item list-group-item-danger py-3">
+                                <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral de Validação (Projeto)</strong>
+                                <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
                             </div>
                             {% endfor %}
                         {% endif %}
@@ -130,22 +128,20 @@
                         <!-- Erros do form_termo -->
                         {% for field in form_termo %}
                             {% if field.errors %}
-                                <div class="list-group-item list-group-item-danger py-3 d-flex justify-content-between align-items-center">
+                                <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
                                         <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold text-nowrap ms-3" onclick="focarErro('{{ field.id_for_label }}')">
-                                        <i class="fas fa-arrow-right me-1"></i> Corrigir
-                                    </button>
-                                </div>
+                                    <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
+                                </a>
                             {% endif %}
                         {% endfor %}
                         {% if form_termo.non_field_errors %}
                             {% for erro in form_termo.non_field_errors %}
-                            <div class="list-group-item list-group-item-danger py-2">
-                                <strong class="mb-1"><i class="fas fa-exclamation-circle me-2"></i> Erro Geral de Validação (Termo)</strong>
-                                <p class="mb-0 small text-danger fw-bold">{{ erro }}</p>
+                            <div class="list-group-item list-group-item-danger py-3">
+                                <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral de Validação (Termo)</strong>
+                                <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
                             </div>
                             {% endfor %}
                         {% endif %}
@@ -153,22 +149,20 @@
                         <!-- Erros do form_plano -->
                         {% for field in form_plano %}
                             {% if field.errors %}
-                                <div class="list-group-item list-group-item-danger py-3 d-flex justify-content-between align-items-center">
+                                <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
                                         <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold text-nowrap ms-3" onclick="focarErro('{{ field.id_for_label }}')">
-                                        <i class="fas fa-arrow-right me-1"></i> Corrigir
-                                    </button>
-                                </div>
+                                    <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
+                                </a>
                             {% endif %}
                         {% endfor %}
                         {% if form_plano.non_field_errors %}
                             {% for erro in form_plano.non_field_errors %}
-                            <div class="list-group-item list-group-item-danger py-2">
-                                <strong class="mb-1"><i class="fas fa-exclamation-circle me-2"></i> Erro Geral de Validação (Plano de Trabalho)</strong>
-                                <p class="mb-0 small text-danger fw-bold">{{ erro }}</p>
+                            <div class="list-group-item list-group-item-danger py-3">
+                                <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral de Validação (Plano de Trabalho)</strong>
+                                <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
                             </div>
                             {% endfor %}
                         {% endif %}
@@ -992,52 +986,64 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <script>
     function focarErro(fieldId) {
-        console.log("Tentando focar no campo:", fieldId);
-        let field = document.getElementById(fieldId);
+        console.log("Tentando focar no campo (ID original):", fieldId);
         
+        let field = document.getElementById(fieldId);
         if (!field) {
-            console.warn("Campo não encontrado diretamente:", fieldId);
-            // Tenta encontrar pelo name caso o id seja diferente
-            field = document.querySelector(`[name="${fieldId.replace('id_', '')}"]`);
-            if (!field) return;
+            // Se não encontrou pelo id_for_label direto, tenta pelo name
+            const cleanName = fieldId.replace('id_', '');
+            field = document.querySelector(`[name="${cleanName}"]`);
         }
 
-        // Descobre a aba (step) parente
+        if (!field) {
+            console.warn("Elemento HTML não encontrado para a pendência:", fieldId);
+            return;
+        }
+
+        // Descobre em qual aba este elemento está
         const step = field.closest('.wizard-step');
         if (step) {
-            const stepId = step.id; 
+            const stepId = step.id; // Ex: "step1", "step15"
+            
+            // Força a troca de aba simulando o showStep internamente
+            document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.vertical-wizard .nav-link').forEach(el => el.classList.remove('active'));
+            
+            step.classList.add('active');
             const tabButton = document.getElementById(stepId + '-tab');
             if (tabButton) {
-                tabButton.click();
+                tabButton.classList.add('active');
             }
         }
 
+        // Espera renderizar a aba ativada
         setTimeout(() => {
-            // Se for Select2, foca no container dele
+            // Lida com campos estilizados como Select2
             const select2Container = $(field).next('.select2-container');
             const targetElement = select2Container.length ? select2Container[0] : field;
 
+            // Rola até o card
             targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
+            // Tenta dar o foco real (se possível)
             if (typeof targetElement.focus === 'function') {
-                try { targetElement.focus(); } catch (e) {}
+                try { targetElement.focus({ preventScroll: true }); } catch (e) {}
             }
             
-            // Efeito visual
+            // Pisca a borda do campo para facilitar a visualização
             const originalBorder = targetElement.style.borderColor;
             const originalBoxShadow = targetElement.style.boxShadow;
-            const originalOutline = targetElement.style.outline;
             
+            targetElement.style.transition = 'all 0.3s ease';
             targetElement.style.borderColor = '#dc3545';
-            targetElement.style.boxShadow = '0 0 0 0.25rem rgba(220, 53, 69, 0.25)';
-            targetElement.style.outline = '2px solid red';
+            targetElement.style.boxShadow = '0 0 0 0.25rem rgba(220, 53, 69, 0.4)';
             
             setTimeout(() => {
                 targetElement.style.borderColor = originalBorder;
                 targetElement.style.boxShadow = originalBoxShadow;
-                targetElement.style.outline = originalOutline;
-            }, 3000);
-        }, 200); 
+            }, 2500);
+            
+        }, 100);
     }
 </script>
 {% endblock %}
