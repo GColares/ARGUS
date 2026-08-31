@@ -79,6 +79,10 @@ Sem a definição de `format`, o Django renderizará a data no padrão localizad
 2. **Plano de Trabalho:** Todo Termo de Parceria deve possuir um vínculo com um **Plano de Trabalho**, que detalha a abordagem técnica, financeira e o produto a ser entregue. O Plano de Trabalho pode ter mais de uma versão (histórico/aditivos).
 3. **Atores (Partícipes):** As parcerias são assinadas por três papéis estritos: **CONCEDENTE** (Empresa financiadora), **CONVENENTE** (IFAM/Polo de Inovação) e **INTERVENIENTE** (Fundação de Apoio, ex: FAEPI). 
 4. **Pessoa Jurídica (Herança Multi-tabela):** As entidades participantes abandonaram modelagens rasas e agora seguem estritamente os papéis da Hélice Tríplice da Lei 10.973/04. A entidade base `PessoaJuridica` guarda os dados globais (CNPJ, Endereço, Representante), mas o sistema ramifica-se em 4 filhos diretos: `ICT` (Convenente), `EmpresaParceira` (Concedente), `FundacaoApoio` (Interveniente) e `AgenciaFomento` (Apoiadores). No `TermoDeParceria`, as ForeignKeys apontam estritamente para essas subclasses.
+5. **Hierarquia de Fomento Macro (Termo > Programa > Projeto):** Projetos que fazem parte de um fomento maior (Guarda-Chuva) não devem ser vinculados a um campo achatado. A modelagem de dados e a interface devem respeitar estritamente três camadas hierárquicas:
+   - **Termo de Cooperação:** O instrumento jurídico matriz assinado com o concedente.
+   - **Programa:** (Nova Entidade) A rodada ou subdivisão temática do Termo (Ex: PDC 2025). Pertence a um Termo de Cooperação (1:N).
+   - **Projeto PDI:** A pesquisa em si. Quando pertencer a um guarda-chuva, o Projeto deve ter uma ForeignKey obrigatória apontando para o **Programa** (e nunca diretamente para o Termo de Cooperação). No Frontend (Wizard), o dropdown de "Programa" deve constar estritamente na Aba 1 (Dados Cadastrais).
 
 ## Separação de Nascimentos (Projeto vs Termo) e Fluxo do Wizard
 O ciclo de vida burocrático público (SIPAC) exige que o **ProjetoPDI** e o **TermoDeParceria** nasçam em momentos e por atores diferentes, sendo vinculados depois:

@@ -289,6 +289,22 @@ class TermoCooperacao(models.Model):
     def __str__(self):
         return f"{self.numero} - {self.concedente.nome_fantasia or self.concedente.razao_social}"
 
+class Programa(models.Model):
+    """
+    Subdivisão ou linha de fomento dentro de um Termo de Cooperação (Ex: PDC 2025).
+    """
+    termo_cooperacao = models.ForeignKey(TermoCooperacao, on_delete=models.CASCADE, related_name='programas', verbose_name="Termo de Cooperação (Guarda-Chuva)")
+    nome = models.CharField(max_length=255, verbose_name="Nome do Programa (Ex: PDC 2025)")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição do Programa")
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Programa"
+        verbose_name_plural = "Programas"
+
+    def __str__(self):
+        return f"{self.nome} ({self.termo_cooperacao.numero})"
+
 class ProjetoPDI(models.Model):
     """Entidade Mestre do Polo de Inovação com regras estritas de vigência e conformidade."""
     FASE_CHOICES = [
@@ -306,7 +322,7 @@ class ProjetoPDI(models.Model):
     convenente = models.ForeignKey('ICT', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_conveniados', verbose_name="Convenente (ICT Executora)")
     interveniente = models.ForeignKey('FundacaoApoio', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_intervenientes', verbose_name="Interveniente (Fundação de Apoio)")
     
-    termo_cooperacao = models.ForeignKey(TermoCooperacao, on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_vinculados', verbose_name="Termo de Cooperação (Guarda-Chuva)")
+    programa = models.ForeignKey(Programa, on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_vinculados', verbose_name="Programa (Acordo Mestre / Guarda-Chuva)")
 
     
     processo = models.CharField(

@@ -33,14 +33,14 @@ def higienizar_texto_pdf(texto):
 class ProjetoPDIForm(forms.ModelForm):
     class Meta:
         model = ProjetoPDI
-        fields = ['nome', 'concedente', 'convenente', 'interveniente', 'termo_cooperacao', 'local_execucao', 'coordenador', 'processo', 'vigencia_inicio', 'vigencia_fim', 'vigencia_meses']
+        fields = ['nome', 'concedente', 'convenente', 'interveniente', 'programa', 'local_execucao', 'coordenador', 'processo', 'vigencia_inicio', 'vigencia_fim', 'vigencia_meses']
         
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Oficial do Projeto', 'autofocus': True}),
             'concedente': forms.Select(attrs={'class': 'form-select'}),
             'convenente': forms.Select(attrs={'class': 'form-select'}),
             'interveniente': forms.Select(attrs={'class': 'form-select'}),
-            'termo_cooperacao': forms.Select(attrs={'class': 'form-select'}),
+            'programa': forms.Select(attrs={'class': 'form-select'}),
             'local_execucao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Manaus-AM / Sede da Empresa'}),
             'coordenador': forms.Select(attrs={'class': 'form-select'}),
             'processo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 23200.000000/2026-00'}),

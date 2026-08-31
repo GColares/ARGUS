@@ -151,6 +151,12 @@
                                     <div class="col-md-12 mt-4">
                                         <p class="text-muted small"><i class="fas fa-info-circle"></i> O projeto EMBRAPII de capacitação não exige Empresa Parceira. O IFAM e a FAEPI podem ser padronizados como convenente e interveniente.</p>
                                     </div>
+                                    <div class="col-md-12 mt-4 pt-3 border-top bg-light p-3 rounded">
+                                        <label class="form-label fw-bold text-primary small text-uppercase"><i class="fas fa-sitemap me-2"></i>Programa (Acordo Mestre / Guarda-Chuva)</label>
+                                        <p class="text-muted small mb-2">Se este projeto pertence a um Programa maior (ex: PDC 2025) de um Termo de Cooperação Técnica de longa duração, selecione-o abaixo:</p>
+                                        {{ form_projeto.programa }}
+                                        {{ form_projeto.programa.errors }}
+                                    </div>
                                 </div>
                                 <div class="d-flex justify-content-end mt-5 pt-3 border-top">
                                     <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step2">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
@@ -165,13 +171,6 @@
                                         <label class="form-label fw-bold text-muted small text-uppercase">2.1 Título Completo do Projeto</label>
                                         {{ form_projeto.nome }}
                                         {{ form_projeto.nome.errors }}
-                                    </div>
-                                    
-                                    <div class="col-md-12 mt-4 pt-3 border-top bg-light p-3 rounded">
-                                        <label class="form-label fw-bold text-primary small text-uppercase"><i class="fas fa-sitemap me-2"></i>Acordo Mestre / Programa (Guarda-Chuva)</label>
-                                        <p class="text-muted small mb-2">Se este projeto pertence a um Programa maior (ex: PDC 2025) de um Termo de Cooperação Técnica de longa duração, selecione-o abaixo:</p>
-                                        {{ form_projeto.termo_cooperacao }}
-                                        {{ form_projeto.termo_cooperacao.errors }}
                                     </div>
                                     
                                     <div class="col-md-12 mt-4 pt-3 border-top bg-light p-3 rounded">
