@@ -203,13 +203,32 @@ class PlanoDeTrabalho(models.Model):
 
     def clean(self):
         super().clean()
+        from django.core.exceptions import ValidationError
+        from decimal import Decimal
+        
+        # Calcular valor_global provisório para a validação
+        v_empresa = self.aporte_empresa or Decimal('0.00')
+        v_embrapii = self.aporte_embrapii or Decimal('0.00')
+        v_sebrae = self.aporte_sebrae or Decimal('0.00')
+        v_contrapartida = self.aporte_contrapartida or Decimal('0.00')
+        valor_total = v_empresa + v_embrapii + v_sebrae + v_contrapartida
 
+        if self.projeto and valor_total > 0:
+            # Trava EMBRAPII: mínimo de 10%
+            min_embrapii = valor_total * Decimal('0.10')
+            if v_embrapii < min_embrapii:
+                raise ValidationError({'aporte_embrapii': f"O aporte EMBRAPII deve ser no mínimo 10% do valor global (R$ {min_embrapii:.2f})."})
+            
+            # Trava Empresa: mínimo de 10%, a menos que seja Agência de Fomento (Ex: PDC)
+            is_agencia = hasattr(self.projeto.concedente, 'agenciafomento') if self.projeto.concedente else False
+            if not is_agencia:
+                min_empresa = valor_total * Decimal('0.10')
+                if v_empresa < min_empresa:
+                    raise ValidationError({'aporte_empresa': f"O aporte da Empresa deve ser no mínimo 10% do valor global (R$ {min_empresa:.2f}). Se for um projeto de capacitação (100% EMBRAPII), o concedente do projeto deve ser uma Agência de Fomento."})
 
         if self.data_inicio and self.data_fim:
-            from django.core.exceptions import ValidationError
             if self.data_inicio > self.data_fim:
                 raise ValidationError({"data_fim": "A data fim do plano de trabalho não pode ser anterior ao início."})
-
     @property
     def total_i_v(self):
         return sum(item.valor_previsto for item in self.rubricas.all() if item.categoria in ['I', 'II', 'III', 'IV', 'V']) # type: ignore
@@ -431,6 +450,44 @@ class RubricaOrcamentariaPT(models.Model):
 
     def __str__(self):
         return f"{self.get_categoria_display()} ({self.get_fonte_recurso_display()}) - R$ {self.valor_previsto}" # type: ignore
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        from decimal import Decimal
+        from django.db.models import Sum
+
+        if not hasattr(self, 'plano_trabalho') or not self.plano_trabalho:
+            return
+
+        # 1. Capital e Equipamentos: Proibido usar recursos EMBRAPII
+        if self.categoria == 'CAPITAL' and self.fonte_recurso == 'EMBRAPII':
+            raise ValidationError({'fonte_recurso': "Regra EMBRAPII: É proibido usar recursos EMBRAPII para Capital e Equipamentos. Utilize recursos da Empresa."})
+
+        # 2. Suporte Operacional (Overhead): Só pago pela Empresa ou Contrapartida
+        if self.categoria == 'SUPORTE' and self.fonte_recurso not in ['EMPRESA', 'CONTRAPARTIDA']:
+            raise ValidationError({'fonte_recurso': "Regra de Overhead: O Suporte Operacional/Administrativo só pode ser pago com recursos da Empresa Parceira ou como Contrapartida da Unidade."})
+
+        # Limites Percentuais: Calcular total global do plano e somar as rubricas existentes
+        v_global = self.plano_trabalho.valor_global or Decimal('0.00')
+        if v_global > 0:
+            rubricas = RubricaOrcamentariaPT.objects.filter(plano_trabalho=self.plano_trabalho)
+            if self.pk:
+                rubricas = rubricas.exclude(pk=self.pk)
+
+            valor_atual = self.valor_previsto or Decimal('0.00')
+
+            # 3. Serviços de Terceiros: Max 30% do valor global
+            if self.categoria == 'TERCEIROS':
+                total_terceiros = rubricas.filter(categoria='TERCEIROS').aggregate(t=Sum('valor_previsto'))['t'] or Decimal('0.00')
+                if (total_terceiros + valor_atual) > (v_global * Decimal('0.30')):
+                    raise ValidationError({'valor_previsto': f"A soma de Serviços de Terceiros não pode ultrapassar 30% do valor global do projeto (Max: R$ {v_global * Decimal('0.30'):.2f})."})
+            
+            # 4. Suporte Operacional (Overhead): Max 15% (Vamos adotar a regra estrita de 15% EMBRAPII)
+            if self.categoria == 'SUPORTE':
+                total_suporte = rubricas.filter(categoria='SUPORTE').aggregate(t=Sum('valor_previsto'))['t'] or Decimal('0.00')
+                if (total_suporte + valor_atual) > (v_global * Decimal('0.15')):
+                    raise ValidationError({'valor_previsto': f"O Suporte Operacional (Overhead) é limitado a 15% do valor total do projeto (Max: R$ {v_global * Decimal('0.15'):.2f})."})
 
 class FonteDeRecurso(models.Model):
     """

@@ -94,6 +94,7 @@ def novo_projeto(request):
                             
                     # 3. Rubricas Orçamentárias
                     from cadastros.models import RubricaOrcamentariaPT
+                    from django.core.exceptions import ValidationError
                     rubricas_cat = request.POST.getlist('rubrica_categoria[]')
                     rubricas_fonte = request.POST.getlist('rubrica_fonte[]')
                     rubricas_valor = request.POST.getlist('rubrica_valor[]')
@@ -102,19 +103,27 @@ def novo_projeto(request):
                     for i in range(len(rubricas_cat)):
                         if rubricas_cat[i] and rubricas_valor[i]:
                             try:
-                                RubricaOrcamentariaPT.objects.create(
+                                val_limpo = rubricas_valor[i].replace(',', '.')
+                                r = RubricaOrcamentariaPT(
                                     plano_trabalho=plano,
                                     categoria=rubricas_cat[i],
                                     fonte_recurso=rubricas_fonte[i] if i < len(rubricas_fonte) else '',
-                                    valor_previsto=rubricas_valor[i].replace(',', '.'),
+                                    valor_previsto=val_limpo,
                                     descricao=rubricas_desc[i] if i < len(rubricas_desc) else ''
                                 )
+                                r.full_clean()
+                                r.save()
+                            except ValidationError as e:
+                                messages.error(request, f"Erro na rubrica {rubricas_cat[i]}: {e.messages[0]}")
+                                raise ValueError("Validation Error")
                             except ValueError:
                                 pass # ignora valores invalidos silenciosamente por agora
-
-                
-                messages.success(request, f"Projeto '{projeto.nome}' cadastrado com sucesso no sistema!")
-                return redirect('cadastros:listar_projetos')
+                                
+                    messages.success(request, f"Projeto '{projeto.nome}' cadastrado com sucesso no sistema!")
+                    return redirect('cadastros:listar_projetos')
+            except ValueError:
+                # Ocorre quando há erro nas rubricas e a transação é revertida
+                pass
             except Exception as e:
                 messages.error(request, f"Erro interno ao salvar os dados: {e}")
         else:

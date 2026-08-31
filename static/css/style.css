@@ -259,3 +259,26 @@ body.theme-dark .navbar-institucional .nav-link.active {
     --bs-btn-hover-bg: #000;
     --bs-btn-hover-border-color: #000;
 }
+
+/* GLASSMORPHISM DASHBOARDS */
+.glass-card {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+    border-radius: 0.75rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.1);
+}
+
+
+.bg-glass-primary { background-color: rgba(var(--bs-primary-rgb), 0.1) !important; color: var(--bs-primary); border-left: 4px solid var(--bs-primary); }
+.bg-glass-success { background-color: rgba(var(--bs-success-rgb), 0.1) !important; color: var(--bs-success); border-left: 4px solid var(--bs-success); }
+.bg-glass-info { background-color: rgba(var(--bs-info-rgb), 0.1) !important; color: var(--bs-info); border-left: 4px solid var(--bs-info); }
+.bg-glass-warning { background-color: rgba(var(--bs-warning-rgb), 0.15) !important; color: var(--bs-warning); border-left: 4px solid var(--bs-warning); }
+.bg-glass-secondary { background-color: rgba(var(--bs-secondary-rgb), 0.1) !important; color: var(--bs-secondary); border-left: 4px solid var(--bs-secondary); }
+

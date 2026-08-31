@@ -138,6 +138,39 @@ class PlanoDeTrabalhoForm(forms.ModelForm):
             'indicadores': forms.SelectMultiple(attrs={'class': 'form-select select2-multiple', 'multiple': 'multiple'}),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        from decimal import Decimal
+        from django.core.exceptions import ValidationError
+        from cadastros.models import PessoaJuridica
+        
+        v_empresa = cleaned_data.get('aporte_empresa') or Decimal('0.00')
+        v_embrapii = cleaned_data.get('aporte_embrapii') or Decimal('0.00')
+        v_sebrae = cleaned_data.get('aporte_sebrae') or Decimal('0.00')
+        v_contrapartida = cleaned_data.get('aporte_contrapartida') or Decimal('0.00')
+        
+        valor_total = v_empresa + v_embrapii + v_sebrae + v_contrapartida
+        
+        if valor_total > 0:
+            min_embrapii = valor_total * Decimal('0.10')
+            if v_embrapii < min_embrapii:
+                self.add_error('aporte_embrapii', f"O aporte EMBRAPII deve ser no mínimo 10% do valor global (R$ {min_embrapii:.2f}).")
+                
+            concedente_id = self.data.get('concedente')
+            is_agencia = False
+            if concedente_id:
+                try:
+                    pj = PessoaJuridica.objects.get(id=concedente_id)
+                    is_agencia = hasattr(pj, 'agenciafomento')
+                except PessoaJuridica.DoesNotExist:
+                    pass
+                    
+            if not is_agencia:
+                min_empresa = valor_total * Decimal('0.10')
+                if v_empresa < min_empresa:
+                    self.add_error('aporte_empresa', f"O aporte da Empresa deve ser no mínimo 10% do valor global (R$ {min_empresa:.2f}). Se for um projeto de capacitação (100% EMBRAPII), o concedente do projeto deve ser uma Agência de Fomento.")
+                    
+        return cleaned_data
 
 class FonteDeRecursoForm(forms.ModelForm):
     class Meta:

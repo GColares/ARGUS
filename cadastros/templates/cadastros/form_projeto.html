@@ -412,7 +412,37 @@
                             
                             <!-- 15. Orçamento -->
                             <div class="wizard-step" id="step15">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">15. Orçamento</h4>
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">15. Orçamento e Aportes Globais</h4>
+                                
+                                <div class="alert alert-warning shadow-sm mb-4">
+                                    <h5 class="fw-bold"><i class="fas fa-balance-scale me-2"></i>Travas Financeiras</h5>
+                                    <ul class="mb-0 small">
+                                        <li><strong>Projetos Padrão:</strong> Mínimo de 10% de aporte da Empresa e 10% da EMBRAPII.</li>
+                                        <li><strong>Projetos PDC (Capacitação):</strong> A Empresa não aporta (0%). O Concedente deve ser obrigatoriamente a EMBRAPII (Agência de Fomento).</li>
+                                    </ul>
+                                </div>
+
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Aporte Empresa (R$)</label>
+                                        {{ form_plano.aporte_empresa }}
+                                        <div class="text-danger small">{{ form_plano.aporte_empresa.errors }}</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Aporte EMBRAPII (R$)</label>
+                                        {{ form_plano.aporte_embrapii }}
+                                        <div class="text-danger small">{{ form_plano.aporte_embrapii.errors }}</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Aporte SEBRAE (R$)</label>
+                                        {{ form_plano.aporte_sebrae }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold text-muted text-uppercase small">Contrapartida (R$)</label>
+                                        {{ form_plano.aporte_contrapartida }}
+                                    </div>
+                                </div>
+
                                 <div class="row g-4 mb-4">
                                     <div class="col-md-12">
                                         <label class="form-label fw-bold text-muted text-uppercase small">Descrição Geral do Orçamento</label>
