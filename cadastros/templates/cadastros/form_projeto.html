@@ -98,8 +98,76 @@
                 {% csrf_token %}
                 
                 {% if form_projeto.errors or form_termo.errors or form_plano.errors %}
-                <div class="alert alert-danger shadow-sm rounded-3 border-0 mb-4">
-                    <i class="fas fa-exclamation-triangle me-2"></i> <strong>Atenção:</strong> Verifique os erros no formulário antes de prosseguir.
+                <div class="alert alert-danger shadow-sm rounded-3 border-0 mb-4" id="painel-pendencias">
+                    <h5 class="alert-heading fw-bold mb-3"><i class="fas fa-search-dollar me-2"></i> Pendências Encontradas (Estilo IRPF)</h5>
+                    <p class="small mb-3">O ARGUS identificou informações ausentes ou inválidas. Clique no item abaixo para ir direto ao campo com erro e corrigi-lo:</p>
+                    
+                    <div class="list-group list-group-flush rounded-3 border border-danger border-opacity-25">
+                        
+                        <!-- Erros do form_projeto -->
+                        {% for field in form_projeto %}
+                            {% if field.errors %}
+                                <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-2 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="mb-1"><i class="fas fa-hand-point-right me-2"></i> {{ field.label }}</strong>
+                                        <p class="mb-0 small text-danger fw-bold">{{ field.errors.0 }}</p>
+                                    </div>
+                                    <i class="fas fa-external-link-alt text-danger opacity-50"></i>
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if form_projeto.non_field_errors %}
+                            {% for erro in form_projeto.non_field_errors %}
+                            <div class="list-group-item list-group-item-danger py-2">
+                                <strong class="mb-1"><i class="fas fa-exclamation-circle me-2"></i> Erro Geral de Validação (Projeto)</strong>
+                                <p class="mb-0 small text-danger fw-bold">{{ erro }}</p>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Erros do form_termo -->
+                        {% for field in form_termo %}
+                            {% if field.errors %}
+                                <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-2 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="mb-1"><i class="fas fa-hand-point-right me-2"></i> {{ field.label }}</strong>
+                                        <p class="mb-0 small text-danger fw-bold">{{ field.errors.0 }}</p>
+                                    </div>
+                                    <i class="fas fa-external-link-alt text-danger opacity-50"></i>
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if form_termo.non_field_errors %}
+                            {% for erro in form_termo.non_field_errors %}
+                            <div class="list-group-item list-group-item-danger py-2">
+                                <strong class="mb-1"><i class="fas fa-exclamation-circle me-2"></i> Erro Geral de Validação (Termo)</strong>
+                                <p class="mb-0 small text-danger fw-bold">{{ erro }}</p>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Erros do form_plano -->
+                        {% for field in form_plano %}
+                            {% if field.errors %}
+                                <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-2 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="mb-1"><i class="fas fa-hand-point-right me-2"></i> {{ field.label }}</strong>
+                                        <p class="mb-0 small text-danger fw-bold">{{ field.errors.0 }}</p>
+                                    </div>
+                                    <i class="fas fa-external-link-alt text-danger opacity-50"></i>
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if form_plano.non_field_errors %}
+                            {% for erro in form_plano.non_field_errors %}
+                            <div class="list-group-item list-group-item-danger py-2">
+                                <strong class="mb-1"><i class="fas fa-exclamation-circle me-2"></i> Erro Geral de Validação (Plano de Trabalho)</strong>
+                                <p class="mb-0 small text-danger fw-bold">{{ erro }}</p>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+
+                    </div>
                 </div>
                 {% endif %}
 
@@ -915,4 +983,46 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
+
+<script>
+    function focarErro(fieldId) {
+        // Encontra o input com o erro
+        const field = document.getElementById(fieldId);
+        
+        // Se for um editor Quill, o id do input hidden pode não estar na tela diretamente focado, mas a div parente está
+        if (!field) {
+            console.warn("Campo não encontrado:", fieldId);
+            return;
+        }
+
+        // Descobre qual é a "Aba" (step) pai deste input
+        const step = field.closest('.wizard-step');
+        if (step) {
+            const stepId = step.id; // Ex: "step1", "step15"
+            const tabButton = document.getElementById(stepId + '-tab');
+            if (tabButton) {
+                // Força o clique no botão do menu lateral para abrir a aba certa
+                tabButton.click();
+            }
+        }
+
+        // Aguarda a aba renderizar e rola suavemente até o campo
+        setTimeout(() => {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            field.focus();
+            
+            // Efeito visual de destaque (piscar a borda)
+            const originalBorder = field.style.borderColor;
+            const originalBoxShadow = field.style.boxShadow;
+            
+            field.style.borderColor = '#dc3545';
+            field.style.boxShadow = '0 0 0 0.25rem rgba(220, 53, 69, 0.25)';
+            
+            setTimeout(() => {
+                field.style.borderColor = originalBorder;
+                field.style.boxShadow = originalBoxShadow;
+            }, 3000);
+        }, 150); // delay pequeno para a animação do bootstrap terminar
+    }
+</script>
 {% endblock %}
