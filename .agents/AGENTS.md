@@ -191,3 +191,23 @@ O sistema trabalha com um dicionário de perfis baseados em papéis. Nas Anális
 - **Analista Administrativo (AAD):** Faz conciliação contábil do projeto e relatórios financeiros.
 - **Pesquisador (PEQ) / Docente:** Executa a pesquisa. **Trava (Docente):** Máximo de 20h/semanais de bolsa. Vedado pagamento para cargo CD-01.
 - **Estudante / Bolsista (EST):** Executa tarefas sob supervisão direta. Não tem poder de gestão.
+
+
+## Ciclo de Vida de Projetos PDI (Máquina de Estados)
+Todo projeto gerenciado no sistema deve prever uma máquina de estados (campo `fase` ou `status`) que represente fielmente a realidade da gestão pública e os marcos de auditoria. 
+Fases obrigatórias (no mínimo):
+1. **Prospecção:** Fase de rascunho, ideação e negociação. Dados podem ser alterados livremente.
+2. **Execução:** Iniciada após a formalização (Termo Assinado). O escopo técnico (Plano de Trabalho) entra em "congelamento integral".
+3. **Prestação de Contas:** Iniciada na conclusão técnica do projeto. Envolve auditoria financeira e entrega de relatórios finais. Regras estritas de travamento financeiro se aplicam.
+4. **Encerrado / Arquivado:** Fim do ciclo de vida.
+
+## Catálogo Vivo de Perfis de Acesso (RBAC)
+O sistema trabalha com um dicionário de perfis baseados em papéis. Nas Análises Críticas (Red Team), o agente deve sempre recorrer a este catálogo para sugerir quem terá a alçada sobre ações sensíveis.
+*(Nota: Este catálogo será iterativamente preenchido pelo usuário à medida que o sistema evolui).*
+- [A PREENCHER PELO USUÁRIO]
+- [A PREENCHER PELO USUÁRIO]
+
+## Identificação Visual de Entidades (Sigla vs Nome Longo)
+Sempre que uma entidade (especialmente `PessoaJuridica` e suas filhas) for representada no sistema (seja no `__str__` do modelo, em dropdowns do HTML, templates ou listas), é **obrigatório** adotar o padrão de identificação colocando a Sigla (ou Nome Fantasia) antes do Nome Longo/Razão Social.
+*Exemplo correto:* `IFAM - Instituto Federal do Amazonas` ou `FAPEAM - Fundação de Amparo...`.
+No nível do banco de dados, isso se traduz em criar propriedades ou sobrescrever o `__str__` para testar a existência de `sigla` ou `nome_fantasia` na herança da classe antes de renderizar o `nome` raiz.
