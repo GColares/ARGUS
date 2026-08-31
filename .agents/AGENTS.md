@@ -64,6 +64,11 @@ Sempre que você criar, modificar ou refatorar formulários (`forms.py`) e telas
 ## Migrações Seguras de Modelos (Campos Obrigatórios)
 Sempre que adicionar um novo atributo obrigatório (sem `null=True`) a uma entidade já existente e populada, você deve **obrigatoriamente** fornecer um valor padrão através do parâmetro `default=` (ex: `default=1`) no código Python para garantir que os registros antigos recebam esse valor durante a migração, evitando travamentos de `IntegrityError` no banco de dados.
 
+## Refatoração Segura de Relacionamentos (1:1 para 1:N)
+Sempre que você alterar um relacionamento de banco de dados no Django (por exemplo, migrando um campo `OneToOneField` ou FK direta para um `ForeignKey` reverso, o que altera a cardinalidade e o `related_name` padrão, como de `termo_parceria` para `termos_parceria`), você **deve obrigatoriamente**:
+1. **Atualizar a ORM (Views/Managers):** Fazer uma varredura (grep/search) no projeto para encontrar e corrigir todas as chamadas de `.filter()`, `.select_related()`, `.prefetch_related()` ou `.order_by()` que ainda usam a string da chave antiga, prevenindo a quebra da página com `FieldError`.
+2. **Backward-Compatibility para Templates:** Criar uma `@property` no modelo mestre que preserva o nome exato do atributo antigo (ex: `@property def termo_parceria(self): return self.termos_parceria.first()`). Isso evita a quebra imediata de dezenas de templates HTML que já utilizavam a notação de ponto (ex: `{{ projeto.termo_parceria.numero }}`).
+
 ## Campos de Data em Formulários (Inputs HTML5)
 Sempre que utilizar `forms.DateInput` com `attrs={'type': 'date'}` no `forms.py`, é **obrigatório** definir o formato ISO explicitamente na instanciação do widget. 
 *Exemplo correto:* `forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'})`. 

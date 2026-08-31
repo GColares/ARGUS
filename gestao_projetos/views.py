@@ -457,7 +457,7 @@ def listar_relatorios(request):
     relatorios = RelatorioAtividade.objects.select_related(
         'termo_bolsa', 
         'termo_bolsa__cota_pt__projeto'
-    ).order_by('termo_bolsa__cota_pt__projeto__termo_parceria', 'termo_bolsa__pessoa__nome', 'parcela_referencia__numero', 'versao')
+    ).order_by('termo_bolsa__cota_pt__projeto__nome', 'termo_bolsa__pessoa__nome', 'parcela_referencia__numero', 'versao')
 
     # Captura dos parâmetros de filtro da URL (GET) com suporte a múltiplos valores
     if 'clear' in request.GET:

@@ -333,6 +333,11 @@ class ProjetoPDI(models.Model):
         verbose_name = "Projeto PDI"
         verbose_name_plural = "Projetos PDI"
 
+    @property
+    def termo_parceria(self):
+        """Retorna o primeiro termo de parceria associado."""
+        return self.termos_parceria.first()
+
     def __str__(self):
         numero = self.projeto if self.projeto else "Sem Sigla"
         return f"{numero} - {self.nome}"
