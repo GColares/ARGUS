@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center mt-5">
+            <div class="text-danger mb-4">
+                <i class="fas fa-exclamation-triangle fa-4x"></i>
+            </div>
+            <h3 class="fw-bold mb-3">Excluir Termo de Parceria</h3>
+            <p class="text-muted mb-4">Tem certeza que deseja excluir o Termo de Parceria <strong>{{ object.numero|default:"Sem Número" }}</strong>?</p>
+            <p class="text-danger small fw-bold"><i class="fas fa-info-circle"></i> Atenção: Projetos de PDI que estiverem vinculados a este termo poderão perder a referência financeira caso não sejam migrados.</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <a href="javascript:history.back()" class="btn btn-light me-2 fw-bold px-4">Cancelar</a>
+                <button type="submit" class="btn btn-danger fw-bold px-4">Sim, Excluir Definitivamente</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

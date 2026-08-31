@@ -50,4 +50,11 @@ urlpatterns = [
     path('fontes-recurso/<int:id>/editar/', views.editar_fonte_recurso, name='editar_fonte_recurso'),
     path('fontes-recurso/<int:id>/visualizar/', views.visualizar_fonte_recurso, name='visualizar_fonte_recurso'),
     path('fontes-recurso/<int:id>/excluir/', views.excluir_fonte_recurso, name='excluir_fonte_recurso'),
+
+    # Termos de Parceria
+    path('termos-parceria/', views.TermoDeParceriaListView.as_view(), name='listar_termos_parceria'),
+    path('termos-parceria/novo/', views.TermoDeParceriaCreateView.as_view(), name='cadastrar_termo_parceria'),
+    path('termos-parceria/<int:pk>/editar/', views.TermoDeParceriaUpdateView.as_view(), name='editar_termo_parceria'),
+    path('termos-parceria/<int:pk>/excluir/', views.TermoDeParceriaDeleteView.as_view(), name='excluir_termo_parceria'),
+
 ]

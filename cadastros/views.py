@@ -657,3 +657,27 @@ class ProgramaDeleteView(DeleteView):
     model = Programa
     template_name = 'cadastros/programa_confirm_delete.html'
     success_url = reverse_lazy('cadastros:listar_programas')
+
+# CRUD TERMO DE PARCERIA
+class TermoDeParceriaListView(ListView):
+    model = TermoDeParceria
+    template_name = 'cadastros/termo_parceria_list.html'
+    context_object_name = 'termos'
+    ordering = ['-id']
+
+class TermoDeParceriaCreateView(CreateView):
+    model = TermoDeParceria
+    form_class = TermoDeParceriaForm
+    template_name = 'cadastros/termo_parceria_form.html'
+    success_url = reverse_lazy('cadastros:listar_termos_parceria')
+
+class TermoDeParceriaUpdateView(UpdateView):
+    model = TermoDeParceria
+    form_class = TermoDeParceriaForm
+    template_name = 'cadastros/termo_parceria_form.html'
+    success_url = reverse_lazy('cadastros:listar_termos_parceria')
+
+class TermoDeParceriaDeleteView(DeleteView):
+    model = TermoDeParceria
+    template_name = 'cadastros/termo_parceria_confirm_delete.html'
+    success_url = reverse_lazy('cadastros:listar_termos_parceria')
