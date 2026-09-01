@@ -215,6 +215,285 @@ def visualizar_projeto(request, projeto_id):
 @transaction.atomic
 def editar_projeto(request, projeto_id):
     projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+    plano = projeto.planos_trabalho.filter(ativo=True).first()
+
+    if request.method == 'POST':
+        form_plano = PlanoDeTrabalhoForm(request.POST, instance=plano)
+        form_projeto = ProjetoPDIForm(request.POST, instance=projeto)
+        
+        valid_plano = form_plano.is_valid()
+        valid_proj = form_projeto.is_valid()
+        
+        is_prospeccao = projeto.fase == 'PROSPECCAO'
+        nome = request.POST.get('nome', '').strip()
+        
+        if (valid_plano and valid_proj) or (is_prospeccao and nome):
+            try:
+                with transaction.atomic():
+                    # Projeto
+                    if not valid_proj:
+                        erros_proj = form_projeto._errors.copy()
+                        form_projeto._errors = {}
+                        projeto_salvo = form_projeto.save()
+                        form_projeto._errors = erros_proj
+                    else:
+                        projeto_salvo = form_projeto.save()
+                            
+                    # Plano
+                    if not valid_plano:
+                        erros_plano = form_plano._errors.copy()
+                        form_plano._errors = {}
+                        plano_salvo = form_plano.save(commit=False)
+                        plano_salvo.projeto = projeto_salvo
+                        plano_salvo.save()
+                        form_plano.save_m2m()
+                        form_plano._errors = erros_plano
+                    else:
+                        plano_salvo = form_plano.save(commit=False)
+                        plano_salvo.projeto = projeto_salvo
+                        plano_salvo.save()
+                        form_plano.save_m2m()
+                        
+                if valid_plano and valid_proj:
+                    messages.success(request, f"Projeto '{projeto.nome}' atualizado e validado com sucesso!")
+                    return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
+                else:
+                    messages.warning(request, f"Rascunho do projeto '{projeto.nome}' salvo. Verifique as pendências orientativas no painel abaixo.")
+                    # Não redireciona, mantém na página para mostrar o painel de erros
+            except Exception as e:
+                messages.error(request, f"Erro ao salvar rascunho: {str(e)}")
+        else:
+            if not is_prospeccao:
+                messages.error(request, "O projeto não está mais em prospecção e exige preenchimento completo.")
+            elif not nome:
+                messages.error(request, "O Nome do Projeto é obrigatório.")
+                
+    else:
+        form_plano = PlanoDeTrabalhoForm(instance=plano)
+        form_projeto = ProjetoPDIForm(instance=projeto)
+
+    context = {
+        'form_projeto': form_projeto,
+        'form_plano': form_plano,
+        'projeto': projeto
+    }
+    return render(request, 'cadastros/form_projeto.html', context)
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.urls import reverse
+from pydantic import ValidationError
+from django.db import transaction
+from .models import Fornecedor, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa
+from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def home_cadastros(request):
+    return render(request, 'cadastros/home_cadastros.html')
+
+@login_required
+def listar_projetos(request):
+    projetos = ProjetoPDI.objects.all().order_by('-data_cadastro')
+    return render(request, 'cadastros/listar_projetos.html', {'projetos': projetos})
+
+@login_required
+def listar_pessoas_juridicas(request):
+    from .models import PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, Fornecedor, AgenciaFomento
+    pessoas = PessoaJuridica.objects.all().order_by('nome')
+    icts = ICT.objects.all().order_by('nome')
+    empresas = EmpresaParceira.objects.all().order_by('nome')
+    fundacoes = FundacaoApoio.objects.all().order_by('nome')
+    fornecedores = Fornecedor.objects.all().order_by('nome')
+    agencias = AgenciaFomento.objects.all().order_by('nome')
+    
+    context = {
+        'pessoas': pessoas,
+        'icts': icts,
+        'empresas': empresas,
+        'fundacoes': fundacoes,
+        'fornecedores': fornecedores,
+        'agencias': agencias,
+    }
+    return render(request, 'cadastros/listar_pessoas_juridicas.html', context)
+
+@login_required
+def listar_processos_global(request):
+    processos = Processo.objects.select_related('projeto').all().order_by('-id')
+    return render(request, 'cadastros/listar_processos_global.html', {'processos': processos})
+
+@login_required
+def novo_projeto(request):
+    if request.method == 'POST':
+        form_projeto = ProjetoPDIForm(request.POST)
+        form_plano = PlanoDeTrabalhoForm(request.POST)
+        
+        valid_proj = form_projeto.is_valid()
+        valid_plano = form_plano.is_valid()
+        
+        nome = request.POST.get('nome', '').strip()
+        
+        # Só bloqueia o salvamento total se nem o Nome foi preenchido (único campo obrigatório no DB para criar)
+        if (valid_proj and valid_plano) or nome:
+            try:
+                with transaction.atomic():
+                    # 1. Salva o Projeto primeiro (Mestre) em modo Rascunho
+                    if not valid_proj:
+                        erros_proj = form_projeto._errors.copy()
+                        form_projeto._errors = {}
+                        projeto = form_projeto.save()
+                        form_projeto._errors = erros_proj
+                    else:
+                        projeto = form_projeto.save()
+                    
+                    # Opcional: Vincular um Termo Existente se houver seleção no Wizard
+                    termo_id = request.POST.get('termo_existente')
+                    if termo_id:
+                        termo = TermoDeParceria.objects.filter(id=termo_id).first()
+                        if termo:
+                            termo.projeto = projeto
+                            termo.save()
+
+                    # 2. Salva o Plano de Trabalho e vincula ao Projeto
+                    if not valid_plano:
+                        erros_plano = form_plano._errors.copy()
+                        form_plano._errors = {}
+                        plano = form_plano.save(commit=False)
+                        plano.projeto = projeto
+                        plano.save()
+                        form_plano.save_m2m()
+                        form_plano._errors = erros_plano
+                    else:
+                        plano = form_plano.save(commit=False)
+                        plano.projeto = projeto
+                        plano.save()
+                        form_plano.save_m2m()
+                    
+                    # --- SALVAMENTO DINÂMICO ---
+                    # 1. Atividades
+                    atividades_numero = request.POST.getlist('atividade_numero[]')
+                    atividades_nome = request.POST.getlist('atividade_nome[]')
+                    atividades_desc = request.POST.getlist('atividade_descricao[]')
+                    atividades_inicio = request.POST.getlist('atividade_inicio[]')
+                    atividades_fim = request.POST.getlist('atividade_fim[]')
+                    
+                    for i in range(len(atividades_numero)):
+                        if atividades_nome[i].strip():
+                            # Se as datas estiverem vazias, salva como None para não quebrar o banco
+                            data_in = atividades_inicio[i] if atividades_inicio[i].strip() else None
+                            data_out = atividades_fim[i] if atividades_fim[i].strip() else None
+                            
+                            AtividadePlanoAcao.objects.create(
+                                plano=plano,
+                                numero=atividades_numero[i] or (i+1),
+                                nome=atividades_nome[i],
+                                descricao=atividades_desc[i] if i < len(atividades_desc) else '',
+                                data_inicio=data_in,
+                                data_fim=data_out
+                            )
+                            
+                    # 2. Macroentregas
+                    macro_titulos = request.POST.getlist('macro_titulo[]')
+                    macro_desc = request.POST.getlist('macro_descricao[]')
+                    macro_inicio = request.POST.getlist('macro_inicio[]')
+                    macro_fim = request.POST.getlist('macro_fim[]')
+                    macro_valor = request.POST.getlist('macro_valor[]')
+                    
+                    for i in range(len(macro_titulos)):
+                        if macro_titulos[i].strip():
+                            val_str = macro_valor[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(macro_valor) else '0'
+                            data_in = macro_inicio[i] if macro_inicio[i].strip() else None
+                            data_out = macro_fim[i] if macro_fim[i].strip() else None
+                            
+                            try:
+                                valor_float = float(val_str)
+                            except ValueError:
+                                valor_float = 0.0
+                                
+                            Macroentrega.objects.create(
+                                plano=plano,
+                                titulo=macro_titulos[i],
+                                descricao=macro_desc[i] if i < len(macro_desc) else '',
+                                data_inicio=data_in,
+                                data_fim=data_out,
+                                valor_estimado=valor_float
+                            )
+                            
+                    # 3. Rubricas
+                    rubrica_fontes = request.POST.getlist('rubrica_fonte[]')
+                    rubrica_categorias = request.POST.getlist('rubrica_categoria[]')
+                    rubrica_desc = request.POST.getlist('rubrica_descricao[]')
+                    rubrica_valores = request.POST.getlist('rubrica_valor[]')
+                    
+                    from .models import RubricaOrcamentariaPT
+                    for i in range(len(rubrica_fontes)):
+                        if rubrica_fontes[i].strip() and rubrica_categorias[i].strip():
+                            val_str = rubrica_valores[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(rubrica_valores) else '0'
+                            try:
+                                valor_float = float(val_str)
+                            except ValueError:
+                                valor_float = 0.0
+                                
+                            RubricaOrcamentariaPT.objects.create(
+                                plano=plano,
+                                fonte_recurso=rubrica_fontes[i],
+                                categoria=rubrica_categorias[i],
+                                descricao=rubrica_desc[i] if i < len(rubrica_desc) else '',
+                                valor_total=valor_float
+                            )
+
+                if valid_proj and valid_plano:
+                    messages.success(request, f"Projeto '{projeto.nome}' criado com sucesso e sem pendências!")
+                    return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
+                else:
+                    messages.warning(request, f"Rascunho do projeto '{projeto.nome}' criado! Existem pendências orientativas que precisam ser resolvidas antes da execução.")
+                    return redirect('cadastros:editar_projeto', projeto_id=projeto.id)
+                    
+            except Exception as e:
+                messages.error(request, f"Erro ao criar projeto: {str(e)}")
+        else:
+            messages.error(request, "O Nome do Projeto é obrigatório para iniciar o rascunho.")
+    else:
+        form_projeto = ProjetoPDIForm()
+        form_plano = PlanoDeTrabalhoForm()
+
+    return render(request, 'cadastros/form_projeto.html', {
+        'form_projeto': form_projeto,
+        'form_plano': form_plano
+    })
+
+
+@login_required
+def api_termos_por_empresa(request, empresa_id):
+    termos = TermoDeParceria.objects.filter(concedente_id=empresa_id, projeto__isnull=True)
+    data = []
+    for termo in termos:
+        display = f"Termo {termo.numero} - {termo.objeto[:30]}..." if termo.numero else f"Termo s/n (Rascunho) - {termo.objeto[:30]}..."
+        data.append({'id': termo.id, 'display_name': display})
+    
+    return JsonResponse({'termos': data})
+
+@login_required
+def visualizar_projeto(request, projeto_id):
+    from cadastros.models import CotaBolsaPT
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+    processos = projeto.processos.all().order_by('-id')
+    cotas = CotaBolsaPT.objects.filter(projeto=projeto).order_by('perfil_funcao')
+    termo = projeto.termos_parceria.first() # Pega o termo principal (ou o mais recente)
+    plano_ativo = projeto.planos_trabalho.filter(ativo=True).first()
+
+    contexto = {
+        'projeto': projeto,
+        'plano_ativo': plano_ativo,
+        'processos': processos,
+        'cotas': cotas
+    }
+    return render(request, 'cadastros/visualizar_projeto.html', contexto)
+
+@login_required
+@transaction.atomic
+def editar_projeto(request, projeto_id):
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
     termo = projeto.termos_parceria.first()
     plano = projeto.planos_trabalho.filter(ativo=True).first()
 
