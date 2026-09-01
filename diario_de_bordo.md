@@ -1,5 +1,18 @@
 # Diário de Bordo - ARGUS
 
+## [31/08/2026] - Regra de Negócio Definitiva: Projeto PDI, Termo de Parceria e Termo de Cooperação
+
+### 📝 O que foi definido para amanhã:
+- Padronizar a regra de negócio do ARGUS para o módulo de projetos:
+  - `ProjetoPDI` pode estar vinculado, opcionalmente, a um `TermoCooperacao` (acordo-mestre / guarda-chuva).
+  - `ProjetoPDI` deve ser sempre vinculado a um `TermoDeParceria` (termo operacional específico do projeto).
+- Ajustar a camada de domínio e a validação para refletir esta regra sem misturar os dois conceitos.
+- Corrigir a tela de edição em `/cadastros/projeto/<id>/editar/` para carregar corretamente o vínculo do termo de parceria e manter o vínculo opcional do termo de cooperação.
+- Garantir que o formulário e o backend usem os nomes e relacionamentos corretos: `termo_cooperacao` para o guarda-chuva e `termo_parceria` para o termo obrigatório do projeto.
+
+### ⏳ O que ficou pendente:
+- Implementar o ajuste do modelo, da view e do template e validar a persistência correta do vínculo em edição e cadastro do projeto.
+
 ## [31/08/2026] - Encerramento de Dia e Backup de Segurança
 
 ### 📝 O que foi feito:
