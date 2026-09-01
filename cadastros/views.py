@@ -239,6 +239,14 @@ def editar_projeto(request, projeto_id):
                     else:
                         projeto_salvo = form_projeto.save()
                             
+                    # Vincula ou atualiza o Termo de Parceria selecionado via AJAX
+                    termo_id = request.POST.get('termo_existente')
+                    if termo_id:
+                        # Remove vínculo antigo se existir (evita duplicatas)
+                        TermoDeParceria.objects.filter(projeto=projeto_salvo).exclude(id=termo_id).update(projeto=None)
+                        # Aplica o novo vínculo
+                        TermoDeParceria.objects.filter(id=termo_id).update(projeto=projeto_salvo)
+                    
                     # Plano
                     if not valid_plano:
                         erros_plano = form_plano._errors.copy()

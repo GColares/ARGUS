@@ -248,14 +248,19 @@
                                         <p class="text-muted small mb-2">Se a Gestão de Contratos já iniciou um Termo no SIPAC específico para este projeto, selecione-o abaixo:</p>
                                         <select name="termo_existente" id="termo_existente" class="form-select">
                                             <option value="">Nenhum / Continuar em Prospecção Solta</option>
-                                            <!-- Preenchido via AJAX -->
+                                            {% if projeto and projeto.termos_parceria.first %}
+                                            {% with tp=projeto.termos_parceria.first %}
+                                            <option value="{{ tp.id }}" selected>Termo {{ tp.numero }} - {{ tp.concedente.nome }} (Vinculado Atualmente)</option>
+                                            {% endwith %}
+                                            {% endif %}
+                                            <!-- Opções adicionais preenchidas via AJAX -->
                                         </select>
                                     </div>
                                     
-                                    <div class="col-md-6 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">2.2 Período de Execução (em meses)</label>
-                                        {{ form_plano.total_meses }}
-                                        {{ form_plano.total_meses.errors }}
+                                    <div class="col-md-4 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">2.2 Duração (em meses)</label>
+                                        {{ form_projeto.vigencia_meses }}
+                                        {{ form_projeto.vigencia_meses.errors }}
                                     </div>
                                     <div class="col-md-6 mt-4">
                                         <label class="form-label fw-bold text-muted small text-uppercase">2.3 Identificação / Sigla</label>
@@ -266,13 +271,15 @@
                                         <label class="form-label fw-bold text-muted small text-uppercase">Número do Processo (Opcional)</label>
                                         {{ form_projeto.processo }}
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Data Início</label>
-                                        {{ form_plano.data_inicio }}
+                                    <div class="col-md-4 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Início da Vigência</label>
+                                        {{ form_projeto.vigencia_inicio }}
+                                        {{ form_projeto.vigencia_inicio.errors }}
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Data Fim</label>
-                                        {{ form_plano.data_fim }}
+                                    <div class="col-md-4 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Fim da Vigência</label>
+                                        {{ form_projeto.vigencia_fim }}
+                                        {{ form_projeto.vigencia_fim.errors }}
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-5 pt-3 border-top">
