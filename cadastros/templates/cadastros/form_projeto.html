@@ -824,41 +824,46 @@ document.addEventListener("DOMContentLoaded", function() {
     // --- LÓGICA AJAX: FILTRAR TERMOS DE PARCERIA PELA EMPRESA ---
     const concedenteSelect = document.querySelector('select[name="concedente"]');
     const termoSelect = document.getElementById('termo_existente');
+    // Captura o ID do projeto atual (se editando) e o termo já vinculado (se existir)
+    const projetoAtualId = "{{ projeto.id|default:'' }}";
+    const termoAtualId = "{{ projeto.termos_parceria.first.id|default:'' }}";
+    
+    function carregarTermos(concedenteId, termoParaSelecionarId) {
+        if (!concedenteId) return;
+        
+        let url = `/cadastros/api/termos-por-empresa/${concedenteId}/`;
+        if (projetoAtualId) url += `?projeto_id=${projetoAtualId}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // Preserva a opção vazia
+                termoSelect.innerHTML = '<option value="">Nenhum / Continuar em Prospecção Solta</option>';
+                data.termos.forEach(termo => {
+                    const option = document.createElement('option');
+                    option.value = termo.id;
+                    option.textContent = termo.display_name;
+                    termoSelect.appendChild(option);
+                });
+                
+                // Seleciona o termo correto: prioridade (1) parâmetro passado (2) termo atual do servidor
+                const idParaSelecionar = termoParaSelecionarId || termoAtualId;
+                if (idParaSelecionar) {
+                    termoSelect.value = idParaSelecionar;
+                }
+            })
+            .catch(error => console.error('Erro ao buscar termos:', error));
+    }
     
     if (concedenteSelect && termoSelect) {
+        // Ao mudar a empresa, recarrega os termos sem pré-seleção
         concedenteSelect.addEventListener('change', function() {
-            const concedenteId = this.value;
-            termoSelect.innerHTML = '<option value="">Nenhum / Continuar em Prospecção Solta</option>';
-            
-            if (concedenteId) {
-                fetch(`/cadastros/api/termos-por-empresa/${concedenteId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.termos.forEach(termo => {
-                            const option = document.createElement('option');
-                            option.value = termo.id;
-                            option.textContent = termo.display_name;
-                            termoSelect.appendChild(option);
-                        });
-                        
-                        // Restore draft selection if exists
-                        const draft = localStorage.getItem(storageKey);
-                        if(draft) {
-                            try {
-                                const draftData = JSON.parse(draft);
-                                if(draftData.termo_existente) {
-                                    termoSelect.value = draftData.termo_existente;
-                                }
-                            } catch(e){}
-                        }
-                    })
-                    .catch(error => console.error('Erro ao buscar termos:', error));
-            }
+            carregarTermos(this.value, null);
         });
         
-        // Trigger on load for draft restoration
+        // Ao carregar a página: se há empresa selecionada, carrega os termos e pré-seleciona o atual
         if (concedenteSelect.value) {
-            concedenteSelect.dispatchEvent(new Event('change'));
+            carregarTermos(concedenteSelect.value, termoAtualId);
         }
         
         termoSelect.addEventListener('change', autoSave);

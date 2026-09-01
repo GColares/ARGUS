@@ -186,10 +186,19 @@ def novo_projeto(request):
 
 @login_required
 def api_termos_por_empresa(request, empresa_id):
-    termos = TermoDeParceria.objects.filter(concedente_id=empresa_id, projeto__isnull=True)
+    projeto_id = request.GET.get('projeto_id')
+    
+    from django.db.models import Q
+    # Retorna termos sem projeto OU termos vinculados a este projeto específico
+    q = Q(concedente_id=empresa_id, projeto__isnull=True)
+    if projeto_id:
+        q |= Q(concedente_id=empresa_id, projeto_id=projeto_id)
+    
+    termos = TermoDeParceria.objects.filter(q).distinct()
     data = []
     for termo in termos:
-        display = f"Termo {termo.numero} - {termo.objeto[:30]}..." if termo.numero else f"Termo s/n (Rascunho) - {termo.objeto[:30]}..."
+        objeto_preview = (termo.objeto[:40] + '...') if termo.objeto and len(termo.objeto) > 40 else (termo.objeto or '')
+        display = f"Termo {termo.numero} - {objeto_preview}" if termo.numero else f"Termo s/n - {objeto_preview}"
         data.append({'id': termo.id, 'display_name': display})
     
     return JsonResponse({'termos': data})
