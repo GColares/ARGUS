@@ -1,0 +1,3391 @@
+[
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2026-08-25T21:51:44.396Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "23",
+    "object_repr": "AR (INOVA - 1º Andar - Recepção 2)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Ambiente\", \"Tipo de Ativo\", \"Nome/Apelido\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2026-08-25T21:52:31.245Z",
+    "user": 1,
+    "content_type": 65,
+    "object_id": "38",
+    "object_repr": "Balcão",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2026-08-25T21:53:09.267Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "22",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "23",
+    "object_repr": "AR (INOVA - 1º Andar - Recepção 2)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "21",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "20",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "19",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "18",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "17",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "16",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "15",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 12,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "14",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 13,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "13",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 14,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "12",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 15,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "11",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 16,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "10",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 17,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "9",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 18,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "8",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 19,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "7",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 20,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.320Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "6",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 21,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.321Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "5",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 22,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.321Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "4",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 23,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.321Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "3",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 24,
+  "fields": {
+    "action_time": "2026-08-25T21:53:22.321Z",
+    "user": 1,
+    "content_type": 45,
+    "object_id": "2",
+    "object_repr": "None (None)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$VSsvsVX9GIGCyG1ii1CNKu$OP+aZ0+0Zc/+3NoVhIineW1u1W/aJ7dGjFA7jM9ruuI=",
+    "last_login": "2026-08-27T19:59:00.310Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-07-12T03:05:17.771Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "0z8yjua7tz3p2xfo25e276p4jr3ho8fm",
+  "fields": {
+    "session_data": ".eJxVjDEKwzAMAP-iuRjFVh07Y_e8wciSadKWGOJkKv17CWRo17vj3pB436a0t7KmWWGADi6_LLM8y3IIffByr0bqsq1zNkdiTtvMWLW8bmf7N5i4TTAA94rqCzFLbzFizhJy9J0Ti2S1ePaWAwWXtSPSKEKBsL-qddGhE_h8AexoN4s:1wzgFY:Dxu4zPZRPZ8mF4HnMYgsf-PHzltOccyDPMd0q5r2oME",
+    "expire_date": "2026-09-10T19:59:00.313Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "56qrd73gx8u83rs3qedlzzqvps27b7v7",
+  "fields": {
+    "session_data": ".eJxVjM0OgjAQBt9lz6ZplwVajt59huajWyxqIOHnZHx3Q8JBrzOTeVPEvpW4r3mJo1JHji6_rEd65ukQ-sB0n02ap20Ze3Mk5rSruc2aX9ez_RsUrIU6ChkiISRfJWGwBFu3UD9UaLKINDYDoi61gxMV9gPX8KosreWaGfT5AtgmN2s:1wywui:3rSJAL8mVaJM5bU1NT-p4LYYO24CslQy0GUGxv35TB8",
+    "expire_date": "2026-09-08T19:34:28.175Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "8bkqczyn5n51t7ylv9qmx7mej3z9dhx9",
+  "fields": {
+    "session_data": ".eJxVjDEKwzAMAP-iuRjFVh07Y_e8wciSadKWGOJkKv17CWRo17vj3pB436a0t7KmWWGADi6_LLM8y3IIffByr0bqsq1zNkdiTtvMWLW8bmf7N5i4TTAA94rqCzFLbzFizhJy9J0Ti2S1ePaWAwWXtSPSKEKBsL-qddGhE_h8AexoN4s:1ww84W:QX7E9x-Wvf3qZ1nb5h_8Zz888juf2o9McZbyReC7WVc",
+    "expire_date": "2026-09-01T00:52:56.452Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "8qfw5t3y6dwju87ii0d6io5hxfbcweu1",
+  "fields": {
+    "session_data": ".eJxVjDEKwzAMAP-iuRjFVh07Y_e8wciSadKWGOJkKv17CWRo17vj3pB436a0t7KmWWGADi6_LLM8y3IIffByr0bqsq1zNkdiTtvMWLW8bmf7N5i4TTAA94rqCzFLbzFizhJy9J0Ti2S1ePaWAwWXtSPSKEKBsL-qddGhE_h8AexoN4s:1ww85f:Wh75QX5Ekp4aMdBPrHGXwqyktzI3vfkFegm96yo0FbI",
+    "expire_date": "2026-09-01T00:54:07.018Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "cxwsxl1lhf2i3cpcepaznxff0ifuk91a",
+  "fields": {
+    "session_data": ".eJxVjM0OgjAQBt9lz6ZplwVajt59huajWyxqIOHnZHx3Q8JBrzOTeVPEvpW4r3mJo1JHji6_rEd65ukQ-sB0n02ap20Ze3Mk5rSruc2aX9ez_RsUrIU6ChkiISRfJWGwBFu3UD9UaLKINDYDoi61gxMV9gPX8KosreWaGfT5AtgmN2s:1wikaL:K6BGKBNS8edku27FNZcU1mkt8gSgiJm2oBG6P1Jbkd8",
+    "expire_date": "2026-07-26T03:10:29.428Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "istbrj87dq5qkkrzjc3g71p5igmw2d85",
+  "fields": {
+    "session_data": ".eJxVjM0OgjAQBt9lz6ZplwVajt59huajWyxqIOHnZHx3Q8JBrzOTeVPEvpW4r3mJo1JHji6_rEd65ukQ-sB0n02ap20Ze3Mk5rSruc2aX9ez_RsUrIU6ChkiISRfJWGwBFu3UD9UaLKINDYDoi61gxMV9gPX8KosreWaGfT5AtgmN2s:1wikVm:LVp7ZQHmDoWxFeXfAWuwmAWlRAEVUM50LshbVUWULI4",
+    "expire_date": "2026-07-26T03:05:46.991Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "k3cxflue3s6ov412qpl98wmo0gb6hrce",
+  "fields": {
+    "session_data": ".eJxVjM0OgjAQBt9lz6ZplwVajt59huajWyxqIOHnZHx3Q8JBrzOTeVPEvpW4r3mJo1JHji6_rEd65ukQ-sB0n02ap20Ze3Mk5rSruc2aX9ez_RsUrIU6ChkiISRfJWGwBFu3UD9UaLKINDYDoi61gxMV9gPX8KosreWaGfT5AtgmN2s:1wtaPF:ZvR0v2Nks-grKwJCejFBZR0e6z4pJh2NnFkGZ5xiEl4",
+    "expire_date": "2026-08-25T00:31:49.952Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "kftysv1rhwfb2s7ht6eqarht9hijygho",
+  "fields": {
+    "session_data": ".eJxVjM0OgjAQBt9lz6ZplwVajt59huajWyxqIOHnZHx3Q8JBrzOTeVPEvpW4r3mJo1JHji6_rEd65ukQ-sB0n02ap20Ze3Mk5rSruc2aX9ez_RsUrIU6ChkiISRfJWGwBFu3UD9UaLKINDYDoi61gxMV9gPX8KosreWaGfT5AtgmN2s:1wuvDW:op9Lv8aa2JQ8Gl1haGtv9Wn8BgWaYVW80PWXz_qJoPs",
+    "expire_date": "2026-08-28T16:57:14.641Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "l4be08j184tkm77fgv72kxl6uhy4ck3e",
+  "fields": {
+    "session_data": ".eJxVjDEKwzAMAP-iuRjFVh07Y_e8wciSadKWGOJkKv17CWRo17vj3pB436a0t7KmWWGADi6_LLM8y3IIffByr0bqsq1zNkdiTtvMWLW8bmf7N5i4TTAA94rqCzFLbzFizhJy9J0Ti2S1ePaWAwWXtSPSKEKBsL-qddGhE_h8AexoN4s:1ww7zz:83UMknoXxCvOF-3CoX7-o9Iz7t2jRWUCX-F_01xXzb0",
+    "expire_date": "2026-09-01T00:48:15.268Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "pd62y2na3tt4sc88ju7ocz79zgvsiz9a",
+  "fields": {
+    "session_data": ".eJxVjM0OgjAQBt9lz6ZplwVajt59huajWyxqIOHnZHx3Q8JBrzOTeVPEvpW4r3mJo1JHji6_rEd65ukQ-sB0n02ap20Ze3Mk5rSruc2aX9ez_RsUrIU6ChkiISRfJWGwBFu3UD9UaLKINDYDoi61gxMV9gPX8KosreWaGfT5AtgmN2s:1wqbCq:FTTwqCoaoRXHb8nlTvHGzcqJ8NW52bp8oX9qxJyEslA",
+    "expire_date": "2026-08-16T18:46:40.534Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "zulwxpa6v6zgwkafl4ddodij1fdzo8h4",
+  "fields": {
+    "session_data": ".eJxVjM0OgjAQBt9lz6ZplwVajt59huajWyxqIOHnZHx3Q8JBrzOTeVPEvpW4r3mJo1JHji6_rEd65ukQ-sB0n02ap20Ze3Mk5rSruc2aX9ez_RsUrIU6ChkiISRfJWGwBFu3UD9UaLKINDYDoi61gxMV9gPX8KosreWaGfT5AtgmN2s:1wwMXd:VDPgjwvwWUOdSlVvXoBDcLsoGGx66377ZxaAevhfy4I",
+    "expire_date": "2026-09-01T16:19:57.853Z"
+  }
+},
+{
+  "model": "cadastros.pessoajuridica",
+  "pk": 1,
+  "fields": {
+    "nome": "Instituto Federal de Educação, Ciência e Tecnologia do Amazonas",
+    "natureza_juridica": "Autarquia Federal",
+    "cnpj": "10.792.928/0001-00",
+    "endereco": "Rua Ferreira Pena, 1109, Centro, Cidade: Manaus - AM CEP: 69025-010",
+    "representante_legal": "Jaime Cavalcante Alves",
+    "nacionalidade_representante": "Brasileira",
+    "estado_civil_representante": "Casado",
+    "cargo_representante": "Reitor",
+    "ato_nomeacao": "Decreto de 21 de junho de 2023, publicado em: 21/06/2023 | Edição: 116-A | Seção: 2 - Extra A | Página: 1"
+  }
+},
+{
+  "model": "cadastros.pessoajuridica",
+  "pk": 2,
+  "fields": {
+    "nome": "LC Indústria e Comercio de Frutas LTDA.",
+    "natureza_juridica": "Sociedade Empresária Limitada (LTDA)",
+    "cnpj": "60.369.979/0001-00",
+    "endereco": "Avenida Bom Jesus, no 888, Colônia Terra Nova, Manaus - AM, CEP: 69.015-300",
+    "representante_legal": "Letícia Castro Barreto",
+    "nacionalidade_representante": "Brasileira",
+    "estado_civil_representante": "Solteira",
+    "cargo_representante": "Representante",
+    "ato_nomeacao": ""
+  }
+},
+{
+  "model": "cadastros.pessoajuridica",
+  "pk": 3,
+  "fields": {
+    "nome": "Fundação de Apoio ao Ensino, Pesquisa, Extensão e Interiorização do IFAM",
+    "natureza_juridica": "Fundação de Direito Privado",
+    "cnpj": "04.623.300/0001-88",
+    "endereco": "Av. Borba, 144 - Cidade: Manaus-AM CEP: 69065-030",
+    "representante_legal": "Luana Marinho Monteiro",
+    "nacionalidade_representante": "Brasileira",
+    "estado_civil_representante": "Solteira",
+    "cargo_representante": "Diretora Executiva",
+    "ato_nomeacao": ""
+  }
+},
+{
+  "model": "cadastros.pessoajuridica",
+  "pk": 4,
+  "fields": {
+    "nome": "ASSOCIAÇÃO BRASILEIRA DE PESQUISA E INOVAÇÃO INDUSTRIAL",
+    "natureza_juridica": "Privada",
+    "cnpj": "18.234.613/0001-59",
+    "endereco": "Setor Bancário Norte, Quadra I, 14o Andar, Edifício Armando Monteiro Neto – Brasília/DF",
+    "representante_legal": "Alvaro Toubes Prata",
+    "nacionalidade_representante": null,
+    "estado_civil_representante": null,
+    "cargo_representante": "Diretor-Presidente",
+    "ato_nomeacao": null
+  }
+},
+{
+  "model": "cadastros.ict",
+  "pk": 1,
+  "fields": {
+    "sigla": "IFAM",
+    "campus_unidade": null,
+    "nome_nit": "Núcleo de Inovação Tecnológica"
+  }
+},
+{
+  "model": "cadastros.empresaparceira",
+  "pk": 2,
+  "fields": {
+    "porte": "MGE",
+    "segmento_atuacao": null
+  }
+},
+{
+  "model": "cadastros.fundacaoapoio",
+  "pk": 3,
+  "fields": {
+    "registro_mec": null,
+    "validade_credenciamento": null
+  }
+},
+{
+  "model": "cadastros.agenciafomento",
+  "pk": 4,
+  "fields": {
+    "esfera": "PRIVADA",
+    "sigla": "EMBRAPII"
+  }
+},
+{
+  "model": "cadastros.termodeparceria",
+  "pk": 1,
+  "fields": {
+    "projeto": null,
+    "numero": "0002/2026",
+    "objeto": "[Bio Caroço] - Desenvolvimento de um Sistema de Gestão Inteligente de Coletas",
+    "concedente": 2,
+    "convenente": 1,
+    "interveniente": 3,
+    "data_assinatura": "2026-05-28",
+    "ativo": true
+  }
+},
+{
+  "model": "cadastros.planodetrabalho",
+  "pk": 1,
+  "fields": {
+    "projeto": null,
+    "termo_homologador": null,
+    "status": "RASCUNHO",
+    "congelado": false,
+    "versao": 1,
+    "arquivo_pdf": "",
+    "motivacao": null,
+    "objetivo_geral": null,
+    "objetivos_especificos": null,
+    "escopo_geral": null,
+    "estrutura_analitica": null,
+    "tecnologias_utilizadas": null,
+    "vulnerabilidades": null,
+    "plano_riscos": null,
+    "estrategia": null,
+    "caracteristicas_inovadoras": null,
+    "resultados_esperados": null,
+    "desafios_tecnologicos": null,
+    "solucao_proposta": null,
+    "orcamento_descricao": null,
+    "data_inicio": null,
+    "data_fim": null,
+    "total_meses": 1,
+    "valor_global": "0.00",
+    "aporte_empresa": "0.00",
+    "aporte_embrapii": "0.00",
+    "aporte_sebrae": "0.00",
+    "aporte_contrapartida": "0.00",
+    "ativo": true,
+    "data_criacao": "2026-08-16T23:29:57.990Z",
+    "indicadores": []
+  }
+},
+{
+  "model": "cadastros.planodetrabalho",
+  "pk": 2,
+  "fields": {
+    "projeto": null,
+    "termo_homologador": null,
+    "status": "RASCUNHO",
+    "congelado": false,
+    "versao": 1,
+    "arquivo_pdf": "",
+    "motivacao": null,
+    "objetivo_geral": null,
+    "objetivos_especificos": null,
+    "escopo_geral": null,
+    "estrutura_analitica": null,
+    "tecnologias_utilizadas": null,
+    "vulnerabilidades": null,
+    "plano_riscos": null,
+    "estrategia": null,
+    "caracteristicas_inovadoras": null,
+    "resultados_esperados": null,
+    "desafios_tecnologicos": null,
+    "solucao_proposta": null,
+    "orcamento_descricao": null,
+    "data_inicio": "1999-03-01",
+    "data_fim": "1999-06-29",
+    "total_meses": 9,
+    "valor_global": "0.00",
+    "aporte_empresa": "0.00",
+    "aporte_embrapii": "0.00",
+    "aporte_sebrae": "0.00",
+    "aporte_contrapartida": "0.00",
+    "ativo": true,
+    "data_criacao": "2026-08-17T00:56:36.439Z",
+    "indicadores": []
+  }
+},
+{
+  "model": "cadastros.planodetrabalho",
+  "pk": 3,
+  "fields": {
+    "projeto": 2,
+    "termo_homologador": null,
+    "status": "RASCUNHO",
+    "congelado": false,
+    "versao": 1,
+    "arquivo_pdf": "",
+    "motivacao": "<p><br></p>",
+    "objetivo_geral": "",
+    "objetivos_especificos": "<p><br></p>",
+    "escopo_geral": "<p><br></p>",
+    "estrutura_analitica": "<p><br></p>",
+    "tecnologias_utilizadas": "<p><br></p>",
+    "vulnerabilidades": "<p><br></p>",
+    "plano_riscos": "<p><br></p>",
+    "estrategia": "<p><br></p>",
+    "caracteristicas_inovadoras": "<p><br></p>",
+    "resultados_esperados": "<p><br></p>",
+    "desafios_tecnologicos": "<p><br></p>",
+    "solucao_proposta": "<p><br></p>",
+    "orcamento_descricao": "<p><br></p>",
+    "data_inicio": null,
+    "data_fim": null,
+    "total_meses": 9,
+    "valor_global": "0.00",
+    "aporte_empresa": "0.00",
+    "aporte_embrapii": "0.00",
+    "aporte_sebrae": "0.00",
+    "aporte_contrapartida": "0.00",
+    "ativo": true,
+    "data_criacao": "2026-09-01T00:05:41.807Z",
+    "indicadores": []
+  }
+},
+{
+  "model": "cadastros.historicalfontederecurso",
+  "pk": 1,
+  "fields": {
+    "id": 1,
+    "nome": "EMBRAPII",
+    "descricao": "Empresa Brasileira de Pesquisa e Inovação Industrial",
+    "history_date": "2026-08-16T20:54:56.281Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.historicalfontederecurso",
+  "pk": 2,
+  "fields": {
+    "id": 2,
+    "nome": "SEBRAE",
+    "descricao": "Serviço Brasileiro de Apoio às Micro e Pequenas Empresas",
+    "history_date": "2026-08-16T20:54:56.316Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.historicalfontederecurso",
+  "pk": 3,
+  "fields": {
+    "id": 3,
+    "nome": "Empresa Parceira",
+    "descricao": "Financiamento direto por empresa parceira do projeto",
+    "history_date": "2026-08-16T20:54:56.318Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.historicalfontederecurso",
+  "pk": 4,
+  "fields": {
+    "id": 1,
+    "nome": "EMBRAPII",
+    "descricao": "Empresa Brasileira de Pesquisa e Inovação Industrial",
+    "history_date": "2026-08-18T16:49:14.694Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.historicalfontederecurso",
+  "pk": 5,
+  "fields": {
+    "id": 2,
+    "nome": "SEBRAE",
+    "descricao": "Serviço Brasileiro de Apoio às Micro e Pequenas Empresas",
+    "history_date": "2026-08-18T16:49:14.699Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.fontederecurso",
+  "pk": 1,
+  "fields": {
+    "nome": "EMBRAPII",
+    "descricao": "Empresa Brasileira de Pesquisa e Inovação Industrial"
+  }
+},
+{
+  "model": "cadastros.fontederecurso",
+  "pk": 2,
+  "fields": {
+    "nome": "SEBRAE",
+    "descricao": "Serviço Brasileiro de Apoio às Micro e Pequenas Empresas"
+  }
+},
+{
+  "model": "cadastros.fontederecurso",
+  "pk": 3,
+  "fields": {
+    "nome": "Empresa Parceira",
+    "descricao": "Financiamento direto por empresa parceira do projeto"
+  }
+},
+{
+  "model": "cadastros.contabancaria",
+  "pk": 2,
+  "fields": {
+    "projeto": 2,
+    "fonte_recurso": 3,
+    "banco": "Banco do Brasil",
+    "agencia": "3563-7",
+    "conta": "15.334",
+    "dv": "6"
+  }
+},
+{
+  "model": "cadastros.contabancaria",
+  "pk": 3,
+  "fields": {
+    "projeto": 2,
+    "fonte_recurso": 2,
+    "banco": "Banco do Brasil",
+    "agencia": "3563-7",
+    "conta": "15.335",
+    "dv": "4"
+  }
+},
+{
+  "model": "cadastros.contabancaria",
+  "pk": 4,
+  "fields": {
+    "projeto": 2,
+    "fonte_recurso": 1,
+    "banco": "Banco do Brasil",
+    "agencia": "3563-7",
+    "conta": "15.338",
+    "dv": "9"
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 1,
+  "fields": {
+    "data": "2026-07-12",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 2,
+  "fields": {
+    "data": "2026-08-02",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 3,
+  "fields": {
+    "data": "2026-08-08",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 4,
+  "fields": {
+    "data": "2026-08-11",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 5,
+  "fields": {
+    "data": "2026-08-12",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 6,
+  "fields": {
+    "data": "2026-08-16",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 7,
+  "fields": {
+    "data": "2026-08-25",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 8,
+  "fields": {
+    "data": "2026-08-27",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 9,
+  "fields": {
+    "data": "2026-08-28",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+},
+{
+  "model": "central_servicos.historicalfinalidade",
+  "pk": 1,
+  "fields": {
+    "id": 1,
+    "nome": "Laboratório",
+    "descricao": null,
+    "history_date": "2026-08-18T16:49:14.744Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalfinalidade",
+  "pk": 2,
+  "fields": {
+    "id": 7,
+    "nome": "Galpão de Testes",
+    "descricao": null,
+    "history_date": "2026-08-18T16:49:14.749Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalfinalidade",
+  "pk": 3,
+  "fields": {
+    "id": 8,
+    "nome": "Refeitório",
+    "descricao": null,
+    "history_date": "2026-08-18T16:49:14.753Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.finalidade",
+  "pk": 1,
+  "fields": {
+    "nome": "Laboratório",
+    "descricao": null
+  }
+},
+{
+  "model": "central_servicos.finalidade",
+  "pk": 2,
+  "fields": {
+    "nome": "Administrativo",
+    "descricao": null
+  }
+},
+{
+  "model": "central_servicos.finalidade",
+  "pk": 3,
+  "fields": {
+    "nome": "Sala de Treinamento",
+    "descricao": null
+  }
+},
+{
+  "model": "central_servicos.finalidade",
+  "pk": 4,
+  "fields": {
+    "nome": "Coworking",
+    "descricao": null
+  }
+},
+{
+  "model": "central_servicos.finalidade",
+  "pk": 5,
+  "fields": {
+    "nome": "Almoxarifado",
+    "descricao": null
+  }
+},
+{
+  "model": "central_servicos.finalidade",
+  "pk": 6,
+  "fields": {
+    "nome": "Diretoria",
+    "descricao": null
+  }
+},
+{
+  "model": "central_servicos.finalidade",
+  "pk": 7,
+  "fields": {
+    "nome": "Galpão de Testes",
+    "descricao": null
+  }
+},
+{
+  "model": "central_servicos.finalidade",
+  "pk": 8,
+  "fields": {
+    "nome": "Refeitório",
+    "descricao": null
+  }
+},
+{
+  "model": "central_servicos.historicalpredio",
+  "pk": 1,
+  "fields": {
+    "id": 2,
+    "nome": "Polo de Inovação Manaus",
+    "sigla": "INOVA",
+    "area_total_m2": null,
+    "capacidade_pessoas": null,
+    "possui_geracao_solar": null,
+    "capacidade_geracao_solar_kwp": null,
+    "quantidade_placas_solares": null,
+    "possui_gerador_emergencia": null,
+    "possui_subestacao_propria": null,
+    "possui_climatizacao_central": null,
+    "possui_rede_gases_especiais": null,
+    "possui_sala_limpa": null,
+    "risco_quimico": null,
+    "risco_biologico": null,
+    "armazena_inflamaveis": null,
+    "possui_ete_sanitaria": null,
+    "possui_ete_especial": null,
+    "avcb_numero": null,
+    "avcb_validade": null,
+    "avcb_arquivo": "",
+    "licenca_ambiental_numero": null,
+    "licenca_ambiental_validade": null,
+    "licenca_ambiental_arquivo": "",
+    "licenca_vigilancia_sanitaria_numero": null,
+    "licenca_vigilancia_sanitaria_validade": null,
+    "licenca_vigilancia_sanitaria_arquivo": "",
+    "brigada_incendio_ativa": null,
+    "ordem": 0,
+    "history_date": "2026-08-18T16:49:14.763Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.predio",
+  "pk": 2,
+  "fields": {
+    "nome": "Polo de Inovação Manaus",
+    "sigla": "INOVA",
+    "area_total_m2": null,
+    "capacidade_pessoas": null,
+    "possui_geracao_solar": null,
+    "capacidade_geracao_solar_kwp": null,
+    "quantidade_placas_solares": null,
+    "possui_gerador_emergencia": null,
+    "possui_subestacao_propria": null,
+    "possui_climatizacao_central": null,
+    "possui_rede_gases_especiais": null,
+    "possui_sala_limpa": null,
+    "risco_quimico": null,
+    "risco_biologico": null,
+    "armazena_inflamaveis": null,
+    "possui_ete_sanitaria": null,
+    "possui_ete_especial": null,
+    "avcb_numero": null,
+    "avcb_validade": null,
+    "avcb_arquivo": "",
+    "licenca_ambiental_numero": null,
+    "licenca_ambiental_validade": null,
+    "licenca_ambiental_arquivo": "",
+    "licenca_vigilancia_sanitaria_numero": null,
+    "licenca_vigilancia_sanitaria_validade": null,
+    "licenca_vigilancia_sanitaria_arquivo": "",
+    "brigada_incendio_ativa": null,
+    "ordem": 0,
+    "finalidades": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  }
+},
+{
+  "model": "central_servicos.historicalandar",
+  "pk": 1,
+  "fields": {
+    "id": 4,
+    "nome": "Estacionamento",
+    "pe_direito_padrao": "3.00",
+    "ordem": 0,
+    "predio": 2,
+    "history_date": "2026-08-13T00:37:04.402Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalandar",
+  "pk": 2,
+  "fields": {
+    "id": 5,
+    "nome": "Passeio Posterior",
+    "pe_direito_padrao": "3.00",
+    "ordem": 0,
+    "predio": 2,
+    "history_date": "2026-08-13T00:37:20.583Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalandar",
+  "pk": 3,
+  "fields": {
+    "id": 1,
+    "nome": "1º Andar",
+    "pe_direito_padrao": "3.00",
+    "ordem": 0,
+    "predio": 2,
+    "history_date": "2026-08-13T00:37:35.219Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalandar",
+  "pk": 4,
+  "fields": {
+    "id": 2,
+    "nome": "2º Andar",
+    "pe_direito_padrao": "3.00",
+    "ordem": 0,
+    "predio": 2,
+    "history_date": "2026-08-13T00:37:45.542Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalandar",
+  "pk": 5,
+  "fields": {
+    "id": 1,
+    "nome": "1º Andar",
+    "pe_direito_padrao": "3.00",
+    "ordem": 0,
+    "predio": 2,
+    "history_date": "2026-08-18T16:49:14.776Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalandar",
+  "pk": 6,
+  "fields": {
+    "id": 2,
+    "nome": "2º Andar",
+    "pe_direito_padrao": "3.00",
+    "ordem": 1,
+    "predio": 2,
+    "history_date": "2026-08-18T16:49:14.778Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.andar",
+  "pk": 1,
+  "fields": {
+    "predio": 2,
+    "nome": "1º Andar",
+    "pe_direito_padrao": "3.00",
+    "ordem": 0
+  }
+},
+{
+  "model": "central_servicos.andar",
+  "pk": 2,
+  "fields": {
+    "predio": 2,
+    "nome": "2º Andar",
+    "pe_direito_padrao": "3.00",
+    "ordem": 1
+  }
+},
+{
+  "model": "central_servicos.andar",
+  "pk": 3,
+  "fields": {
+    "predio": 2,
+    "nome": "Telhado",
+    "pe_direito_padrao": "3.00",
+    "ordem": 2
+  }
+},
+{
+  "model": "central_servicos.andar",
+  "pk": 4,
+  "fields": {
+    "predio": 2,
+    "nome": "Estacionamento",
+    "pe_direito_padrao": "3.00",
+    "ordem": 3
+  }
+},
+{
+  "model": "central_servicos.andar",
+  "pk": 5,
+  "fields": {
+    "predio": 2,
+    "nome": "Passeio Posterior",
+    "pe_direito_padrao": "3.00",
+    "ordem": 4
+  }
+},
+{
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 1,
+  "fields": {
+    "id": 3,
+    "nome": "Auditório",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.786Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 2,
+  "fields": {
+    "id": 10,
+    "nome": "Galpão",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.792Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 3,
+  "fields": {
+    "id": 4,
+    "nome": "Laboratório",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.793Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 4,
+  "fields": {
+    "id": 8,
+    "nome": "Pátio Externo",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.795Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoambiente",
+  "pk": 5,
+  "fields": {
+    "id": 5,
+    "nome": "Recepção",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.796Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 1,
+  "fields": {
+    "nome": "Sala Administrativa",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 2,
+  "fields": {
+    "nome": "Banheiro",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 3,
+  "fields": {
+    "nome": "Auditório",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 4,
+  "fields": {
+    "nome": "Laboratório",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 5,
+  "fields": {
+    "nome": "Recepção",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 6,
+  "fields": {
+    "nome": "Copa",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 7,
+  "fields": {
+    "nome": "Estacionamento",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 8,
+  "fields": {
+    "nome": "Pátio Externo",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 9,
+  "fields": {
+    "nome": "Almoxarifado",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 10,
+  "fields": {
+    "nome": "Galpão",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 11,
+  "fields": {
+    "nome": "Oficina",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoambiente",
+  "pk": 12,
+  "fields": {
+    "nome": "Data Center",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 1,
+  "fields": {
+    "id": 9,
+    "nome": "Recepção 2",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 0,
+    "ativo": true,
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "tipo": 5,
+    "planta_baixa": null,
+    "history_date": "2026-08-13T00:41:00.066Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 2,
+  "fields": {
+    "id": 9,
+    "nome": "Recepção 2",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 0,
+    "ativo": true,
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "tipo": 5,
+    "planta_baixa": null,
+    "history_date": "2026-08-18T16:49:14.808Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 3,
+  "fields": {
+    "id": 7,
+    "nome": "LRI - Laboratório de Robótica Industrial",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 1,
+    "ativo": true,
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "tipo": 4,
+    "planta_baixa": null,
+    "history_date": "2026-08-18T16:49:14.811Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 4,
+  "fields": {
+    "id": 6,
+    "nome": "LABCONDIG - Laboratório de Convergência Digital",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 2,
+    "ativo": true,
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "tipo": 4,
+    "planta_baixa": null,
+    "history_date": "2026-08-18T16:49:14.813Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 5,
+  "fields": {
+    "id": 1,
+    "nome": "Recepção Principal",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 3,
+    "ativo": true,
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "tipo": 5,
+    "planta_baixa": null,
+    "history_date": "2026-08-18T16:49:14.815Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 6,
+  "fields": {
+    "id": 5,
+    "nome": "LEMAS - Laboratório de Ensaios Mecânicos",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 5,
+    "ativo": true,
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "tipo": 4,
+    "planta_baixa": null,
+    "history_date": "2026-08-18T16:49:14.817Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 7,
+  "fields": {
+    "id": 8,
+    "nome": "Depósito",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 6,
+    "ativo": true,
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "tipo": 10,
+    "planta_baixa": null,
+    "history_date": "2026-08-18T16:49:14.821Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 8,
+  "fields": {
+    "id": 16,
+    "nome": "Administrativos",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 0,
+    "ativo": true,
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "tipo": 1,
+    "planta_baixa": null,
+    "history_date": "2026-08-25T22:05:53.742Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 9,
+  "fields": {
+    "id": 17,
+    "nome": "LSCN - Laboratório de Síntese e Caracterização de Nanomateriais",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 0,
+    "ativo": true,
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "tipo": 4,
+    "planta_baixa": null,
+    "history_date": "2026-08-25T22:06:17.898Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 10,
+  "fields": {
+    "id": 18,
+    "nome": "Copa LSCN",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 0,
+    "ativo": true,
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "tipo": 6,
+    "planta_baixa": null,
+    "history_date": "2026-08-25T22:10:39.844Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 11,
+  "fields": {
+    "id": 18,
+    "nome": "Copa LSCN",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 0,
+    "ativo": true,
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "tipo": 6,
+    "planta_baixa": null,
+    "history_date": "2026-08-25T22:10:39.848Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalambiente",
+  "pk": 12,
+  "fields": {
+    "id": 18,
+    "nome": "Copa LSCN",
+    "localizacao": "INTERNO",
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 0,
+    "ativo": true,
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": 17,
+    "tipo": 6,
+    "planta_baixa": null,
+    "history_date": "2026-08-25T22:47:07.465Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 1,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "Recepção Principal",
+    "tipo": 5,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 3,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 2,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "Banheiro Masculino",
+    "tipo": 2,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 7,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 3,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "Banheiro Feminino",
+    "tipo": 2,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 8,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 4,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "Almoxarifado 1",
+    "tipo": 9,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 9,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 5,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "LEMAS - Laboratório de Ensaios Mecânicos",
+    "tipo": 4,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 5,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 6,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "LABCONDIG - Laboratório de Convergência Digital",
+    "tipo": 4,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 2,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 7,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "LRI - Laboratório de Robótica Industrial",
+    "tipo": 4,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 1,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 8,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "Depósito",
+    "tipo": 10,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 6,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 9,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "Recepção 2",
+    "tipo": 5,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 0,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 10,
+  "fields": {
+    "predio": 2,
+    "andar": 1,
+    "ambiente_pai": null,
+    "nome": "Sada de Prototipagem",
+    "tipo": 12,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 4,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 11,
+  "fields": {
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "nome": "Diretoria",
+    "tipo": 1,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 7,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 12,
+  "fields": {
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "nome": "Copa Principal",
+    "tipo": 6,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 6,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 13,
+  "fields": {
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "nome": "Banheiro Feminino",
+    "tipo": 2,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 5,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 14,
+  "fields": {
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "nome": "Banheiro Masculino",
+    "tipo": 2,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 4,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 15,
+  "fields": {
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "nome": "CoWork",
+    "tipo": 1,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 3,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 16,
+  "fields": {
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "nome": "Administrativos",
+    "tipo": 1,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 2,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 17,
+  "fields": {
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": null,
+    "nome": "LSCN - Laboratório de Síntese e Caracterização de Nanomateriais",
+    "tipo": 4,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 1,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.ambiente",
+  "pk": 18,
+  "fields": {
+    "predio": 2,
+    "andar": 2,
+    "ambiente_pai": 17,
+    "nome": "Copa LSCN",
+    "tipo": 6,
+    "localizacao": "INTERNO",
+    "planta_baixa": null,
+    "coordenadas_mapa": null,
+    "pe_direito": null,
+    "area_piso_m2": null,
+    "perimetro_m": null,
+    "ordem": 0,
+    "ativo": true
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaelemento",
+  "pk": 1,
+  "fields": {
+    "id": 1,
+    "nome": "Parede",
+    "descricao": "",
+    "history_date": "2026-08-14T19:44:00.145Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaelemento",
+  "pk": 2,
+  "fields": {
+    "id": 2,
+    "nome": "Forro",
+    "descricao": "",
+    "history_date": "2026-08-14T19:44:06.711Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaelemento",
+  "pk": 3,
+  "fields": {
+    "id": 3,
+    "nome": "Piso",
+    "descricao": "",
+    "history_date": "2026-08-14T19:44:12.684Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaelemento",
+  "pk": 4,
+  "fields": {
+    "id": 4,
+    "nome": "Janela",
+    "descricao": "",
+    "history_date": "2026-08-14T19:44:20.855Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.categoriaelemento",
+  "pk": 1,
+  "fields": {
+    "nome": "Parede",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.categoriaelemento",
+  "pk": 2,
+  "fields": {
+    "nome": "Forro",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.categoriaelemento",
+  "pk": 3,
+  "fields": {
+    "nome": "Piso",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.categoriaelemento",
+  "pk": 4,
+  "fields": {
+    "nome": "Janela",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.historicaltipoelemento",
+  "pk": 1,
+  "fields": {
+    "id": 1,
+    "nome": "Mineral",
+    "descricao": "",
+    "categoria": 2,
+    "history_date": "2026-08-16T18:30:42.081Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicaltipoelemento",
+  "pk": 2,
+  "fields": {
+    "id": 2,
+    "nome": "Frio",
+    "descricao": "",
+    "categoria": 3,
+    "history_date": "2026-08-16T18:30:59.262Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicaltipoelemento",
+  "pk": 3,
+  "fields": {
+    "id": 3,
+    "nome": "Drywall",
+    "descricao": "",
+    "categoria": 1,
+    "history_date": "2026-08-16T18:31:11.831Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicaltipoelemento",
+  "pk": 4,
+  "fields": {
+    "id": 4,
+    "nome": "Alvenaria",
+    "descricao": "",
+    "categoria": 1,
+    "history_date": "2026-08-16T18:31:59.186Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.tipoelemento",
+  "pk": 1,
+  "fields": {
+    "categoria": 2,
+    "nome": "Mineral",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoelemento",
+  "pk": 2,
+  "fields": {
+    "categoria": 3,
+    "nome": "Frio",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoelemento",
+  "pk": 3,
+  "fields": {
+    "categoria": 1,
+    "nome": "Drywall",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoelemento",
+  "pk": 4,
+  "fields": {
+    "categoria": 1,
+    "nome": "Alvenaria",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.historicalelementoconstrutivo",
+  "pk": 1,
+  "fields": {
+    "id": 1,
+    "area_m2": "2.00",
+    "detalhes": "",
+    "ambiente": 9,
+    "tipo": 1,
+    "history_date": "2026-08-16T18:32:52.317Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalelementoconstrutivo",
+  "pk": 2,
+  "fields": {
+    "id": 2,
+    "area_m2": "2.00",
+    "detalhes": "",
+    "ambiente": 9,
+    "tipo": 2,
+    "history_date": "2026-08-16T18:33:05.226Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalelementoconstrutivo",
+  "pk": 3,
+  "fields": {
+    "id": 3,
+    "area_m2": "6.00",
+    "detalhes": "",
+    "ambiente": 9,
+    "tipo": 4,
+    "history_date": "2026-08-16T18:33:22.092Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.elementoconstrutivo",
+  "pk": 1,
+  "fields": {
+    "ambiente": 9,
+    "tipo": 1,
+    "area_m2": "2.00",
+    "detalhes": ""
+  }
+},
+{
+  "model": "central_servicos.elementoconstrutivo",
+  "pk": 2,
+  "fields": {
+    "ambiente": 9,
+    "tipo": 2,
+    "area_m2": "2.00",
+    "detalhes": ""
+  }
+},
+{
+  "model": "central_servicos.elementoconstrutivo",
+  "pk": 3,
+  "fields": {
+    "ambiente": 9,
+    "tipo": 4,
+    "area_m2": "6.00",
+    "detalhes": ""
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 1,
+  "fields": {
+    "id": 28,
+    "nome": "Armário",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.843Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 2,
+  "fields": {
+    "id": 15,
+    "nome": "Câmera",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.846Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 3,
+  "fields": {
+    "id": 35,
+    "nome": "Corrimão",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.848Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 4,
+  "fields": {
+    "id": 33,
+    "nome": "Fogão",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.851Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 5,
+  "fields": {
+    "id": 6,
+    "nome": "Luminária",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.853Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 6,
+  "fields": {
+    "id": 16,
+    "nome": "Maçaneta",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.856Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 7,
+  "fields": {
+    "id": 19,
+    "nome": "Televisão",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.859Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicaltipoativo",
+  "pk": 8,
+  "fields": {
+    "id": 13,
+    "nome": "Vaso Sanintário",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.861Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 2,
+  "fields": {
+    "nome": "Parede",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 3,
+  "fields": {
+    "nome": "Porta",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 4,
+  "fields": {
+    "nome": "Janela",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 5,
+  "fields": {
+    "nome": "Forro",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 6,
+  "fields": {
+    "nome": "Luminária",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 7,
+  "fields": {
+    "nome": "Persianas",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 8,
+  "fields": {
+    "nome": "Ar condicionado",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 9,
+  "fields": {
+    "nome": "Tomada",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 10,
+  "fields": {
+    "nome": "Torneira",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 11,
+  "fields": {
+    "nome": "Pia",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 12,
+  "fields": {
+    "nome": "Ralo",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 13,
+  "fields": {
+    "nome": "Vaso Sanintário",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 14,
+  "fields": {
+    "nome": "Espelho",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 15,
+  "fields": {
+    "nome": "Câmera",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 16,
+  "fields": {
+    "nome": "Maçaneta",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 17,
+  "fields": {
+    "nome": "Controle de Acesso",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 18,
+  "fields": {
+    "nome": "Fechadura",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 19,
+  "fields": {
+    "nome": "Televisão",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 20,
+  "fields": {
+    "nome": "Piso",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 21,
+  "fields": {
+    "nome": "Mesa",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 22,
+  "fields": {
+    "nome": "Computador Desktop",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 23,
+  "fields": {
+    "nome": "Ultrabook",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 24,
+  "fields": {
+    "nome": "Monitor",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 25,
+  "fields": {
+    "nome": "Bebedouro tipo torre",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 26,
+  "fields": {
+    "nome": "Bebedouro de bancada",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 27,
+  "fields": {
+    "nome": "Bancada",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 28,
+  "fields": {
+    "nome": "Armário",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 29,
+  "fields": {
+    "nome": "Impressora",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 30,
+  "fields": {
+    "nome": "Escada",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 31,
+  "fields": {
+    "nome": "Box",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 32,
+  "fields": {
+    "nome": "Micro ondas",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 33,
+  "fields": {
+    "nome": "Fogão",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 34,
+  "fields": {
+    "nome": "Extintor",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 35,
+  "fields": {
+    "nome": "Corrimão",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 36,
+  "fields": {
+    "nome": "Painel",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 37,
+  "fields": {
+    "nome": "Controle remoto",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.tipoativo",
+  "pk": 38,
+  "fields": {
+    "nome": "Balcão",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 1,
+  "fields": {
+    "id": 23,
+    "nome_apelido": "AR",
+    "numero_serie": null,
+    "patrimonio": null,
+    "descricao": "",
+    "ambiente": 9,
+    "tipo": 8,
+    "history_date": "2026-08-25T21:51:44.387Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 2,
+  "fields": {
+    "id": 22,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:09.271Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 3,
+  "fields": {
+    "id": 23,
+    "nome_apelido": "AR",
+    "numero_serie": null,
+    "patrimonio": null,
+    "descricao": "",
+    "ambiente": 9,
+    "tipo": 8,
+    "history_date": "2026-08-25T21:53:22.335Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 4,
+  "fields": {
+    "id": 21,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.337Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 5,
+  "fields": {
+    "id": 20,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.338Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 6,
+  "fields": {
+    "id": 19,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.339Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 7,
+  "fields": {
+    "id": 18,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.341Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 8,
+  "fields": {
+    "id": 17,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.342Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 9,
+  "fields": {
+    "id": 16,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.343Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 10,
+  "fields": {
+    "id": 15,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.344Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 11,
+  "fields": {
+    "id": 14,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.345Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 12,
+  "fields": {
+    "id": 13,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.346Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 13,
+  "fields": {
+    "id": 12,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.347Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 14,
+  "fields": {
+    "id": 11,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.348Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 15,
+  "fields": {
+    "id": 10,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.349Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 16,
+  "fields": {
+    "id": 9,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.349Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 17,
+  "fields": {
+    "id": 8,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.350Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 18,
+  "fields": {
+    "id": 7,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.351Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 19,
+  "fields": {
+    "id": 6,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.352Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 20,
+  "fields": {
+    "id": 5,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.353Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 21,
+  "fields": {
+    "id": 4,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.354Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 22,
+  "fields": {
+    "id": 3,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.355Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalativopredial",
+  "pk": 23,
+  "fields": {
+    "id": 2,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": "",
+    "ambiente": null,
+    "tipo": null,
+    "history_date": "2026-08-25T21:53:22.356Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 2,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 3,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 4,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 5,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 6,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 7,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 8,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 9,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 10,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 11,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 12,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 13,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 14,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 15,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 16,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 17,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 18,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 19,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 20,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 21,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 22,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.ativopredial",
+  "pk": 23,
+  "fields": {
+    "ambiente": null,
+    "tipo": null,
+    "nome_apelido": null,
+    "numero_serie": null,
+    "patrimonio": "",
+    "descricao": ""
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 1,
+  "fields": {
+    "id": 6,
+    "nome": "Instalação",
+    "descricao": "",
+    "history_date": "2026-08-16T18:34:26.697Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 2,
+  "fields": {
+    "id": 1,
+    "nome": "Elétrica",
+    "descricao": "Troca de lâmpadas, curtos-circuitos, instalação de tomadas e disjuntores.",
+    "history_date": "2026-08-18T16:49:14.878Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 3,
+  "fields": {
+    "id": 2,
+    "nome": "Hidráulica",
+    "descricao": "Vazamentos, desentupimentos, reparos em pias, vasos e encanamentos.",
+    "history_date": "2026-08-18T16:49:14.882Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 4,
+  "fields": {
+    "id": 4,
+    "nome": "Climatização",
+    "descricao": "Limpeza de filtros, recarga de gás e manutenção de ar-condicionado.",
+    "history_date": "2026-08-18T16:49:14.884Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 5,
+  "fields": {
+    "id": 5,
+    "nome": "Geral",
+    "descricao": "Serviços gerais de infraestrutura e logística.",
+    "history_date": "2026-08-18T16:49:14.889Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.historicalcategoriaservico",
+  "pk": 6,
+  "fields": {
+    "id": 6,
+    "nome": "Instalação",
+    "descricao": "",
+    "history_date": "2026-08-18T16:49:14.891Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "central_servicos.categoriaservico",
+  "pk": 1,
+  "fields": {
+    "nome": "Elétrica",
+    "descricao": "Troca de lâmpadas, curtos-circuitos, instalação de tomadas e disjuntores."
+  }
+},
+{
+  "model": "central_servicos.categoriaservico",
+  "pk": 2,
+  "fields": {
+    "nome": "Hidráulica",
+    "descricao": "Vazamentos, desentupimentos, reparos em pias, vasos e encanamentos."
+  }
+},
+{
+  "model": "central_servicos.categoriaservico",
+  "pk": 3,
+  "fields": {
+    "nome": "Alvenaria / Civil",
+    "descricao": "Pintura, reparo em portas, pisos, forros e telhados."
+  }
+},
+{
+  "model": "central_servicos.categoriaservico",
+  "pk": 4,
+  "fields": {
+    "nome": "Climatização",
+    "descricao": "Limpeza de filtros, recarga de gás e manutenção de ar-condicionado."
+  }
+},
+{
+  "model": "central_servicos.categoriaservico",
+  "pk": 5,
+  "fields": {
+    "nome": "Geral",
+    "descricao": "Serviços gerais de infraestrutura e logística."
+  }
+},
+{
+  "model": "central_servicos.categoriaservico",
+  "pk": 6,
+  "fields": {
+    "nome": "Instalação",
+    "descricao": ""
+  }
+}
+]
