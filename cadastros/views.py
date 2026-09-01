@@ -49,11 +49,23 @@ def novo_projeto(request):
         form_projeto = ProjetoPDIForm(request.POST)
         form_plano = PlanoDeTrabalhoForm(request.POST)
         
-        if form_projeto.is_valid() and form_plano.is_valid():
+        valid_proj = form_projeto.is_valid()
+        valid_plano = form_plano.is_valid()
+        
+        nome = request.POST.get('nome', '').strip()
+        
+        # Só bloqueia o salvamento total se nem o Nome foi preenchido (único campo obrigatório no DB para criar)
+        if (valid_proj and valid_plano) or nome:
             try:
                 with transaction.atomic():
-                    # 1. Salva o Projeto primeiro (Mestre)
-                    projeto = form_projeto.save()
+                    # 1. Salva o Projeto primeiro (Mestre) em modo Rascunho
+                    if not valid_proj:
+                        erros_proj = form_projeto._errors.copy()
+                        form_projeto._errors = {}
+                        projeto = form_projeto.save()
+                        form_projeto._errors = erros_proj
+                    else:
+                        projeto = form_projeto.save()
                     
                     # Opcional: Vincular um Termo Existente se houver seleção no Wizard
                     termo_id = request.POST.get('termo_existente')
@@ -64,99 +76,116 @@ def novo_projeto(request):
                             termo.save()
 
                     # 2. Salva o Plano de Trabalho e vincula ao Projeto
-                    plano = form_plano.save(commit=False)
-                    plano.projeto = projeto
-                    # Na criação, o plano nasce como rascunho na fase de prospecção (ainda não homologado)
-                    plano.save()
-                    form_plano.save_m2m() # Salva as dependências ManyToMany (ex: indicadores)
+                    if not valid_plano:
+                        erros_plano = form_plano._errors.copy()
+                        form_plano._errors = {}
+                        plano = form_plano.save(commit=False)
+                        plano.projeto = projeto
+                        plano.save()
+                        form_plano.save_m2m()
+                        form_plano._errors = erros_plano
+                    else:
+                        plano = form_plano.save(commit=False)
+                        plano.projeto = projeto
+                        plano.save()
+                        form_plano.save_m2m()
                     
                     # --- SALVAMENTO DINÂMICO ---
                     # 1. Atividades
                     atividades_numero = request.POST.getlist('atividade_numero[]')
                     atividades_nome = request.POST.getlist('atividade_nome[]')
                     atividades_desc = request.POST.getlist('atividade_descricao[]')
-                    atividades_inicio = request.POST.getlist('atividade_data_inicio[]')
-                    atividades_fim = request.POST.getlist('atividade_data_fim[]')
+                    atividades_inicio = request.POST.getlist('atividade_inicio[]')
+                    atividades_fim = request.POST.getlist('atividade_fim[]')
                     
-                    for i in range(len(atividades_nome)):
+                    for i in range(len(atividades_numero)):
                         if atividades_nome[i].strip():
+                            # Se as datas estiverem vazias, salva como None para não quebrar o banco
+                            data_in = atividades_inicio[i] if atividades_inicio[i].strip() else None
+                            data_out = atividades_fim[i] if atividades_fim[i].strip() else None
+                            
                             AtividadePlanoAcao.objects.create(
-                                plano_trabalho=plano,
-                                numero=atividades_numero[i] if i < len(atividades_numero) else str(i+1),
+                                plano=plano,
+                                numero=atividades_numero[i] or (i+1),
                                 nome=atividades_nome[i],
                                 descricao=atividades_desc[i] if i < len(atividades_desc) else '',
-                                data_inicio=atividades_inicio[i] if (i < len(atividades_inicio) and atividades_inicio[i]) else None,
-                                data_fim=atividades_fim[i] if (i < len(atividades_fim) and atividades_fim[i]) else None,
+                                data_inicio=data_in,
+                                data_fim=data_out
                             )
                             
-                    # 2. Macro-Entregas
-                    macros_numero = request.POST.getlist('macro_numero[]')
-                    macros_nome = request.POST.getlist('macro_nome[]')
-                    macros_micro = request.POST.getlist('macro_micro_entregas[]')
-                    macros_inicio = request.POST.getlist('macro_data_inicio[]')
-                    macros_fim = request.POST.getlist('macro_data_fim[]')
+                    # 2. Macroentregas
+                    macro_titulos = request.POST.getlist('macro_titulo[]')
+                    macro_desc = request.POST.getlist('macro_descricao[]')
+                    macro_inicio = request.POST.getlist('macro_inicio[]')
+                    macro_fim = request.POST.getlist('macro_fim[]')
+                    macro_valor = request.POST.getlist('macro_valor[]')
                     
-                    for i in range(len(macros_nome)):
-                        if macros_nome[i].strip():
-                            Macroentrega.objects.create(
-                                plano_trabalho=plano,
-                                numero=macros_numero[i] if (i < len(macros_numero) and macros_numero[i]) else (i+1),
-                                nome=macros_nome[i],
-                                micro_entregas=macros_micro[i] if i < len(macros_micro) else '',
-                                data_inicio=macros_inicio[i] if (i < len(macros_inicio) and macros_inicio[i]) else None,
-                                data_fim=macros_fim[i] if (i < len(macros_fim) and macros_fim[i]) else None,
-                            )
+                    for i in range(len(macro_titulos)):
+                        if macro_titulos[i].strip():
+                            val_str = macro_valor[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(macro_valor) else '0'
+                            data_in = macro_inicio[i] if macro_inicio[i].strip() else None
+                            data_out = macro_fim[i] if macro_fim[i].strip() else None
                             
-                    # 3. Rubricas Orçamentárias
-                    from cadastros.models import RubricaOrcamentariaPT
-                    from django.core.exceptions import ValidationError
-                    rubricas_cat = request.POST.getlist('rubrica_categoria[]')
-                    rubricas_fonte = request.POST.getlist('rubrica_fonte[]')
-                    rubricas_valor = request.POST.getlist('rubrica_valor[]')
-                    rubricas_desc = request.POST.getlist('rubrica_descricao[]')
-                    
-                    for i in range(len(rubricas_cat)):
-                        if rubricas_cat[i] and rubricas_valor[i]:
                             try:
-                                val_limpo = rubricas_valor[i].replace(',', '.')
-                                r = RubricaOrcamentariaPT(
-                                    plano_trabalho=plano,
-                                    categoria=rubricas_cat[i],
-                                    fonte_recurso=rubricas_fonte[i] if i < len(rubricas_fonte) else '',
-                                    valor_previsto=val_limpo,
-                                    descricao=rubricas_desc[i] if i < len(rubricas_desc) else ''
-                                )
-                                r.full_clean()
-                                r.save()
-                            except ValidationError as e:
-                                messages.error(request, f"Erro na rubrica {rubricas_cat[i]}: {e.messages[0]}")
-                                raise ValueError("Validation Error")
+                                valor_float = float(val_str)
                             except ValueError:
-                                pass # ignora valores invalidos silenciosamente por agora
+                                valor_float = 0.0
                                 
-                    messages.success(request, f"Projeto '{projeto.nome}' cadastrado com sucesso no sistema!")
-                    return redirect('cadastros:listar_projetos')
-            except ValueError:
-                # Ocorre quando há erro nas rubricas e a transação é revertida
-                pass
+                            Macroentrega.objects.create(
+                                plano=plano,
+                                titulo=macro_titulos[i],
+                                descricao=macro_desc[i] if i < len(macro_desc) else '',
+                                data_inicio=data_in,
+                                data_fim=data_out,
+                                valor_estimado=valor_float
+                            )
+                            
+                    # 3. Rubricas
+                    rubrica_fontes = request.POST.getlist('rubrica_fonte[]')
+                    rubrica_categorias = request.POST.getlist('rubrica_categoria[]')
+                    rubrica_desc = request.POST.getlist('rubrica_descricao[]')
+                    rubrica_valores = request.POST.getlist('rubrica_valor[]')
+                    
+                    from .models import RubricaOrcamentariaPT
+                    for i in range(len(rubrica_fontes)):
+                        if rubrica_fontes[i].strip() and rubrica_categorias[i].strip():
+                            val_str = rubrica_valores[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(rubrica_valores) else '0'
+                            try:
+                                valor_float = float(val_str)
+                            except ValueError:
+                                valor_float = 0.0
+                                
+                            RubricaOrcamentariaPT.objects.create(
+                                plano=plano,
+                                fonte_recurso=rubrica_fontes[i],
+                                categoria=rubrica_categorias[i],
+                                descricao=rubrica_desc[i] if i < len(rubrica_desc) else '',
+                                valor_total=valor_float
+                            )
+
+                if valid_proj and valid_plano:
+                    messages.success(request, f"Projeto '{projeto.nome}' criado com sucesso e sem pendências!")
+                    return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
+                else:
+                    messages.warning(request, f"Rascunho do projeto '{projeto.nome}' criado! Existem pendências orientativas que precisam ser resolvidas antes da execução.")
+                    return redirect('cadastros:editar_projeto', projeto_id=projeto.id)
+                    
             except Exception as e:
-                messages.error(request, f"Erro interno ao salvar os dados: {e}")
+                messages.error(request, f"Erro ao criar projeto: {str(e)}")
         else:
-            messages.error(request, "Erro ao cadastrar. Por favor, verifique os campos em vermelho.")
+            messages.error(request, "O Nome do Projeto é obrigatório para iniciar o rascunho.")
     else:
         form_projeto = ProjetoPDIForm()
         form_plano = PlanoDeTrabalhoForm()
 
-    context = {
+    return render(request, 'cadastros/form_projeto.html', {
         'form_projeto': form_projeto,
-        'form_plano': form_plano,
-    }
-    return render(request, 'cadastros/form_projeto.html', context)
+        'form_plano': form_plano
+    })
+
 
 @login_required
 def api_termos_por_empresa(request, empresa_id):
-    # Fetch termos that belong to this empresa and are NOT linked to a project yet
-    # Or maybe linked to this project if editing... for now just not linked to any
     termos = TermoDeParceria.objects.filter(concedente_id=empresa_id, projeto__isnull=True)
     data = []
     for termo in termos:
@@ -194,20 +223,68 @@ def editar_projeto(request, projeto_id):
         form_plano = PlanoDeTrabalhoForm(request.POST, instance=plano)
         form_projeto = ProjetoPDIForm(request.POST, instance=projeto)
         
-        if form_termo.is_valid() and form_plano.is_valid() and form_projeto.is_valid():
-            projeto_salvo = form_projeto.save()
-            
-            termo_salvo = form_termo.save(commit=False)
-            termo_salvo.projeto = projeto_salvo
-            termo_salvo.save()
-            
-            plano_salvo = form_plano.save(commit=False)
-            plano_salvo.projeto = projeto_salvo
-            plano_salvo.save()
-            form_plano.save_m2m()
-            
-            messages.success(request, f"Projeto '{projeto.nome}' atualizado com sucesso!")
-            return redirect('cadastros:listar_projetos')
+        valid_termo = form_termo.is_valid() if termo else True
+        valid_plano = form_plano.is_valid()
+        valid_proj = form_projeto.is_valid()
+        
+        is_prospeccao = projeto.fase == 'PROSPECCAO'
+        nome = request.POST.get('nome', '').strip()
+        
+        if (valid_termo and valid_plano and valid_proj) or (is_prospeccao and nome):
+            try:
+                with transaction.atomic():
+                    # Projeto
+                    if not valid_proj:
+                        erros_proj = form_projeto._errors.copy()
+                        form_projeto._errors = {}
+                        projeto_salvo = form_projeto.save()
+                        form_projeto._errors = erros_proj
+                    else:
+                        projeto_salvo = form_projeto.save()
+                        
+                    # Termo
+                    if termo:
+                        if not valid_termo:
+                            erros_termo = form_termo._errors.copy()
+                            form_termo._errors = {}
+                            termo_salvo = form_termo.save(commit=False)
+                            termo_salvo.projeto = projeto_salvo
+                            termo_salvo.save()
+                            form_termo._errors = erros_termo
+                        else:
+                            termo_salvo = form_termo.save(commit=False)
+                            termo_salvo.projeto = projeto_salvo
+                            termo_salvo.save()
+                            
+                    # Plano
+                    if not valid_plano:
+                        erros_plano = form_plano._errors.copy()
+                        form_plano._errors = {}
+                        plano_salvo = form_plano.save(commit=False)
+                        plano_salvo.projeto = projeto_salvo
+                        plano_salvo.save()
+                        form_plano.save_m2m()
+                        form_plano._errors = erros_plano
+                    else:
+                        plano_salvo = form_plano.save(commit=False)
+                        plano_salvo.projeto = projeto_salvo
+                        plano_salvo.save()
+                        form_plano.save_m2m()
+                        
+                if valid_termo and valid_plano and valid_proj:
+                    messages.success(request, f"Projeto '{projeto.nome}' atualizado e validado com sucesso!")
+                    return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
+                else:
+                    messages.warning(request, f"Rascunho do projeto '{projeto.nome}' salvo. Verifique as pendências orientativas no painel abaixo.")
+                    # Não redireciona, mantém na página para mostrar o painel de erros
+            except Exception as e:
+                messages.error(request, f"Erro ao salvar rascunho: {str(e)}")
+        else:
+            if not is_prospeccao:
+                messages.error(request, "O projeto não está mais em prospecção e exige preenchimento completo.")
+            elif not nome:
+                messages.error(request, "O Nome do Projeto é obrigatório.")
+                
     else:
         form_termo = TermoDeParceriaForm(instance=termo)
         form_plano = PlanoDeTrabalhoForm(instance=plano)
