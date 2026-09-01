@@ -7,6 +7,16 @@
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
 <style>
+    /* Trava de Caixa Eletrônico: Proíbe estritamente a rolagem da página inteira */
+    body { 
+        overflow: hidden !important; 
+    }
+    
+    /* Esconde o footer institucional apenas nesta tela para economizar espaço e evitar que fique cortado pela metade */
+    .footer-institucional {
+        display: none !important;
+    }
+
     .ql-container {
         font-family: inherit;
         font-size: 1rem;
@@ -30,7 +40,8 @@
         display: none;
     }
     .wizard-step.active {
-        display: block;
+        display: flex;
+        flex-direction: column;
     }
     
     /* Layout Vertical do Wizard */
@@ -80,22 +91,37 @@
     }
 </style>
 
-<div class="container-fluid px-4 mt-4 mb-5">
-    <div class="mb-3">
-        <a href="javascript:history.back()" class="text-decoration-none text-muted fw-bold mb-3 d-inline-block">
-            <i class="fas fa-arrow-left me-1"></i> Voltar
-        </a>
-    </div>
-
+<div class="container-fluid px-4 mt-4 mb-0">
     <div class="card border-0 shadow-sm rounded-3">
         <div class="card-header bg-white py-4 border-bottom border-info border-3 d-flex justify-content-between align-items-center flex-wrap">
             <div>
-                <h4 class="mb-0 fw-bold text-info"><i class="fas fa-project-diagram me-2"></i> {% if projeto %}Editar Projeto PDI{% else %}Cadastro de Projeto PDI (Termo e Plano de Trabalho){% endif %}</h4>
-                <p class="text-muted small mb-0 mt-1">Navegue pelas seções laterais. O progresso é <strong>salvo automaticamente</strong> no seu navegador (Offline-First).</p>
+                <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar
+                </a>
+                <h4 class="mb-0 fw-bold text-info">
+                    <i class="fas fa-project-diagram me-2"></i> {% if projeto %}Editar Projeto PDI{% else %}Cadastro de Projeto PDI{% endif %}
+                    {% if projeto %}
+                    <span class="badge bg-{{ projeto.fase_color }} ms-3 px-3 py-2 rounded-pill fs-6 align-middle shadow-sm">
+                        <i class="fas {{ projeto.fase_icone }} me-1"></i> {{ projeto.get_fase_display }}
+                    </span>
+                    {% endif %}
+                </h4>
+                <p class="text-muted small mb-0 mt-2">Navegue pelas seções laterais. O progresso é <strong>salvo automaticamente</strong> no seu navegador (Offline-First).</p>
             </div>
-            <div class="mt-3 mt-md-0">
-                <button type="submit" form="projetoWizardForm" class="btn btn-success btn-lg px-4 shadow-sm fw-bold">
-                    <i class="fas fa-save me-2"></i> Salvar Projeto (Rascunho)
+            <div class="mt-3 mt-md-0 d-flex gap-3 align-items-center">
+                {% if form_projeto.errors or form_plano.errors %}
+                <button type="button" class="btn btn-warning position-relative px-3 py-2 shadow-sm border-0" data-bs-toggle="modal" data-bs-target="#modalPendencias" title="Visualizar Pendências">
+                    <i class="fas fa-bell text-dark fs-5"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm border border-white" id="badge-erros">
+                        <span class="visually-hidden">pendências</span>
+                    </span>
+                </button>
+                {% endif %}
+                <button type="submit" form="projetoWizardForm" name="action" value="salvar" class="btn btn-outline-success px-4 shadow-sm fw-bold">
+                    <i class="fas fa-save me-2"></i> Salvar Alterações
+                </button>
+                <button type="submit" form="projetoWizardForm" name="action" value="publicar" class="btn btn-primary px-4 shadow-sm fw-bold">
+                    <i class="fas fa-paper-plane me-2"></i> Publicar Projeto
                 </button>
             </div>
         </div>
@@ -104,71 +130,75 @@
             <form method="post" id="projetoWizardForm">
                 {% csrf_token %}
                 
-                                {% if form_projeto.errors or form_plano.errors or form_termo.errors %}
-                <div class="alert alert-danger shadow-sm rounded-3 border-0 mb-4" id="painel-pendencias">
-                    <h5 class="alert-heading fw-bold mb-3"><i class="fas fa-search-dollar me-2"></i> Pendências Encontradas</h5>
-                    <p class="small mb-3">O ARGUS identificou informações ausentes ou inválidas. Clique no item abaixo para ir direto ao campo com erro e corrigi-lo:</p>
-                    
-                    <div class="list-group list-group-flush rounded-3 border border-danger border-opacity-25">
-                        
-                        <!-- Erros do form_projeto -->
-                        {% for field in form_projeto %}
-                            {% if field.errors %}
-                                <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
-                                        <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
-                                    </div>
-                                    <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
-                                </a>
-                            {% endif %}
-                        {% endfor %}
-                        {% if form_projeto.non_field_errors %}
-                            {% for erro in form_projeto.non_field_errors %}
-                            <div class="list-group-item list-group-item-danger py-3">
-                                <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral de Validação (Projeto)</strong>
-                                <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
+                                {% if form_projeto.errors or form_plano.errors %}
+                <!-- Modal de Pendências -->
+                <div class="modal fade" id="modalPendencias" tabindex="-1" aria-labelledby="modalPendenciasLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header bg-danger text-white border-0 py-3">
+                                <h5 class="modal-title fw-bold" id="modalPendenciasLabel">
+                                    <i class="fas fa-exclamation-triangle me-2"></i> Pendências Encontradas
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
                             </div>
-                            {% endfor %}
-                        {% endif %}
+                            <div class="modal-body p-4 bg-light">
+                                <p class="mb-4">O ARGUS identificou informações ausentes ou inválidas. Clique no item abaixo para ir direto ao campo com erro e corrigi-lo:</p>
+                                
+                                <div class="list-group list-group-flush rounded-3 border border-danger border-opacity-25" id="lista-erros-modal">
+                                    
+                                    <!-- Erros do form_projeto -->
+                                    {% for field in form_projeto %}
+                                        {% if field.errors %}
+                                            <a href="javascript:void(0)" onclick="focarErroModal('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center erro-item">
+                                                <div>
+                                                    <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
+                                                    <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
+                                                </div>
+                                                <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if form_projeto.non_field_errors %}
+                                        {% for erro in form_projeto.non_field_errors %}
+                                        <div class="list-group-item list-group-item-danger py-3 erro-item">
+                                            <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral de Validação (Projeto)</strong>
+                                            <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    {% endif %}
 
-
-                        <!-- Erros do form_termo -->
-                        {% if form_termo %}
-                        {% for field in form_termo %}
-                            {% if field.errors %}
-                                <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> Termo de Parceria: {{ field.label }}</strong>
-                                        <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
-                                    </div>
-                                    <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
-                                </a>
-                            {% endif %}
-                        {% endfor %}
-                        {% endif %}
-
-                        <!-- Erros do form_plano -->
-                        {% for field in form_plano %}
-                            {% if field.errors %}
-                                <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
-                                        <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
-                                    </div>
-                                    <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
-                                </a>
-                            {% endif %}
-                        {% endfor %}
-                        {% if form_plano.non_field_errors %}
-                            {% for erro in form_plano.non_field_errors %}
-                            <div class="list-group-item list-group-item-danger py-3">
-                                <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral de Validação (Plano de Trabalho)</strong>
-                                <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
+                                    <!-- Erros do form_plano -->
+                                    {% for field in form_plano %}
+                                        {% if field.errors %}
+                                            <a href="javascript:void(0)" onclick="focarErroModal('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center erro-item">
+                                                <div>
+                                                    <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
+                                                    <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
+                                                </div>
+                                                <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if form_plano.non_field_errors %}
+                                        {% for erro in form_plano.non_field_errors %}
+                                        <div class="list-group-item list-group-item-danger py-3 erro-item">
+                                            <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral (Plano)</strong>
+                                            <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
+                                        </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
                             </div>
-                            {% endfor %}
-                        {% endif %}
-
+                            <div class="modal-footer border-0 bg-light pb-4 pe-4 d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="checkSilenciarPendencias">
+                                    <label class="form-check-label small text-muted fw-bold" for="checkSilenciarPendencias">
+                                        Não abrir automaticamente ao salvar rascunhos
+                                    </label>
+                                </div>
+                                <button type="button" class="btn btn-secondary px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Entendi</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% endif %}
@@ -176,47 +206,49 @@
                 <div class="row">
                     <!-- Menu Lateral Vertical -->
                     <div class="col-md-4 col-lg-3 vertical-wizard border-end pe-4">
-                        <div class="nav flex-column nav-pills sticky-top" style="top: 20px;" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                        <div class="nav flex-column nav-pills" style="height: calc(100vh - 290px); overflow-y: auto; overflow-x: hidden; flex-wrap: nowrap; padding-right: 5px;" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                             <button class="nav-link active" id="step1-tab" type="button" role="tab"><span class="step-number">1</span> Dados Cadastrais</button>
-                            <button class="nav-link" id="step2-tab" type="button" role="tab"><span class="step-number">2</span> Descrição do Projeto</button>
-                            <button class="nav-link" id="step3-tab" type="button" role="tab"><span class="step-number">3</span> Motivação</button>
-                            <button class="nav-link" id="step4-tab" type="button" role="tab"><span class="step-number">4</span> Objetivos e Metas</button>
-                            <button class="nav-link" id="step5-tab" type="button" role="tab"><span class="step-number">5</span> Escopo</button>
-                            <button class="nav-link" id="step6-tab" type="button" role="tab"><span class="step-number">6</span> Estratégia</button>
-                            <button class="nav-link" id="step7-tab" type="button" role="tab"><span class="step-number">7</span> Plano de Ação</button>
-                            <button class="nav-link" id="step8-tab" type="button" role="tab"><span class="step-number">8</span> Macro-Entregas</button>
-                            <button class="nav-link" id="step9-tab" type="button" role="tab"><span class="step-number">9</span> Indicadores</button>
-                            <button class="nav-link" id="step10-tab" type="button" role="tab"><span class="step-number">10</span> Inovação</button>
-                            <button class="nav-link" id="step11-tab" type="button" role="tab"><span class="step-number">11</span> Resultados</button>
-                            <button class="nav-link" id="step12-tab" type="button" role="tab"><span class="step-number">12</span> Cronograma</button>
-                            <button class="nav-link" id="step13-tab" type="button" role="tab"><span class="step-number">13</span> Desafios</button>
-                            <button class="nav-link" id="step14-tab" type="button" role="tab"><span class="step-number">14</span> Solução</button>
-                            <button class="nav-link" id="step15-tab" type="button" role="tab"><span class="step-number">15</span> Orçamento</button>
+                            <button class="nav-link" id="step2-tab" type="button" role="tab"><span class="step-number">2</span> Descrição Básica</button>
+                            <button class="nav-link" id="step3-tab" type="button" role="tab"><span class="step-number">3</span> Vigência e Execução</button>
+                            <button class="nav-link" id="step4-tab" type="button" role="tab"><span class="step-number">4</span> Motivação</button>
+                            <button class="nav-link" id="step5-tab" type="button" role="tab"><span class="step-number">5</span> Objetivos e Metas</button>
+                            <button class="nav-link" id="step6-tab" type="button" role="tab"><span class="step-number">6</span> Escopo Técnico</button>
+                            <button class="nav-link" id="step7-tab" type="button" role="tab"><span class="step-number">7</span> Gestão de Riscos</button>
+                            <button class="nav-link" id="step8-tab" type="button" role="tab"><span class="step-number">8</span> Estratégia</button>
+                            <button class="nav-link" id="step9-tab" type="button" role="tab"><span class="step-number">9</span> Plano de Ação</button>
+                            <button class="nav-link" id="step10-tab" type="button" role="tab"><span class="step-number">10</span> Macro-Entregas</button>
+                            <button class="nav-link" id="step11-tab" type="button" role="tab"><span class="step-number">11</span> Indicadores</button>
+                            <button class="nav-link" id="step12-tab" type="button" role="tab"><span class="step-number">12</span> Inovação</button>
+                            <button class="nav-link" id="step13-tab" type="button" role="tab"><span class="step-number">13</span> Resultados</button>
+                            <button class="nav-link" id="step14-tab" type="button" role="tab"><span class="step-number">14</span> Cronograma</button>
+                            <button class="nav-link" id="step15-tab" type="button" role="tab"><span class="step-number">15</span> Desafios</button>
+                            <button class="nav-link" id="step16-tab" type="button" role="tab"><span class="step-number">16</span> Solução</button>
+                            <button class="nav-link" id="step17-tab" type="button" role="tab"><span class="step-number">17</span> Orçamento</button>
                         </div>
                     </div>
 
                     <!-- Área de Conteúdo do Formulário -->
                     <div class="col-md-8 col-lg-9 ps-4">
-                        <div class="bg-white p-4 border rounded shadow-sm" style="min-height: 500px;">
+                        <div class="bg-white p-4 border rounded shadow-sm custom-scrollbar d-flex flex-column" style="height: calc(100vh - 290px); overflow-y: auto; overflow-x: hidden;">
                             
                             <!-- 1. Dados Cadastrais -->
-                            <div class="wizard-step active" id="step1">
+                            <div class="wizard-step active flex-grow-1" id="step1">
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">1. Dados Cadastrais</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">1.1 Empresa Parceira / Agência de Fomento (Concedente)</label>
+                                        <label class="form-label fw-bold text-muted small text-uppercase">1.1 Empresa Parceira / Agência de Fomento (Concedente) <span class='text-danger'>*</span></label>
                                         {{ form_projeto.concedente }}
-                                        {{ form_projeto.concedente.errors }}
+                                        
                                     </div>
                                     <div class="col-md-12 mt-3">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">1.2 Instituição Científica e Tecnológica - ICT (Convenente)</label>
+                                        <label class="form-label fw-bold text-muted small text-uppercase">1.2 Instituição Científica e Tecnológica - ICT (Convenente) <span class='text-danger'>*</span></label>
                                         {{ form_projeto.convenente }}
-                                        {{ form_projeto.convenente.errors }}
+                                        
                                     </div>
                                     <div class="col-md-12 mt-3">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">1.3 Fundação de Apoio (Interveniente)</label>
+                                        <label class="form-label fw-bold text-muted small text-uppercase">1.3 Fundação de Apoio (Interveniente) <span class='text-danger'>*</span></label>
                                         {{ form_projeto.interveniente }}
-                                        {{ form_projeto.interveniente.errors }}
+                                        
                                     </div>
                                     <div class="col-md-12 mt-4">
                                         <p class="text-muted small"><i class="fas fa-info-circle"></i> O projeto EMBRAPII de capacitação não exige Empresa Parceira. O IFAM e a FAEPI podem ser padronizados como convenente e interveniente.</p>
@@ -225,22 +257,21 @@
                                         <label class="form-label fw-bold text-primary small text-uppercase"><i class="fas fa-sitemap me-2"></i>Programa</label>
                                         <p class="text-muted small mb-2">Selecione-o abaixo:</p>
                                         {{ form_projeto.programa }}
-                                        {{ form_projeto.programa.errors }}
+                                        
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-end mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step2">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-end mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step2">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
 
-                            <!-- 2. Descrição do Projeto -->
-                            <div class="wizard-step" id="step2">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">2. Descrição do Projeto</h4>
+                            <!-- 2. Descrição Básica -->
+                            <div class="wizard-step flex-grow-1" id="step2">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">2. Descrição Básica</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">2.1 Título Completo do Projeto</label>
+                                        <label class="form-label fw-bold text-muted small text-uppercase">2.1 Título Completo do Projeto <span class='text-danger'>*</span></label>
                                         {{ form_projeto.nome }}
-                                        {{ form_projeto.nome.errors }}
                                     </div>
                                     
                                     <div class="col-md-12 mt-4 pt-3 border-top bg-light p-3 rounded">
@@ -257,117 +288,155 @@
                                         </select>
                                     </div>
                                     
-                                    <div class="col-md-4 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">2.2 Duração (em meses)</label>
-                                        {{ form_projeto.vigencia_meses }}
-                                        {{ form_projeto.vigencia_meses.errors }}
+                                    <div class="col-md-6 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">2.2 Identificação / Sigla <span class='text-danger'>*</span></label>
+                                        {{ form_projeto.projeto }}
                                     </div>
                                     <div class="col-md-6 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">2.3 Identificação / Sigla</label>
-                                        {{ form_projeto.projeto }}
-                                        {{ form_projeto.projeto.errors }}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Número do Processo (Opcional)</label>
-                                        {{ form_projeto.processo }}
-                                    </div>
-                                    <div class="col-md-4 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Início da Vigência</label>
-                                        {{ form_projeto.vigencia_inicio }}
-                                        {{ form_projeto.vigencia_inicio.errors }}
-                                    </div>
-                                    <div class="col-md-4 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Fim da Vigência</label>
-                                        {{ form_projeto.vigencia_fim }}
-                                        {{ form_projeto.vigencia_fim.errors }}
+                                        <label class="form-label fw-bold text-muted small text-uppercase">2.3 Coordenador do Projeto <span class='text-danger'>*</span></label>
+                                        {{ form_projeto.coordenador }}
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-outline-secondary btn-lg px-4 fw-bold btn-prev" data-prev="step1"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step3">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold btn-prev" data-prev="step1"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white px-4 fw-bold btn-next" data-next="step3">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
 
-                            <!-- 3. Motivação -->
-                            <div class="wizard-step" id="step3">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">3. Motivação</h4>
+                            <!-- 3. Vigência e Execução -->
+                            <div class="wizard-step flex-grow-1" id="step3">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">3. Vigência e Execução</h4>
+                                <div class="row g-4">
+                                    <div class="col-md-4 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">3.1 Duração (em meses) <span class='text-danger'>*</span></label>
+                                        {{ form_projeto.vigencia_meses }}
+                                    </div>
+                                    <div class="col-md-4 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">3.2 Início da Vigência <span class='text-danger'>*</span></label>
+                                        {{ form_projeto.vigencia_inicio }}
+                                    </div>
+                                    <div class="col-md-4 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">3.3 Fim da Vigência <span class='text-danger'>*</span></label>
+                                        {{ form_projeto.vigencia_fim }}
+                                    </div>
+                                    <div class="col-md-6 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">3.4 Local de Execução</label>
+                                        {{ form_projeto.local_execucao }}
+                                    </div>
+                                    <div class="col-md-6 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">3.5 Número do Processo <span class='text-danger'>*</span></label>
+                                        {{ form_projeto.processo }}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold btn-prev" data-prev="step2"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white px-4 fw-bold btn-next" data-next="step4">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- 4. Motivação -->
+                            <div class="wizard-step flex-grow-1" id="step4">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">4. Motivação <span class="text-danger">*</span></h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.motivacao }}
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step2"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step4">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step3"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step5">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
 
-                            <!-- 4. Objetivos e Metas -->
-                            <div class="wizard-step" id="step4">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">4. Objetivos e Metas</h4>
+                            <!-- 5. Objetivos e Metas -->
+                            <div class="wizard-step flex-grow-1" id="step5">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">5. Objetivos e Metas</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">4.1 Objetivo Geral</label>
+                                        <label class="form-label fw-bold text-muted text-uppercase small">5.1 Objetivo Geral <span class='text-danger'>*</span></label>
                                         {{ form_plano.objetivo_geral }}
                                     </div>
                                     <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">4.2 Objetivos Específicos</label>
-                                        {{ form_plano.objetivos_especificos }}
+                                        <label class="form-label fw-bold text-muted text-uppercase small">5.2 Objetivos Específicos <span class='text-danger'>*</span></label>
+                                        
+                                        <!-- Container Dinâmico -->
+                                        <div id="objetivos-container">
+                                            <!-- Inputs de objetivo serão inseridos aqui via JS -->
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary fw-bold btn-sm mt-2" id="btn-add-objetivo">
+                                            <i class="fas fa-plus me-1"></i> Adicionar Objetivo Específico
+                                        </button>
+
+                                        <!-- Campo Real Oculto (Shadow Field) -->
+                                        <div class="d-none">
+                                            {{ form_plano.objetivos_especificos }}
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step3"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step5">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step4"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step6">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
 
-                            <!-- 5. Escopo -->
-                            <div class="wizard-step" id="step5">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">5. Escopo</h4>
+                            
+                            <div class="wizard-step flex-grow-1" id="step6">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">6. Escopo Técnico</h4>
                                 <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">5.1 Escopo Geral</label>
-                                        {{ form_plano.escopo_geral }}
+                                    <div class="col-md-12 mt-4">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">6.1 Escopo Geral do Projeto <span class='text-danger'>*</span></label>
+                                        {{ form_plano.escopo }}
                                     </div>
                                     <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">5.2 Estrutura Analítica do Projeto (WBS)</label>
-                                        {{ form_plano.estrutura_analitica }}
+                                        <label class="form-label fw-bold text-muted small text-uppercase">6.2 Estrutura Analítica do Projeto (WBS) <span class='text-danger'>*</span></label>
+                                        {{ form_plano.eap }}
                                     </div>
                                     <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">5.3 Tecnologias e Ferramentas Utilizadas</label>
+                                        <label class="form-label fw-bold text-muted small text-uppercase">6.3 Tecnologias e Ferramentas Utilizadas <span class='text-danger'>*</span></label>
                                         {{ form_plano.tecnologias_utilizadas }}
                                     </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold btn-prev" data-prev="step5"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white px-4 fw-bold btn-next" data-next="step7">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- 7. Gestão de Riscos -->
+                            <div class="wizard-step flex-grow-1" id="step7">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">7. Gestão de Riscos</h4>
+                                <div class="row g-4">
                                     <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">5.4 Vulnerabilidades do Projeto</label>
+                                        <label class="form-label fw-bold text-muted small text-uppercase">7.1 Vulnerabilidades do Projeto <span class='text-danger'>*</span></label>
                                         {{ form_plano.vulnerabilidades }}
                                     </div>
                                     <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">5.5 Plano de Riscos</label>
+                                        <label class="form-label fw-bold text-muted small text-uppercase">7.2 Plano de Riscos <span class='text-danger'>*</span></label>
                                         {{ form_plano.plano_riscos }}
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step4"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step6">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold btn-prev" data-prev="step6"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white px-4 fw-bold btn-next" data-next="step8">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
-
-                            <!-- 6. Estratégia -->
-                            <div class="wizard-step" id="step6">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">6. Estratégia</h4>
+                            
+                            <!-- 8. Estratégia -->
+                            <div class="wizard-step flex-grow-1" id="step6">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">6. Estratégia <span class="text-danger">*</span></h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.estrategia }}
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step5"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step7">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step5"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step7">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
 
                             <!-- 7. Plano de Ação -->
-                            <div class="wizard-step" id="step7">
+                            <div class="wizard-step flex-grow-1" id="step7">
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">7. Plano de Ação</h4>
                                 <div id="atividades-container">
                                     <!-- Dynamic Atividade Cards will go here -->
@@ -377,15 +446,15 @@
                                         <i class="fas fa-plus me-2"></i> Adicionar Nova Atividade
                                     </button>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step6"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step8">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step6"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step8">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
-                            <!-- 8. Macro-Entregas -->
-                            <div class="wizard-step" id="step8">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">8. Macro-Entregas</h4>
+                            <!-- 10. Macro-Entregas -->
+                            <div class="wizard-step flex-grow-1" id="step10">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">10. Macro-Entregas</h4>
                                 <div id="macroentregas-container">
                                     <!-- Dynamic Macro-Entrega Cards will go here -->
                                 </div>
@@ -394,14 +463,14 @@
                                         <i class="fas fa-plus me-2"></i> Adicionar Nova Macro-Entrega
                                     </button>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step7"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step9">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step9"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step11">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
 
-                            <!-- 9. Indicadores -->
-                            <div class="wizard-step" id="step9">
+                            <!-- 11. Indicadores -->
+                            <div class="wizard-step flex-grow-1" id="step9">
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">9. Indicadores de Resultados</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
@@ -410,85 +479,85 @@
                                         <div class="form-text mt-2"><i class="fas fa-mouse-pointer me-1"></i> Você pode selecionar múltiplas opções.</div>
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step8"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step10">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step8"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step10">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
-                            <!-- 10. Inovação -->
-                            <div class="wizard-step" id="step10">
+                            <!-- 12. Inovação -->
+                            <div class="wizard-step flex-grow-1" id="step12">
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">10. Características Inovadoras</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.caracteristicas_inovadoras }}
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step9"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step11">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step11"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step13">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
 
-                            <!-- 11. Resultados -->
-                            <div class="wizard-step" id="step11">
+                            <!-- 13. Resultados -->
+                            <div class="wizard-step flex-grow-1" id="step11">
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">11. Resultados Esperados</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.resultados_esperados }}
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step10"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step12">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step10"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step12">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
-                            <!-- 12. Cronograma -->
-                            <div class="wizard-step" id="step12">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">12. Cronograma</h4>
+                            <!-- 14. Cronograma -->
+                            <div class="wizard-step flex-grow-1" id="step14">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">14. Cronograma</h4>
                                 <div class="placeholder-box">
                                     <i class="fas fa-calendar-alt fa-3x mb-3 text-secondary"></i>
                                     <h5>Gantt / Cronograma (Em Breve)</h5>
                                     <p>Tabela interativa cruzando as Atividades (coluna 1) com os meses do projeto (M1, M2...).</p>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step11"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step13">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step13"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step15">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
-                            <!-- 13. Desafios -->
-                            <div class="wizard-step" id="step13">
+                            <!-- 15. Desafios -->
+                            <div class="wizard-step flex-grow-1" id="step13">
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">13. Desafios Científicos e Tecnológicos</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.desafios_tecnologicos }}
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step12"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step14">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step12"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step14">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
                             <!-- 14. Solução Proposta -->
-                            <div class="wizard-step" id="step14">
+                            <div class="wizard-step flex-grow-1" id="step14">
                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">14. Solução Proposta</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.solucao_proposta }}
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step13"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white btn-lg px-4 fw-bold btn-next" data-next="step15">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step13"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step15">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
-                            <!-- 15. Orçamento -->
-                            <div class="wizard-step" id="step15">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">15. Orçamento e Aportes Globais</h4>
+                            <!-- 17. Orçamento -->
+                            <div class="wizard-step flex-grow-1" id="step17">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">17. Orçamento e Aportes Globais</h4>
                                 
                                 <div class="alert alert-warning shadow-sm mb-4">
                                     <h5 class="fw-bold"><i class="fas fa-balance-scale me-2"></i>Travas Financeiras</h5>
@@ -502,12 +571,12 @@
                                     <div class="col-md-3">
                                         <label class="form-label fw-bold text-muted text-uppercase small">Aporte Empresa (R$)</label>
                                         {{ form_plano.aporte_empresa }}
-                                        <div class="text-danger small">{{ form_plano.aporte_empresa.errors }}</div>
+                                        <div class="text-danger small"></div>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label fw-bold text-muted text-uppercase small">Aporte EMBRAPII (R$)</label>
                                         {{ form_plano.aporte_embrapii }}
-                                        <div class="text-danger small">{{ form_plano.aporte_embrapii.errors }}</div>
+                                        <div class="text-danger small"></div>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label fw-bold text-muted text-uppercase small">Aporte SEBRAE (R$)</label>
@@ -538,18 +607,23 @@
                                     <h5 class="fw-bold"><i class="fas fa-calculator me-2"></i>Resumo do Orçamento</h5>
                                     <p class="mb-0 small text-muted">A soma total das rubricas será processada no backend após o salvamento.</p>
                                 </div>
-                                <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                                    <button type="button" class="btn btn-light border btn-lg px-4 fw-bold btn-prev" data-prev="step14"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm fw-bold">
-                                        <i class="fas fa-save me-2"></i> Salvar Projeto Definitivo
-                                    </button>
+                                <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step16"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" name="action" value="salvar" class="btn btn-outline-success px-4 shadow-sm fw-bold">
+                                            <i class="fas fa-save me-2"></i> Salvar Alterações
+                                        </button>
+                                        <button type="submit" name="action" value="publicar" class="btn btn-primary px-4 shadow-sm fw-bold">
+                                            <i class="fas fa-paper-plane me-2"></i> Publicar Projeto
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
                         </div>
                     </div>
-                </div>
-            </form>
+                        </div>
+                    </form>
         </div>
     </div>
 </div>
@@ -668,6 +742,83 @@ document.addEventListener("DOMContentLoaded", function() {
         createAtividadeCard();
     }
 
+    
+    // --- LÓGICA DINÂMICA: OBJETIVOS ESPECÍFICOS (SHADOW FIELD) ---
+    const objetivosContainer = document.getElementById('objetivos-container');
+    const btnAddObjetivo = document.getElementById('btn-add-objetivo');
+    const hiddenObjetivosInput = document.getElementById('id_objetivos_especificos');
+    
+    function syncObjetivosToShadow() {
+        const inputs = objetivosContainer.querySelectorAll('.objetivo-input');
+        let htmlContent = "<ul>";
+        inputs.forEach(input => {
+            if (input.value.trim() !== '') {
+                htmlContent += `<li>${input.value.trim()}</li>`;
+            }
+        });
+        htmlContent += "</ul>";
+        
+        if (inputs.length === 0 || htmlContent === "<ul></ul>") {
+            htmlContent = "";
+        }
+        
+        if (hiddenObjetivosInput) {
+            hiddenObjetivosInput.value = htmlContent;
+            if (quillInstances['id_objetivos_especificos']) {
+                quillInstances['id_objetivos_especificos'].root.innerHTML = htmlContent;
+            }
+        }
+        autoSave();
+    }
+    
+    function createObjetivoInput(value = '') {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'd-flex align-items-center mb-2 objetivo-row';
+        wrapper.innerHTML = `
+            <span class="me-2 text-muted"><i class="fas fa-bullseye"></i></span>
+            <input type="text" class="form-control form-control-sm objetivo-input" placeholder="Descreva o objetivo específico..." value="${value}">
+            <button type="button" class="btn btn-sm btn-outline-danger ms-2 btn-remover-objetivo" title="Remover"><i class="fas fa-trash"></i></button>
+        `;
+        
+        const input = wrapper.querySelector('input');
+        input.addEventListener('input', syncObjetivosToShadow);
+        
+        wrapper.querySelector('.btn-remover-objetivo').addEventListener('click', function() {
+            wrapper.remove();
+            syncObjetivosToShadow();
+        });
+        
+        objetivosContainer.appendChild(wrapper);
+    }
+    
+    if (btnAddObjetivo) {
+        btnAddObjetivo.addEventListener('click', () => {
+            createObjetivoInput('');
+            syncObjetivosToShadow();
+        });
+    }
+    
+    // Initial load: parse the existing HTML in the hidden input
+    if (hiddenObjetivosInput) {
+        const initialValue = hiddenObjetivosInput.value;
+        if (initialValue) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = initialValue;
+            const lis = tempDiv.querySelectorAll('li');
+            if (lis.length > 0) {
+                lis.forEach(li => createObjetivoInput(li.textContent));
+            } else {
+                // If it's just raw text
+                const text = tempDiv.textContent.trim();
+                if (text) {
+                    createObjetivoInput(text);
+                }
+            }
+        } else {
+            // Start with one empty if nothing exists
+            createObjetivoInput('');
+        }
+    }
     
     // --- LÓGICA DINÂMICA: MACRO-ENTREGAS ---
     const macroentregasContainer = document.getElementById('macroentregas-container');
@@ -878,10 +1029,14 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById(stepId).classList.add('active');
         document.getElementById(stepId + '-tab').classList.add('active');
         
-        window.scrollTo({
-            top: document.querySelector('.card').offsetTop - 20,
-            behavior: 'smooth'
-        });
+        // Em vez de rolar a janela (que agora está travada), rola apenas a caixa de conteúdo da direita
+        const rightPane = document.querySelector('.custom-scrollbar');
+        if (rightPane) {
+            rightPane.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
         
         autoSave();
     }
@@ -1006,17 +1161,17 @@ document.addEventListener("DOMContentLoaded", function() {
         // Mapa de fallback: campos que não são renderizados como widgets padrão
         // mas existem no formulário. Aponta qual step contém o campo.
         const stepMap = {
-            'id_vigencia_inicio': 'step2',
-            'id_vigencia_fim': 'step2',
-            'id_vigencia_meses': 'step2',
+            'id_vigencia_inicio': 'step3',
+            'id_vigencia_fim': 'step3',
+            'id_vigencia_meses': 'step3',
             'id_coordenador': 'step2',
-            'id_local_execucao': 'step2',
-            'id_numero': 'step2',         // Numero do Termo (form_termo)
-            'id_data_assinatura': 'step2', // Data do Termo (form_termo)
-            'id_objeto': 'step2',          // Objeto do Termo (form_termo)
-            'id_total_meses': 'step2',
-            'id_data_inicio': 'step2',
-            'id_data_fim': 'step2',
+            'id_local_execucao': 'step3',
+            'id_processo': 'step3',
+            'id_vulnerabilidades': 'step7',
+            'id_plano_riscos': 'step7',
+            'id_escopo': 'step6',
+            'id_eap': 'step6',
+            'id_tecnologias_utilizadas': 'step6'
         };
 
         let field = document.getElementById(fieldId);
@@ -1089,4 +1244,51 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 150);
     }
 </script>
+<script>
+    // Se existir o modal de pendências, atualiza o badge e controla abertura automática
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalPendenciasEl = document.getElementById('modalPendencias');
+        if (modalPendenciasEl) {
+            // Conta quantos itens de erro existem
+            var errorCount = document.querySelectorAll('.erro-item').length;
+            var badgeEl = document.getElementById('badge-erros');
+            if(badgeEl) {
+                badgeEl.textContent = errorCount;
+            }
+            
+            // Lógica do Checkbox de Silenciamento
+            var checkbox = document.getElementById('checkSilenciarPendencias');
+            var isSilenced = localStorage.getItem('silenciarModalPendencias') === 'true';
+            
+            if (checkbox) {
+                checkbox.checked = isSilenced;
+                checkbox.addEventListener('change', function() {
+                    localStorage.setItem('silenciarModalPendencias', this.checked);
+                });
+            }
+            
+            // Abre o modal automaticamente no load apenas se não estiver silenciado
+            if (!isSilenced) {
+                var myModal = new bootstrap.Modal(modalPendenciasEl, {
+                    keyboard: true
+                });
+                myModal.show();
+            }
+        }
+    });
+
+    // Função ajustada para fechar o modal antes de focar
+    function focarErroModal(campoId) {
+        var modalEl = document.getElementById('modalPendencias');
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        if(modal) {
+            modal.hide();
+        }
+        // Aguarda a animação do modal fechar antes de rolar
+        setTimeout(function() {
+            focarErro(campoId);
+        }, 400);
+    }
+</script>
+
 {% endblock %}

@@ -52,12 +52,38 @@ def novo_projeto(request):
         valid_proj = form_projeto.is_valid()
         valid_plano = form_plano.is_valid()
         
+        # FORÇAR VALIDAÇÃO COMPLETA PARA ACUSAR PENDÊNCIAS VISUAIS
+        opcionais_proj = ['local_execucao', 'programa']
+        opcionais_plano = ['arquivo_pdf', 'orcamento_descricao']
+        
+        for field_name, field in form_projeto.fields.items():
+            if field_name not in opcionais_proj:
+                val = form_projeto.cleaned_data.get(field_name)
+                if val in [None, '', [], ()]:
+                    form_projeto.add_error(field_name, 'Campo obrigatório para Publicação.')
+                    valid_proj = False
+
+        for field_name, field in form_plano.fields.items():
+            if field_name not in opcionais_plano:
+                val = form_plano.cleaned_data.get(field_name)
+                # Verifica vazio considerando tags HTML vazias do Quill também
+                is_empty = val in [None, '', [], ()] or str(val).strip() in ['<p><br></p>', '<p></p>']
+                if is_empty:
+                    form_plano.add_error(field_name, 'Campo obrigatório para Publicação.')
+                    valid_plano = False
+
+        
         nome = request.POST.get('nome', '').strip()
         
+        action = request.POST.get('action', 'salvar')
+
         # Só bloqueia o salvamento total se nem o Nome foi preenchido (único campo obrigatório no DB para criar)
         if (valid_proj and valid_plano) or nome:
             try:
                 with transaction.atomic():
+                    if action == 'publicar' and (not valid_proj or not valid_plano):
+                        messages.error(request, "Não é possível Publicar: o projeto possui pendências. Ele foi salvo apenas como rascunho.")
+                        action = 'salvar'
                     # 1. Salva o Projeto primeiro (Mestre) em modo Rascunho
                     if not valid_proj:
                         erros_proj = form_projeto._errors.copy()
@@ -163,11 +189,17 @@ def novo_projeto(request):
                                 valor_total=valor_float
                             )
 
-                if valid_proj and valid_plano:
-                    messages.success(request, f"Projeto '{projeto.nome}' criado com sucesso e sem pendências!")
+                if action == 'publicar':
+                    plano.status = 'CONGELADO_VIGENTE'
+                    plano.congelado = True
+                    plano.save()
+                    messages.success(request, f"Projeto '{projeto.nome}' PUBLICADO (Congelado) com sucesso!")
                     return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
+                elif valid_proj and valid_plano:
+                    messages.success(request, f"Projeto '{projeto.nome}' salvo e validado com sucesso (Rascunho)!")
+                    return redirect('cadastros:editar_projeto', projeto_id=projeto.id)
                 else:
-                    messages.warning(request, f"Rascunho do projeto '{projeto.nome}' criado! Existem pendências orientativas que precisam ser resolvidas antes da execução.")
+                    messages.warning(request, "Ainda existem pendências no Plano de Trabalho do Projeto")
                     return redirect('cadastros:editar_projeto', projeto_id=projeto.id)
                     
             except Exception as e:
@@ -229,16 +261,39 @@ def editar_projeto(request, projeto_id):
     if request.method == 'POST':
         form_plano = PlanoDeTrabalhoForm(request.POST, instance=plano)
         form_projeto = ProjetoPDIForm(request.POST, instance=projeto)
-        
-        valid_plano = form_plano.is_valid()
         valid_proj = form_projeto.is_valid()
+        valid_plano = form_plano.is_valid()
         
+        # FORÇAR VALIDAÇÃO COMPLETA PARA ACUSAR PENDÊNCIAS VISUAIS
+        opcionais_proj = ['local_execucao', 'programa']
+        opcionais_plano = ['arquivo_pdf', 'orcamento_descricao']
+        
+        for field_name, field in form_projeto.fields.items():
+            if field_name not in opcionais_proj:
+                val = form_projeto.cleaned_data.get(field_name) if hasattr(form_projeto, 'cleaned_data') else None
+                if val in [None, '', [], ()]:
+                    form_projeto.add_error(field_name, 'Campo obrigatório para Publicação.')
+                    valid_proj = False
+
+        for field_name, field in form_plano.fields.items():
+            if field_name not in opcionais_plano:
+                val = form_plano.cleaned_data.get(field_name) if hasattr(form_plano, 'cleaned_data') else None
+                # Verifica vazio considerando tags HTML vazias do Quill também
+                is_empty = val in [None, '', [], ()] or str(val).strip() in ['<p><br></p>', '<p></p>']
+                if is_empty:
+                    form_plano.add_error(field_name, 'Campo obrigatório para Publicação.')
+                    valid_plano = False
         is_prospeccao = projeto.fase == 'PROSPECCAO'
         nome = request.POST.get('nome', '').strip()
         
+        action = request.POST.get('action', 'salvar')
+
         if (valid_plano and valid_proj) or (is_prospeccao and nome):
             try:
                 with transaction.atomic():
+                    if action == 'publicar' and (not valid_proj or not valid_plano):
+                        messages.error(request, "Não é possível Publicar: o projeto possui pendências. Ele foi salvo apenas como rascunho.")
+                        action = 'salvar'
                     # Projeto
                     if not valid_proj:
                         erros_proj = form_projeto._errors.copy()
@@ -271,12 +326,18 @@ def editar_projeto(request, projeto_id):
                         plano_salvo.save()
                         form_plano.save_m2m()
                         
-                if valid_plano and valid_proj:
-                    messages.success(request, f"Projeto '{projeto.nome}' atualizado e validado com sucesso!")
+                if action == 'publicar':
+                    plano_salvo.status = 'CONGELADO_VIGENTE'
+                    plano_salvo.congelado = True
+                    plano_salvo.save()
+                    messages.success(request, f"Projeto '{projeto.nome}' PUBLICADO (Congelado) com sucesso!")
                     return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
+                elif valid_plano and valid_proj:
+                    messages.success(request, f"Projeto '{projeto.nome}' salvo e validado com sucesso (Rascunho)!")
+                    return redirect('cadastros:editar_projeto', projeto_id=projeto.id)
                 else:
-                    messages.warning(request, f"Rascunho do projeto '{projeto.nome}' salvo. Verifique as pendências orientativas no painel abaixo.")
-                    # Não redireciona, mantém na página para mostrar o painel de erros
+                    messages.warning(request, "Ainda existem pendências no Plano de Trabalho do Projeto")
+                    # Não redireciona, cai para o render() no final para exibir os form.errors
             except Exception as e:
                 messages.error(request, f"Erro ao salvar rascunho: {str(e)}")
         else:
@@ -348,12 +409,38 @@ def novo_projeto(request):
         valid_proj = form_projeto.is_valid()
         valid_plano = form_plano.is_valid()
         
+        # FORÇAR VALIDAÇÃO COMPLETA PARA ACUSAR PENDÊNCIAS VISUAIS
+        opcionais_proj = ['local_execucao', 'programa']
+        opcionais_plano = ['arquivo_pdf', 'orcamento_descricao']
+        
+        for field_name, field in form_projeto.fields.items():
+            if field_name not in opcionais_proj:
+                val = form_projeto.cleaned_data.get(field_name)
+                if val in [None, '', [], ()]:
+                    form_projeto.add_error(field_name, 'Campo obrigatório para Publicação.')
+                    valid_proj = False
+
+        for field_name, field in form_plano.fields.items():
+            if field_name not in opcionais_plano:
+                val = form_plano.cleaned_data.get(field_name)
+                # Verifica vazio considerando tags HTML vazias do Quill também
+                is_empty = val in [None, '', [], ()] or str(val).strip() in ['<p><br></p>', '<p></p>']
+                if is_empty:
+                    form_plano.add_error(field_name, 'Campo obrigatório para Publicação.')
+                    valid_plano = False
+
+        
         nome = request.POST.get('nome', '').strip()
         
+        action = request.POST.get('action', 'salvar')
+
         # Só bloqueia o salvamento total se nem o Nome foi preenchido (único campo obrigatório no DB para criar)
         if (valid_proj and valid_plano) or nome:
             try:
                 with transaction.atomic():
+                    if action == 'publicar' and (not valid_proj or not valid_plano):
+                        messages.error(request, "Não é possível Publicar: o projeto possui pendências. Ele foi salvo apenas como rascunho.")
+                        action = 'salvar'
                     # 1. Salva o Projeto primeiro (Mestre) em modo Rascunho
                     if not valid_proj:
                         erros_proj = form_projeto._errors.copy()
@@ -463,7 +550,7 @@ def novo_projeto(request):
                     messages.success(request, f"Projeto '{projeto.nome}' criado com sucesso e sem pendências!")
                     return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
                 else:
-                    messages.warning(request, f"Rascunho do projeto '{projeto.nome}' criado! Existem pendências orientativas que precisam ser resolvidas antes da execução.")
+                    messages.warning(request, "Ainda existem pendências no Plano de Trabalho do Projeto")
                     return redirect('cadastros:editar_projeto', projeto_id=projeto.id)
                     
             except Exception as e:
@@ -480,15 +567,6 @@ def novo_projeto(request):
     })
 
 
-@login_required
-def api_termos_por_empresa(request, empresa_id):
-    termos = TermoDeParceria.objects.filter(concedente_id=empresa_id, projeto__isnull=True)
-    data = []
-    for termo in termos:
-        display = f"Termo {termo.numero} - {termo.objeto[:30]}..." if termo.numero else f"Termo s/n (Rascunho) - {termo.objeto[:30]}..."
-        data.append({'id': termo.id, 'display_name': display})
-    
-    return JsonResponse({'termos': data})
 
 @login_required
 def visualizar_projeto(request, projeto_id):
@@ -507,91 +585,7 @@ def visualizar_projeto(request, projeto_id):
     }
     return render(request, 'cadastros/visualizar_projeto.html', contexto)
 
-@login_required
-@transaction.atomic
-def editar_projeto(request, projeto_id):
-    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
-    termo = projeto.termos_parceria.first()
-    plano = projeto.planos_trabalho.filter(ativo=True).first()
 
-    if request.method == 'POST':
-        form_termo = TermoDeParceriaForm(request.POST, instance=termo)
-        form_plano = PlanoDeTrabalhoForm(request.POST, instance=plano)
-        form_projeto = ProjetoPDIForm(request.POST, instance=projeto)
-        
-        valid_termo = form_termo.is_valid() if termo else True
-        valid_plano = form_plano.is_valid()
-        valid_proj = form_projeto.is_valid()
-        
-        is_prospeccao = projeto.fase == 'PROSPECCAO'
-        nome = request.POST.get('nome', '').strip()
-        
-        if (valid_termo and valid_plano and valid_proj) or (is_prospeccao and nome):
-            try:
-                with transaction.atomic():
-                    # Projeto
-                    if not valid_proj:
-                        erros_proj = form_projeto._errors.copy()
-                        form_projeto._errors = {}
-                        projeto_salvo = form_projeto.save()
-                        form_projeto._errors = erros_proj
-                    else:
-                        projeto_salvo = form_projeto.save()
-                        
-                    # Termo
-                    if termo:
-                        if not valid_termo:
-                            erros_termo = form_termo._errors.copy()
-                            form_termo._errors = {}
-                            termo_salvo = form_termo.save(commit=False)
-                            termo_salvo.projeto = projeto_salvo
-                            termo_salvo.save()
-                            form_termo._errors = erros_termo
-                        else:
-                            termo_salvo = form_termo.save(commit=False)
-                            termo_salvo.projeto = projeto_salvo
-                            termo_salvo.save()
-                            
-                    # Plano
-                    if not valid_plano:
-                        erros_plano = form_plano._errors.copy()
-                        form_plano._errors = {}
-                        plano_salvo = form_plano.save(commit=False)
-                        plano_salvo.projeto = projeto_salvo
-                        plano_salvo.save()
-                        form_plano.save_m2m()
-                        form_plano._errors = erros_plano
-                    else:
-                        plano_salvo = form_plano.save(commit=False)
-                        plano_salvo.projeto = projeto_salvo
-                        plano_salvo.save()
-                        form_plano.save_m2m()
-                        
-                if valid_termo and valid_plano and valid_proj:
-                    messages.success(request, f"Projeto '{projeto.nome}' atualizado e validado com sucesso!")
-                    return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
-                else:
-                    messages.warning(request, f"Rascunho do projeto '{projeto.nome}' salvo. Verifique as pendências orientativas no painel abaixo.")
-                    # Não redireciona, mantém na página para mostrar o painel de erros
-            except Exception as e:
-                messages.error(request, f"Erro ao salvar rascunho: {str(e)}")
-        else:
-            if not is_prospeccao:
-                messages.error(request, "O projeto não está mais em prospecção e exige preenchimento completo.")
-            elif not nome:
-                messages.error(request, "O Nome do Projeto é obrigatório.")
-                
-    else:
-        form_termo = TermoDeParceriaForm(instance=termo)
-        form_plano = PlanoDeTrabalhoForm(instance=plano)
-        form_projeto = ProjetoPDIForm(instance=projeto)
-        
-    return render(request, 'cadastros/form_projeto.html', {
-        'form_termo': form_termo,
-        'form_plano': form_plano,
-        'form_projeto': form_projeto,
-        'projeto': projeto
-    })
 
 @login_required
 def excluir_projeto(request, projeto_id):

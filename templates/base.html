@@ -149,22 +149,7 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0"
-                role="alert">
-                {% if message.tags == 'success' %}<i class="fas fa-check-circle me-2 fs-5 align-middle"></i>{% endif %}
-                {% if message.tags == 'error' or message.tags == 'danger' %}<i
-                    class="fas fa-exclamation-circle me-2 fs-5 align-middle"></i>{% endif %}
-                {% if message.tags == 'warning' %}<i class="fas fa-exclamation-triangle me-2 fs-5 align-middle"></i>{% endif %}
-                {% if message.tags == 'info' %}<i class="fas fa-info-circle me-2 fs-5 align-middle"></i>{% endif %}
-                <span class="align-middle">{{ message }}</span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-        {% endif %}
-    </div>
+
 
     <main class="content-wrapper">
         <div class="container-fluid px-4 mt-4">
@@ -218,6 +203,38 @@
     <script src="{% static 'js/script.js' %}"></script>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Global Toasts Container (Popout) -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="toast align-items-center text-bg-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} border-0 shadow-lg fade show mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body fw-bold d-flex align-items-center">
+                        {% if message.tags == 'success' %}<i class="fas fa-check-circle me-2 fs-5"></i>{% endif %}
+                        {% if message.tags == 'error' or message.tags == 'danger' %}<i class="fas fa-exclamation-circle me-2 fs-5"></i>{% endif %}
+                        {% if message.tags == 'warning' %}<i class="fas fa-exclamation-triangle me-2 fs-5"></i>{% endif %}
+                        {% if message.tags == 'info' %}<i class="fas fa-info-circle me-2 fs-5"></i>{% endif %}
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Script to Auto-Initialize Toasts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            var toastList = toastElList.map(function (toastEl) {
+                return new bootstrap.Toast(toastEl, { delay: 6000 });
+            });
+            toastList.forEach(toast => toast.show());
+        });
+    </script>
 </body>
+
 
 </html>

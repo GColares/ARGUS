@@ -33,9 +33,10 @@ def higienizar_texto_pdf(texto):
 class ProjetoPDIForm(forms.ModelForm):
     class Meta:
         model = ProjetoPDI
-        fields = ['nome', 'concedente', 'convenente', 'interveniente', 'programa', 'local_execucao', 'coordenador', 'processo', 'vigencia_inicio', 'vigencia_fim', 'vigencia_meses']
+        fields = ['projeto', 'nome', 'concedente', 'convenente', 'interveniente', 'programa', 'local_execucao', 'coordenador', 'processo', 'vigencia_inicio', 'vigencia_fim', 'vigencia_meses']
         
         widgets = {
+            'projeto': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Bio Caroço'}),
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Oficial do Projeto', 'autofocus': True}),
             'concedente': forms.Select(attrs={'class': 'form-select'}),
             'convenente': forms.Select(attrs={'class': 'form-select'}),
@@ -115,11 +116,8 @@ class TermoDeParceriaForm(forms.ModelForm):
 class PlanoDeTrabalhoForm(forms.ModelForm):
     class Meta:
         model = PlanoDeTrabalho
-        exclude = ['projeto', 'termo_homologador', 'status', 'congelado', 'versao', 'ativo', 'data_criacao', 'valor_global']
+        exclude = ['projeto', 'termo_homologador', 'status', 'congelado', 'versao', 'ativo', 'data_criacao', 'valor_global', 'data_inicio', 'data_fim', 'total_meses']
         widgets = {
-            'data_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
-            'data_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
-            'total_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'arquivo_pdf': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'aporte_empresa': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'aporte_embrapii': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -128,7 +126,7 @@ class PlanoDeTrabalhoForm(forms.ModelForm):
             
             # Rich Text Fields (Will be initialized by Javascript/Quill on frontend)
             'motivacao': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
-            'objetivo_geral': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'objetivo_geral': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
             'objetivos_especificos': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
             'escopo_geral': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),
             'estrutura_analitica': forms.Textarea(attrs={'class': 'form-control richtext', 'rows': 5}),

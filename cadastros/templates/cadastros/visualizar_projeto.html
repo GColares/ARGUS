@@ -6,8 +6,13 @@
             <a href="{% url 'cadastros:listar_projetos' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
                 <i class="fas fa-arrow-left me-1"></i> Voltar para Projetos
             </a>
-            <h4 class="fw-bold text-info"><i class="fas fa-project-diagram me-2"></i> {{ projeto.termo_parceria.numero|default:"Sem Termo" }} - {{ projeto.nome }}</h4>
-            <p class="text-muted mb-0">Visão Geral do Projeto PDI</p>
+            <h4 class="fw-bold text-info mb-1"><i class="fas fa-project-diagram me-2"></i> {{ projeto.termo_parceria.numero|default:"Sem Termo" }} - {{ projeto.nome }}</h4>
+            <div class="d-flex align-items-center gap-3">
+                <p class="text-muted mb-0">Visão Geral do Projeto PDI</p>
+                <span class="badge bg-{{ projeto.fase_color }} shadow-sm px-3 py-1 rounded-pill">
+                    <i class="fas {{ projeto.fase_icone }} me-1"></i> {{ projeto.get_fase_display }}
+                </span>
+            </div>
         </div>
         <div class="d-flex gap-2">
             <a href="{% url 'cadastros:editar_projeto' projeto.id %}" class="btn btn-warning shadow-sm fw-bold text-dark">
@@ -105,21 +110,76 @@
             {% if plano_ativo %}
                 <div class="row g-4">
                     <div class="col-md-12">
-                        <h6 class="fw-bold text-primary mb-3 text-uppercase small"><i class="fas fa-list-alt me-2"></i> Abordagem Técnica</h6>
-                        <div class="p-3 bg-light rounded text-muted">
-                            {{ plano_ativo.abordagem_tecnica|default:"Não detalhado."|linebreaksbr }}
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <h6 class="fw-bold text-primary mb-3 text-uppercase small"><i class="fas fa-file-invoice-dollar me-2"></i> Abordagem Financeira</h6>
-                        <div class="p-3 bg-light rounded text-muted">
-                            {{ plano_ativo.abordagem_financeira|default:"Não detalhado."|linebreaksbr }}
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <h6 class="fw-bold text-primary mb-3 text-uppercase small"><i class="fas fa-box-open me-2"></i> Produto Esperado / Entregue</h6>
-                        <div class="p-3 bg-light rounded text-muted">
-                            {{ plano_ativo.produto_entregue|default:"Não detalhado."|linebreaksbr }}
+                        <div class="accordion shadow-sm" id="accordionPlanoDeTrabalho">
+                            <div class="accordion-item border-0 border-bottom">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button fw-bold text-primary bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMotivacao">
+                                        <i class="fas fa-lightbulb me-2"></i> Motivação e Objetivos
+                                    </button>
+                                </h2>
+                                <div id="collapseMotivacao" class="accordion-collapse collapse show" data-bs-parent="#accordionPlanoDeTrabalho">
+                                    <div class="accordion-body bg-light text-muted">
+                                        <h6 class="fw-bold text-dark">Motivação</h6>
+                                        <div class="mb-4 text-break">{{ plano_ativo.motivacao|safe|default:"Não detalhado." }}</div>
+                                        
+                                        <h6 class="fw-bold text-dark">Objetivo Geral</h6>
+                                        <div class="mb-4 text-break">{{ plano_ativo.objetivo_geral|default:"Não detalhado." }}</div>
+                                        
+                                        <h6 class="fw-bold text-dark">Objetivos Específicos</h6>
+                                        <div class="text-break">{{ plano_ativo.objetivos_especificos|safe|default:"Não detalhado." }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item border-0 border-bottom">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed fw-bold text-primary bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEscopo">
+                                        <i class="fas fa-crosshairs me-2"></i> Escopo, Estratégia e WBS
+                                    </button>
+                                </h2>
+                                <div id="collapseEscopo" class="accordion-collapse collapse" data-bs-parent="#accordionPlanoDeTrabalho">
+                                    <div class="accordion-body bg-light text-muted">
+                                        <h6 class="fw-bold text-dark">Escopo Geral</h6>
+                                        <div class="mb-4 text-break">{{ plano_ativo.escopo_geral|safe|default:"Não detalhado." }}</div>
+                                        
+                                        <h6 class="fw-bold text-dark">Estratégia</h6>
+                                        <div class="mb-4 text-break">{{ plano_ativo.estrategia|safe|default:"Não detalhado." }}</div>
+                                        
+                                        <h6 class="fw-bold text-dark">Estrutura Analítica / WBS</h6>
+                                        <div class="mb-4 text-break">{{ plano_ativo.estrutura_analitica|safe|default:"Não detalhado." }}</div>
+                                        
+                                        <h6 class="fw-bold text-dark">Tecnologias e Ferramentas</h6>
+                                        <div class="mb-4 text-break">{{ plano_ativo.tecnologias_utilizadas|safe|default:"Não detalhado." }}</div>
+                                        
+                                        <h6 class="fw-bold text-dark">Vulnerabilidades e Riscos</h6>
+                                        <div class="mb-2 text-break">{{ plano_ativo.vulnerabilidades|safe|default:"<p>Não detalhado (Vulnerabilidades).</p>" }}</div>
+                                        <div class="text-break">{{ plano_ativo.plano_riscos|safe|default:"<p>Não detalhado (Plano de Riscos).</p>" }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed fw-bold text-primary bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResultados">
+                                        <i class="fas fa-chart-line me-2"></i> Inovação e Resultados
+                                    </button>
+                                </h2>
+                                <div id="collapseResultados" class="accordion-collapse collapse" data-bs-parent="#accordionPlanoDeTrabalho">
+                                    <div class="accordion-body bg-light text-muted">
+                                        <h6 class="fw-bold text-dark">Características Inovadoras</h6>
+                                        <div class="mb-4 text-break">{{ plano_ativo.caracteristicas_inovadoras|safe|default:"Não detalhado." }}</div>
+                                        
+                                        <h6 class="fw-bold text-dark">Desafios Científicos e Tecnológicos</h6>
+                                        <div class="mb-4 text-break">{{ plano_ativo.desafios_tecnologicos|safe|default:"Não detalhado." }}</div>
+                                        
+                                        <h6 class="fw-bold text-dark">Solução Proposta</h6>
+                                        <div class="mb-4 text-break">{{ plano_ativo.solucao_proposta|safe|default:"Não detalhado." }}</div>
+                                        
+                                        <h6 class="fw-bold text-dark">Resultados Esperados</h6>
+                                        <div class="text-break">{{ plano_ativo.resultados_esperados|safe|default:"Não detalhado." }}</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-12 mt-4">

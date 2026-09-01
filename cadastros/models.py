@@ -378,8 +378,8 @@ class ProjetoPDI(models.Model):
 
     termo_de_convenio = models.FileField(upload_to='convenios/termos/', null=True, blank=True, verbose_name="Termo de Parceria (PDF)")
 
-    vigencia_inicio = models.DateField(verbose_name="Início da Vigência Geral")
-    vigencia_fim = models.DateField(verbose_name="Fim da Vigência Geral")
+    vigencia_inicio = models.DateField(verbose_name="Início da Vigência Geral", null=True, blank=True)
+    vigencia_fim = models.DateField(verbose_name="Fim da Vigência Geral", null=True, blank=True)
     vigencia_meses = models.IntegerField(default=1, verbose_name="Total de Meses Previstos")
 
     data_cadastro = models.DateTimeField(auto_now_add=True)
@@ -392,6 +392,28 @@ class ProjetoPDI(models.Model):
     def termo_parceria(self):
         """Retorna o primeiro termo de parceria associado."""
         return self.termos_parceria.first()
+
+    @property
+    def fase_color(self):
+        cores = {
+            'PROSPECCAO': 'warning',
+            'EXECUCAO': 'success',
+            'PRESTACAO_CONTAS': 'info',
+            'ENCERRADO': 'secondary',
+            'CANCELADO': 'danger'
+        }
+        return cores.get(self.fase, 'secondary')
+
+    @property
+    def fase_icone(self):
+        icones = {
+            'PROSPECCAO': 'fa-lightbulb',
+            'EXECUCAO': 'fa-cogs',
+            'PRESTACAO_CONTAS': 'fa-file-invoice-dollar',
+            'ENCERRADO': 'fa-archive',
+            'CANCELADO': 'fa-ban'
+        }
+        return icones.get(self.fase, 'fa-circle')
 
     def __str__(self):
         numero = self.projeto if self.projeto else "Sem Sigla"

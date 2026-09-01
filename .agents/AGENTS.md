@@ -231,3 +231,28 @@ Sempre que modelar o plano de trabalho e as rubricas financeiras de um projeto q
    - **PROIBIDO** utilizar recursos do SEBRAE para pagamento de **Capital e Equipamentos** (assim como a restrição padrão da EMBRAPII).
    - **PROIBIDO** utilizar recursos do SEBRAE para pagamento de **Suporte Operacional / Administrativo (Overhead)**. Esta rubrica continua sendo de responsabilidade exclusiva dos recursos diretos da Empresa (caixa) ou da Contrapartida da ICT.
    - O recurso SEBRAE deve ser destinado majoritariamente a Despesas de Custeio direto da pesquisa (ex: Recursos Humanos Diretos e Consumo).
+
+## Padronização Tipográfica e Hierarquia Visual (Design System)
+Para manter a consistência estética e profissional em todas as telas do ARGUS, evite variações injustificadas de tamanho de fonte e siga uma hierarquia tipográfica estrita usando apenas as classes utilitárias do Bootstrap 5:
+1. **Títulos Principais de Páginas (Page Headers):** Devem utilizar <h4> ou <h3> com as classes w-bold e a cor primária do contexto (ex: 	ext-info ou 	ext-primary).
+2. **Subtítulos e Divisores de Seção (Block Headers):** Devem utilizar <h6> acompanhado de w-bold text-uppercase small text-muted (ou cor temática). É proibido usar tamanhos gigantes para cabeçalhos de blocos internos (cards/acordeões).
+3. **Texto de Corpo e Descrições:** O texto padrão é o de corpo (sem classe extra). Textos de apoio ou instruções devem obrigatoriamente usar a classe small (ou .text-muted) para não poluir visualmente a leitura.
+4. **Tamanho de Botões (Action Buttons):** 
+   - Nunca use a classe tn-lg para ações dentro de barras de ferramentas (Headers de Cards, Navbars, Listagens), mesmo que seja a ação principal como "Salvar". O uso de tn-lg gera botões desproporcionais e quebra a harmonia da linha de leitura.
+   - Botões globais no topo das páginas devem manter o tamanho normal de componente Bootstrap.
+   - Use tn-sm estritamente para ações densas dentro de tabelas (DataTables).
+5. **Estilos Inline Proibidos:** Confie nas classes s-1 até s-6 do Bootstrap. Evite injetar regras como ont-size: 1.2rem; dentro das tags <style>.
+
+
+## UX de Alertas e Pendências (Notificações Não-Intrusivas)
+Sempre que desenvolver formulários complexos que envolvam validações do backend com múltiplos erros (ex: fluxos de salvamento parcial vs publicação):
+1. **Fim dos Alertas Inline Gigantes:** É expressamente proibido renderizar blocos de alerta (ex: `<div class="alert">`) no topo do formulário que empurrem o layout principal da página para baixo.
+2. **Uso de Modal Auto-Trigger:** As listas de pendências e erros devem ser renderizadas dentro de um componente genérico de **Modal do Bootstrap**. Se houver erros (`{% if form.errors %}`), um script JS deve exibir esse modal automaticamente no carregamento da página.
+3. **Ícone de Notificação Persistente:** Ao lado dos botões de ação principais (ex: Salvar/Publicar), deve ser posicionado um ícone de notificação (ex: sino `fa-bell` com *badge* numérico) que serve de gatilho (`data-bs-toggle="modal"`) para reabrir o modal a qualquer momento.
+4. **Campos Obrigatórios Econômicos:** Não utilize o padrão verboso do Django para listar erros embaixo de cada campo (ex: `{{ field.errors }}`). Omitir essas renderizações para economizar altura vertical e utilize apenas um asterisco vermelho discreto (`<span class="text-danger">*</span>`) na *label* dos campos obrigatórios.
+
+
+## Princípio de UX: Operação "Caixa Eletrônico" (Zero Rolagem)
+A experiência do usuário no ARGUS rejeita o padrão web de páginas longas. A arquitetura de interface deve ser pensada sob a ótica de um terminal de autoatendimento:
+1. **Telas Estáticas:** Por princípio, todo o conteúdo produtivo (formulários, painéis, wizards) deve ser desenhado para caber confortavelmente em uma única tela (Viewport), eliminando a necessidade de barras de rolagem vertical globais ou locais.
+2. **Paginação sobre Rolagem:** Se uma tela ou etapa de formulário possuir campos demais para caber no monitor, é estritamente proibido ativar a rolagem (`overflow-y: auto`). A solução arquitetural correta é "virar a página", ou seja, fatiar o formulário em mais passos/abas (ex: Passo 2.1, Passo 2.2), forçando o usuário a interagir apenas clicando em botões de "Próximo" e "Voltar".
