@@ -1,5 +1,15 @@
 # Diário de Bordo - ARGUS
 
+## [31/08/2026] - Encerramento de Dia e Backup de Segurança
+
+### 📝 O que foi feito:
+- Finalização da rotina de fechamento do dia no projeto ARGUS, com atualização do histórico operacional e geração de backups híbridos para recuperação rápida e segura.
+- Exportação das dependências para `requirements.txt` para preservar o estado atual do ambiente Python.
+- Verificação do status do repositório e preparação do pacote de envio para sincronização remota.
+
+### ⏳ O que ficou pendente:
+- Validar a sincronização final da branch após o push e confirmar que o backup e o commit chegaram ao repositório remoto.
+
 ## [28/08/2026] - Desacoplamento do Wizard de Projetos e Polimorfismo
 
 ### 📝 O que foi feito:
