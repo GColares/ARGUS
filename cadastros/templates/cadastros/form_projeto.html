@@ -104,7 +104,7 @@
             <form method="post" id="projetoWizardForm">
                 {% csrf_token %}
                 
-                                {% if form_projeto.errors or form_termo.errors or form_plano.errors %}
+                                {% if form_projeto.errors or form_plano.errors or form_termo.errors %}
                 <div class="alert alert-danger shadow-sm rounded-3 border-0 mb-4" id="painel-pendencias">
                     <h5 class="alert-heading fw-bold mb-3"><i class="fas fa-search-dollar me-2"></i> Pendências Encontradas</h5>
                     <p class="small mb-3">O ARGUS identificou informações ausentes ou inválidas. Clique no item abaixo para ir direto ao campo com erro e corrigi-lo:</p>
@@ -132,25 +132,20 @@
                             {% endfor %}
                         {% endif %}
 
+
                         <!-- Erros do form_termo -->
+                        {% if form_termo %}
                         {% for field in form_termo %}
                             {% if field.errors %}
                                 <a href="javascript:void(0)" onclick="focarErro('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center">
                                     <div>
-                                        <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
+                                        <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> Termo de Parceria: {{ field.label }}</strong>
                                         <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
                                     </div>
                                     <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
                                 </a>
                             {% endif %}
                         {% endfor %}
-                        {% if form_termo.non_field_errors %}
-                            {% for erro in form_termo.non_field_errors %}
-                            <div class="list-group-item list-group-item-danger py-3">
-                                <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral de Validação (Termo)</strong>
-                                <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
-                            </div>
-                            {% endfor %}
                         {% endif %}
 
                         <!-- Erros do form_plano -->
@@ -995,7 +990,23 @@ document.addEventListener("DOMContentLoaded", function() {
 <script>
     function focarErro(fieldId) {
         console.log("Tentando focar no campo:", fieldId);
-        
+
+        // Mapa de fallback: campos que não são renderizados como widgets padrão
+        // mas existem no formulário. Aponta qual step contém o campo.
+        const stepMap = {
+            'id_vigencia_inicio': 'step2',
+            'id_vigencia_fim': 'step2',
+            'id_vigencia_meses': 'step2',
+            'id_coordenador': 'step2',
+            'id_local_execucao': 'step2',
+            'id_numero': 'step2',         // Numero do Termo (form_termo)
+            'id_data_assinatura': 'step2', // Data do Termo (form_termo)
+            'id_objeto': 'step2',          // Objeto do Termo (form_termo)
+            'id_total_meses': 'step2',
+            'id_data_inicio': 'step2',
+            'id_data_fim': 'step2',
+        };
+
         let field = document.getElementById(fieldId);
         
         // Se falhar pelo ID, tenta pelo name
@@ -1004,65 +1015,65 @@ document.addEventListener("DOMContentLoaded", function() {
             field = document.querySelector(`[name="${cleanName}"]`);
         }
 
+        // Se ainda não encontrou, verifica se está no mapa de fallback de step
         if (!field) {
-            console.warn("Elemento não encontrado para a pendência:", fieldId);
-            alert("Não foi possível localizar o campo automaticamente na tela.");
+            const fallbackStep = stepMap[fieldId];
+            if (fallbackStep && window.showStepGlobal) {
+                window.showStepGlobal(fallbackStep);
+                // Tenta de novo após a aba abrir
+                setTimeout(() => {
+                    let retryField = document.getElementById(fieldId);
+                    if (!retryField) {
+                        const cleanName = fieldId.replace('id_', '');
+                        retryField = document.querySelector(`[name="${cleanName}"]`);
+                    }
+                    if (retryField) {
+                        retryField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        retryField.style.transition = 'all 0.4s ease';
+                        retryField.style.borderColor = '#dc3545';
+                        retryField.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.8)';
+                        setTimeout(() => { retryField.style.borderColor = ''; retryField.style.boxShadow = ''; }, 3000);
+                        try { retryField.focus({ preventScroll: true }); } catch(e){}
+                    }
+                }, 250);
+                return;
+            }
+            console.warn("Elemento não encontrado:", fieldId);
             return;
         }
 
         const step = field.closest('.wizard-step');
         if (step) {
             const stepId = step.id;
-            
-            // Usa a função original do wizard se existir
             if (window.showStepGlobal) {
                 window.showStepGlobal(stepId);
             } else {
                 document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.vertical-wizard .nav-link').forEach(el => el.classList.remove('active'));
-                
                 step.classList.add('active');
                 const tabButton = document.getElementById(stepId + '-tab');
                 if (tabButton) tabButton.classList.add('active');
             }
         }
 
-        // Aguarda a renderização da aba
         setTimeout(() => {
             let targetElement = field;
-            
-            // Verifica se é Select2
             const $field = $(field);
             if ($field.next('.select2-container').length) {
                 targetElement = $field.next('.select2-container')[0];
-            } 
-            // Verifica se é Quill (Rich Text)
-            else if ($field.siblings('.ql-container').length) {
+            } else if ($field.siblings('.ql-container').length) {
                 targetElement = $field.siblings('.ql-container')[0];
             }
 
-            // Rola suavemente para o elemento
             targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
-            // Foco visual intenso (vermelho piscante)
             const originalBoxShadow = targetElement.style.boxShadow || '';
             const originalBorder = targetElement.style.borderColor || '';
-            
             targetElement.style.transition = 'all 0.4s ease';
             targetElement.style.borderColor = '#dc3545';
             targetElement.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.8)';
-            
-            // Tenta focar no input real se possível
-            try { 
-                if (typeof field.focus === 'function') field.focus({ preventScroll: true }); 
-            } catch (e) {}
-
-            // Remove o efeito após 3 segundos
-            setTimeout(() => {
-                targetElement.style.borderColor = originalBorder;
-                targetElement.style.boxShadow = originalBoxShadow;
-            }, 3000);
-            
+            try { if (typeof field.focus === 'function') field.focus({ preventScroll: true }); } catch (e) {}
+            setTimeout(() => { targetElement.style.borderColor = originalBorder; targetElement.style.boxShadow = originalBoxShadow; }, 3000);
         }, 150);
     }
 </script>
