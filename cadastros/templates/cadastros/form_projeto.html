@@ -862,6 +862,7 @@ document.addEventListener("DOMContentLoaded", function() {
         termoSelect.addEventListener('change', autoSave);
     }
 
+    window.showStepGlobal = function(stepId) { showStep(stepId); };
     function showStep(stepId) {
         syncQuills();
         document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
@@ -993,64 +994,76 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <script>
     function focarErro(fieldId) {
-        console.log("Tentando focar no campo (ID original):", fieldId);
+        console.log("Tentando focar no campo:", fieldId);
         
         let field = document.getElementById(fieldId);
-        if (!field) {
-            // Se não encontrou pelo id_for_label direto, tenta pelo name
+        
+        // Se falhar pelo ID, tenta pelo name
+        if (!field && fieldId) {
             const cleanName = fieldId.replace('id_', '');
             field = document.querySelector(`[name="${cleanName}"]`);
         }
 
         if (!field) {
-            console.warn("Elemento HTML não encontrado para a pendência:", fieldId);
+            console.warn("Elemento não encontrado para a pendência:", fieldId);
+            alert("Não foi possível localizar o campo automaticamente na tela.");
             return;
         }
 
-        // Descobre em qual aba este elemento está
         const step = field.closest('.wizard-step');
         if (step) {
-            const stepId = step.id; // Ex: "step1", "step15"
+            const stepId = step.id;
             
-            // Força a troca de aba simulando o showStep internamente
-            document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.vertical-wizard .nav-link').forEach(el => el.classList.remove('active'));
-            
-            step.classList.add('active');
-            const tabButton = document.getElementById(stepId + '-tab');
-            if (tabButton) {
-                tabButton.classList.add('active');
+            // Usa a função original do wizard se existir
+            if (window.showStepGlobal) {
+                window.showStepGlobal(stepId);
+            } else {
+                document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.vertical-wizard .nav-link').forEach(el => el.classList.remove('active'));
+                
+                step.classList.add('active');
+                const tabButton = document.getElementById(stepId + '-tab');
+                if (tabButton) tabButton.classList.add('active');
             }
         }
 
-        // Espera renderizar a aba ativada
+        // Aguarda a renderização da aba
         setTimeout(() => {
-            // Lida com campos estilizados como Select2
-            const select2Container = $(field).next('.select2-container');
-            const targetElement = select2Container.length ? select2Container[0] : field;
+            let targetElement = field;
+            
+            // Verifica se é Select2
+            const $field = $(field);
+            if ($field.next('.select2-container').length) {
+                targetElement = $field.next('.select2-container')[0];
+            } 
+            // Verifica se é Quill (Rich Text)
+            else if ($field.siblings('.ql-container').length) {
+                targetElement = $field.siblings('.ql-container')[0];
+            }
 
-            // Rola até o card
+            // Rola suavemente para o elemento
             targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
-            // Tenta dar o foco real (se possível)
-            if (typeof targetElement.focus === 'function') {
-                try { targetElement.focus({ preventScroll: true }); } catch (e) {}
-            }
+            // Foco visual intenso (vermelho piscante)
+            const originalBoxShadow = targetElement.style.boxShadow || '';
+            const originalBorder = targetElement.style.borderColor || '';
             
-            // Pisca a borda do campo para facilitar a visualização
-            const originalBorder = targetElement.style.borderColor;
-            const originalBoxShadow = targetElement.style.boxShadow;
-            
-            targetElement.style.transition = 'all 0.3s ease';
+            targetElement.style.transition = 'all 0.4s ease';
             targetElement.style.borderColor = '#dc3545';
-            targetElement.style.boxShadow = '0 0 0 0.25rem rgba(220, 53, 69, 0.4)';
+            targetElement.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.8)';
             
+            // Tenta focar no input real se possível
+            try { 
+                if (typeof field.focus === 'function') field.focus({ preventScroll: true }); 
+            } catch (e) {}
+
+            // Remove o efeito após 3 segundos
             setTimeout(() => {
                 targetElement.style.borderColor = originalBorder;
                 targetElement.style.boxShadow = originalBoxShadow;
-            }, 2500);
+            }, 3000);
             
-        }, 100);
+        }, 150);
     }
 </script>
 {% endblock %}
