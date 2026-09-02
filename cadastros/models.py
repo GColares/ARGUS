@@ -441,48 +441,30 @@ class ProjetoPDI(models.Model):
 
 class AtividadePlanoAcao(models.Model):
     plano_trabalho = models.ForeignKey('PlanoDeTrabalho', on_delete=models.CASCADE, related_name='atividades', null=True)
-    numero = models.CharField(max_length=10, verbose_name="Item (Ex: 1)")
+    numero = models.IntegerField(verbose_name="Número", default=1)
     nome = models.CharField(max_length=255, verbose_name="Nome da Atividade")
     descricao = models.TextField(verbose_name="Descrição da Atividade (Rich Text)")
     justificativa = models.TextField(blank=True, null=True, verbose_name="Justificativa (Rich Text)")
     
-    data_inicio = models.DateField(verbose_name="Data Início Absoluta", null=True, blank=True)
-    data_fim = models.DateField(verbose_name="Data Fim Absoluta", null=True, blank=True)
+    mes_inicio = models.PositiveIntegerField(verbose_name="Mês de Início (Ex: 1)", null=True, blank=True)
+    mes_fim = models.PositiveIntegerField(verbose_name="Mês de Fim (Ex: 9)", null=True, blank=True)
 
     class Meta:
         verbose_name = "Atividade do Plano de Ação"
         verbose_name_plural = "Matriz de Atividades"
-        unique_together = ('plano_trabalho', 'numero')
         
-    @property
-    def mes_inicio_calculado(self):
-        """Calcula em qual mês relativo (M1, M2) essa data cai em relação ao início do plano."""
-        if not self.data_inicio or not self.plano_trabalho or not self.plano_trabalho.data_inicio:
-            return None
-        diff_years = self.data_inicio.year - self.plano_trabalho.data_inicio.year
-        diff_months = self.data_inicio.month - self.plano_trabalho.data_inicio.month
-        return (diff_years * 12 + diff_months) + 1
-        
-    @property
-    def mes_fim_calculado(self):
-        if not self.data_fim or not self.plano_trabalho or not self.plano_trabalho.data_inicio:
-            return None
-        diff_years = self.data_fim.year - self.plano_trabalho.data_inicio.year
-        diff_months = self.data_fim.month - self.plano_trabalho.data_inicio.month
-        return (diff_years * 12 + diff_months) + 1
-
     def clean(self):
         from django.core.exceptions import ValidationError
-        if self.data_inicio and self.data_fim:
-            if self.data_inicio > self.data_fim:
-                raise ValidationError({"data_fim": "A data de fim não pode ser anterior à data de início."})
+        if self.mes_inicio and self.mes_fim:
+            if self.mes_inicio > self.mes_fim:
+                raise ValidationError({"mes_fim": "O mês de fim não pode ser anterior ao mês de início."})
             
             # Regra EMBRAPII: Macroentregas não podem ser sobrepostas no tempo.
             if self.plano_trabalho:
                 sobrepostas = AtividadePlanoAcao.objects.filter(
                     plano_trabalho=self.plano_trabalho,
-                    data_inicio__lt=self.data_fim,
-                    data_fim__gt=self.data_inicio
+                    mes_inicio__lt=self.mes_fim,
+                    mes_fim__gt=self.mes_inicio
                 ).exclude(pk=self.pk)
                 
                 if sobrepostas.exists():

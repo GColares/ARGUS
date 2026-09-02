@@ -116,78 +116,7 @@ def novo_projeto(request):
                         plano.save()
                         form_plano.save_m2m()
                     
-                    # --- SALVAMENTO DINÂMICO ---
-                    # 1. Atividades
-                    atividades_numero = request.POST.getlist('atividade_numero[]')
-                    atividades_nome = request.POST.getlist('atividade_nome[]')
-                    atividades_desc = request.POST.getlist('atividade_descricao[]')
-                    atividades_inicio = request.POST.getlist('atividade_inicio[]')
-                    atividades_fim = request.POST.getlist('atividade_fim[]')
                     
-                    for i in range(len(atividades_numero)):
-                        if atividades_nome[i].strip():
-                            # Se as datas estiverem vazias, salva como None para não quebrar o banco
-                            data_in = atividades_inicio[i] if atividades_inicio[i].strip() else None
-                            data_out = atividades_fim[i] if atividades_fim[i].strip() else None
-                            
-                            AtividadePlanoAcao.objects.create(
-                                plano=plano,
-                                numero=atividades_numero[i] or (i+1),
-                                nome=atividades_nome[i],
-                                descricao=atividades_desc[i] if i < len(atividades_desc) else '',
-                                data_inicio=data_in,
-                                data_fim=data_out
-                            )
-                            
-                    # 2. Macroentregas
-                    macro_titulos = request.POST.getlist('macro_titulo[]')
-                    macro_desc = request.POST.getlist('macro_descricao[]')
-                    macro_inicio = request.POST.getlist('macro_inicio[]')
-                    macro_fim = request.POST.getlist('macro_fim[]')
-                    macro_valor = request.POST.getlist('macro_valor[]')
-                    
-                    for i in range(len(macro_titulos)):
-                        if macro_titulos[i].strip():
-                            val_str = macro_valor[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(macro_valor) else '0'
-                            data_in = macro_inicio[i] if macro_inicio[i].strip() else None
-                            data_out = macro_fim[i] if macro_fim[i].strip() else None
-                            
-                            try:
-                                valor_float = float(val_str)
-                            except ValueError:
-                                valor_float = 0.0
-                                
-                            Macroentrega.objects.create(
-                                plano=plano,
-                                titulo=macro_titulos[i],
-                                descricao=macro_desc[i] if i < len(macro_desc) else '',
-                                data_inicio=data_in,
-                                data_fim=data_out,
-                                valor_estimado=valor_float
-                            )
-                            
-                    # 3. Rubricas
-                    rubrica_fontes = request.POST.getlist('rubrica_fonte[]')
-                    rubrica_categorias = request.POST.getlist('rubrica_categoria[]')
-                    rubrica_desc = request.POST.getlist('rubrica_descricao[]')
-                    rubrica_valores = request.POST.getlist('rubrica_valor[]')
-                    
-                    from .models import RubricaOrcamentariaPT
-                    for i in range(len(rubrica_fontes)):
-                        if rubrica_fontes[i].strip() and rubrica_categorias[i].strip():
-                            val_str = rubrica_valores[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(rubrica_valores) else '0'
-                            try:
-                                valor_float = float(val_str)
-                            except ValueError:
-                                valor_float = 0.0
-                                
-                            RubricaOrcamentariaPT.objects.create(
-                                plano=plano,
-                                fonte_recurso=rubrica_fontes[i],
-                                categoria=rubrica_categorias[i],
-                                descricao=rubrica_desc[i] if i < len(rubrica_desc) else '',
-                                valor_total=valor_float
-                            )
 
                 if action == 'publicar':
                     plano.status = 'CONGELADO_VIGENTE'
@@ -325,7 +254,117 @@ def editar_projeto(request, projeto_id):
                         plano_salvo.projeto = projeto_salvo
                         plano_salvo.save()
                         form_plano.save_m2m()
-                        
+                    plano = plano_salvo
+
+                    # --- SALVAMENTO DINÂMICO ---
+                    # Limpa registros antigos para recriar com os dados atualizados
+                    plano.atividades.all().delete()
+                    plano.macroentregas.all().delete()
+                    plano.rubricas.all().delete()
+                    plano.desembolsos.all().delete()
+                    
+                    # 1. Atividades
+                    atividades_nome = request.POST.getlist('atividade_nome[]')
+                    atividades_desc = request.POST.getlist('atividade_descricao[]')
+                    atividades_just = request.POST.getlist('atividade_justificativa[]')
+                    atividades_entreg = request.POST.getlist('atividade_entregaveis[]')
+                    atividades_inicio = request.POST.getlist('atividade_mes_inicio[]')
+                    atividades_fim = request.POST.getlist('atividade_mes_fim[]')
+                    
+                    for i in range(len(atividades_nome)):
+                        if atividades_nome[i].strip():
+                            mes_in = int(atividades_inicio[i]) if atividades_inicio[i].strip() else None
+                            mes_out = int(atividades_fim[i]) if atividades_fim[i].strip() else None
+                            
+                            atividade = AtividadePlanoAcao.objects.create(
+                                plano_trabalho=plano,
+                                numero=i+1,
+                                nome=atividades_nome[i],
+                                descricao=atividades_desc[i] if i < len(atividades_desc) else '',
+                                justificativa=atividades_just[i] if i < len(atividades_just) else '',
+                                mes_inicio=mes_in,
+                                mes_fim=mes_out
+                            )
+                            
+                            if i < len(atividades_entreg) and atividades_entreg[i].strip():
+                                for nome_entregavel in atividades_entreg[i].split(';'):
+                                    if nome_entregavel.strip():
+                                        from .models import EntregavelAtividade
+                                        EntregavelAtividade.objects.create(
+                                            atividade=atividade,
+                                            nome=nome_entregavel.strip()
+                                        )
+                            
+                    # 2. Macroentregas
+                    macro_titulos = request.POST.getlist('macro_nome[]')
+                    if not macro_titulos:
+                        macro_titulos = request.POST.getlist('macro_titulo[]')
+                    macro_desc = request.POST.getlist('macro_micro_entregas[]')
+                    if not macro_desc:
+                        macro_desc = request.POST.getlist('macro_descricao[]')
+                    macro_inicio = request.POST.getlist('macro_data_inicio[]')
+                    if not macro_inicio:
+                        macro_inicio = request.POST.getlist('macro_inicio[]')
+                    macro_fim = request.POST.getlist('macro_data_fim[]')
+                    if not macro_fim:
+                        macro_fim = request.POST.getlist('macro_fim[]')
+                    
+                    for i in range(len(macro_titulos)):
+                        if macro_titulos[i].strip():
+                            data_in = macro_inicio[i] if i < len(macro_inicio) and macro_inicio[i].strip() else None
+                            data_out = macro_fim[i] if i < len(macro_fim) and macro_fim[i].strip() else None
+                            
+                            Macroentrega.objects.create(
+                                plano_trabalho=plano,
+                                numero=i+1,
+                                nome=macro_titulos[i],
+                                micro_entregas=macro_desc[i] if i < len(macro_desc) else '',
+                                data_inicio=data_in,
+                                data_fim=data_out
+                            )
+                            
+                    # 3. Rubricas
+                    rubrica_fontes = request.POST.getlist('rubrica_fonte[]')
+                    rubrica_categorias = request.POST.getlist('rubrica_categoria[]')
+                    rubrica_desc = request.POST.getlist('rubrica_descricao[]')
+                    rubrica_valores = request.POST.getlist('rubrica_valor[]')
+                    
+                    from .models import RubricaOrcamentariaPT, CronogramaDesembolso
+                    for i in range(len(rubrica_fontes)):
+                        if rubrica_fontes[i].strip() and rubrica_categorias[i].strip():
+                            val_str = rubrica_valores[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(rubrica_valores) else '0'
+                            try:
+                                valor_float = float(val_str)
+                            except ValueError:
+                                valor_float = 0.0
+                                
+                            RubricaOrcamentariaPT.objects.create(
+                                plano_trabalho=plano,
+                                fonte_recurso=rubrica_fontes[i],
+                                categoria=rubrica_categorias[i],
+                                descricao=rubrica_desc[i] if i < len(rubrica_desc) else '',
+                                valor=valor_float
+                            )
+                            
+                    # 4. Cronograma Financeiro (Desembolsos)
+                    desembolso_mes = request.POST.getlist('desembolso_mes[]')
+                    desembolso_valor = request.POST.getlist('desembolso_valor[]')
+                    
+                    for i in range(len(desembolso_mes)):
+                        if desembolso_mes[i].strip():
+                            val_str = desembolso_valor[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(desembolso_valor) else '0'
+                            try:
+                                valor_float = float(val_str)
+                            except ValueError:
+                                valor_float = 0.0
+                                
+                            CronogramaDesembolso.objects.create(
+                                plano_trabalho=plano,
+                                parcela=i+1,
+                                mes_previsto=desembolso_mes[i],
+                                valor=valor_float
+                            )
+
                 if action == 'publicar':
                     plano_salvo.status = 'CONGELADO_VIGENTE'
                     plano_salvo.congelado = True
@@ -353,7 +392,8 @@ def editar_projeto(request, projeto_id):
     context = {
         'form_projeto': form_projeto,
         'form_plano': form_plano,
-        'projeto': projeto
+        'projeto': projeto,
+        'plano_ativo': plano
     }
     return render(request, 'cadastros/form_projeto.html', context)
 from django.shortcuts import render, redirect, get_object_or_404
@@ -473,78 +513,7 @@ def novo_projeto(request):
                         plano.save()
                         form_plano.save_m2m()
                     
-                    # --- SALVAMENTO DINÂMICO ---
-                    # 1. Atividades
-                    atividades_numero = request.POST.getlist('atividade_numero[]')
-                    atividades_nome = request.POST.getlist('atividade_nome[]')
-                    atividades_desc = request.POST.getlist('atividade_descricao[]')
-                    atividades_inicio = request.POST.getlist('atividade_inicio[]')
-                    atividades_fim = request.POST.getlist('atividade_fim[]')
                     
-                    for i in range(len(atividades_numero)):
-                        if atividades_nome[i].strip():
-                            # Se as datas estiverem vazias, salva como None para não quebrar o banco
-                            data_in = atividades_inicio[i] if atividades_inicio[i].strip() else None
-                            data_out = atividades_fim[i] if atividades_fim[i].strip() else None
-                            
-                            AtividadePlanoAcao.objects.create(
-                                plano=plano,
-                                numero=atividades_numero[i] or (i+1),
-                                nome=atividades_nome[i],
-                                descricao=atividades_desc[i] if i < len(atividades_desc) else '',
-                                data_inicio=data_in,
-                                data_fim=data_out
-                            )
-                            
-                    # 2. Macroentregas
-                    macro_titulos = request.POST.getlist('macro_titulo[]')
-                    macro_desc = request.POST.getlist('macro_descricao[]')
-                    macro_inicio = request.POST.getlist('macro_inicio[]')
-                    macro_fim = request.POST.getlist('macro_fim[]')
-                    macro_valor = request.POST.getlist('macro_valor[]')
-                    
-                    for i in range(len(macro_titulos)):
-                        if macro_titulos[i].strip():
-                            val_str = macro_valor[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(macro_valor) else '0'
-                            data_in = macro_inicio[i] if macro_inicio[i].strip() else None
-                            data_out = macro_fim[i] if macro_fim[i].strip() else None
-                            
-                            try:
-                                valor_float = float(val_str)
-                            except ValueError:
-                                valor_float = 0.0
-                                
-                            Macroentrega.objects.create(
-                                plano=plano,
-                                titulo=macro_titulos[i],
-                                descricao=macro_desc[i] if i < len(macro_desc) else '',
-                                data_inicio=data_in,
-                                data_fim=data_out,
-                                valor_estimado=valor_float
-                            )
-                            
-                    # 3. Rubricas
-                    rubrica_fontes = request.POST.getlist('rubrica_fonte[]')
-                    rubrica_categorias = request.POST.getlist('rubrica_categoria[]')
-                    rubrica_desc = request.POST.getlist('rubrica_descricao[]')
-                    rubrica_valores = request.POST.getlist('rubrica_valor[]')
-                    
-                    from .models import RubricaOrcamentariaPT
-                    for i in range(len(rubrica_fontes)):
-                        if rubrica_fontes[i].strip() and rubrica_categorias[i].strip():
-                            val_str = rubrica_valores[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(rubrica_valores) else '0'
-                            try:
-                                valor_float = float(val_str)
-                            except ValueError:
-                                valor_float = 0.0
-                                
-                            RubricaOrcamentariaPT.objects.create(
-                                plano=plano,
-                                fonte_recurso=rubrica_fontes[i],
-                                categoria=rubrica_categorias[i],
-                                descricao=rubrica_desc[i] if i < len(rubrica_desc) else '',
-                                valor_total=valor_float
-                            )
 
                 if valid_proj and valid_plano:
                     messages.success(request, f"Projeto '{projeto.nome}' criado com sucesso e sem pendências!")
@@ -1048,3 +1017,27 @@ class TermoDeParceriaDeleteView(DeleteView):
     model = TermoDeParceria
     template_name = 'cadastros/termo_parceria_confirm_delete.html'
     success_url = reverse_lazy('cadastros:listar_termos_parceria')
+
+# Trigger restart
+
+# Trigger restart 2
+
+# Trigger restart 3
+
+# Trigger restart 4
+
+# Trigger restart 5
+
+# Trigger restart 6
+
+# Trigger restart 7
+
+# Trigger restart 8
+
+# Trigger restart 9
+
+# Trigger restart 10
+
+# Trigger restart 11
+
+# Trigger restart 12
