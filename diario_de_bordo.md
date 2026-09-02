@@ -1,5 +1,17 @@
 # Diário de Bordo - ARGUS
 
+## [01/09/2026] - Refatoração UI do Wizard e Tratamento de Desastres (Edição de Projetos)
+
+### 📝 O que foi feito:
+- O painel de Plano de Ação (Aba 9) foi totalmente remodelado. Substituiu-se a antiga estrutura de 'Cards' por uma tabela dinâmica e responsiva com a criação de atividades concentrada em um Modal interativo e robusto.
+- Implementado sistema de seleção de vigência (Meses Início e Fim) utilizando grid interativo (verde/vermelho).
+- Melhorada a interface de inserção de entregáveis com botão '+' no modal.
+- Resolvido bug crítico do Django onde 'Salvar Alterações' no backend não capturava as atividades corretamente na view de edição. Adicionado também o Auto-Save via AJAX ao fechar o modal.
+- Correção emergencial de colisão de IDs de abas gerada por expressões regulares que haviam embaralhado e duplicado etapas (step6, step7, etc). As 17 abas foram re-mapeadas perfeitamente no backend para coincidir com a UI.
+
+### ⏳ O que ficou pendente:
+- **URGENTE / INVESTIGAR:** O usuário relatou que os botões (salvar, avançar, adicionar) **continuam sem funcionar** após a correção dos IDs HTML. Precisamos checar (1) O Console Javascript em busca de erros ocultos na renderização das abas (2) Se algum handler do botão '.btn-next' ou 'btn-add-atividade' foi perdido durante a restauração do arquivo via Git Checkout, ou (3) Se há bloqueios do Bootstrap na invocação do Modal. A prioridade máxima ao retornar é depurar e reativar a interatividade da página 'editar_projeto'.
+
 ## [31/08/2026] - Consolidação para repositório único em C:\ARGUS
 
 ### 📝 O que foi feito:
