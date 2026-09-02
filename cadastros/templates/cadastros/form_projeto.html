@@ -662,14 +662,15 @@
                                             <label class="form-label small fw-bold">Nome da Atividade *</label>
                                             <input type="text" id="modal-atividade-nome" class="form-control" required>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Mês de Início (Ex: 1) *</label>
-                                            <input type="number" id="modal-atividade-mes-inicio" class="form-control" min="1" required>
+                                        
+                                        <div class="col-md-12">
+                                            <label class="form-label small fw-bold">Vigência (Mês Início e Fim) *</label>
+                                            <div id="modal-atividade-month-grid" class="d-flex flex-wrap gap-1 mb-2"></div>
+                                            <input type="hidden" id="modal-atividade-mes-inicio" required>
+                                            <input type="hidden" id="modal-atividade-mes-fim" required>
+                                            <small id="modal-atividade-month-error" class="text-danger d-none">Selecione o mês de início e fim no grid acima.</small>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Mês de Fim (Ex: 9) *</label>
-                                            <input type="number" id="modal-atividade-mes-fim" class="form-control" min="1" required>
-                                        </div>
+
                                         <div class="col-md-12">
                                             <label class="form-label small fw-bold">Descrição da Atividade</label>
                                             <textarea id="modal-atividade-descricao" class="form-control" rows="3"></textarea>
@@ -679,8 +680,12 @@
                                             <textarea id="modal-atividade-justificativa" class="form-control" rows="2"></textarea>
                                         </div>
                                         <div class="col-md-12">
-                                            <label class="form-label small fw-bold">Entregáveis (Separe por ponto-e-vírgula ";")</label>
-                                            <textarea id="modal-atividade-entregaveis" class="form-control" rows="2" placeholder="Ex: Relatório de Requisitos; Protótipo Funcional"></textarea>
+                                            <label class="form-label small fw-bold">Entregáveis da Atividade</label>
+                                            <div class="input-group mb-2">
+                                                <input type="text" id="modal-atividade-entregavel-input" class="form-control" placeholder="Adicionar entregável...">
+                                                <button type="button" class="btn btn-outline-success" id="btn-add-entregavel"><i class="fas fa-plus"></i></button>
+                                            </div>
+                                            <div id="modal-atividade-entregaveis-list" class="d-flex flex-wrap gap-2"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1461,32 +1466,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // --- LÓGICA DO MENU LATERAL RETRÁTIL ---
-    const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
-    const sidebarCol = document.getElementById('wizard-sidebar-col');
-    const contentCol = document.getElementById('wizard-content-col');
-    let isSidebarVisible = true;
-
-    if(btnToggleSidebar && sidebarCol && contentCol) {
-        btnToggleSidebar.addEventListener('click', function() {
-            isSidebarVisible = !isSidebarVisible;
-            if(isSidebarVisible) {
-                // Mostrar
-                sidebarCol.classList.remove('d-none');
-                sidebarCol.classList.add('col-md-4', 'col-lg-3');
-                contentCol.classList.remove('col-md-12', 'col-lg-12');
-                contentCol.classList.add('col-md-8', 'col-lg-9');
-                btnToggleSidebar.innerHTML = '<i class="fas fa-expand-arrows-alt me-1"></i> Tela Cheia';
-            } else {
-                // Ocultar
-                sidebarCol.classList.add('d-none');
-                sidebarCol.classList.remove('col-md-4', 'col-lg-3');
-                contentCol.classList.remove('col-md-8', 'col-lg-9');
-                contentCol.classList.add('col-md-12', 'col-lg-12');
-                btnToggleSidebar.innerHTML = '<i class="fas fa-compress-arrows-alt me-1"></i> Voltar Menu';
-            }
-        });
-    }
+    
 });
 </script>
 
