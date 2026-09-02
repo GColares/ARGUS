@@ -425,22 +425,22 @@
                             </div>
                             
                             <!-- 8. Estratégia -->
-                            <div class="wizard-step flex-grow-1" id="step6">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">6. Estratégia <span class="text-danger">*</span></h4>
+                            <div class="wizard-step flex-grow-1" id="step8">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">8. Estratégia <span class="text-danger">*</span></h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.estrategia }}
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-auto pt-3 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step5"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step7">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step7"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step9">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
 
                             <!-- 7. Plano de Ação -->
-                            <div class="wizard-step flex-grow-1" id="step7">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">7. Plano de Ação</h4>
+                            <div class="wizard-step flex-grow-1" id="step9">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">9. Plano de Ação</h4>
                                                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="mb-0 text-muted">Lista de Atividades e Entregáveis</h6>
                                     <button type="button" class="btn btn-primary fw-bold btn-sm" id="btn-open-modal-atividade">
@@ -469,8 +469,8 @@
                                 </div>
                                 <div id="atividades-hidden-inputs"></div>
                                 <div class="d-flex justify-content-between mt-auto pt-3 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step6"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step8">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step8"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step10">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
@@ -492,8 +492,8 @@
                             </div>
 
                             <!-- 11. Indicadores -->
-                            <div class="wizard-step flex-grow-1" id="step9">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">9. Indicadores de Resultados</h4>
+                            <div class="wizard-step flex-grow-1" id="step11">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">11. Indicadores de Resultados</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         <label class="form-label fw-bold text-muted text-uppercase small">Selecione os Indicadores Aplicáveis</label>
@@ -502,14 +502,14 @@
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-auto pt-3 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step8"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step10">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step10"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step12">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
                             <!-- 12. Inovação -->
                             <div class="wizard-step flex-grow-1" id="step12">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">10. Características Inovadoras</h4>
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">12. Características Inovadoras</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.caracteristicas_inovadoras }}
@@ -522,16 +522,16 @@
                             </div>
 
                             <!-- 13. Resultados -->
-                            <div class="wizard-step flex-grow-1" id="step11">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">11. Resultados Esperados</h4>
+                            <div class="wizard-step flex-grow-1" id="step13">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">13. Resultados Esperados</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.resultados_esperados }}
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-auto pt-3 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step10"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step12">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step12"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step14">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
@@ -550,30 +550,30 @@
                             </div>
                             
                             <!-- 15. Desafios -->
-                            <div class="wizard-step flex-grow-1" id="step13">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">13. Desafios Científicos e Tecnológicos</h4>
+                            <div class="wizard-step flex-grow-1" id="step15">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">15. Desafios Científicos e Tecnológicos</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.desafios_tecnologicos }}
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-auto pt-3 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step12"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step14">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step14"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step16">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
                             <!-- 14. Solução Proposta -->
-                            <div class="wizard-step flex-grow-1" id="step14">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">14. Solução Proposta</h4>
+                            <div class="wizard-step flex-grow-1" id="step16">
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">16. Solução Proposta</h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.solucao_proposta }}
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between mt-auto pt-3 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step13"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step15">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step15"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step17">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
                                 </div>
                             </div>
                             
@@ -1019,7 +1019,6 @@ document.addEventListener("DOMContentLoaded", function() {
         renderAtividadesTable();
     {% endif %}
 
-    // --- LÓGICA DINÂMICA: MACRO-ENTREGAS ---
     // --- LÓGICA DINÂMICA: MACRO-ENTREGAS ---
     const macroentregasContainer = document.getElementById('macroentregas-container');
     const btnAddMacroentrega = document.getElementById('btn-add-macroentrega');
