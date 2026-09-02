@@ -1,3 +1,22 @@
+## 02/09/2026 (Preventivo - Edição de Projetos)
+**Status Atual do Projeto:**
+Sistema estabilizado rodando sob o PostgreSQL 18. O formulário de edição de ProjetoPDI (Wizard Caixa Eletrônico) foi plenamente restabelecido e validado, pronto para receber dados reais de produção.
+
+**O que foi feito recentemente (Período/Sessão):**
+- **Migração e Recuperação:** Finalizamos o switch para a nova instância do PostgreSQL 18. Todos os dados do banco argus_db permaneceram íntegros.
+- **Lista de Alterações Críticas no HTML:**
+  - form_projeto.html (Inputs): escopo e eap renomeados para escopo_geral e estrutura_analitica.
+  - form_projeto.html (Javascript): Correção do crash no JS (TypeError) no modal que impedia o salvamento AJAX.
+  - form_projeto.html (CSS): Modificação style reinjetado para forçar listas do Quill a renderizarem bolinhas (bullet points).
+  - form_projeto.html (Layout): Injeção de pb-3 mb-2 no container d-flex justify-content-between nos 17 steps, subindo os botões na tela (~1cm).
+  - form_projeto.html (linha 310): Alteração na tag option de tp.concedente.nome para tp.objeto.
+  - views.py (linha 161): Remoção do truncamento do termo.objeto, permitindo exibir o nome completo no Select2.
+
+**O que está pendente no nosso radar:**
+- **Gestão de Projetos:** Aguardar o preenchimento de dados reais pelo usuário e continuar a evolução do módulo.
+
+---
+
 # Diário de Bordo - ARGUS
 
 ## [01/09/2026] - Refatoração UI do Wizard e Tratamento de Desastres (Edição de Projetos)

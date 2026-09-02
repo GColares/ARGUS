@@ -1,0 +1,7 @@
+ projeto_id |        escopo        
+------------+----------------------
+            | 
+            | 
+          2 | <p class="ql-align-j
+(3 linhas)
+

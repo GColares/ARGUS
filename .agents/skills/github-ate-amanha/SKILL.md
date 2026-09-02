@@ -11,7 +11,12 @@ Siga os passos rigorosamente nesta ordem:
 
 1. **Atualizar Regras de Negócio e Diário:**
    - Antes de iniciar o versionamento, atualize o arquivo `.agents/rules/CONTEXTO_ARGUS.md` com novos aprendizados caso necessário.
-   - Atualize OBRIGATORIAMENTE o arquivo `diario_de_bordo.md` na raiz do projeto. ATENÇÃO: NUNCA sobrescreva o arquivo apagando o histórico anterior. Você deve INSERIR a nova entrada (com a data atual, o que foi feito e o que está pendente) logo abaixo do título principal do arquivo, empurrando todo o texto e os dias anteriores para baixo, preservando todo o histórico intocado.
+   - Atualize OBRIGATORIAMENTE o arquivo `diario_de_bordo.md` na raiz do projeto. ATENÇÃO: NUNCA sobrescreva o arquivo apagando o histórico anterior. Você deve INSERIR a nova entrada logo abaixo do título principal do arquivo.
+   - **O que a entrada deve conter:**
+     - Data atual.
+     - Resumo do que foi feito e o que está pendente.
+     - **CRÍTICO:** Uma lista ostensiva e específica contendo **todas as alterações feitas no HTML no período/sessão** (quais arquivos, tags, IDs, scripts e refatorações visuais foram aplicadas, para facilitar o rastreio das atualizações de interface).
+   - Empurre todo o texto e os dias anteriores para baixo, preservando todo o histórico intocado.
 2. **Geração de Backups Híbridos de Segurança:**
    - Garanta que as pastas `backups/sql/` e `backups/json/` existem na raiz do projeto (crie se não existirem).
    - Determine o próximo ID sequencial de 3 dígitos (NNN) analisando as subpastas em `backups/`.

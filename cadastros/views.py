@@ -158,8 +158,8 @@ def api_termos_por_empresa(request, empresa_id):
     termos = TermoDeParceria.objects.filter(q).distinct()
     data = []
     for termo in termos:
-        objeto_preview = (termo.objeto[:40] + '...') if termo.objeto and len(termo.objeto) > 40 else (termo.objeto or '')
-        display = f"Termo {termo.numero} - {objeto_preview}" if termo.numero else f"Termo s/n - {objeto_preview}"
+        objeto_texto = termo.objeto or ''
+        display = f"Termo {termo.numero} - {objeto_texto}" if termo.numero else f"Termo s/n - {objeto_texto}"
         data.append({'id': termo.id, 'display_name': display})
     
     return JsonResponse({'termos': data})

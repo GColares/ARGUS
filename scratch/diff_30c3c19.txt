@@ -1,0 +1,689 @@
+diff --git a/cadastros/templates/cadastros/form_projeto.html b/cadastros/templates/cadastros/form_projeto.html
+index 0266c3d..98eb63e 100644
+--- a/cadastros/templates/cadastros/form_projeto.html
++++ b/cadastros/templates/cadastros/form_projeto.html
+@@ -205,7 +205,7 @@
+ 
+                 <div class="row">
+                     <!-- Menu Lateral Vertical -->
+-                    <div class="col-md-4 col-lg-3 vertical-wizard border-end pe-4">
++                    <div class="col-md-4 col-lg-3 vertical-wizard border-end pe-4" id="wizard-sidebar-col" style="transition: width 0.3s, padding 0.3s; overflow: hidden;">
+                         <div class="nav flex-column nav-pills" style="height: calc(100vh - 290px); overflow-y: auto; overflow-x: hidden; flex-wrap: nowrap; padding-right: 5px;" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                             <button class="nav-link active" id="step1-tab" type="button" role="tab"><span class="step-number">1</span> Dados Cadastrais</button>
+                             <button class="nav-link" id="step2-tab" type="button" role="tab"><span class="step-number">2</span> Descrição Básica</button>
+@@ -228,7 +228,10 @@
+                     </div>
+ 
+                     <!-- Área de Conteúdo do Formulário -->
+-                    <div class="col-md-8 col-lg-9 ps-4">
++                    <div class="col-md-8 col-lg-9 ps-4" id="wizard-content-col" style="transition: width 0.3s, padding 0.3s;">
++                        <div class="d-flex justify-content-end mb-2">
++                            <button type="button" class="btn btn-sm btn-outline-secondary border-0 text-muted" id="btn-toggle-sidebar" title="Expandir/Recolher Área de Trabalho"><i class="fas fa-expand-arrows-alt me-1"></i> Tela Cheia</button>
++                        </div>
+                         <div class="bg-white p-4 border rounded shadow-sm custom-scrollbar d-flex flex-column" style="height: calc(100vh - 290px); overflow-y: auto; overflow-x: hidden;">
+                             
+                             <!-- 1. Dados Cadastrais -->
+@@ -438,14 +441,33 @@
+                             <!-- 7. Plano de Ação -->
+                             <div class="wizard-step flex-grow-1" id="step7">
+                                 <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">7. Plano de Ação</h4>
+-                                <div id="atividades-container">
+-                                    <!-- Dynamic Atividade Cards will go here -->
+-                                </div>
+-                                <div class="text-center mt-3">
+-                                    <button type="button" class="btn btn-outline-primary fw-bold" id="btn-add-atividade">
+-                                        <i class="fas fa-plus me-2"></i> Adicionar Nova Atividade
++                                                                <div class="d-flex justify-content-between align-items-center mb-3">
++                                    <h6 class="mb-0 text-muted">Lista de Atividades e Entregáveis</h6>
++                                    <button type="button" class="btn btn-primary fw-bold btn-sm" id="btn-open-modal-atividade">
++                                        <i class="fas fa-plus me-1"></i> Adicionar Atividade
+                                     </button>
+                                 </div>
++                                <div class="table-responsive">
++                                    <table class="table table-hover table-bordered bg-white shadow-sm" id="tabela-atividades">
++                                        <thead class="table-light">
++                                            <tr>
++                                                <th class="text-center" width="8%">Item</th>
++                                                <th class="text-center">Nome da Atividade</th>
++                                                <th class="text-center" width="30%">Entregáveis</th>
++                                                <th class="text-center" width="12%">Mês Início</th>
++                                                <th class="text-center" width="12%">Mês Fim</th>
++                                                <th class="text-center" width="12%">Ações</th>
++                                            </tr>
++                                        </thead>
++                                        <tbody>
++                                            <!-- Dynamic Rows -->
++                                            <tr id="row-empty-atividade">
++                                                <td colspan="6" class="text-center text-muted py-4">Nenhuma atividade cadastrada. Clique em "Adicionar Atividade".</td>
++                                            </tr>
++                                        </tbody>
++                                    </table>
++                                </div>
++                                <div id="atividades-hidden-inputs"></div>
+                                 <div class="d-flex justify-content-between mt-auto pt-3 border-top">
+                                     <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step6"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+                                     <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step8">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+@@ -623,7 +645,53 @@
+                         </div>
+                     </div>
+                         </div>
+-                    </form>
++                                        </form>
++                    
++                    <!-- Modal Atividade -->
++                    <div class="modal fade" id="modalAtividade" tabindex="-1" aria-labelledby="modalAtividadeLabel" aria-hidden="true" data-bs-backdrop="static">
++                        <div class="modal-dialog modal-lg">
++                            <div class="modal-content">
++                                <div class="modal-header bg-primary text-white">
++                                    <h5 class="modal-title" id="modalAtividadeLabel"><i class="fas fa-tasks me-2"></i><span id="modal-atividade-titulo">Nova Atividade</span></h5>
++                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
++                                </div>
++                                <div class="modal-body">
++                                    <input type="hidden" id="modal-atividade-index">
++                                    <div class="row g-3">
++                                        <div class="col-md-12">
++                                            <label class="form-label small fw-bold">Nome da Atividade *</label>
++                                            <input type="text" id="modal-atividade-nome" class="form-control" required>
++                                        </div>
++                                        <div class="col-md-6">
++                                            <label class="form-label small fw-bold">Mês de Início (Ex: 1) *</label>
++                                            <input type="number" id="modal-atividade-mes-inicio" class="form-control" min="1" required>
++                                        </div>
++                                        <div class="col-md-6">
++                                            <label class="form-label small fw-bold">Mês de Fim (Ex: 9) *</label>
++                                            <input type="number" id="modal-atividade-mes-fim" class="form-control" min="1" required>
++                                        </div>
++                                        <div class="col-md-12">
++                                            <label class="form-label small fw-bold">Descrição da Atividade</label>
++                                            <textarea id="modal-atividade-descricao" class="form-control" rows="3"></textarea>
++                                        </div>
++                                        <div class="col-md-12">
++                                            <label class="form-label small fw-bold">Justificativa</label>
++                                            <textarea id="modal-atividade-justificativa" class="form-control" rows="2"></textarea>
++                                        </div>
++                                        <div class="col-md-12">
++                                            <label class="form-label small fw-bold">Entregáveis (Separe por ponto-e-vírgula ";")</label>
++                                            <textarea id="modal-atividade-entregaveis" class="form-control" rows="2" placeholder="Ex: Relatório de Requisitos; Protótipo Funcional"></textarea>
++                                        </div>
++                                    </div>
++                                </div>
++                                <div class="modal-footer bg-light">
++                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
++                                    <button type="button" class="btn btn-primary" id="btn-save-atividade-modal"><i class="fas fa-save me-1"></i>Salvar na Tabela</button>
++                                </div>
++                            </div>
++                        </div>
++                    </div>
++
+         </div>
+     </div>
+ </div>
+@@ -676,150 +744,282 @@ document.addEventListener("DOMContentLoaded", function() {
+     });
+ 
+     
+-    // --- LÓGICA DINÂMICA: PLANO DE AÇÃO (ATIVIDADES) ---
+-    const atividadesContainer = document.getElementById('atividades-container');
+-    const btnAddAtividade = document.getElementById('btn-add-atividade');
+-    let atividadeCount = 0;
+-
+-    function createAtividadeCard(data = {}) {
+-        atividadeCount++;
+-        const index = atividadeCount;
++    // --- LÓGICA DINÂMICA: PLANO DE AÇÃO (ATIVIDADES) (TABELA + MODAL) ---
++    let atividadesList = [];
++    let modalAtividadeEditIndex = -1;
++    const modalAtividadeInstance = new bootstrap.Modal(document.getElementById('modalAtividade'));
++    
++    let modalAtividadeStartMonth = null;
++    let modalAtividadeEndMonth = null;
++    let modalEntregaveisTemp = []; // Store deliverables temporarily while modal is open
++    
++    function renderMonthGrid() {
++        const grid = document.getElementById('modal-atividade-month-grid');
++        if (!grid) return;
++        const vigenciaInput = document.getElementById('id_vigencia_meses');
++        const totalMeses = vigenciaInput && vigenciaInput.value ? parseInt(vigenciaInput.value) : 24;
+         
+-        const card = document.createElement('div');
+-        card.className = 'card border-info mb-4 shadow-sm atividade-card';
+-        card.innerHTML = `
+-            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center py-2">
+-                <h6 class="mb-0 fw-bold"><i class="fas fa-tasks me-2"></i>Atividade ${index}</h6>
+-                <button type="button" class="btn btn-sm btn-danger btn-remover-atividade" title="Remover Atividade"><i class="fas fa-times"></i></button>
+-            </div>
+-            <div class="card-body bg-light">
+-                <div class="row g-3">
+-                    <div class="col-md-2">
+-                        <label class="form-label small fw-bold">Item (Ex: 1.1)</label>
+-                        <input type="text" name="atividade_numero[]" class="form-control" value="${data.numero || index}" required>
+-                    </div>
+-                    <div class="col-md-10">
+-                        <label class="form-label small fw-bold">Nome da Atividade</label>
+-                        <input type="text" name="atividade_nome[]" class="form-control" value="${data.nome || ''}" required>
+-                    </div>
+-                    <div class="col-md-6">
+-                        <label class="form-label small fw-bold">Data Início</label>
+-                        <input type="date" name="atividade_data_inicio[]" class="form-control" value="${data.data_inicio || ''}">
+-                    </div>
+-                    <div class="col-md-6">
+-                        <label class="form-label small fw-bold">Data Fim</label>
+-                        <input type="date" name="atividade_data_fim[]" class="form-control" value="${data.data_fim || ''}">
+-                    </div>
+-                    <div class="col-md-12">
+-                        <label class="form-label small fw-bold">Descrição da Atividade</label>
+-                        <textarea name="atividade_descricao[]" class="form-control" rows="2">${data.descricao || ''}</textarea>
+-                    </div>
+-                </div>
+-            </div>
+-        `;
++        grid.innerHTML = '';
++        for (let i = 1; i <= totalMeses; i++) {
++            const wrapper = document.createElement('div');
++            wrapper.className = 'd-flex flex-column align-items-center mb-1';
++            wrapper.style.width = '45px';
++            
++            const box = document.createElement('div');
++            box.className = 'month-box';
++            box.textContent = 'M' + i;
++            
++            const label = document.createElement('small');
++            label.className = 'text-muted fw-bold mt-1';
++            label.style.fontSize = '0.65rem';
++            label.textContent = ' '; // Non-breaking space to keep height
++            
++            if (modalAtividadeStartMonth === i && modalAtividadeEndMonth === i) {
++                box.classList.add('selected-single');
++                label.textContent = 'ÚNICO';
++                label.classList.add('text-purple'); // Just reusing a color if possible, or leave muted
++            } else if (modalAtividadeStartMonth === i) {
++                box.classList.add('selected-start');
++                label.textContent = 'INÍCIO';
++                label.classList.remove('text-muted');
++                label.classList.add('text-success');
++            } else if (modalAtividadeEndMonth === i) {
++                box.classList.add('selected-end');
++                label.textContent = 'FIM';
++                label.classList.remove('text-muted');
++                label.classList.add('text-danger');
++            } else if (modalAtividadeStartMonth && modalAtividadeEndMonth && i > modalAtividadeStartMonth && i < modalAtividadeEndMonth) {
++                box.classList.add('in-range');
++            }
++            
++            box.addEventListener('click', () => {
++                if (!modalAtividadeStartMonth || (modalAtividadeStartMonth && modalAtividadeEndMonth)) {
++                    modalAtividadeStartMonth = i;
++                    modalAtividadeEndMonth = null;
++                } else {
++                    if (i < modalAtividadeStartMonth) {
++                        modalAtividadeEndMonth = modalAtividadeStartMonth;
++                        modalAtividadeStartMonth = i;
++                    } else {
++                        modalAtividadeEndMonth = i;
++                    }
++                }
++                
++                document.getElementById('modal-atividade-mes-inicio').value = modalAtividadeStartMonth || '';
++                document.getElementById('modal-atividade-mes-fim').value = modalAtividadeEndMonth || modalAtividadeStartMonth || '';
++                
++                if (modalAtividadeStartMonth && modalAtividadeEndMonth) {
++                    document.getElementById('modal-atividade-month-error').classList.add('d-none');
++                }
++                
++                renderMonthGrid();
++            });
++            wrapper.appendChild(box);
++            wrapper.appendChild(label);
++            grid.appendChild(wrapper);
++        }
++    }
++
++    function renderEntregaveisList() {
++        const listContainer = document.getElementById('modal-atividade-entregaveis-list');
++        listContainer.innerHTML = '';
+         
+-        card.querySelector('.btn-remover-atividade').addEventListener('click', function() {
+-            card.remove();
+-            autoSave();
+-        });
++        if (modalEntregaveisTemp.length === 0) {
++            listContainer.innerHTML = '<small class="text-muted fst-italic">Nenhum entregável adicionado.</small>';
++            return;
++        }
+         
+-        card.querySelectorAll('input, textarea').forEach(input => {
+-            input.addEventListener('input', autoSave);
++        modalEntregaveisTemp.forEach((ent, idx) => {
++            const item = document.createElement('div');
++            item.className = 'd-flex justify-content-between align-items-center bg-light border rounded px-2 py-1';
++            item.innerHTML = `
++                <span class="small"><i class="fas fa-check-circle text-success me-2"></i>${ent}</span>
++                <button type="button" class="btn btn-sm text-danger border-0 p-0" title="Remover" onclick="removeTempEntregavel(${idx})"><i class="fas fa-times"></i></button>
++            `;
++            listContainer.appendChild(item);
+         });
+-
+-        atividadesContainer.appendChild(card);
+     }
+ 
+-    if (btnAddAtividade) {
+-        btnAddAtividade.addEventListener('click', function() {
+-            createAtividadeCard();
+-            autoSave();
+-        });
+-    }
+-    
+-    // Create at least one empty card if not in edit mode
+-    if (!isEditMode && document.querySelectorAll('.atividade-card').length === 0) {
+-        createAtividadeCard();
+-    }
++    window.removeTempEntregavel = function(idx) {
++        modalEntregaveisTemp.splice(idx, 1);
++        renderEntregaveisList();
++    };
+ 
++    document.getElementById('btn-add-entregavel').addEventListener('click', function() {
++        const input = document.getElementById('modal-atividade-entregavel-input');
++        const val = input.value.trim();
++        if (val) {
++            // Evitar ; no meio do texto para não quebrar nosso split do backend
++            modalEntregaveisTemp.push(val.replace(/;/g, ','));
++            input.value = '';
++            renderEntregaveisList();
++        }
++    });
+     
+-    // --- LÓGICA DINÂMICA: OBJETIVOS ESPECÍFICOS (SHADOW FIELD) ---
+-    const objetivosContainer = document.getElementById('objetivos-container');
+-    const btnAddObjetivo = document.getElementById('btn-add-objetivo');
+-    const hiddenObjetivosInput = document.getElementById('id_objetivos_especificos');
++    document.getElementById('modal-atividade-entregavel-input').addEventListener('keypress', function(e) {
++        if (e.key === 'Enter') {
++            e.preventDefault();
++            document.getElementById('btn-add-entregavel').click();
++        }
++    });
++
++    // Abrir Modal de Nova Atividade
++    document.getElementById('btn-open-modal-atividade').addEventListener('click', function() {
++        document.getElementById('modal-atividade-titulo').textContent = 'Nova Atividade #' + (atividadesList.length + 1);
++        modalAtividadeEditIndex = -1;
++        document.getElementById('modal-atividade-nome').value = '';
++        document.getElementById('modal-atividade-descricao').value = '';
++        document.getElementById('modal-atividade-justificativa').value = '';
++        
++        modalEntregaveisTemp = [];
++        document.getElementById('modal-atividade-entregavel-input').value = '';
++        renderEntregaveisList();
++        
++        modalAtividadeStartMonth = null;
++        modalAtividadeEndMonth = null;
++        document.getElementById('modal-atividade-mes-inicio').value = '';
++        document.getElementById('modal-atividade-mes-fim').value = '';
++        document.getElementById('modal-atividade-month-error').classList.add('d-none');
++        renderMonthGrid();
++        
++        modalAtividadeInstance.show();
++    });
+     
+-    function syncObjetivosToShadow() {
+-        const inputs = objetivosContainer.querySelectorAll('.objetivo-input');
+-        let htmlContent = "<ul>";
+-        inputs.forEach(input => {
+-            if (input.value.trim() !== '') {
+-                htmlContent += `<li>${input.value.trim()}</li>`;
+-            }
+-        });
+-        htmlContent += "</ul>";
++    // Salvar do Modal para a Tabela Virtual
++    document.getElementById('btn-save-atividade-modal').addEventListener('click', function() {
++        // Coletar
++        const nome = document.getElementById('modal-atividade-nome').value.trim();
++        const mes_inicio = document.getElementById('modal-atividade-mes-inicio').value;
++        const mes_fim = document.getElementById('modal-atividade-mes-fim').value;
++        const descricao = document.getElementById('modal-atividade-descricao').value;
++        const justificativa = document.getElementById('modal-atividade-justificativa').value;
++        
++        // Juntar entregaveis com ;
++        const entregaveis = modalEntregaveisTemp.join(';');
++        
++        if (!nome || !descricao.trim() || !justificativa.trim()) {
++            alert('Por favor, preencha todos os campos obrigatórios (*).');
++            return;
++        }
+         
+-        if (inputs.length === 0 || htmlContent === "<ul></ul>") {
+-            htmlContent = "";
++        if (!mes_inicio || !mes_fim) {
++            document.getElementById('modal-atividade-month-error').classList.remove('d-none');
++            return;
+         }
+         
+-        if (hiddenObjetivosInput) {
+-            hiddenObjetivosInput.value = htmlContent;
+-            if (quillInstances['id_objetivos_especificos']) {
+-                quillInstances['id_objetivos_especificos'].root.innerHTML = htmlContent;
+-            }
++        const obj = { nome, mes_inicio, mes_fim, descricao, justificativa, entregaveis };
++        
++        if (modalAtividadeEditIndex >= 0) {
++            atividadesList[modalAtividadeEditIndex] = obj;
++        } else {
++            atividadesList.push(obj);
+         }
++        
++        renderAtividadesTable();
++        modalAtividadeInstance.hide();
+         autoSave();
+-    }
++        if (typeof isEditMode !== 'undefined' && isEditMode && window.saveFormAjax) {
++            window.saveFormAjax(true);
++        }
++    });
+     
+-    function createObjetivoInput(value = '') {
+-        const wrapper = document.createElement('div');
+-        wrapper.className = 'd-flex align-items-center mb-2 objetivo-row';
+-        wrapper.innerHTML = `
+-            <span class="me-2 text-muted"><i class="fas fa-bullseye"></i></span>
+-            <input type="text" class="form-control form-control-sm objetivo-input" placeholder="Descreva o objetivo específico..." value="${value}">
+-            <button type="button" class="btn btn-sm btn-outline-danger ms-2 btn-remover-objetivo" title="Remover"><i class="fas fa-trash"></i></button>
+-        `;
++    window.editAtividade = function(index) {
++        modalAtividadeEditIndex = index;
++        const obj = atividadesList[index];
++        document.getElementById('modal-atividade-titulo').textContent = 'Editar Atividade #' + (index + 1);
++        document.getElementById('modal-atividade-nome').value = obj.nome;
++        document.getElementById('modal-atividade-mes-inicio').value = obj.mes_inicio;
++        document.getElementById('modal-atividade-mes-fim').value = obj.mes_fim;
++        document.getElementById('modal-atividade-descricao').value = obj.descricao;
++        document.getElementById('modal-atividade-justificativa').value = obj.justificativa;
+         
+-        const input = wrapper.querySelector('input');
+-        input.addEventListener('input', syncObjetivosToShadow);
++        // Popular Entregaveis
++        modalEntregaveisTemp = obj.entregaveis ? obj.entregaveis.split(';').filter(e => e.trim().length > 0) : [];
++        document.getElementById('modal-atividade-entregavel-input').value = '';
++        renderEntregaveisList();
+         
+-        wrapper.querySelector('.btn-remover-objetivo').addEventListener('click', function() {
+-            wrapper.remove();
+-            syncObjetivosToShadow();
+-        });
++        modalAtividadeStartMonth = parseInt(obj.mes_inicio) || null;
++        modalAtividadeEndMonth = parseInt(obj.mes_fim) || null;
++        document.getElementById('modal-atividade-month-error').classList.add('d-none');
++        renderMonthGrid();
+         
+-        objetivosContainer.appendChild(wrapper);
+-    }
++        modalAtividadeInstance.show();
++    };
+     
+-    if (btnAddObjetivo) {
+-        btnAddObjetivo.addEventListener('click', () => {
+-            createObjetivoInput('');
+-            syncObjetivosToShadow();
+-        });
+-    }
++    window.removeAtividade = function(index) {
++        if(confirm('Remover esta atividade?')) {
++            atividadesList.splice(index, 1);
++            renderAtividadesTable();
++            autoSave();
++        }
++    };
+     
+-    // Initial load: parse the existing HTML in the hidden input
+-    if (hiddenObjetivosInput) {
+-        const initialValue = hiddenObjetivosInput.value;
+-        if (initialValue) {
+-            const tempDiv = document.createElement('div');
+-            tempDiv.innerHTML = initialValue;
+-            const lis = tempDiv.querySelectorAll('li');
+-            if (lis.length > 0) {
+-                lis.forEach(li => createObjetivoInput(li.textContent));
+-            } else {
+-                // If it's just raw text
+-                const text = tempDiv.textContent.trim();
+-                if (text) {
+-                    createObjetivoInput(text);
++    function renderAtividadesTable() {
++        const tbody = document.querySelector('#tabela-atividades tbody');
++        const hiddenInputsContainer = document.getElementById('atividades-hidden-inputs');
++        if(!tbody) return;
++        
++        tbody.innerHTML = '';
++        hiddenInputsContainer.innerHTML = '';
++        
++        if (atividadesList.length === 0) {
++            tbody.innerHTML = `<tr id="row-empty-atividade"><td colspan="6" class="text-center text-muted py-4">Nenhuma atividade cadastrada. Clique em "Adicionar Atividade".</td></tr>`;
++            return;
++        }
++        
++        atividadesList.forEach((atv, i) => {
++            // Embelezar a listagem de entregáveis na tabela mestre
++            let entregaveisBadge = '-';
++            if (atv.entregaveis) {
++                const arr = atv.entregaveis.split(';').filter(e => e.trim() !== '');
++                if(arr.length > 0) {
++                   entregaveisBadge = arr.map(e => `<span class="badge bg-secondary mb-1 me-1 text-wrap text-start">${e}</span>`).join('');
+                 }
+             }
+-        } else {
+-            // Start with one empty if nothing exists
+-            createObjetivoInput('');
+-        }
++            
++            // Tabela Visual
++            const tr = document.createElement('tr');
++            tr.innerHTML = `
++                <td class="text-center align-middle fw-bold">${i + 1}</td>
++                <td class="align-middle">${atv.nome}</td>
++                <td class="align-middle">${entregaveisBadge}</td>
++                <td class="text-center align-middle">Mês ${atv.mes_inicio}</td>
++                <td class="text-center align-middle">Mês ${atv.mes_fim}</td>
++                <td class="text-center align-middle">
++                    <button type="button" class="btn btn-sm btn-outline-primary" title="Editar" onclick="editAtividade(${i})"><i class="fas fa-edit"></i></button>
++                    <button type="button" class="btn btn-sm btn-outline-danger" title="Remover" onclick="removeAtividade(${i})"><i class="fas fa-trash"></i></button>
++                </td>
++            `;
++            tbody.appendChild(tr);
++            
++            // Inputs Ocultos para Django (Form POST)
++            hiddenInputsContainer.innerHTML += `
++                <input type="hidden" name="atividade_nome[]" value="${atv.nome.replace(/"/g, '&quot;')}">
++                <input type="hidden" name="atividade_mes_inicio[]" value="${atv.mes_inicio}">
++                <input type="hidden" name="atividade_mes_fim[]" value="${atv.mes_fim}">
++                <input type="hidden" name="atividade_descricao[]" value="${atv.descricao.replace(/"/g, '&quot;')}">
++                <input type="hidden" name="atividade_justificativa[]" value="${atv.justificativa.replace(/"/g, '&quot;')}">
++                <input type="hidden" name="atividade_entregaveis[]" value="${atv.entregaveis.replace(/"/g, '&quot;')}">
++            `;
++        });
+     }
+     
++    // CARREGAR ATIVIDADES EXISTENTES NO MODO EDIÇÃO
++    {% if plano_ativo and plano_ativo.atividades.all %}
++        {% for atividade in plano_ativo.atividades.all %}
++            atividadesList.push({
++                nome: '{{ atividade.nome|escapejs }}',
++                mes_inicio: '{{ atividade.mes_inicio|default_if_none:""|escapejs }}',
++                mes_fim: '{{ atividade.mes_fim|default_if_none:""|escapejs }}',
++                descricao: `{{ atividade.descricao|escapejs }}`,
++                justificativa: `{{ atividade.justificativa|default_if_none:""|escapejs }}`,
++                entregaveis: `{% for entregavel in atividade.entregaveis.all %}{{ entregavel.nome|escapejs }}{% if not forloop.last %};{% endif %}{% endfor %}`
++            });
++        {% endfor %}
++        renderAtividadesTable();
++    {% endif %}
++
++    // --- LÓGICA DINÂMICA: MACRO-ENTREGAS ---
+     // --- LÓGICA DINÂMICA: MACRO-ENTREGAS ---
+     const macroentregasContainer = document.getElementById('macroentregas-container');
+     const btnAddMacroentrega = document.getElementById('btn-add-macroentrega');
+@@ -1134,13 +1334,97 @@ document.addEventListener("DOMContentLoaded", function() {
+         });
+     }
+ 
+-    form.addEventListener('submit', function() {
++    window.saveFormAjax = function(silent = false) {
+         syncQuills();
++        const formData = new FormData(form);
++        formData.append('action', 'salvar'); // Força a ação como rascunho
++        
++        let btnSave = null;
++        let originalBtnHTML = '';
++        if (!silent) {
++            btnSave = document.querySelector('button[type="submit"]');
++            if (btnSave) {
++                originalBtnHTML = btnSave.innerHTML;
++                btnSave.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Salvando...';
++                btnSave.disabled = true;
++            }
++        }
++        
++        fetch(window.location.href, {
++            method: 'POST',
++            body: formData,
++            headers: {
++                'X-Requested-With': 'XMLHttpRequest'
++            }
++        })
++        .then(response => {
++            if (!silent) {
++                if (btnSave) {
++                    btnSave.innerHTML = originalBtnHTML;
++                    btnSave.disabled = false;
++                }
++            }
++            if (response.ok) {
++                const toastHTML = `
++                <div class="toast align-items-center text-bg-success border-0 shadow-lg mb-2" role="alert" aria-live="assertive" aria-atomic="true">
++                    <div class="d-flex">
++                        <div class="toast-body fw-bold d-flex align-items-center">
++                            <i class="fas fa-check-circle me-2 fs-5"></i>
++                            ${silent ? 'Atividade salva no banco de dados!' : 'Alterações salvas com sucesso!'}
++                        </div>
++                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
++                    </div>
++                </div>`;
++                
++                let toastContainer = document.querySelector('.toast-container');
++                if (!toastContainer) {
++                    toastContainer = document.createElement('div');
++                    toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
++                    document.body.appendChild(toastContainer);
++                }
++                
++                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
++                const toastEl = toastContainer.lastElementChild;
++                const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
++                toast.show();
++                toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
++            } else {
++                if (!silent) {
++                    window.location.reload();
++                }
++            }
++        })
++        .catch(error => {
++            if (!silent && btnSave) {
++                btnSave.innerHTML = originalBtnHTML;
++                btnSave.disabled = false;
++            }
++            console.error('Erro no salvamento AJAX:', error);
++            if (!silent) {
++                window.location.reload();
++            }
++        });
++    };
++
++    form.addEventListener('submit', function(e) {
+         if (!isEditMode) {
++            syncQuills();
+             localStorage.removeItem(storageKey);
++            return;
++        }
++        
++        e.preventDefault();
++        
++        if (e.submitter && e.submitter.value === 'publicar') {
++            syncQuills();
++            form.submit();
++            return;
+         }
++        
++        window.saveFormAjax(false);
+     });
+ 
++
+     if (!isEditMode) {
+         loadDraft();
+     } else {
+@@ -1150,10 +1434,66 @@ document.addEventListener("DOMContentLoaded", function() {
+             }
+         });
+     }
++
++    // --- LÓGICA DO MENU LATERAL RETRÁTIL ---
++    const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
++    const sidebarCol = document.getElementById('wizard-sidebar-col');
++    const contentCol = document.getElementById('wizard-content-col');
++    let isSidebarVisible = true;
++
++    if(btnToggleSidebar && sidebarCol && contentCol) {
++        btnToggleSidebar.addEventListener('click', function() {
++            isSidebarVisible = !isSidebarVisible;
++            if(isSidebarVisible) {
++                // Mostrar
++                sidebarCol.classList.remove('d-none');
++                sidebarCol.classList.add('col-md-4', 'col-lg-3');
++                contentCol.classList.remove('col-md-12', 'col-lg-12');
++                contentCol.classList.add('col-md-8', 'col-lg-9');
++                btnToggleSidebar.innerHTML = '<i class="fas fa-expand-arrows-alt me-1"></i> Tela Cheia';
++            } else {
++                // Ocultar
++                sidebarCol.classList.add('d-none');
++                sidebarCol.classList.remove('col-md-4', 'col-lg-3');
++                contentCol.classList.remove('col-md-8', 'col-lg-9');
++                contentCol.classList.add('col-md-12', 'col-lg-12');
++                btnToggleSidebar.innerHTML = '<i class="fas fa-compress-arrows-alt me-1"></i> Voltar Menu';
++            }
++        });
++    }
++
++    // --- LÓGICA DO MENU LATERAL RETRÁTIL ---
++    const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
++    const sidebarCol = document.getElementById('wizard-sidebar-col');
++    const contentCol = document.getElementById('wizard-content-col');
++    let isSidebarVisible = true;
++
++    if(btnToggleSidebar && sidebarCol && contentCol) {
++        btnToggleSidebar.addEventListener('click', function() {
++            isSidebarVisible = !isSidebarVisible;
++            if(isSidebarVisible) {
++                // Mostrar
++                sidebarCol.classList.remove('d-none');
++                sidebarCol.classList.add('col-md-4', 'col-lg-3');
++                contentCol.classList.remove('col-md-12', 'col-lg-12');
++                contentCol.classList.add('col-md-8', 'col-lg-9');
++                btnToggleSidebar.innerHTML = '<i class="fas fa-expand-arrows-alt me-1"></i> Tela Cheia';
++            } else {
++                // Ocultar
++                sidebarCol.classList.add('d-none');
++                sidebarCol.classList.remove('col-md-4', 'col-lg-3');
++                contentCol.classList.remove('col-md-8', 'col-lg-9');
++                contentCol.classList.add('col-md-12', 'col-lg-12');
++                btnToggleSidebar.innerHTML = '<i class="fas fa-compress-arrows-alt me-1"></i> Voltar Menu';
++            }
++        });
++    }
+ });
+ </script>
+ 
+ 
++
++
+ <script>
+     function focarErro(fieldId) {
+         console.log("Tentando focar no campo:", fieldId);
