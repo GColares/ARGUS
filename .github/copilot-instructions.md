@@ -1,5 +1,9 @@
 # Instruções Globais para o GitHub Copilot (Contexto do Projeto ARGUS)
 
+Consulte primeiro o [protocolo de colaboração](../PROTOCOLO_COLABORACAO_IA.md)
+para a divisão de papéis com o Antigravity-Gemini, a precedência das regras e
+o procedimento seguro das rotinas.
+
 Você está trabalhando no projeto **ARGUS**, um sistema web em Django desenvolvido pelo Polo de Inovação do IFAM.
 Por favor, obedeça rigorosamente a estas diretrizes arquiteturais em todas as suas respostas, sugestões de código ou quando o usuário pedir ajuda.
 
@@ -18,9 +22,12 @@ Você deve antes responder fazendo uma análise crítica (Red Team) contendo:
 ## 3. Comandos Úteis do Desenvolvedor
 O usuário possui scripts automatizados no diretório `scripts/` para gerenciar a rotina de trabalho. Se o usuário pedir para executar essas rotinas no chat, não tente rodar os comandos puros. Apenas oriente o usuário a rodar no terminal os seguintes scripts:
 
-- Se ele disser "bom dia", "pode começar": Peça para ele abrir o terminal e rodar `.\scripts\bom_dia.ps1`.
-- Se ele disser "salvar", "commit", "guarda isso": Peça para ele abrir o terminal e rodar `.\scripts\salvar.ps1`.
-- Se ele disser "até amanhã", "encerrar dia": Peça para ele preencher o arquivo `diario_de_bordo.md` e rodar `.\scripts\ate_amanha.ps1`.
+- Se ele disser "bom dia", "pode começar": oriente-o a ler o diário e rodar `.\scripts\bom_dia.ps1` no terminal.
+- Se ele disser "salvar", "commit", "guarda isso": oriente-o a rodar `.\scripts\salvar.ps1` no terminal.
+- Se ele disser "até amanhã", "encerrar dia": oriente-o a atualizar o diário e rodar `.\scripts\ate_amanha.ps1` no terminal.
+
+As IAs não devem executar essas rotinas diretamente nem declarar sucesso sem
+confirmação do terminal. Restaurações destrutivas exigem confirmação explícita.
 
 ## 4. Banco de Dados e Modelos
 - Sempre que criar novos campos obrigatórios (sem `null=True`) para entidades antigas, exija a definição de `default=` na migração.

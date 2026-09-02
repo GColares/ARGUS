@@ -5,12 +5,16 @@ description: "Rotina completa de início do dia (Chegada). Sincroniza o código,
 
 # Instruções de Execução
 
+Oriente o usuário a executar `.\scripts\bom_dia.ps1` no terminal. A IA não
+deve executar a rotina diretamente. Antes de qualquer restauração, exija
+confirmação explícita e informe que os dados locais serão substituídos.
+
 Sempre que o usuário enviar o comando "bom dia" (ex: "bom dia", "pode começar"), você deverá preparar o ambiente local com base nas últimas atualizações do GitHub.
 
 Siga os passos rigorosamente nesta ordem:
 
 1. **Ler o Diário de Bordo:**
-   - OBRIGATORIAMENTE leia o arquivo `diario_de_bordo.md` na raiz do projeto (`c:\ARGUS\diario_de_bordo.md`) para se contextualizar sobre o status atual do projeto e o que está pendente para o dia de hoje.
+   - OBRIGATORIAMENTE leia o arquivo `.\diario_de_bordo.md` na raiz do projeto para se contextualizar sobre o status atual e as pendências.
 2. **Sincronizar Código (Pull):**
    - Execute o comando para baixar as novidades da nuvem: `git pull --rebase`
 3. **Sincronizar Pacotes (Requirements):**

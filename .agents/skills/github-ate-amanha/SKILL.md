@@ -5,6 +5,9 @@ description: "Rotina completa de encerramento do dia (Saída). Faz o backup do b
 
 # Instruções de Execução
 
+Oriente o usuário a executar `.\scripts\ate_amanha.ps1` no terminal. A IA não
+deve executar a rotina diretamente nem declarar sucesso sem confirmação.
+
 Sempre que o usuário enviar o comando "ate-amanha" (ex: "até amanhã", "ate amanha", "encerrar dia", "fechar a loja"), você deverá executar a rotina de empacotamento e envio do projeto para a nuvem.
 
 Siga os passos rigorosamente nesta ordem:
