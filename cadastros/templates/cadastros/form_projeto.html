@@ -89,6 +89,29 @@
         text-align: center;
         color: #6c757d;
     }
+
+    /* Ajustes das bolinhas da lista do Quill solicitados pelo usuario */
+    .ql-editor ul li:not(.ql-direction-rtl)::before {
+        content: '\25CF' !important; /* Circulo preto maior */
+        font-size: 1.1em;
+    }
+    .ql-editor ul li.ql-indent-1:not(.ql-direction-rtl)::before {
+        content: '\25CB' !important; /* Circulo branco */
+        font-size: 1.0em;
+    }
+    .ql-editor ul li.ql-indent-2:not(.ql-direction-rtl)::before {
+        content: '\25A0' !important; /* Quadrado preto */
+        font-size: 0.9em;
+    }
+    .ql-editor ul li.ql-indent-3:not(.ql-direction-rtl)::before {
+        content: '\25A1' !important; /* Quadrado branco */
+        font-size: 0.9em;
+    }
+    .ql-editor ul li.ql-indent-4:not(.ql-direction-rtl)::before {
+        content: '\25AA' !important; /* Quadrado pequeno */
+        font-size: 0.8em;
+    }
+
 </style>
 
 <div class="container-fluid px-4 mt-4 mb-0">
@@ -388,11 +411,11 @@
                                 <div class="row g-4">
                                     <div class="col-md-12 mt-4">
                                         <label class="form-label fw-bold text-muted small text-uppercase">6.1 Escopo Geral do Projeto <span class='text-danger'>*</span></label>
-                                        {{ form_plano.escopo }}
+                                        {{ form_plano.escopo_geral }}
                                     </div>
                                     <div class="col-md-12 mt-4">
                                         <label class="form-label fw-bold text-muted small text-uppercase">6.2 Estrutura Analítica do Projeto (WBS) <span class='text-danger'>*</span></label>
-                                        {{ form_plano.eap }}
+                                        {{ form_plano.estrutura_analitica }}
                                     </div>
                                     <div class="col-md-12 mt-4">
                                         <label class="form-label fw-bold text-muted small text-uppercase">6.3 Tecnologias e Ferramentas Utilizadas <span class='text-danger'>*</span></label>
@@ -1488,8 +1511,8 @@ document.addEventListener("DOMContentLoaded", function() {
             'id_processo': 'step3',
             'id_vulnerabilidades': 'step7',
             'id_plano_riscos': 'step7',
-            'id_escopo': 'step6',
-            'id_eap': 'step6',
+            'id_escopo_geral': 'step6',
+            'id_estrutura_analitica': 'step6',
             'id_tecnologias_utilizadas': 'step6'
         };
 
