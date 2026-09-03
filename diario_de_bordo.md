@@ -19,6 +19,21 @@ Sistema estabilizado rodando sob o PostgreSQL 18. O formulário de edição de P
 
 # Diário de Bordo - ARGUS
 
+## [03/09/2026] - Fase 2 das rotinas de colaboração
+
+### O que foi feito:
+- Reestruturados `scripts/bom_dia.ps1` e `scripts/ate_amanha.ps1` para validar o código de saída de cada etapa.
+- A rotina de início do dia agora identifica o maior ID global entre `backups/sql/` e `backups/json/`, informa os arquivos disponíveis e exige a confirmação literal `SUBSTITUIR` antes de qualquer restauração.
+- A rotina de encerramento mantém a numeração global de três dígitos, gera SQL antes de JSON, exige `ARGUS_DB_USER`, `ARGUS_DB_NAME` e `ARGUS_DB_PASSWORD` e só publica após validações.
+- As skills `github-bom-dia` e `github-ate-amanha` foram alinhadas aos scripts e não documentam mais credenciais fixas.
+- A restauração JSON e SQL passou a executar `showmigrations` após a operação para validação.
+
+### O que ficou pendente:
+- Executar as rotinas no terminal do usuário quando necessário; a IA não deve executá-las diretamente.
+- Validar em ambiente real uma restauração JSON e uma restauração SQL, sempre com confirmação explícita e backup disponível.
+
+---
+
 ## [02/09/2026] - Refinamento da interface rich text do ProjetoPDI
 
 ### O que foi feito:

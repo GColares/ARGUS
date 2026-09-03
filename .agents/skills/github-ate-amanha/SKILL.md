@@ -22,16 +22,17 @@ Siga os passos rigorosamente nesta ordem:
    - Empurre todo o texto e os dias anteriores para baixo, preservando todo o histórico intocado.
 2. **Geração de Backups Híbridos de Segurança:**
    - Garanta que as pastas `backups/sql/` e `backups/json/` existem na raiz do projeto (crie se não existirem).
-   - Determine o próximo ID sequencial de 3 dígitos (NNN) analisando as subpastas em `backups/`.
-   - Gere PRIMEIRO o backup SQL forçando o encoding (rápido para disaster recovery):
-     `$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm" ; $env:PGCLIENTENCODING='utf8'; $env:PGPASSWORD='argus'; & "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U postgres -d argus_db -f "backups/sql/NNN_db_backup_${timestamp}.sql"`
-   - Gere EM SEGUIDA o backup JSON (seguro para mudanças de estrutura), forçando UTF-8:
-     `$timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm" ; .\.venv\Scripts\python.exe -X utf8 manage.py dumpdata -e contenttypes -e auth.Permission --indent 2 > "backups/json/NNN_db_backup_${timestamp}.json"`
+   - O script calcula o próximo ID global de 3 dígitos examinando conjuntamente
+     `backups/sql/` e `backups/json/`.
+   - Gere PRIMEIRO o backup SQL e depois o JSON usando as variáveis de ambiente
+     `ARGUS_DB_USER`, `ARGUS_DB_NAME` e `ARGUS_DB_PASSWORD`; nunca use senhas
+     fixas em comandos ou arquivos versionados.
 3. **Salvar Pacotes (Requirements):**
    - Execute a exportação das dependências para garantir que qualquer pacote novo seja salvo:
      `.\.venv\Scripts\python.exe -m pip freeze > requirements.txt`
 4. **Verificar o Status e Adicionar:**
-   - Execute `git status` e depois `git add .` para colocar tudo em stage.
+   - Execute `git status` e depois `git add .` para colocar tudo em stage,
+     revisando o conteúdo antes do commit.
 5. **Gerar Commit:**
    - Formule uma mensagem curta e clara em português e execute `git commit -m "Sua mensagem aqui"`.
 6. **Sincronizar (Pull):**
@@ -39,4 +40,5 @@ Siga os passos rigorosamente nesta ordem:
 7. **Enviar para o GitHub (Push):**
    - Execute `git push` para mandar os commits, o arquivo requirements e o backup gerado para o servidor.
 8. **Reportar ao Usuário:**
-   - Após finalizar, deseje um bom descanso e confirme que tudo foi salvo e enviado com sucesso.
+   - Só confirme sucesso após o terminal informar que backups, commit e push
+     foram concluídos sem erro.
