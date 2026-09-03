@@ -86,17 +86,11 @@ de considerar o protocolo consolidado.
 
 `.github/copilot-instructions.md` orienta o Copilot a pedir que o usuário
 execute os scripts manualmente, enquanto as skills em `.agents/skills/`
-descrevem a execução direta pela IA. Deve ser escolhida uma única política e
-aplicada em todos os arquivos. Operações destrutivas continuam exigindo
-confirmação explícita.
+descrevem a execução direta pela IA. Deve ser escolhida uma única política:
+a IA orienta o usuário a executar as rotinas, o usuário executa e confirma
+o resultado. Operações destrutivas continuam exigindo confirmação explícita.
 
-### 2. Arquivo exportável ausente
-
-`diario_de_bordo.md` menciona `prompt_rotinas_ia.md`, mas esse arquivo não está
-presente no repositório. Ele deve ser recuperado ou recriado como documento
-independente para instruir Gemini, Copilot e outras IAs.
-
-### 3. Numeração dos backups
+### 2. Numeração dos backups
 
 `.agents/rules/BACKUP_NAMING.md` exige que o próximo ID seja calculado
 considerando conjuntamente `backups/sql/` e `backups/json/`. Entretanto,
@@ -105,14 +99,14 @@ O script deve extrair o maior prefixo numérico existente nas duas pastas e
 incrementá-lo, mantendo três dígitos mesmo quando as pastas tiverem quantidades
 diferentes de arquivos.
 
-### 4. Credenciais versionadas
+### 3. Credenciais versionadas
 
 As instruções e scripts contêm valores fixos para usuário, senha e banco
 PostgreSQL. Isso expõe credenciais e dificulta o uso em outros ambientes. A
 configuração deve usar variáveis de ambiente ou mecanismo seguro equivalente,
 sem senhas reais ou padrões de acesso em arquivos versionados.
 
-### 5. Restauração destrutiva
+### 4. Restauração destrutiva
 
 `bom_dia.ps1` pode executar `manage.py flush` e `DROP SCHEMA public CASCADE`.
 Antes dessas operações, a rotina deve identificar o backup, explicar que os
@@ -121,13 +115,13 @@ não existir. Após a restauração, deve verificar o resultado antes de informa
 sucesso. JSON deve permanecer como opção preferencial quando houver migrações
 novas.
 
-### 6. Caminho absoluto do diário
+### 5. Caminho absoluto do diário
 
 `github-bom-dia/SKILL.md` referencia `c:\ARGUS\diario_de_bordo.md`, embora o
 projeto possa estar em outro diretório ou worktree. A referência deve ser
 relativa à raiz do repositório, como `.\diario_de_bordo.md`.
 
-### 7. Codificação e duplicidades
+### 6. Codificação e duplicidades
 
 `AGENTS.md` contém trechos com possíveis caracteres de controle ou corrupção
 de codificação em classes Bootstrap, como `fw-bold`, `text-info`, `btn-lg` e
@@ -135,10 +129,6 @@ de codificação em classes Bootstrap, como `fw-bold`, `text-info`, `btn-lg` e
 RBAC. O arquivo deve ser revisado em UTF-8, com classes corrigidas e conteúdo
 duplicado consolidado.
 
-### 8. Fonte de verdade
+### 7. Fonte de verdade
 
-Os documentos precisam declarar de forma inequívoca qual regra prevalece em
-caso de conflito entre `GEMINI.md`, `.github/copilot-instructions.md`,
-`.agents/AGENTS.md`, `.agents/rules/`, `.agents/skills/` e os scripts. A
-precedência deve ser documentada e as implementações devem ser alinhadas a
-ela, sem aceitar divergências silenciosas.
+A precedência oficial e definitiva foi estabelecida de forma inequívoca no arquivo `PROTOCOLO_COLABORACAO_IA.md`. As implementações devem ser alinhadas a ela, sem aceitar divergências silenciosas.

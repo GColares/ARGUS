@@ -193,20 +193,6 @@ O sistema trabalha com um dicionário de perfis baseados em papéis. Nas Anális
 - **Estudante / Bolsista (EST):** Executa tarefas sob supervisão direta. Não tem poder de gestão.
 
 
-## Ciclo de Vida de Projetos PDI (Máquina de Estados)
-Todo projeto gerenciado no sistema deve prever uma máquina de estados (campo `fase` ou `status`) que represente fielmente a realidade da gestão pública e os marcos de auditoria. 
-Fases obrigatórias (no mínimo):
-1. **Prospecção:** Fase de rascunho, ideação e negociação. Dados podem ser alterados livremente.
-2. **Execução:** Iniciada após a formalização (Termo Assinado). O escopo técnico (Plano de Trabalho) entra em "congelamento integral".
-3. **Prestação de Contas:** Iniciada na conclusão técnica do projeto. Envolve auditoria financeira e entrega de relatórios finais. Regras estritas de travamento financeiro se aplicam.
-4. **Encerrado / Arquivado:** Fim do ciclo de vida.
-
-## Catálogo Vivo de Perfis de Acesso (RBAC)
-O sistema trabalha com um dicionário de perfis baseados em papéis. Nas Análises Críticas (Red Team), o agente deve sempre recorrer a este catálogo para sugerir quem terá a alçada sobre ações sensíveis.
-*(Nota: Este catálogo será iterativamente preenchido pelo usuário à medida que o sistema evolui).*
-- [A PREENCHER PELO USUÁRIO]
-- [A PREENCHER PELO USUÁRIO]
-
 ## Identificação Visual de Entidades (Sigla vs Nome Longo)
 Sempre que uma entidade (especialmente `PessoaJuridica` e suas filhas) for representada no sistema (seja no `__str__` do modelo, em dropdowns do HTML, templates ou listas), é **obrigatório** adotar o padrão de identificação colocando a Sigla (ou Nome Fantasia) antes do Nome Longo/Razão Social.
 *Exemplo correto:* `IFAM - Instituto Federal do Amazonas` ou `FAPEAM - Fundação de Amparo...`.
@@ -234,15 +220,14 @@ Sempre que modelar o plano de trabalho e as rubricas financeiras de um projeto q
 
 ## Padronização Tipográfica e Hierarquia Visual (Design System)
 Para manter a consistência estética e profissional em todas as telas do ARGUS, evite variações injustificadas de tamanho de fonte e siga uma hierarquia tipográfica estrita usando apenas as classes utilitárias do Bootstrap 5:
-1. **Títulos Principais de Páginas (Page Headers):** Devem utilizar <h4> ou <h3> com as classes w-bold e a cor primária do contexto (ex: 	ext-info ou 	ext-primary).
-2. **Subtítulos e Divisores de Seção (Block Headers):** Devem utilizar <h6> acompanhado de w-bold text-uppercase small text-muted (ou cor temática). É proibido usar tamanhos gigantes para cabeçalhos de blocos internos (cards/acordeões).
+1. **Títulos Principais de Páginas (Page Headers):** Devem utilizar <h4> ou <h3> com as classes fw-bold e a cor primária do contexto (ex: text-info ou text-primary).
+2. **Subtítulos e Divisores de Seção (Block Headers):** Devem utilizar <h6> acompanhado de fw-bold text-uppercase small text-muted (ou cor temática). É proibido usar tamanhos gigantes para cabeçalhos de blocos internos (cards/acordeões).
 3. **Texto de Corpo e Descrições:** O texto padrão é o de corpo (sem classe extra). Textos de apoio ou instruções devem obrigatoriamente usar a classe small (ou .text-muted) para não poluir visualmente a leitura.
 4. **Tamanho de Botões (Action Buttons):** 
-   - Nunca use a classe tn-lg para ações dentro de barras de ferramentas (Headers de Cards, Navbars, Listagens), mesmo que seja a ação principal como "Salvar". O uso de tn-lg gera botões desproporcionais e quebra a harmonia da linha de leitura.
+   - Nunca use a classe btn-lg para ações dentro de barras de ferramentas (Headers de Cards, Navbars, Listagens), mesmo que seja a ação principal como "Salvar". O uso de btn-lg gera botões desproporcionais e quebra a harmonia da linha de leitura.
    - Botões globais no topo das páginas devem manter o tamanho normal de componente Bootstrap.
-   - Use tn-sm estritamente para ações densas dentro de tabelas (DataTables).
-5. **Estilos Inline Proibidos:** Confie nas classes s-1 até s-6 do Bootstrap. Evite injetar regras como ont-size: 1.2rem; dentro das tags <style>.
-
+   - Use btn-sm estritamente para ações densas dentro de tabelas (DataTables).
+5. **Estilos Inline Proibidos:** Confie nas classes fs-1 até fs-6 do Bootstrap. Evite injetar regras como font-size: 1.2rem; dentro das tags <style>.
 
 ## UX de Alertas e Pendências (Notificações Não-Intrusivas)
 Sempre que desenvolver formulários complexos que envolvam validações do backend com múltiplos erros (ex: fluxos de salvamento parcial vs publicação):

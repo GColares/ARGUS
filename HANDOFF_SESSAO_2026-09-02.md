@@ -97,3 +97,13 @@ resolvido preservando os registros das duas linhas de trabalho.
   de política.
 - Rotinas operacionais não devem ser declaradas como executadas sem confirmação
   do terminal do usuário.
+
+## Fase 1 - Consolidação Documental (Realizada)
+
+Nesta sessão foi aprovada a **Fase 1**, onde as seguintes verificações documentais foram aplicadas estritamente em UTF-8:
+1. `AGENTS.md`: Removidas seções duplicadas de ciclo de vida e RBAC, e corrigidos artefatos corrompidos de fontes e tamanhos de botões do Bootstrap.
+2. `GEMINI.md`: Removida menção de resgate do `prompt_rotinas_ia.md` e reafirmada a precedência base.
+3. `PROTOCOLO_COLABORACAO_IA.md`: A lista de precedência foi alinhada de forma explícita com as regras de segurança no topo.
+4. `diario_de_bordo.md`: Histórico intacto, apenas a menção isolada a `prompt_rotinas_ia.md` foi adaptada para `PROTOCOLO_COLABORACAO_IA.md`.
+
+*Nenhum script, banco de dados ou código de aplicação foi alterado. O histórico do repositório foi protegido.* O fluxo aguarda ordem do usuário para a Fase 2 (Refatoração de Scripts).

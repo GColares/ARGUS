@@ -8,16 +8,14 @@ alterações feitas por cada agente.
 
 ## Fonte de verdade
 
-Em caso de conflito, siga esta ordem:
+Em caso de conflito, siga estritamente esta ordem de precedência:
 
-1. Regras de segurança e proteção contra perda de dados.
-2. Este protocolo (`PROTOCOLO_COLABORACAO_IA.md`).
-3. `.github/copilot-instructions.md` e `GEMINI.md`.
-4. `.agents/AGENTS.md`.
-5. `.agents/rules/`.
-6. `.agents/skills/` e scripts em `scripts/`.
-7. `diario_de_bordo.md`, que registra contexto e decisões, mas não substitui
-   regras normativas.
+1. **Princípios de Segurança:** Proteção contra perda de dados, vazamento de credenciais e operações destrutivas.
+2. **Protocolo Base:** Este documento (`PROTOCOLO_COLABORACAO_IA.md`), que orquestra a convivência entre as IAs.
+3. **Regras Arquiteturais e de Negócio:** Diretrizes em `.agents/AGENTS.md`, `.agents/rules/` e regras de domínio contidas no código.
+4. **Instruções Específicas da IA:** Arquivos voltados a ferramentas particulares, como `GEMINI.md` e `.github/copilot-instructions.md`.
+5. **Automação e Execução:** Documentação de _Skills_ (`.agents/skills/`) e os scripts reais (`scripts/`).
+6. **Registro Histórico:** `diario_de_bordo.md`, que preserva o contexto temporal e decisões, mas NÃO possui poder normativo para sobrescrever regras formais acima em caso de conflito.
 
 Se a contradição não puder ser resolvida por essa precedência, as IAs devem
 parar e solicitar uma decisão ao usuário.
