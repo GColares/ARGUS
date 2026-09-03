@@ -1,3 +1,10 @@
+## [03/09/2026] - Aprendizado de Recomendação Proativa de Modelos (/learn)
+
+### O que foi feito:
+- Adicionada a Seção 10 ao GEMINI.md: o assistente agora avalia proativamente a complexidade da demanda e orienta o usuário a alternar entre Gemini 3.8 Flash (tarefas rotineiras/leves) e Gemini 3.1 Pro / Claude Sonnet (tarefas densas/arquiteturais/Red Team), protegendo as cotas semanais.
+
+---
+
 ## [03/09/2026] - Formalização do Squad e Rotina de Inicialização de IAs
 
 ### O que foi feito:
@@ -296,6 +303,7 @@ O projeto está avançando com foco na melhoria da usabilidade (ordenamento espa
 
 **O que está pendente no nosso radar:**
 - **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
+
 
 
 

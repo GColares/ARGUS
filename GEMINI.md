@@ -184,4 +184,19 @@ Ainda é dívida **de produto** (não de protocolo): senha fallback em
 `settings.py`, RBAC, views duplicadas, testes vazios. Isso entra na fila da
 seção 6, não numa “Fase 0 de documentação” de novo.
 
+---
+
+## 10. Recomendação Proativa de Modelo (Flash vs. Pro/Claude)
+
+Antes de executar tarefas solicitadas pelo usuário, avalie o nível de complexidade e o modelo atualmente em uso:
+
+1. **Tarefas Leves / Rotineiras (Recomendado: Gemini 3.8 Flash):**
+   - Coordenação de Squad, orientação de rotinas (`bom_dia`, `salvar`, `ate_amanha`), inspeções simples de arquivos, geração de pequenos resumos, comandos de terminal.
+   - *Se o usuário estiver usando um modelo Pro ou Claude nessas tarefas:* Alerte que a tarefa é simples e que ele pode economizar cota semanal voltando para o **Gemini 3.8 Flash**.
+
+2. **Tarefas Críticas / Densas (Recomendado: Gemini 3.1 Pro ou Claude Sonnet):**
+   - Análises críticas profundas (*Red Team*), modelagem de dados e migrações estruturais no PostgreSQL, refatorações multi-arquivos com dependências cruzadas, resolução de conflitos complexos de invariantes financeiras (EMBRAPII/SUFRAMA).
+   - *Se o assistente estiver em um modelo Flash nessas tarefas:* Avise imediatamente antes de começar, recomendando que o usuário altere o seletor para **Gemini 3.1 Pro** ou **Claude Sonnet** para garantir raciocínio profundo e máxima precisão técnica.
+
+
 
