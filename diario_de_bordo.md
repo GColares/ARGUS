@@ -20,7 +20,7 @@
   quentes, armadilhas reais (`views.py` duplicado, wizard, termos, User↔Pessoa),
   checklist de implementação, proibições e modelo de handoff.
 - `.github/copilot-instructions.md` passou a apontar para `COPILOT.md`.
-- `PROTOCOLO_COLABORACAO_IA.md` e `GEMINI.md` registram o Cursor como terceira
+- `PROTOCOLO_COLABORACAO_IA.md` e `GEMINI.md` registram o Cody como terceira
   IA e o arquivo tático do Copilot.
 
 ### O que ficou pendente:
@@ -50,6 +50,14 @@ Sistema estabilizado rodando sob o PostgreSQL 18. O formulário de edição de P
 ---
 
 # Diário de Bordo - ARGUS
+
+## [03/09/2026] - Substituição de IA no Squad
+
+### O que foi feito:
+- O **Cursor** foi oficialmente substituído pelo **Cody (Sourcegraph)** como Desenvolvedor de apoio na IDE devido a limites de cota.
+- Atualizados GEMINI.md, COPILOT.md e PROTOCOLO_COLABORACAO_IA.md para refletir o Cody como a terceira IA do projeto.
+
+---
 
 ## [03/09/2026] - Correção da visualização rich text
 
@@ -276,3 +284,5 @@ O projeto está avançando com foco na melhoria da usabilidade (ordenamento espa
 
 **O que está pendente no nosso radar:**
 - **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
+
+

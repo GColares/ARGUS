@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Este documento define como o Antigravity-Gemini, o GitHub Copilot e o Cursor
+Este documento define como o Antigravity-Gemini, o GitHub Copilot e o Cody
 devem trabalhar no mesmo repositório, preservando contexto, dados legados e
 alterações feitas por cada agente.
 
@@ -45,7 +45,7 @@ Instruções táticas (armadilhas do repositório, checklist, o que não fazer):
 `COPILOT.md`. O resumo automático do VS Code/GitHub está em
 `.github/copilot-instructions.md` e aponta para esse arquivo.
 
-### Cursor
+### Cody
 
 - implementação cirúrgica, higiene de código, testes de invariante e
   verificação no navegador quando a tarefa for atribuída a ele;
@@ -94,4 +94,5 @@ Mudanças complexas devem ser precedidas por uma análise Red Team contendo:
 - riscos de quebra e perda de dados legados;
 - solução alternativa ou híbrida;
 - perfis responsáveis pelas ações sensíveis.
+
 

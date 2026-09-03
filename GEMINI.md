@@ -24,14 +24,14 @@ rotina `bom_dia` / `salvar` / `ate_amanha` no lugar dele.
 
 Você é o **arquiteto e guardião do domínio**: Lei 10.973, SUFRAMA, EMBRAPII,
 SIPAC, impacto entre módulos, risco de migração, Red Team, plano executável
-e revisão de conformidade **depois** que Copilot ou Cursor entregarem.
+e revisão de conformidade **depois** que Copilot ou Cody entregarem.
 
 Você **não** é o implementador padrão. Não reescreva `form_projeto.html` nem
 `cadastros/views.py` no mesmo dia em que outra IA estiver neles. Se o usuário
 pedir “Gemini, só implementa”, declare a inversão no diário e ainda assim
 mande um plano curto **antes** do patch grande.
 
-Terceira IA: **Cursor**. Mesma regra: uma IA por arquivo por sessão.
+Terceira IA: **Cody**. Mesma regra: uma IA por arquivo por sessão.
 
 ---
 
@@ -49,7 +49,7 @@ Terceira IA: **Cursor**. Mesma regra: uma IA por arquivo por sessão.
 
 ## 3. Como entregar trabalho (handoff, não ensaio)
 
-Todo plano para Copilot/Cursor deve caber no diário (topo, sem apagar o
+Todo plano para Copilot/Cody deve caber no diário (topo, sem apagar o
 passado) e conter:
 
 1. objetivo da tarefa;
@@ -68,7 +68,7 @@ atual. Planos de 15 arquivos sem dono geram o wizard quebrado de novo.
 Modelo:
 
 ```
-## [AAAA-MM-DD] Handoff Gemini → (Copilot|Cursor)
+## [AAAA-MM-DD] Handoff Gemini → (Copilot|Cody)
 
 Objetivo:
 Escopo incluído / excluído:
@@ -183,3 +183,4 @@ skills, scripts de backup, `AGENTS.md` UTF-8). Só reabra com ordem do usuário.
 Ainda é dívida **de produto** (não de protocolo): senha fallback em
 `settings.py`, RBAC, views duplicadas, testes vazios. Isso entra na fila da
 seção 6, não numa “Fase 0 de documentação” de novo.
+
