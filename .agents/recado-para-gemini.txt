@@ -1,0 +1,111 @@
+Segue um texto pronto para enviar ao Gemini:
+
+---
+
+## Solicitação de correção das instruções do projeto ARGUS
+
+Antigravity, revise as instruções que você criou para o projeto ARGUS. A análise identificou algumas inconsistências que precisam ser corrigidas para evitar comportamentos diferentes entre você, o GitHub Copilot e outras IAs.
+
+### 1. Resolver a divergência entre execução direta e execução manual
+
+O arquivo `.github/copilot-instructions.md` orienta o Copilot a pedir que o usuário execute manualmente os scripts.
+
+Entretanto, os arquivos `.agents/skills/github-bom-dia/SKILL.md`, `github-salvar/SKILL.md` e `github-ate-amanha/SKILL.md` descrevem a execução direta das rotinas pela IA.
+
+Defina uma regra única e explícita:
+
+- A IA deve executar os scripts diretamente; ou
+- A IA deve apenas orientar o usuário a executá-los.
+
+Essa decisão deve ser aplicada de forma consistente em todos os arquivos e não pode haver instruções conflitantes.
+
+### 2. Criar ou corrigir o arquivo `prompt_rotinas_ia.md`
+
+O `diário de bordo` informa que foi criado um arquivo chamado `prompt_rotinas_ia.md`, destinado a ensinar outras IAs, como Gemini e Copilot.
+
+Esse arquivo não existe atualmente no repositório. Portanto:
+
+- recupere ou recrie o arquivo;
+- torne-o independente e exportável;
+- explique como outra IA deve interpretar as regras do ARGUS;
+- inclua as rotinas “bom dia”, “salvar” e “até amanhã”;
+- elimine ambiguidades em relação às instruções do Copilot.
+
+### 3. Corrigir o cálculo do ID dos backups
+
+O arquivo `.agents/skills/github-ate-amanha/SKILL.md` determina que o próximo ID deve ser calculado analisando conjuntamente os arquivos SQL e JSON.
+
+Porém, o script `scripts/ate_amanha.ps1` calcula o ID apenas pela quantidade de arquivos JSON.
+
+Corrija o script para:
+
+- ler os nomes dos arquivos em `backups/sql/` e `backups/json/`;
+- extrair o maior prefixo numérico existente;
+- incrementar esse número;
+- manter o padrão de três dígitos;
+- funcionar mesmo quando houver arquivos SQL e JSON em quantidades diferentes.
+
+### 4. Remover credenciais hardcoded
+
+As instruções e scripts utilizam credenciais fixas, como:
+
+- usuário `postgres`;
+- senha `argus`;
+- banco `argus_db`.
+
+Isso representa um risco de segurança. Substitua essas informações por variáveis de ambiente ou por uma configuração segura documentada. Não deixe senhas reais ou padrões de acesso diretamente nas instruções versionadas.
+
+### 5. Reforçar a proteção contra operações destrutivas
+
+A rotina “bom dia” pode executar:
+
+- `manage.py flush`;
+- `DROP SCHEMA public CASCADE`.
+
+As instruções devem deixar explícito que essas operações:
+
+- nunca podem ocorrer sem confirmação clara do usuário;
+- devem mostrar qual backup será utilizado;
+- devem informar que os dados locais serão apagados;
+- devem abortar caso o arquivo escolhido não exista;
+- devem verificar o resultado da restauração antes de declarar sucesso.
+
+A opção JSON deve continuar sendo apresentada como preferencial quando houver migrações novas.
+
+### 6. Corrigir caminhos fixos incompatíveis
+
+O arquivo `github-bom-dia/SKILL.md` menciona o caminho fixo `c:\ARGUS\diario_de_bordo.md`, mas o projeto pode estar localizado em outro diretório ou worktree.
+
+Substitua esse caminho por uma referência relativa à raiz do repositório, como `.\diario_de_bordo.md`, evitando dependência de um caminho absoluto específico.
+
+### 7. Revisar codificação e formatação
+
+Faça uma revisão no arquivo `.agents/AGENTS.md`. Alguns trechos aparentam conter caracteres de controle ou problemas de codificação em classes como `fw-bold`, `text-info`, `btn-lg` e `font-size`.
+
+Garanta que:
+
+- todos os caracteres estejam corretamente codificados em UTF-8;
+- as classes Bootstrap estejam escritas corretamente;
+- não existam caracteres invisíveis ou corrompidos;
+- as seções duplicadas sejam consolidadas.
+
+### 8. Consolidar a fonte de verdade
+
+Defina claramente a prioridade entre:
+
+1. `.github/copilot-instructions.md`;
+2. `.agents/AGENTS.md`;
+3. `.agents/rules/`;
+4. `.agents/skills/`;
+5. scripts PowerShell.
+
+A documentação deve explicar qual arquivo prevalece em caso de conflito e como as outras IAs devem carregar essas regras.
+
+Após realizar as correções, atualize também o diário de bordo registrando:
+
+- os arquivos modificados;
+- as inconsistências encontradas;
+- as decisões tomadas;
+- os testes realizados nas rotinas de backup e sincronização.
+
+---
