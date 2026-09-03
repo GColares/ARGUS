@@ -1,3 +1,56 @@
+## [2026-09-03] Auditoria de Conformidade: Onda 1 de Higiene - APROVADA
+
+Status da Auditoria pelo Arquiteto (Antigravity-Gemini):
+- Arquivos modificados: Estritamente cadastros/views.py (nenhum arquivo proibido foi tocado).
+- Redução de complexidade: 158 linhas de código duplicado eliminadas com sucesso.
+- Eliminação de duplicatas: Verificação confirmou 0 funções repetidas.
+- Correção de dependência: 0 ocorrências de pydantic. Import de ValidationError normalizado para django.core.exceptions.
+- Integridade do sistema: manage.py check executado com 0 erros identificados.
+
+Entrega homologada com sucesso.
+
+---
+## [2026-09-03] Handoff Gemini → Devin
+
+Objetivo:
+Executar a Onda 1 de Higiene no backend eliminando o bloco duplicado em cadastros/views.py e corrigindo o import de ValidationError.
+
+Escopo incluído:
+1. Remover o bloco de código duplicado em cadastros/views.py (linhas 399 a 557). Esse bloco contém redefinições de imports redundantes, home_cadastros, listar_projetos, listar_pessoas_juridicas, listar_processos_global, uma versão defasada de 
+ovo_projeto (sem a lógica de 'publicar'), e isualizar_projeto.
+2. Na linha 5 de cadastros/views.py, substituir rom pydantic import ValidationError por rom django.core.exceptions import ValidationError.
+3. Executar verificação com manage.py check para garantir integridade.
+
+Escopo excluído:
+- Qualquer alteração em cadastros/templates/cadastros/form_projeto.html (território do Copilot/usuário).
+- Fatiamento de apps ou alteração de models/migrações.
+- Qualquer alteração fora de cadastros/views.py.
+
+Arquivos liberados:
+- cadastros/views.py
+
+Arquivos proibidos:
+- cadastros/templates/cadastros/form_projeto.html
+- cadastros/models.py
+- Qualquer outro arquivo do projeto.
+
+Invariante de negócio:
+- A função 
+ovo_projeto ativa deve ser a primeira (linhas 47-146), que preserva a regra de negócio ction == 'publicar'.
+- Nenhuma view necessária pode ser excluída (xcluir_projeto, gerenciar_contas, etc. começam na linha 560 e devem ser preservadas).
+
+Riscos / legado:
+- Risco zero a dados legados. Sem impacto no banco.
+
+Critério de pronto:
+- manage.py check executado com 0 erros.
+- Zero views duplicadas em cadastros/views.py.
+- Nenhum import de pydantic no arquivo.
+
+Pergunta ao usuário (se houver):
+- Nenhuma.
+
+---
 ## [03/09/2026] - Aprendizado de Recomendação Proativa de Modelos (/learn)
 
 ### O que foi feito:
@@ -303,6 +356,8 @@ O projeto está avançando com foco na melhoria da usabilidade (ordenamento espa
 
 **O que está pendente no nosso radar:**
 - **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
+
+
 
 
 
