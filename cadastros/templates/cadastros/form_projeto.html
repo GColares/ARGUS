@@ -61,15 +61,16 @@
         border-bottom-left-radius: 0.375rem;
         border-bottom-right-radius: 0.375rem;
         background-color: #fff;
+        height: 150px;
         min-height: 150px;
-        max-height: 220px;
+        max-height: 150px;
         overflow-y: auto;
         position: relative;
         z-index: 1;
     }
     .ql-editor {
         min-height: 150px;
-        max-height: 220px;
+        max-height: 150px;
         overflow-y: auto;
         position: relative;
         z-index: 1;
@@ -88,6 +89,136 @@
     .richtext-wrapper {
         margin-bottom: 1rem;
     }
+    .wizard-step h4 {
+        margin-top: 0;
+        margin-bottom: 1.25rem !important;
+    }
+    .wizard-step .row.g-4 {
+        --bs-gutter-y: 1.25rem;
+    }
+    #step5 .col-md-12 + .col-md-12 {
+        margin-top: 0.5rem !important;
+    }
+    #step5 .ql-toolbar {
+        display: none;
+    }
+    #step5 .ql-container {
+        height: auto;
+        min-height: 108px;
+        max-height: none;
+        overflow: visible;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    #step5 .ql-editor {
+        min-height: 108px;
+        max-height: none;
+        overflow: visible;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+    #step4 .ql-toolbar {
+        display: none;
+    }
+    #step4 .ql-container {
+        height: auto;
+        min-height: 108px;
+        max-height: none;
+        overflow: visible;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    #step4 .ql-editor {
+        min-height: 108px;
+        max-height: none;
+        overflow: visible;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+    .richtext-editor-container.preview-editor .ql-toolbar {
+        display: none !important;
+    }
+    .wizard-step .richtext-editor-container .ql-container {
+        height: auto;
+        min-height: 108px;
+        max-height: none;
+        overflow: visible;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    .wizard-step .richtext-editor-container .ql-editor {
+        min-height: 108px;
+        max-height: none;
+        overflow: visible;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+    #step5 .richtext-expand {
+        margin-left: 0.35rem;
+        padding: 0.1rem 0.3rem;
+        line-height: 1;
+        vertical-align: middle;
+    }
+    .richtext-edit-target {
+        display: flex !important;
+        align-items: center;
+        width: 100% !important;
+    }
+    .richtext-edit-target .richtext-expand {
+        margin-left: auto !important;
+        flex-shrink: 0;
+    }
+    .richtext-actions {
+        margin-left: auto;
+        display: inline-flex;
+        gap: 0.25rem;
+        flex-shrink: 0;
+    }
+    .richtext-actions .richtext-expand,
+    .richtext-actions .richtext-preview {
+        margin-left: 0 !important;
+    }
+    .richtext-preview.is-on {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .richtext-editor-container.preview-expanded .ql-container,
+    .richtext-editor-container.preview-expanded .ql-editor {
+        max-height: none;
+        overflow: visible;
+        height: auto;
+    }
+    #project-wizard-shell.is-fullscreen {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-top: 0 !important;
+        max-width: 100%;
+    }
+    #project-wizard-shell.is-fullscreen > .card {
+        border-radius: 0 !important;
+    }
+    #project-wizard-shell.is-fullscreen #wizard-content-col {
+        padding-left: 0 !important;
+    }
+    #step5 label.richtext-edit-target {
+        max-width: 100%;
+    }
+    #richtext-edit-modal .modal-dialog {
+        max-width: min(1100px, 92vw);
+    }
+    #richtext-edit-modal .ql-toolbar {
+        display: block !important;
+    }
+    #richtext-edit-modal .ql-container {
+        height: 55vh;
+        min-height: 320px;
+        max-height: 55vh;
+    }
+    #richtext-edit-modal .ql-editor {
+        min-height: 320px;
+        max-height: 55vh;
+    }
     .wizard-step {
         display: none;
         min-height: 0;
@@ -96,6 +227,7 @@
         display: flex;
         flex-direction: column;
         width: 100%;
+        flex: 0 0 auto;
         min-height: 0;
         overflow: visible;
         padding-bottom: 1rem;
@@ -103,11 +235,13 @@
 
     .wizard-step > .row {
         width: 100%;
+        flex: 0 0 auto;
         margin-bottom: 0;
     }
 
     .wizard-step .col-md-12 {
         position: relative;
+        flex: 0 0 auto;
         z-index: 1;
         margin-bottom: 0.5rem;
     }
@@ -182,9 +316,9 @@
 
 </style>
 
-<div class="container-fluid px-4 mt-4 mb-0">
+<div class="container-fluid px-4 mt-2 mb-0" id="project-wizard-shell">
     <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-header bg-white py-4 border-bottom border-info border-3 d-flex justify-content-between align-items-center flex-wrap">
+        <div class="card-header bg-white py-2 border-bottom border-info border-3 d-flex justify-content-between align-items-center flex-wrap">
             <div>
                 <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
                     <i class="fas fa-arrow-left me-1"></i> Voltar
@@ -199,7 +333,7 @@
                 </h4>
                 <p class="text-muted small mb-0 mt-2">Navegue pelas seções laterais. O progresso é <strong>salvo automaticamente</strong> no seu navegador (Offline-First).</p>
             </div>
-            <div class="mt-3 mt-md-0 d-flex gap-3 align-items-center">
+            <div class="mt-2 mt-md-0 d-flex gap-3 align-items-center">
                 {% if form_projeto.errors or form_plano.errors %}
                 <button type="button" class="btn btn-warning position-relative px-3 py-2 shadow-sm border-0" data-bs-toggle="modal" data-bs-target="#modalPendencias" title="Visualizar Pendências">
                     <i class="fas fa-bell text-dark fs-5"></i>
@@ -208,6 +342,9 @@
                     </span>
                 </button>
                 {% endif %}
+                <button type="button" class="btn btn-sm btn-outline-secondary text-muted" id="btn-toggle-sidebar" title="Expandir/Recolher Área de Trabalho">
+                    <i class="fas fa-expand-arrows-alt me-1"></i> Tela Cheia
+                </button>
                 <button type="submit" form="projetoWizardForm" name="action" value="salvar" class="btn btn-outline-success px-4 shadow-sm fw-bold">
                     <i class="fas fa-save me-2"></i> Salvar Alterações
                 </button>
@@ -217,7 +354,7 @@
             </div>
         </div>
         
-        <div class="card-body p-4 bg-light">
+        <div class="card-body p-3 bg-light">
             <form method="post" id="projetoWizardForm">
                 {% csrf_token %}
                 
@@ -320,10 +457,7 @@
 
                     <!-- Área de Conteúdo do Formulário -->
                     <div class="col-md-8 col-lg-9 ps-4" id="wizard-content-col" style="transition: width 0.3s, padding 0.3s;">
-                        <div class="d-flex justify-content-end mb-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary border-0 text-muted" id="btn-toggle-sidebar" title="Expandir/Recolher Área de Trabalho"><i class="fas fa-expand-arrows-alt me-1"></i> Tela Cheia</button>
-                        </div>
-                        <div class="bg-white p-4 border rounded shadow-sm custom-scrollbar d-flex flex-column wizard-content-panel">
+                        <div class="bg-white p-3 border rounded shadow-sm custom-scrollbar d-flex flex-column wizard-content-panel">
                             
                             <!-- 1. Dados Cadastrais -->
                             <div class="wizard-step active flex-grow-1" id="step1">
@@ -430,7 +564,7 @@
                             
                             <!-- 4. Motivação -->
                             <div class="wizard-step flex-grow-1" id="step4">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">4. Motivação <span class="text-danger">*</span></h4>
+                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4" id="step4-title">4. Motivação <span class="text-danger">*</span></h4>
                                 <div class="row g-4">
                                     <div class="col-md-12">
                                         {{ form_plano.motivacao }}
@@ -470,7 +604,7 @@
                                         {{ form_plano.escopo_geral }}
                                     </div>
                                     <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">6.2 Estrutura Analítica do Projeto (WBS) <span class='text-danger'>*</span></label>
+                                        <label class="form-label fw-bold text-muted small text-uppercase">6.2 Estrutura Analítica do Projeto (EAP/WBS) <span class='text-danger'>*</span></label>
                                         {{ form_plano.estrutura_analitica }}
                                     </div>
                                     <div class="col-md-12 mt-4">
@@ -787,6 +921,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const isEditMode = {% if projeto %}true{% else %}false{% endif %};
     const form = document.getElementById(formId);
     const quillInstances = {};
+    let activeModalQuill = null;
+    let activeModalTextarea = null;
 
     if(typeof jQuery !== 'undefined') {
         jQuery('.select2-multiple').select2({
@@ -803,28 +939,166 @@ document.addEventListener("DOMContentLoaded", function() {
     textareas.forEach(function(textarea) {
         textarea.style.display = 'none';
         const editorContainer = document.createElement('div');
+        editorContainer.className = 'richtext-editor-container';
         textarea.parentNode.insertBefore(editorContainer, textarea.nextSibling);
 
+        const toolbarOptions = [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ];
         const quill = new Quill(editorContainer, {
             theme: 'snow',
             modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'indent': '-1'}, { 'indent': '+1' }],
-                    ['link', 'image', 'video'],
-                    ['clean']
-                ]
+                toolbar: false
             }
         });
 
         quillInstances[textarea.id] = quill;
+        quill.root.setAttribute('contenteditable', 'false');
+        editorContainer.classList.add('preview-editor');
+        const previewToolbar = editorContainer.querySelector('.ql-toolbar');
+        if (previewToolbar) {
+            previewToolbar.style.setProperty('display', 'none', 'important');
+        }
 
         quill.on('text-change', function() {
             textarea.value = quill.root.innerHTML;
             autoSave();
         });
+
+        if (textarea.closest('.wizard-step')) {
+            const fieldColumn = textarea.closest('.col-md-12');
+            const fieldLabel = fieldColumn.querySelector('label');
+            const stepTitle = textarea.closest('.wizard-step').querySelector('h4');
+            const editTarget = fieldLabel || stepTitle;
+            if (!editTarget) {
+                return;
+            }
+            editTarget.classList.add('richtext-edit-target');
+            const actions = document.createElement('span');
+            actions.className = 'richtext-actions';
+            editTarget.appendChild(actions);
+
+            const previewButton = document.createElement('button');
+            previewButton.type = 'button';
+            previewButton.className = 'btn btn-sm btn-outline-secondary richtext-preview';
+            previewButton.innerHTML = '<i class="fas fa-search" aria-hidden="true"></i>';
+            previewButton.title = 'Visualizar texto completo';
+            previewButton.setAttribute('aria-label', 'Visualizar texto completo');
+            previewButton.setAttribute('aria-pressed', 'false');
+            actions.appendChild(previewButton);
+
+            const expandButton = document.createElement('button');
+            expandButton.type = 'button';
+            expandButton.className = 'btn btn-sm btn-outline-primary richtext-expand';
+            expandButton.innerHTML = '<i class="fas fa-edit" aria-hidden="true"></i>';
+            expandButton.title = 'Expandir editor';
+            expandButton.setAttribute('aria-label', 'Expandir editor');
+            actions.appendChild(expandButton);
+
+            previewButton.addEventListener('click', function() {
+                const isVisible = editorContainer.classList.toggle('preview-expanded');
+                previewButton.classList.toggle('is-on', isVisible);
+                previewButton.setAttribute('aria-pressed', String(isVisible));
+                previewButton.title = isVisible ? 'Recolher visualização' : 'Visualizar texto completo';
+                previewButton.setAttribute('aria-label', previewButton.title);
+                previewButton.innerHTML = isVisible
+                    ? '<i class="fas fa-search-minus" aria-hidden="true"></i>'
+                    : '<i class="fas fa-search" aria-hidden="true"></i>';
+            });
+
+            let modal = document.getElementById('richtext-edit-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'richtext-edit-modal';
+                modal.className = 'modal fade';
+                modal.tabIndex = -1;
+                modal.setAttribute('aria-hidden', 'true');
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header bg-light">
+                                <h5 class="modal-title fw-bold text-secondary" id="richtext-edit-title">Editor de texto</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+                            <div class="modal-body p-3" id="richtext-edit-body"></div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-outline-danger fw-bold" id="richtext-clear-button">
+                                    <i class="fas fa-eraser me-1"></i> Limpar
+                                </button>
+                                <div class="flex-grow-1"></div>
+                                <button type="button" class="btn btn-primary fw-bold" data-bs-dismiss="modal">
+                                    <i class="fas fa-check me-1"></i> Concluir edição
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+                document.body.appendChild(modal);
+            }
+
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
+            const modalBody = modal.querySelector('#richtext-edit-body');
+            const modalTitle = modal.querySelector('#richtext-edit-title');
+            let modalQuill = null;
+            const clearButton = modal.querySelector('#richtext-clear-button');
+
+            if (clearButton && !clearButton.dataset.bound) {
+                clearButton.dataset.bound = 'true';
+                clearButton.addEventListener('click', function() {
+                    if (!activeModalQuill || !window.confirm('Limpar todo o conteúdo deste campo?')) {
+                        return;
+                    }
+                    activeModalQuill.setText('');
+                    if (activeModalTextarea) {
+                        activeModalTextarea.value = '';
+                    }
+                    autoSave();
+                });
+            }
+
+            expandButton.addEventListener('click', function() {
+                modalTitle.textContent = editTarget.textContent.replace(/\s+/g, ' ').trim();
+                modalBody.innerHTML = '<div class="richtext-modal-editor"></div>';
+                modalQuill = new Quill(modalBody.firstElementChild, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: toolbarOptions
+                    }
+                });
+                modalQuill.root.innerHTML = quill.root.innerHTML;
+                activeModalQuill = modalQuill;
+                activeModalTextarea = textarea;
+                modalQuill.on('text-change', function() {
+                    quill.root.innerHTML = modalQuill.root.innerHTML;
+                    textarea.value = modalQuill.root.innerHTML;
+                    autoSave();
+                });
+                expandButton.title = 'Editor aberto';
+                expandButton.setAttribute('aria-label', 'Editor aberto');
+                modalInstance.show();
+                setTimeout(() => modalQuill.focus(), 150);
+            });
+
+            modal.addEventListener('hidden.bs.modal', function() {
+                if (modalQuill) {
+                    quill.root.innerHTML = modalQuill.root.innerHTML;
+                    textarea.value = modalQuill.root.innerHTML;
+                    if (activeModalQuill === modalQuill) {
+                        activeModalQuill = null;
+                        activeModalTextarea = null;
+                    }
+                    modalQuill = null;
+                }
+                modalBody.innerHTML = '';
+                expandButton.title = 'Expandir editor';
+                expandButton.setAttribute('aria-label', 'Expandir editor');
+                autoSave();
+            });
+        }
     });
 
     
@@ -1528,18 +1802,20 @@ document.addEventListener("DOMContentLoaded", function() {
         btnToggleSidebar.addEventListener('click', function() {
             isSidebarVisible = !isSidebarVisible;
             if(isSidebarVisible) {
-                // Mostrar
+                document.getElementById('project-wizard-shell').classList.remove('is-fullscreen');
                 sidebarCol.classList.remove('d-none');
                 sidebarCol.classList.add('col-md-4', 'col-lg-3');
+                contentCol.classList.remove('col-12');
                 contentCol.classList.remove('col-md-12', 'col-lg-12');
                 contentCol.classList.add('col-md-8', 'col-lg-9');
                 btnToggleSidebar.innerHTML = '<i class="fas fa-expand-arrows-alt me-1"></i> Tela Cheia';
             } else {
-                // Ocultar
+                document.getElementById('project-wizard-shell').classList.add('is-fullscreen');
                 sidebarCol.classList.add('d-none');
                 sidebarCol.classList.remove('col-md-4', 'col-lg-3');
                 contentCol.classList.remove('col-md-8', 'col-lg-9');
                 contentCol.classList.add('col-md-12', 'col-lg-12');
+                contentCol.classList.add('col-12');
                 btnToggleSidebar.innerHTML = '<i class="fas fa-compress-arrows-alt me-1"></i> Voltar Menu';
             }
         });
