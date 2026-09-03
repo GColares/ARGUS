@@ -19,6 +19,24 @@ Sistema estabilizado rodando sob o PostgreSQL 18. O formulário de edição de P
 
 # Diário de Bordo - ARGUS
 
+## [02/09/2026] - Refinamento da interface rich text do ProjetoPDI
+
+### O que foi feito:
+- Ajustado o layout do wizard de edição para reduzir espaços vazios e melhorar a ocupação vertical da tela.
+- Reposicionado o botão Tela Cheia para a linha de ações do cabeçalho e preparado o modo de expansão do conteúdo na própria tela.
+- Em `cadastros/templates/cadastros/form_projeto.html`, os campos rich text dos passos 4, 5 e seguintes passaram a usar prévias somente leitura, com bordas completas, altura adaptável e quebra de texto.
+- Adicionados ícones de edição alinhados à direita: no título do passo 4 e nas labels dos subitens 5.1 e 5.2.
+- Criado editor Quill separado em modal para edição, com barra de ferramentas, sincronização do conteúdo e botão Limpar com confirmação.
+- Adicionada lupa liga/desliga para expandir a caixa de leitura existente, sem criar uma segunda caixa.
+- Padronizada a inicialização: toolbar desativada nas prévias e habilitada somente no modal.
+- Criado o commit `7b02284` e publicado na branch `main` do GitHub.
+
+### O que ficou pendente:
+- Validar visualmente a expansão da caixa existente pela lupa; a última tentativa ainda não apresentou o comportamento esperado.
+- Executar a rotina de encerramento do dia no terminal do usuário, incluindo backup SQL/JSON, exportação de dependências, commit e push.
+
+---
+
 ## [01/09/2026] - Refatoração UI do Wizard e Tratamento de Desastres (Edição de Projetos)
 
 ### 📝 O que foi feito:
