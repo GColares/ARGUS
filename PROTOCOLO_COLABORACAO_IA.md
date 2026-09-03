@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Este documento define como o Antigravity-Gemini, o GitHub Copilot e o Cody
+Este documento define como o Antigravity-Gemini, o GitHub Copilot e o Devin Desktop
 devem trabalhar no mesmo repositório, preservando contexto, dados legados e
 alterações feitas por cada agente.
 
@@ -14,41 +14,62 @@ Em caso de conflito, siga estritamente esta ordem de precedência:
 2. **Protocolo Base:** Este documento (`PROTOCOLO_COLABORACAO_IA.md`), que orquestra a convivência entre as IAs.
 3. **Regras Arquiteturais e de Negócio:** Diretrizes em `.agents/AGENTS.md`, `.agents/rules/` e regras de domínio contidas no código.
 4. **Instruções Específicas da IA:** `GEMINI.md` (arquitetura), `COPILOT.md`
-   (implementação) e `.github/copilot-instructions.md` (resumo automático).
+   (implementação no VS Code), `DEVIN.md` (implementação autônoma/refatorações) e `.github/copilot-instructions.md` (resumo automático).
 5. **Automação e Execução:** Documentação de _Skills_ (`.agents/skills/`) e os scripts reais (`scripts/`).
 6. **Registro Histórico:** `diario_de_bordo.md`, que preserva o contexto temporal e decisões, mas NÃO possui poder normativo para sobrescrever regras formais acima em caso de conflito.
 
 Se a contradição não puder ser resolvida por essa precedência, as IAs devem
 parar e solicitar uma decisão ao usuário.
 
-## Divisão de papéis
+---
+
+## Rotina Obrigatória de Inicialização (Para TODAS as IAs)
+
+Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Copilot ou Devin**) deve obrigatoriamente executar estes passos antes de sugerir ou alterar qualquer linha de código:
+
+1. **Ler o seu manual tático específico:**
+   * Gemini $\rightarrow$ `GEMINI.md`
+   * Copilot $\rightarrow$ `COPILOT.md` (ou `.github/copilot-instructions.md`)
+   * Devin $\rightarrow$ `DEVIN.md`
+2. **Ler este protocolo:** `PROTOCOLO_COLABORACAO_IA.md` (para relembrar quem é você e quem são os outros no Squad).
+3. **Ler o topo de `diario_de_bordo.md`:** Entender o status atual, o que foi feito na última sessão e o que está pendente/em andamento.
+4. **Executar `git status`:**
+   * Confirmar que está na raiz `C:\ARGUS`.
+   * Se houver arquivos modificados por outra IA, **NÃO sobrescrever nem apagar**. Perguntar ao usuário antes de tocar.
+5. **Checar a posse de arquivos (Regra de Ouro):**
+   * Verificar se o arquivo no qual você vai trabalhar foi liberado no Handoff.
+   * **Uma IA por arquivo por sessão**. Nunca edite um arquivo que outra IA já estiver editando.
+
+---
+
+## Divisão de Papéis do Squad
+
+| Agente | Cargo | Atuação Principal | Manual de Instrução |
+|---|---|---|---|
+| **Usuário** | Product Owner (PO) | Conhece o domínio (IFAM/EMBRAPII/SUFRAMA), toma decisões, aprova entregas e roda rotinas no terminal | - |
+| **Antigravity-Gemini** | Arquiteto de Software & Tech Lead | Guardião do domínio legal/arquitetura, Red Team, desenha o banco, planeja Handoffs e audita entregas | `GEMINI.md` |
+| **GitHub Copilot** | Desenvolvedor Full-Stack (VS Code) | Telas, templates HTML/CSS, formulários, rotinas rápidas de views, autocompletar no editor | `COPILOT.md` |
+| **Devin Desktop** | Desenvolvedor Autônomo & Refatoração | Faxinas pesadas (código duplicado), refatorações multi-arquivos, suítes de testes, execuções autônomas de Handoffs | `DEVIN.md` |
 
 ### Antigravity-Gemini
-
 - analisar requisitos, arquitetura e regras de negócio;
 - pesquisar documentação e impactos entre módulos;
-- elaborar planos e alternativas;
-- revisar conformidade arquitetural e de negócio;
+- elaborar planos e alternativas (Handoffs);
+- revisar conformidade arquitetural e de negócio após entrega;
 - registrar decisões e pendências no diário.
-
-Instruções táticas de planejamento e domínio: `GEMINI.md`.
+- **Não** implementa no código padrão sem handoff prévio.
 
 ### GitHub Copilot
-
-- implementar alterações no worktree;
+- implementar alterações no worktree (VS Code);
 - corrigir bugs e manter compatibilidade;
 - executar testes, lint e verificações já existentes;
 - revisar o diff e reportar falhas;
-- preparar handoff técnico.
+- não edita o mesmo arquivo que o Devin na mesma sessão.
 
-Instruções táticas (armadilhas do repositório, checklist, o que não fazer):
-`COPILOT.md`. O resumo automático do VS Code/GitHub está em
-`.github/copilot-instructions.md` e aponta para esse arquivo.
-
-### Cody
-
-- implementação cirúrgica, higiene de código, testes de invariante e
-  verificação no navegador quando a tarefa for atribuída a ele;
+### Devin Desktop
+- executar refatorações estruturais pesadas e faxinas de código legado;
+- implementar tarefas autônomas definidas estritamente em Handoffs do Gemini;
+- criar testes e scripts auxiliares;
 - não edita o mesmo arquivo que o Copilot na mesma sessão.
 
 O usuário pode alterar essa divisão para uma tarefa específica. A atribuição

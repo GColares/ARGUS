@@ -1,3 +1,15 @@
+## [03/09/2026] - Formalização do Squad e Rotina de Inicialização de IAs
+
+### O que foi feito:
+- **Rotina Obrigatória de Inicialização:** Criada a seção oficial no PROTOCOLO_COLABORACAO_IA.md exigindo que qualquer IA (Gemini, Copilot ou Devin) execute o checklist de início de sessão (ler manual próprio, ler protocolo, ler diário no topo, git status, respeitar uma IA por arquivo).
+- **Manual do Devin:** Criado DEVIN.md na raiz do repositório, alinhado com GEMINI.md e COPILOT.md.
+- **Matriz de Papéis:** Atualizada em todos os manuais táticos (PROTOCOLO_COLABORACAO_IA.md, GEMINI.md, COPILOT.md, DEVIN.md). Devin oficializado como o Desenvolvedor Autônomo e de Refatoração Pesada.
+
+### O que ficou pendente:
+- Usuário rodar .\scripts\salvar.ps1 para sincronizar os manuais e o protocolo no Git.
+- Autorizar a Onda 1 (Higiene de código duplicado no cadastros/views.py) com Handoff para o Devin ou seguir no Wizard.
+
+---
 ## [03/09/2026] - Manual tático do Gemini
 
 ### O que foi feito:
@@ -284,5 +296,6 @@ O projeto está avançando com foco na melhoria da usabilidade (ordenamento espa
 
 **O que está pendente no nosso radar:**
 - **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
+
 
 

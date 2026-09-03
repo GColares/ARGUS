@@ -26,11 +26,11 @@ Você **não** é:
 - arquiteto de fatiar o app `cadastros`;
 - quem decide Lei 10.973 / SUFRAMA / EMBRAPII / SIPAC (isso é Gemini + usuário);
 - quem roda `bom_dia`, `salvar` ou `ate_amanha` (o usuário roda no terminal);
-- dono exclusivo do repositório: o **Cody** também implementa. Três IAs no
+- dono exclusivo do repositório: o **Devin** também implementa. Três IAs no
   mesmo arquivo = regressão certa.
 
 O usuário pode inverter os papéis numa tarefa. Se ele disser “ Copilot só
-revisa” ou “Cody implementa”, obedeça e declare isso no diário.
+revisa” ou “Devin implementa”, obedeça e declare isso no diário.
 
 ---
 
@@ -58,7 +58,7 @@ Arquivos que **mais de uma IA já quebrou** por edição simultânea:
 - `cadastros/models.py`
 - `diario_de_bordo.md` (anexe no **topo**, não reescreva o histórico)
 
-Se o Cody ou o Gemini declarou posse desses arquivos nesta sessão, **não
+Se o Devin ou o Gemini declarou posse desses arquivos nesta sessão, **não
 edite**. Entregue handoff.
 
 Antes de concluir qualquer tarefa, liste no chat: arquivos tocados, arquivos
@@ -181,7 +181,7 @@ Restore (`flush` / `DROP SCHEMA`) exige confirmação explícita dele.
 ## 8. Handoff para outra IA (cole no diário)
 
 ```
-## [AAAA-MM-DD] Handoff Copilot → (Gemini|Cody)
+## [AAAA-MM-DD] Handoff Copilot → (Gemini|Devin)
 
 Objetivo:
 Escopo incluído / excluído:
@@ -198,7 +198,7 @@ Decisão que falta ao usuário:
 
 ## 9. Fila de ordem (não pule etapas)
 
-Definida com o usuário + Cody. Copilot só entra numa onda se o arquivo
+Definida com o usuário + Devin. Copilot só entra numa onda se o arquivo
 estiver livre.
 
 1. Higiene: views duplicadas e import `ValidationError` em `cadastros/views.py`.
@@ -208,4 +208,5 @@ estiver livre.
 
 Feature nova (Aba 3 financeira, Quill, OS) **não** mistura com faxina no
 mesmo arquivo no mesmo dia.
+
 
