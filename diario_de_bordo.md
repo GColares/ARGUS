@@ -1,3 +1,35 @@
+## [03/09/2026] - Manual tático do Gemini
+
+### O que foi feito:
+- Reescrito `GEMINI.md` no mesmo nível do `COPILOT.md`: papel (arquitetura,
+  não implementação padrão), handoff executável, domínio a defender, o que
+  não reabrir (protocolo já consolidado), fila de ondas e Red Team.
+- `PROTOCOLO_COLABORACAO_IA.md` cita as três IAs e aponta `GEMINI.md` /
+  `COPILOT.md` na precedência.
+
+### O que ficou pendente:
+- No próximo chat do Antigravity, pedir: *leia GEMINI.md*.
+- Onda 1 de higiene ainda não autorizada.
+
+---
+
+## [03/09/2026] - Manual tático do Copilot
+
+### O que foi feito:
+- Criado `COPILOT.md` na raiz: papel do Copilot, início de sessão, arquivos
+  quentes, armadilhas reais (`views.py` duplicado, wizard, termos, User↔Pessoa),
+  checklist de implementação, proibições e modelo de handoff.
+- `.github/copilot-instructions.md` passou a apontar para `COPILOT.md`.
+- `PROTOCOLO_COLABORACAO_IA.md` e `GEMINI.md` registram o Cursor como terceira
+  IA e o arquivo tático do Copilot.
+
+### O que ficou pendente:
+- Copilot deve ler `COPILOT.md` no próximo chat (o GitHub só injeta o resumo
+  de `.github/copilot-instructions.md` automaticamente).
+- Onda 1 de higiene (`cadastros/views.py`) ainda não foi autorizada.
+
+---
+
 ## 02/09/2026 (Preventivo - Edição de Projetos)
 **Status Atual do Projeto:**
 Sistema estabilizado rodando sob o PostgreSQL 18. O formulário de edição de ProjetoPDI (Wizard Caixa Eletrônico) foi plenamente restabelecido e validado, pronto para receber dados reais de produção.
@@ -18,6 +50,16 @@ Sistema estabilizado rodando sob o PostgreSQL 18. O formulário de edição de P
 ---
 
 # Diário de Bordo - ARGUS
+
+## [03/09/2026] - Correção da visualização rich text
+
+### O que foi feito:
+- Corrigido o CSS das prévias Quill para iniciar em uma caixa recolhida de 80px, com rolagem interna.
+- O botão de lupa agora alterna a expansão da própria caixa existente, exibindo o conteúdo completo sem duplicação ou nova janela.
+- Removidas regras específicas conflitantes dos passos 4 e 5.
+- `python manage.py check` executado com sucesso.
+
+---
 
 ## [03/09/2026] - Fase 2 das rotinas de colaboração
 

@@ -99,57 +99,21 @@
     #step5 .col-md-12 + .col-md-12 {
         margin-top: 0.5rem !important;
     }
-    #step5 .ql-toolbar {
-        display: none;
-    }
-    #step5 .ql-container {
-        height: auto;
-        min-height: 108px;
-        max-height: none;
-        overflow: visible;
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
-    }
-    #step5 .ql-editor {
-        min-height: 108px;
-        max-height: none;
-        overflow: visible;
-        white-space: normal;
-        overflow-wrap: anywhere;
-    }
-    #step4 .ql-toolbar {
-        display: none;
-    }
-    #step4 .ql-container {
-        height: auto;
-        min-height: 108px;
-        max-height: none;
-        overflow: visible;
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
-    }
-    #step4 .ql-editor {
-        min-height: 108px;
-        max-height: none;
-        overflow: visible;
-        white-space: normal;
-        overflow-wrap: anywhere;
-    }
     .richtext-editor-container.preview-editor .ql-toolbar {
         display: none !important;
     }
-    .wizard-step .richtext-editor-container .ql-container {
-        height: auto;
-        min-height: 108px;
-        max-height: none;
-        overflow: visible;
+    .wizard-step .richtext-editor-container.preview-editor .ql-container {
+        height: 80px;
+        min-height: 80px;
+        max-height: 80px;
+        overflow-y: auto;
         border: 1px solid #ced4da;
         border-radius: 0.375rem;
     }
-    .wizard-step .richtext-editor-container .ql-editor {
-        min-height: 108px;
-        max-height: none;
-        overflow: visible;
+    .wizard-step .richtext-editor-container.preview-editor .ql-editor {
+        min-height: 80px;
+        max-height: 80px;
+        overflow-y: hidden;
         white-space: normal;
         overflow-wrap: anywhere;
     }
@@ -185,9 +149,10 @@
     }
     .richtext-editor-container.preview-expanded .ql-container,
     .richtext-editor-container.preview-expanded .ql-editor {
-        max-height: none;
-        overflow: visible;
-        height: auto;
+        height: auto !important;
+        min-height: 108px;
+        max-height: none !important;
+        overflow: visible !important;
     }
     #project-wizard-shell.is-fullscreen {
         padding-left: 0 !important;

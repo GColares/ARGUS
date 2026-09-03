@@ -1,8 +1,11 @@
 # Instruções Globais para o GitHub Copilot (Contexto do Projeto ARGUS)
 
-Consulte primeiro o [protocolo de colaboração](../PROTOCOLO_COLABORACAO_IA.md)
-para a divisão de papéis com o Antigravity-Gemini, a precedência das regras e
-o procedimento seguro das rotinas.
+Leia na íntegra o [manual tático do Copilot](../COPILOT.md) no início de cada
+sessão (armadilhas do código, uma IA por arquivo, o que não fazer sozinho).
+
+Consulte o [protocolo de colaboração](../PROTOCOLO_COLABORACAO_IA.md) para a
+divisão de papéis (Gemini, Copilot, Cursor), a precedência das regras e o
+procedimento seguro das rotinas.
 
 Você está trabalhando no projeto **ARGUS**, um sistema web em Django desenvolvido pelo Polo de Inovação do IFAM.
 Por favor, obedeça rigorosamente a estas diretrizes arquiteturais em todas as suas respostas, sugestões de código ou quando o usuário pedir ajuda.

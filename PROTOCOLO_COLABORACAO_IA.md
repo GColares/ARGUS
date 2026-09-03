@@ -2,8 +2,8 @@
 
 ## Objetivo
 
-Este documento define como o Antigravity-Gemini e o GitHub Copilot devem
-trabalhar no mesmo repositório, preservando contexto, dados legados e
+Este documento define como o Antigravity-Gemini, o GitHub Copilot e o Cursor
+devem trabalhar no mesmo repositório, preservando contexto, dados legados e
 alterações feitas por cada agente.
 
 ## Fonte de verdade
@@ -13,7 +13,8 @@ Em caso de conflito, siga estritamente esta ordem de precedência:
 1. **Princípios de Segurança:** Proteção contra perda de dados, vazamento de credenciais e operações destrutivas.
 2. **Protocolo Base:** Este documento (`PROTOCOLO_COLABORACAO_IA.md`), que orquestra a convivência entre as IAs.
 3. **Regras Arquiteturais e de Negócio:** Diretrizes em `.agents/AGENTS.md`, `.agents/rules/` e regras de domínio contidas no código.
-4. **Instruções Específicas da IA:** Arquivos voltados a ferramentas particulares, como `GEMINI.md` e `.github/copilot-instructions.md`.
+4. **Instruções Específicas da IA:** `GEMINI.md` (arquitetura), `COPILOT.md`
+   (implementação) e `.github/copilot-instructions.md` (resumo automático).
 5. **Automação e Execução:** Documentação de _Skills_ (`.agents/skills/`) e os scripts reais (`scripts/`).
 6. **Registro Histórico:** `diario_de_bordo.md`, que preserva o contexto temporal e decisões, mas NÃO possui poder normativo para sobrescrever regras formais acima em caso de conflito.
 
@@ -30,6 +31,8 @@ parar e solicitar uma decisão ao usuário.
 - revisar conformidade arquitetural e de negócio;
 - registrar decisões e pendências no diário.
 
+Instruções táticas de planejamento e domínio: `GEMINI.md`.
+
 ### GitHub Copilot
 
 - implementar alterações no worktree;
@@ -37,6 +40,16 @@ parar e solicitar uma decisão ao usuário.
 - executar testes, lint e verificações já existentes;
 - revisar o diff e reportar falhas;
 - preparar handoff técnico.
+
+Instruções táticas (armadilhas do repositório, checklist, o que não fazer):
+`COPILOT.md`. O resumo automático do VS Code/GitHub está em
+`.github/copilot-instructions.md` e aponta para esse arquivo.
+
+### Cursor
+
+- implementação cirúrgica, higiene de código, testes de invariante e
+  verificação no navegador quando a tarefa for atribuída a ele;
+- não edita o mesmo arquivo que o Copilot na mesma sessão.
 
 O usuário pode alterar essa divisão para uma tarefa específica. A atribuição
 deve ser informada antes do trabalho começar.
