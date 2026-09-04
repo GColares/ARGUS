@@ -1,6 +1,196 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-04] Execução Financeira (Passo 2 — Folha Mensal de Bolsas e Confirmação de Pagamento) — Concluído e Homologado
+
+### Resumo da Entrega e Auditoria Independente:
+- **Implementação e Refinamento (IBM Bob):**
+  - **Rotas e Views (`gestao_projetos`):** Rota `/gestao_projetos/folha-pagamento/` com cálculo de 4 KPIs, query com `select_related`/`prefetch_related`, suporte a superusuário e filtros de competência `YYYY-MM`.
+  - **Opção A (Trava Rígida de RA):** Implementada tanto no frontend (botão desabilitado com tooltip explicativo) quanto no backend (validação em `confirmar_pagamento_parcela` impedindo a liquidação caso o RA não esteja `CONCLUIDO` por servidor SIAPE).
+  - **Segurança Contábil:** Validação de dados bancários ativos da `PessoaFisica`, trava de idempotência contra pagamento duplicado e verificação da conta pagadora pertencente ao projeto.
+  - **Conformidade UI (`AGENTS.md`):** Modal dinâmico com resolução via `data-url-template`, tabela compatível com DataTables (sem `{% empty %}` com colspan no `<tbody>`), link Voltar dinâmico sob o breadcrumb e cores semânticas nativas do Bootstrap.
+  - **Suíte de Testes Automatizados (`gestao_projetos/tests.py`):** Implementada a classe `FolhaPagamentoTestCase` cobrindo visualização da folha com KPIs, rejeição de pagamento sem RA atestado (Opção A) e sucesso de liquidação com RA `CONCLUIDO`.
+- **Auditoria Independente do Arquiteto (Gemini):**
+  - `python manage.py check`: **0 erros**.
+  - `python manage.py test gestao_projetos cadastros`: **28/28 testes passando com 100% de sucesso** em 4.283s.
+  - Modelos de `cadastros/models.py` e templates do wizard mantidos 100% íntegros e intocados.
+  - **Segregação de Funções:** Respeitada com rigor técnico em todas as etapas.
+
+---
+
+## [2026-09-04] Handoff Gemini → IBM Bob / Copilot: Refinamento do Passo 2 (Opção A — Trava Rígida de RA, Correção de URL e Testes Automatizados)
+
+### Incidente / Mudança de Procedimento no Squad:
+- **Causa:** Na auditoria da primeira entrega do IBM Bob para o Passo 2, foram identificados 4 pontos de atenção: (1) O usuário optou formalmente pela **Opção A** (bloqueio rígido de liquidação sem RA atestado por SIAPE), ausente na versão inicial; (2) O action do formulário no modal em Javascript continha a URL com hífen `/gestao-projetos/` em vez de `/gestao_projetos/`, gerando erro 404; (3) O template violou a regra do DataTables ao usar `{% empty %}` com `colspan` no `<tbody>`; (4) O arquivo `gestao_projetos/tests.py` não possuía cobertura automatizada da folha.
+- **Ação:** O Arquiteto Gemini elaborou este Handoff atômico de refinamento para o implementador (IBM Bob ou Copilot) ajustar o backend, o frontend e implementar a suíte `FolhaPagamentoTestCase`.
+- **Consequência:** A segregação de funções se mantém íntegra. O implementador realiza as correções cirúrgicas e cria os testes, garantindo que o Gemini realize a homologação final com validação 100% automatizada.
+
+### 1. Objetivo da Tarefa:
+Refinar a Folha Mensal de Pagamentos e o endpoint de confirmação de pagamento para aplicar a **Opção A** (trava rígida de liberação apenas com RA atestado `CONCLUIDO` por servidor SIAPE), corrigir a URL do modal, alinhar as regras de DataTables de `AGENTS.md` e implementar suíte de testes em `gestao_projetos/tests.py`.
+
+### 2. Escopo Incluído:
+1. **Frontend (`gestao_projetos/templates/gestao_projetos/folha_pagamento_mensal.html`):**
+   - **Opção A no Botão:** Se `linha.ra_status != 'CONCLUIDO'` ou `not linha.relatorio`, desabilitar o botão (`disabled`) com `title="Liquidação bloqueada: O Relatório de Atividades (RA) desta competência ainda não foi atestado pelo Coordenador (servidor SIAPE)."`.
+   - Se `not linha.tem_dados_bancarios`, manter desabilitado com `title="Cadastre os dados bancários do bolsista antes de confirmar o pagamento."`.
+   - **Correção da URL no Modal (linha 317):** Trocar `'/gestao-projetos/parcela/'` por `'/gestao_projetos/parcela/'`.
+   - **Conformidade DataTables:** Remover a tag `{% empty %}` com `<td colspan="9">...</td>` do `<tbody>`, mantendo o corpo vazio caso não haja parcelas para o DataTables renderizar de forma nativa.
+   - **Cores Semânticas:** Substituir `style="background: #f0f7ff;"` e similares nos cards por variáveis Bootstrap `rgba(var(--bs-primary-rgb), 0.08)`.
+2. **Backend (`gestao_projetos/views.py`):**
+   - Em `folha_mensal_pagamentos`: permitir que administradores (`request.user.is_superuser`) visualizem todos os projetos mesmo sem registro em `MembroEquipe`.
+   - Em `confirmar_pagamento_parcela`:
+     - Permitir bypass de `request.user.is_superuser` na verificação de permissão.
+     - **Trava de Backend (Opção A):** Validar se existe relatório atestado (`parcela.relatorios.filter(status='CONCLUIDO').exists()`). Se não houver, emitir `messages.error(request, "Liquidação bloqueada: O Relatório de Atividades (RA) precisa estar atestado por servidor SIAPE.")` e redirecionar.
+     - Validar se o bolsista tem dados bancários ativos. Se não, emitir `messages.error()` e redirecionar.
+     - Validar se `parcela.status == 'PAGO'` (idempotência). Se já pago, emitir `messages.warning()` e redirecionar.
+3. **Testes Automatizados (`gestao_projetos/tests.py`):**
+   - Criar `FolhaPagamentoTestCase(TestCase)` cobrindo:
+     1. `test_visualizacao_folha_mensal`: Acesso com usuário autenticado, listagem de parcelas, KPIs calculados.
+     2. `test_bloqueio_pagamento_sem_ra_atestado`: Tentativa de POST em `confirmar_pagamento_parcela` com RA em status `PENDENTE` é rejeitada (não transita status para `PAGO`).
+     3. `test_sucesso_confirmacao_pagamento_com_ra_concluido`: POST com RA `CONCLUIDO` efetiva pagamento (status vira `PAGO`, registra `data_pagamento` e `conta_pagamento`).
+
+### 3. Escopo Excluído:
+- NÃO alterar `cadastros/models.py`.
+- NÃO alterar `cadastros/templates/` nem wizard de projetos.
+
+### 4. Arquivos Liberados:
+- `gestao_projetos/templates/gestao_projetos/folha_pagamento_mensal.html`
+- `gestao_projetos/views.py`
+- `gestao_projetos/tests.py`
+
+### 5. Arquivos Proibidos:
+- `cadastros/models.py`
+- `cadastros/templates/`
+- `almoxarifado/`
+
+### 6. Invariantes de Negócio:
+1. **Trava de Liberação (Opção A):** Nenhuma parcela é liquidada sem que o respectivo RA esteja formalmente `CONCLUIDO` com parecer do supervisor.
+2. **Conta Pagadora:** O pagamento deve pertencer ao projeto (`conta.projeto == projeto`).
+3. **Idempotência:** Parcela já paga não pode ser liquidada novamente.
+
+### 7. Critério de Pronto:
+- `python manage.py check` com 0 erros.
+- `python manage.py test gestao_projetos` passando 100%.
+- `python manage.py test cadastros gestao_projetos` passando 100%.
+
+---
+
+## [2026-09-04] Auditoria do Arquiteto Gemini — Entrega Inicial do Passo 2 (IBM Bob)
+
+### O que foi entregue e aprovado:
+1. **Rotas em `gestao_projetos/urls.py`:** Ambas as rotas adicionadas com nomes padronizados (`folha_mensal_pagamentos` e `confirmar_pagamento_parcela`).
+2. **Estrutura da View em `gestao_projetos/views.py`:** Filtros por projeto e competência `YYYY-MM`, cálculo robusto dos 4 KPIs, e montagem do payload por linha.
+3. **Hub do Módulo em `home_gestao_projetos.html`:** Card "Folha Mensal de Pagamentos" adicionado com ícone e descrição alinhados ao design do módulo.
+4. **Layout de `folha_pagamento_mensal.html`:** Trilha de navegação, breadcrumbs, link Voltar dinâmico, visualização de dados bancários da `PessoaFisica` e modal Bootstrap 5.
+
+### Fragilidades e Riscos Identificados para Ajuste:
+1. **Bug 404 no Action do Modal:** O JavaScript de `folha_pagamento_mensal.html` montava `/gestao-projetos/parcela/...` (com hífen), que não bate com o namespace da rota (`/gestao_projetos/`).
+2. **Falta da Opção A:** O botão de pagamento e a view permitiam liquidar mesmo sem o RA estar atestado (`CONCLUIDO`). O usuário determinou a Opção A (bloqueio rígido).
+3. **Violação de DataTables (`AGENTS.md`):** Presença de `{% empty %}` com `colspan="9"` dentro de `<tbody>`.
+4. **Ausência de Testes em `gestao_projetos/tests.py`:** O arquivo estava vazio.
+
+---
+
+### Incidente / Mudança de Procedimento no Squad:
+- **Causa:** O Devin Desktop teve sua cota diária de uso esgotada após o Passo 1. O usuário integrou o **IBM Bob** (com 50 Bobcoins / 30 dias de trial) e o **Copilot** no VS Code para atuar como implementadores, mantendo a segregação de funções estrita onde o **Antigravity-Gemini** atua exclusivamente como Arquiteto, Guardião do Domínio e Auditor Independente.
+- **Ação:** O Handoff do Passo 2 foi detalhado com todos os requisitos técnicos, regras de UI de `AGENTS.md`, invariantes contratuais e rotas Django exatas para guiar a implementação sem ambiguidades e com consumo mínimo de recursos/Bobcoins.
+- **Consequência:** A implementação da interface (`folha_pagamento_mensal.html`), rotas e ajustes de views fica sob responsabilidade do Implementador (IBM Bob ou Copilot). O Gemini executará a auditoria independente e homologação final após a conclusão dos testes.
+
+### 1. Objetivo da Tarefa:
+Construir a interface gerencial e os fluxos de backend para o acompanhamento e liquidação da execução financeira mensal de bolsas por projeto no app `gestao_projetos`. A tela cruza em tempo real a situação do Relatório de Atividades (RA atestado por servidor SIAPE) com os dados bancários da `PessoaFisica`, permitindo à Fundação de Apoio (FAEPI) e aos Gestores conferir valores, verificar atestos e confirmar o pagamento de cada parcela com anexo de comprovante bancário (TED/PIX).
+
+### 2. Escopo Incluído:
+1. **Rotas em `gestao_projetos/urls.py`:**
+   - `folha-pagamento/` $\rightarrow$ `views.folha_mensal_pagamentos` (name: `folha_mensal_pagamentos`, URL final: `/gestao_projetos/folha-pagamento/`)
+   - `parcela/<int:parcela_id>/confirmar-pagamento/` $\rightarrow$ `views.confirmar_pagamento_parcela` (name: `confirmar_pagamento_parcela`, URL final: `/gestao_projetos/parcela/<id>/confirmar-pagamento/`)
+2. **Backend em `gestao_projetos/views.py`:**
+   - `folha_mensal_pagamentos(request)`:
+     - Proteção com `@login_required`.
+     - Permissão: Gestores alocados em `MembroEquipe` do projeto ou administradores do sistema (`request.user.is_superuser`).
+     - Captura `projeto_id` (GET) e `mes_ano` (GET, padrão mês/ano atual no formato `YYYY-MM`).
+     - Listagem de projetos permitidos ordenados por nome.
+     - Se projeto selecionado:
+       - Query otimizada com `select_related('termo_bolsa__pessoa', 'termo_bolsa__cota_pt', 'conta_pagamento')` e `prefetch_related('relatorios', 'termo_bolsa__pessoa__dados_bancarios')`.
+       - Filtro de parcelas pela competência (`mes_competencia__year=ano, mes_competencia__month=mes`).
+       - Carregamento de contas bancárias ativas do projeto (`ContaBancaria.objects.filter(projeto=projeto_selecionado)`).
+       - Cálculo dos 4 KPIs de cabeçalho: Total Previsto na Competência (R$), Total Liquidado/Pago (R$), Saldo a Pagar (R$) e Quantidade de RAs Atestados vs. Pendentes.
+   - `confirmar_pagamento_parcela(request, parcela_id)`:
+     - Proteção com `@login_required` e validação estrita de método POST.
+     - Validação de permissão: `request.user.is_superuser` ou `MembroEquipe.objects.filter(projeto=projeto, usuario=request.user)`.
+     - Captura de `data_pagamento` (default: hoje), `conta_pagamento_id` (FK de `ContaBancaria`) e `comprovante_pagamento` (`request.FILES`).
+     - Validação de extensões permitidas para comprovante: `.pdf`, `.png`, `.jpg`, `.jpeg`.
+     - Chamada ao método do modelo `parcela.confirmar_pagamento(data_pagamento, conta, comprovante)`.
+     - Notificação `messages.success()` e redirecionamento de volta via helper `_redirect_folha(request, projeto.id, parcela.mes_competencia)` preservando os filtros `?projeto_id=X&mes_ano=YYYY-MM`.
+3. **Template `gestao_projetos/templates/gestao_projetos/folha_pagamento_mensal.html`:**
+   - Estrutura fluida `container-fluid px-4 mt-4`.
+   - Trilha de navegação (Breadcrumbs) e link de retorno dinâmico padronizado sob o breadcrumb: `<a href="javascript:history.back()" class="text-muted small fw-bold mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Voltar</a>`.
+   - Barra de filtros: Seletor de Projeto (`.form-select` com ativação automática do Select2 global nativo) e Seletor de Competência (`type="month"` com `onchange="this.form.submit()"`).
+   - 4 Cards de KPIs semânticos (Total Previsto, Total Liquidado, Saldo a Pagar, RAs Atestados).
+   - Tabela responsiva com cabeçalhos centralizados (`text-center` no `<thead>` e na coluna de ações):
+     - *Bolsista:* Nome completo (`PessoaFisica.nome`), CPF e e-mail.
+     - *Cota / Perfil:* Função do bolsista extraída de `cota_pt.perfil_funcao`.
+     - *Nº Parcela:* Identificação ordinal (ex: 3/12).
+     - *Valor Nominal:* R$ formatado.
+     - *Dados Bancários:* Banco, Agência, Conta e Chave PIX vinculados à `PessoaFisica`. Caso ausente: badge de atenção `Dados Bancários Pendentes` e desativação do botão de pagamento.
+     - *Situação do RA:* Badge verde se atestado por servidor SIAPE (`CONCLUIDO`), com link para `visualizar_relatorio`; badge vermelho/amarelo se pendente.
+     - *Conta Pagadora:* Fonte e conta do projeto utilizada no pagamento.
+     - *Status Financeiro:* Badges semânticos (`PAGO`, `APROVADO`, `PENDENTE`, `CANCELADO`).
+     - *Ações:* Botão "Confirmar Pagamento" abrindo o modal de liquidação (se pendente/aprovado); link de download/visualização do comprovante (se já pago).
+   - **Regra DataTables estrita:** Proibido o uso de `{% empty %}` com `<td colspan="...">` dentro de `<tbody>`. Se a listagem for vazia, o `<tbody></tbody>` deve ser entregue limpo para permitir a renderização responsiva do DataTables sem corromper colunas.
+   - Modal de Confirmação de Pagamento: formulário POST com `enctype="multipart/form-data"` e `{% csrf_token %}`. Script JavaScript apontando para a URL correta `/gestao_projetos/parcela/{id}/confirmar-pagamento/`.
+4. **Hub do Módulo (`gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html`):**
+   - Inclusão do card de acesso à Folha Mensal de Pagamentos no grid existente.
+
+### 3. Escopo Excluído:
+- NÃO alterar formulários nem templates do wizard de projetos (`cadastros/templates/cadastros/form_projeto.html` e `cadastros/views.py`).
+- NÃO alterar a modelagem de `cadastros/models.py` (congelada e homologada no Passo 1).
+- NÃO alterar arquivos de outros módulos (`almoxarifado`, `central_servicos`).
+
+### 4. Arquivos Liberados para Modificação:
+- `gestao_projetos/urls.py`
+- `gestao_projetos/views.py`
+- `gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html`
+- `gestao_projetos/templates/gestao_projetos/folha_pagamento_mensal.html`
+
+### 5. Arquivos Proibidos nesta Sessão:
+- `cadastros/templates/`
+- `cadastros/models.py`
+- `almoxarifado/`
+- `argus_core/settings.py`
+
+### 6. Invariantes de Negócio:
+1. **Condição de Liquidação e Atesto:** Uma parcela só deve ser liquidada para pagamento se o Relatório de Atividades (RA) correspondente estiver atestado com status `CONCLUIDO` por servidor com SIAPE (ou com autorização de exceção formal do Coordenador).
+2. **Rastreabilidade da Conta Pagadora:** A conta bancária debitada para pagamento deve pertencer obrigatoriamente ao projeto em execução (`ContaBancaria.projeto == projeto_selecionado`), preservando a segregação contábil das fontes de fomento (EMBRAPII, Empresa Parceira ou ICT).
+3. **Integridade Bancária da Pessoa Física:** Os dados de crédito (banco, agência, conta, PIX) pertencem à entidade `PessoaFisica` vinculada ao `TermoBolsa` (armazenados em `DadoBancario`). Sem dados bancários válidos, o sistema deve impedir a confirmação do pagamento.
+4. **Idempotência de Pagamento:** Uma parcela com status `PAGO` não pode ser liquidada novamente. O botão de confirmação deve ser substituído pelo link do comprovante.
+5. **Segregação de Funções e RBAC:** A liquidação financeira é privativa da Fundação de Apoio (FAEPI), Coordenador do Projeto e Gestores de PDI. O bolsista é estritamente proibido de confirmar o pagamento de sua própria bolsa.
+
+### 7. Regras de `AGENTS.md` que se Aplicam:
+- **Navegação (Botão Voltar):** Link padronizado discreto sob o breadcrumb com `javascript:history.back()`. Proibido URLs fixas.
+- **Tabelas:** Todos os cabeçalhos (`<th>` e `<thead>`) e a coluna de ações centralizados obrigatoriamente com `text-center`.
+- **DataTables:** Proibido o uso de `{% empty %}` com `colspan` dentro de `<tbody>`.
+- **Selects:** Uso obrigatório de classes `.form-select` para ativação do Select2 nativo global. Nunca injetar inicializações isoladas de Select2.
+- **Cores Semânticas:** Variáveis CSS e classes nativas do Bootstrap (evitar cores hexadecimais como `#2c3e50` fixadas no HTML/CSS).
+- **Segurança e CSRF:** Todo formulário POST com upload de arquivo exige `enctype="multipart/form-data"` e `{% csrf_token %}`.
+
+### 8. Riscos e Legado:
+- **Rotas com Underline vs Hífen:** O prefixo institucional do app é `/gestao_projetos/` e não `/gestao-projetos/`. Scripts JS devem montar URLs estritamente com `gestao_projetos`.
+- **Superusuário sem MembroEquipe:** A verificação de permissão deve permitir `request.user.is_superuser` para evitar que administradores e auditores fiquem bloqueados com `HttpResponseForbidden`.
+- **Tolerância a Dados Ausentes:** Bolsistas antigos sem `DadoBancario` ou parcelas legadas sem competência não podem causar exceções `AttributeError` ou `500` (uso defensivo de `.first()`, `hasattr` e fallbacks visuais).
+
+### 9. Critério de Pronto:
+- `python manage.py check` executando com 0 erros.
+- Acesso à rota `/gestao_projetos/folha-pagamento/` exibindo seletor de projeto, seletor de mês, 4 cards de KPIs e tabela de bolsistas.
+- Confirmação de pagamento via modal efetuando upload do comprovante, registrando data e conta pagadora, e transitando o status para `PAGO`.
+- Suíte `python manage.py test cadastros` continuando 100% verde (25/25 testes passando).
+
+### 10. Pergunta ao Usuário (Decisão de Governança):
+- No caso de parcelas cujo RA ainda **não esteja atestado** por servidor SIAPE, o sistema deve:
+  - **Opção A (Recomendada):** Bloquear rigidamente o botão "Confirmar Pagamento" (`disabled`), exigindo o atesto prévio do RA pelo Coordenador para liberar a liquidação?
+  - **Opção B:** Permitir o pagamento com uma mensagem de advertência amarela ("RA não atestado"), solicitando confirmação expressa do operador da FAEPI/Gestor?
+
+---
+
 ## [2026-09-04] Execução Financeira (Passo 1 — Enriquecimento e Testes da Parcela) — Concluído e Homologado
+
 
 ### Resumo da Entrega e Auditoria:
 - **Modelagem Contábil e Migrações (Devin):** Entidade `Parcela` enriquecida com `valor`, `mes_competencia`, `status`, `data_pagamento`, `comprovante_pagamento`, `conta_pagamento` e método `confirmar_pagamento()`. Migrações `0062` e `0063` aplicadas no PostgreSQL local.

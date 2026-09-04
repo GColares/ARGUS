@@ -866,3 +866,214 @@ def editar_termo_bolsa(request, termo_id):
         'form': form,
         'termo': termo,
     })
+
+
+# =====================================================================
+# FOLHA MENSAL DE PAGAMENTO DE BOLSAS (Passo 2 — Execução Financeira)
+# =====================================================================
+
+@login_required
+def folha_mensal_pagamentos(request):
+    """
+    Exibe a folha de pagamento mensal de bolsas por projeto e competência.
+    Cruza parcelas, dados bancários da PessoaFisica, status do RA e KPIs financeiros.
+    """
+    from decimal import Decimal
+    from cadastros.models import Parcela, ProjetoPDI, ContaBancaria
+
+    if request.user.is_superuser:
+        projetos = ProjetoPDI.objects.all().order_by('nome')
+        projetos_permitidos = projetos.values_list('id', flat=True)
+    else:
+        projetos_permitidos = MembroEquipe.objects.filter(
+            usuario=request.user
+        ).values_list('projeto_id', flat=True)
+        projetos = ProjetoPDI.objects.filter(id__in=projetos_permitidos).order_by('nome')
+
+    # Filtros da requisição
+    projeto_id = request.GET.get('projeto_id')
+    mes_ano = request.GET.get('mes_ano')  # formato AAAA-MM
+
+    # Padrão: mês corrente
+    hoje = date.today()
+    if not mes_ano:
+        mes_ano = hoje.strftime('%Y-%m')
+
+    try:
+        ano, mes = int(mes_ano.split('-')[0]), int(mes_ano.split('-')[1])
+    except (ValueError, IndexError):
+        ano, mes = hoje.year, hoje.month
+        mes_ano = hoje.strftime('%Y-%m')
+
+    projeto_selecionado = None
+    linhas_folha = []
+    contas_projeto = []
+
+    # KPIs
+    total_folha = Decimal('0.00')
+    total_liquidado = Decimal('0.00')
+    qtd_ras_atestados = 0
+
+    if projeto_id:
+        if request.user.is_superuser:
+            projeto_selecionado = get_object_or_404(ProjetoPDI, id=projeto_id)
+        else:
+            projeto_selecionado = get_object_or_404(ProjetoPDI, id=projeto_id, id__in=projetos_permitidos)
+        contas_projeto = list(projeto_selecionado.contas.all())
+
+        parcelas = Parcela.objects.filter(
+            termo_bolsa__cota_pt__projeto=projeto_selecionado,
+            mes_competencia__year=ano,
+            mes_competencia__month=mes,
+        ).select_related(
+            'termo_bolsa__pessoa',
+            'termo_bolsa__cota_pt',
+            'conta_pagamento',
+        ).order_by('termo_bolsa__pessoa__nome', 'numero')
+
+        for parcela in parcelas:
+            termo = parcela.termo_bolsa
+            pessoa = termo.pessoa  # PessoaFisica
+
+            # Dados bancários ativos (finalidade PAGAMENTO_BOLSA preferencial)
+            dados_bancarios = None
+            if pessoa:
+                dados_bancarios = pessoa.dados_bancarios.filter(
+                    ativo=True, finalidade='PAGAMENTO_BOLSA'
+                ).first() or pessoa.dados_bancarios.filter(ativo=True).first()
+
+            # Status do RA vinculado a esta parcela
+            relatorio = None
+            ra_status = None
+            ra_status_label = None
+            ra_status_badge = 'secondary'
+            if hasattr(parcela, 'relatorios'):
+                relatorio = parcela.relatorios.first()
+                if relatorio:
+                    ra_status = relatorio.status
+                    if ra_status == 'CONCLUIDO':
+                        ra_status_label = 'Atestado'
+                        ra_status_badge = 'success'
+                        qtd_ras_atestados += 1
+                    else:
+                        ra_status_label = 'Pendente'
+                        ra_status_badge = 'danger'
+
+            total_folha += parcela.valor or Decimal('0.00')
+            if parcela.status == 'PAGO':
+                total_liquidado += parcela.valor or Decimal('0.00')
+
+            linhas_folha.append({
+                'parcela': parcela,
+                'termo': termo,
+                'pessoa': pessoa,
+                'dados_bancarios': dados_bancarios,
+                'relatorio': relatorio,
+                'ra_status': ra_status,
+                'ra_status_label': ra_status_label,
+                'ra_status_badge': ra_status_badge,
+                'tem_dados_bancarios': dados_bancarios is not None,
+            })
+
+    saldo_pendente = total_folha - total_liquidado
+
+    context = {
+        'projetos': projetos,
+        'projeto_selecionado': projeto_selecionado,
+        'contas_projeto': contas_projeto,
+        'linhas_folha': linhas_folha,
+        'mes_ano': mes_ano,
+        'total_folha': total_folha,
+        'total_liquidado': total_liquidado,
+        'saldo_pendente': saldo_pendente,
+        'qtd_ras_atestados': qtd_ras_atestados,
+        'qtd_parcelas': len(linhas_folha),
+    }
+
+    return render(request, 'gestao_projetos/folha_pagamento_mensal.html', context)
+
+
+@login_required
+def confirmar_pagamento_parcela(request, parcela_id):
+    """
+    Endpoint POST para registrar a liquidação financeira de uma parcela.
+    Executa parcela.confirmar_pagamento() com data, conta e comprovante.
+    """
+    from cadastros.models import Parcela, ContaBancaria
+
+    parcela = get_object_or_404(Parcela, id=parcela_id)
+    projeto = parcela.termo_bolsa.cota_pt.projeto
+
+    # Verificação de permissão RBAC (superuser tem bypass)
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden("Acesso negado: Você não possui permissão neste projeto.")
+
+    if request.method != 'POST':
+        return redirect('gestao_projetos:folha_mensal_pagamentos')
+
+    # Idempotência: parcela já paga não pode ser liquidada novamente
+    if parcela.status == 'PAGO':
+        messages.warning(request, f"A Parcela {parcela.numero} já foi liquidada em {parcela.data_pagamento}.")
+        return _redirect_folha(request, projeto.id, parcela.mes_competencia)
+
+    # Trava de Backend (Opção A): exige RA atestado (CONCLUIDO) por servidor SIAPE
+    if not parcela.relatorios.filter(status='CONCLUIDO').exists():
+        messages.error(
+            request,
+            "Liquidação bloqueada: O Relatório de Atividades (RA) precisa estar atestado por servidor SIAPE."
+        )
+        return _redirect_folha(request, projeto.id, parcela.mes_competencia)
+
+    # Validação de dados bancários do bolsista
+    pessoa = parcela.termo_bolsa.pessoa
+    if pessoa and not pessoa.dados_bancarios.filter(ativo=True).exists():
+        messages.error(
+            request,
+            "Liquidação bloqueada: O bolsista não possui dados bancários ativos cadastrados."
+        )
+        return _redirect_folha(request, projeto.id, parcela.mes_competencia)
+
+    data_pagamento_str = request.POST.get('data_pagamento')
+    conta_pagamento_id = request.POST.get('conta_pagamento_id')
+    comprovante = request.FILES.get('comprovante_pagamento')
+
+    # Validação da data
+    from datetime import datetime
+    try:
+        data_pagamento = datetime.strptime(data_pagamento_str, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        messages.error(request, "Data de pagamento inválida.")
+        return _redirect_folha(request, projeto.id, parcela.mes_competencia)
+
+    # Validação do comprovante (extensões seguras)
+    if comprovante:
+        extensao = comprovante.name.rsplit('.', 1)[-1].lower()
+        if extensao not in ('pdf', 'png', 'jpg', 'jpeg'):
+            messages.error(request, "Formato de comprovante inválido. Use PDF, PNG, JPG ou JPEG.")
+            return _redirect_folha(request, projeto.id, parcela.mes_competencia)
+
+    # Conta bancária pagadora (opcional, deve pertencer ao projeto)
+    conta = None
+    if conta_pagamento_id:
+        conta = ContaBancaria.objects.filter(id=conta_pagamento_id, projeto=projeto).first()
+
+    parcela.confirmar_pagamento(
+        data_pagamento=data_pagamento,
+        conta=conta,
+        comprovante=comprovante,
+    )
+
+    messages.success(
+        request,
+        f"Pagamento da Parcela {parcela.numero} de {parcela.termo_bolsa.pessoa.nome} confirmado com sucesso!"
+    )
+    return _redirect_folha(request, projeto.id, parcela.mes_competencia)
+
+
+def _redirect_folha(request, projeto_id, mes_competencia):
+    """Helper: redireciona de volta para a folha com os filtros preservados."""
+    from django.urls import reverse
+    mes_ano = mes_competencia.strftime('%Y-%m') if mes_competencia else date.today().strftime('%Y-%m')
+    url = reverse('gestao_projetos:folha_mensal_pagamentos')
+    return redirect(f"{url}?projeto_id={projeto_id}&mes_ano={mes_ano}")

@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+
+    <!-- Cabeçalho / Breadcrumb -->
+    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+        <div class="me-3 text-primary">
+            <i class="fas fa-money-bill-wave fs-2"></i>
+        </div>
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'gestao_projetos:home_gestao_projetos' %}">Gestão de Projetos</a>
+                    </li>
+                    <li class="breadcrumb-item active">Folha Mensal de Pagamentos</li>
+                </ol>
+            </nav>
+            <h4 class="mb-0 fw-bold mt-1">Folha Mensal de Pagamentos de Bolsas</h4>
+            <p class="text-muted small mb-0">Acompanhamento mensal da execução financeira das parcelas por projeto e competência.</p>
+        </div>
+        <div class="ms-auto">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body bg-light py-3">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label for="projeto_id" class="form-label fw-semibold small mb-1">Projeto</label>
+                    <select name="projeto_id" id="projeto_id" class="form-select select2-projeto" onchange="this.form.submit()">
+                        <option value="">-- Selecione um Projeto --</option>
+                        {% for p in projetos %}
+                            <option value="{{ p.id }}" {% if projeto_selecionado and p.id == projeto_selecionado.id %}selected{% endif %}>
+                                {{ p.nome }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="mes_ano" class="form-label fw-semibold small mb-1">Mês de Competência</label>
+                    <input type="month" name="mes_ano" id="mes_ano" class="form-control" value="{{ mes_ano }}" onchange="this.form.submit()">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-filter me-1"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if projeto_selecionado %}
+
+    <!-- Cards de KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="background: rgba(var(--bs-primary-rgb), 0.08);">
+                <div class="card-body text-center py-3">
+                    <p class="text-muted small mb-1">Total da Folha</p>
+                    <h5 class="fw-bold text-primary mb-0">R$ {{ total_folha|floatformat:2 }}</h5>
+                    <small class="text-muted">{{ qtd_parcelas }} parcela(s)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="background: rgba(var(--bs-success-rgb), 0.08);">
+                <div class="card-body text-center py-3">
+                    <p class="text-muted small mb-1">Total Liquidado</p>
+                    <h5 class="fw-bold text-success mb-0">R$ {{ total_liquidado|floatformat:2 }}</h5>
+                    <small class="text-muted">Pagamentos confirmados</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="background: rgba(var(--bs-warning-rgb), 0.08);">
+                <div class="card-body text-center py-3">
+                    <p class="text-muted small mb-1">Saldo Pendente</p>
+                    <h5 class="fw-bold text-warning mb-0">R$ {{ saldo_pendente|floatformat:2 }}</h5>
+                    <small class="text-muted">Aguardando liquidação</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="background: rgba(var(--bs-secondary-rgb), 0.08);">
+                <div class="card-body text-center py-3">
+                    <p class="text-muted small mb-1">RAs Atestados</p>
+                    <h5 class="fw-bold text-secondary mb-0">{{ qtd_ras_atestados }} / {{ qtd_parcelas }}</h5>
+                    <small class="text-muted">Aptos para pagamento</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela da Folha -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-table me-2 text-primary"></i>
+                Folha de Pagamentos — {{ projeto_selecionado.nome }}
+                <span class="badge bg-light text-dark border ms-2 fw-normal" style="font-size: 0.8rem;">{{ mes_ano }}</span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th class="text-start ps-3">Bolsista</th>
+                            <th>Cota / Perfil</th>
+                            <th>Parcela</th>
+                            <th>Valor Nominal</th>
+                            <th>Dados Bancários</th>
+                            <th>Situação RA</th>
+                            <th>Conta Pagadora</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for linha in linhas_folha %}
+                        <tr>
+                            <!-- Bolsista -->
+                            <td class="ps-3">
+                                <strong>{{ linha.pessoa.nome|default:"—" }}</strong>
+                                <br><small class="text-muted">{{ linha.pessoa.cpf|default:"Sem CPF" }}</small>
+                            </td>
+
+                            <!-- Cota -->
+                            <td class="text-center">
+                                <small>{{ linha.termo.cota_pt.perfil_funcao }}</small>
+                            </td>
+
+                            <!-- Parcela -->
+                            <td class="text-center fw-bold">
+                                {{ linha.parcela.numero }}/{{ linha.termo.quantidade_parcelas }}
+                            </td>
+
+                            <!-- Valor Nominal -->
+                            <td class="text-center fw-bold text-primary">
+                                R$ {{ linha.parcela.valor|floatformat:2 }}
+                            </td>
+
+                            <!-- Dados Bancários -->
+                            <td class="text-center">
+                                {% if linha.tem_dados_bancarios %}
+                                    <small>
+                                        <span class="text-muted">Banco:</span> {{ linha.dados_bancarios.banco_codigo }}<br>
+                                        <span class="text-muted">Ag:</span> {{ linha.dados_bancarios.agencia }}
+                                        <span class="text-muted ms-1">CC:</span> {{ linha.dados_bancarios.conta }}
+                                        {% if linha.dados_bancarios.chave_pix %}
+                                            <br><span class="badge bg-light text-secondary border" title="{{ linha.dados_bancarios.chave_pix }}">
+                                                <i class="fas fa-qrcode me-1"></i>PIX
+                                            </span>
+                                        {% endif %}
+                                    </small>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Sem dados bancários
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Situação RA -->
+                            <td class="text-center">
+                                {% if linha.relatorio %}
+                                    <a href="{% url 'gestao_projetos:visualizar_relatorio' linha.relatorio.id %}"
+                                       class="badge bg-{{ linha.ra_status_badge }} text-decoration-none">
+                                        {{ linha.ra_status_label }}
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-secondary">Sem RA</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Conta Pagadora -->
+                            <td class="text-center">
+                                {% if linha.parcela.conta_pagamento %}
+                                    <small>{{ linha.parcela.conta_pagamento.fonte_recurso }}<br>
+                                    <span class="text-muted">{{ linha.parcela.conta_pagamento.conta }}-{{ linha.parcela.conta_pagamento.dv }}</span></small>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Status -->
+                            <td class="text-center">
+                                {% if linha.parcela.status == 'PAGO' %}
+                                    <span class="badge bg-success">Pago</span>
+                                    {% if linha.parcela.data_pagamento %}
+                                        <br><small class="text-muted">{{ linha.parcela.data_pagamento|date:"d/m/Y" }}</small>
+                                    {% endif %}
+                                {% elif linha.parcela.status == 'APROVADO' %}
+                                    <span class="badge bg-primary">Aprovado</span>
+                                {% elif linha.parcela.status == 'EM_ANALISE' %}
+                                    <span class="badge bg-warning text-dark">Em Análise</span>
+                                {% elif linha.parcela.status == 'CANCELADO' %}
+                                    <span class="badge bg-dark">Cancelado</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Pendente</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Ações -->
+                            <td class="text-center">
+                                {% if linha.parcela.status != 'PAGO' and linha.parcela.status != 'CANCELADO' %}
+                                    {% if not linha.tem_dados_bancarios %}
+                                        <button type="button" class="btn btn-sm btn-outline-success" disabled
+                                                title="Cadastre os dados bancários do bolsista antes de confirmar o pagamento.">
+                                            <i class="fas fa-check-circle me-1"></i>Confirmar
+                                        </button>
+                                    {% elif not linha.relatorio or linha.ra_status != 'CONCLUIDO' %}
+                                        <button type="button" class="btn btn-sm btn-outline-success" disabled
+                                                title="Liquidação bloqueada: O Relatório de Atividades (RA) desta competência ainda não foi atestado pelo Coordenador (servidor SIAPE).">
+                                            <i class="fas fa-check-circle me-1"></i>Confirmar
+                                        </button>
+                                    {% else %}
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-success"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalPagamento"
+                                                data-parcela-id="{{ linha.parcela.id }}"
+                                                data-parcela-num="{{ linha.parcela.numero }}"
+                                                data-bolsista="{{ linha.pessoa.nome|default:'—' }}"
+                                                data-valor="{{ linha.parcela.valor|floatformat:2 }}">
+                                            <i class="fas fa-check-circle me-1"></i>Confirmar
+                                        </button>
+                                    {% endif %}
+                                {% elif linha.parcela.status == 'PAGO' %}
+                                    {% if linha.parcela.comprovante_pagamento %}
+                                        <a href="{{ linha.parcela.comprovante_pagamento.url }}" target="_blank"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-file-pdf me-1"></i>Comprovante
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">—</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center text-muted my-5 py-5">
+        <i class="fas fa-arrow-up fs-2 mb-3 opacity-50 d-block"></i>
+        <p>Selecione um projeto e o mês de competência para visualizar a folha de pagamentos.</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Modal de Confirmação de Pagamento -->
+<div class="modal fade" id="modalPagamento" tabindex="-1" aria-labelledby="modalPagamentoLabel" aria-hidden="true"
+     data-url-template="{% url 'gestao_projetos:confirmar_pagamento_parcela' 0 %}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="modalPagamentoLabel">
+                    <i class="fas fa-check-circle me-2"></i>Confirmar Pagamento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <form id="formPagamento" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="mb-3 text-muted small" id="modalDescricao"></p>
+
+                    <div class="mb-3">
+                        <label for="data_pagamento" class="form-label fw-semibold">Data do Pagamento <span class="text-danger">*</span></label>
+                        <input type="date" name="data_pagamento" id="data_pagamento" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="conta_pagamento_id" class="form-label fw-semibold">Conta Pagadora</label>
+                        <select name="conta_pagamento_id" id="conta_pagamento_id" class="form-select">
+                            <option value="">-- Nenhuma (definir depois) --</option>
+                            {% for conta in contas_projeto %}
+                                <option value="{{ conta.id }}">{{ conta.fonte_recurso }} — {{ conta.banco }} Ag: {{ conta.agencia }} CC: {{ conta.conta }}-{{ conta.dv }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="comprovante_pagamento" class="form-label fw-semibold">Comprovante de Pagamento</label>
+                        <input type="file" name="comprovante_pagamento" id="comprovante_pagamento" class="form-control"
+                               accept=".pdf,.png,.jpg,.jpeg">
+                        <div class="form-text">Formatos aceitos: PDF, PNG, JPG, JPEG.</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success btn-sm fw-bold">
+                        <i class="fas fa-check me-1"></i>Confirmar Liquidação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var modal = document.getElementById('modalPagamento');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function (event) {
+        var btn = event.relatedTarget;
+        var parcelaId = btn.getAttribute('data-parcela-id');
+        var parcelaNum = btn.getAttribute('data-parcela-num');
+        var bolsista = btn.getAttribute('data-bolsista');
+        var valor = btn.getAttribute('data-valor');
+
+        var urlTemplate = modal.getAttribute('data-url-template');
+        document.getElementById('formPagamento').action = urlTemplate.replace('0', parcelaId);
+        document.getElementById('modalDescricao').textContent =
+            'Bolsista: ' + bolsista + ' | Parcela nº ' + parcelaNum + ' | Valor: R$ ' + valor;
+    });
+})();
+</script>
+
+{% endblock %}

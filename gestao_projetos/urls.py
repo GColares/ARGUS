@@ -17,6 +17,10 @@ urlpatterns = [
     # Orçamento e Financeiro
     path('orcamento-financeiro/', views.relatorio_orcamento_financeiro, name='orcamento_financeiro'),
 
+    # Folha Mensal de Pagamento de Bolsas
+    path('folha-pagamento/', views.folha_mensal_pagamentos, name='folha_mensal_pagamentos'),
+    path('parcela/<int:parcela_id>/confirmar-pagamento/', views.confirmar_pagamento_parcela, name='confirmar_pagamento_parcela'),
+
     path('relatorio/novo/', views.criar_relatorio, name='criar_relatorio'), # CREATE
     path('relatorio/<int:relatorio_id>/visualizar/', views.visualizar_relatorio, name='visualizar_relatorio'), # READ
     path('relatorio/<int:relatorio_id>/alterar/', views.alterar_relatorio, name='alterar_relatorio'), # UPDATE
