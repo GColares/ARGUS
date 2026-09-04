@@ -97,6 +97,8 @@ Pergunta ao usuário (se houver):
   SEBRAE.
 - Pessoa: identidade em `PessoaFisica`; papéis à parte. Não herança multi-tabela
   exclusiva para “ser só bolsista ou só servidor”.
+- Elo `User` ↔ `PessoaFisica`: competência e autoridade estrita e exclusiva do
+  Administrador do Sistema para vincular, alterar ou transferir contas.
 - PJ: herança multi-tabela já existe; não proponha Party-Role na PJ **e**
   migração destrutiva no mesmo handoff. É onda tardia.
 - Máquina de estados do PDI: Prospecção → Execução (plano congela) → Prestação

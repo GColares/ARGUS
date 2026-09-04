@@ -10,6 +10,10 @@ def servidor_efetivo_required(view_func):
     Bloqueio de Segurança Institucional.
     Garante que a view só seja executada se o usuário logado possuir
     um perfil vinculado como 'SERVIDOR' e com uma matrícula 'SIAPE' preenchida.
+    
+    Suporta dois cenários de validação:
+    1. Cenário Canônico (Novo): request.user.pessoa_fisica.perfil_servidor com SIAPE
+    2. Cenário Legado (Fallback): request.user.perfil (almoxarifado) com SIAPE
     """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
@@ -17,10 +21,14 @@ def servidor_efetivo_required(view_func):
         if not request.user.is_authenticated:
             return redirect('login')
         
-        # 2. Resgata o perfil do usuário de forma segura
-        perfil = getattr(request.user, 'perfil', None)
+        # 2. Cenário Canônico (Novo): Valida via PessoaFisica
+        if hasattr(request.user, 'pessoa_fisica') and request.user.pessoa_fisica:
+            pessoa_fisica = request.user.pessoa_fisica
+            if pessoa_fisica.is_servidor and bool(pessoa_fisica.siape):
+                return view_func(request, *args, **kwargs)
         
-        # 3. Valida a regra de ouro institucional
+        # 3. Cenário Legado (Fallback): Valida via PerfilUsuario (almoxarifado)
+        perfil = getattr(request.user, 'perfil', None)
         if perfil and perfil.vinculo == 'SERVIDOR' and bool(perfil.siape):
             return view_func(request, *args, **kwargs)
         

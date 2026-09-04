@@ -1,6 +1,78 @@
 # Diário de Bordo — ARGUS
 
-## [2026-09-03] Encerramento do Expediente: Estabilização de UX, Quill e Rodapé do Wizard de Projetos
+## [2026-09-04] Onda 2 Concluída — Vinculação Canônica User ↔ PessoaFisica (Devin)
+
+### O que foi feito:
+- **Modelo PessoaFisica**: Adicionado campo `user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='pessoa_fisica')` com help text de governança estrita do Administrador.
+- **Properties utilitárias**: Adicionadas `@property siape` e `@property is_servidor` em PessoaFisica para consultas via perfil_servidor.
+- **Admin Django**: Registrado `PessoaFisicaAdmin` com inlines para PerfilServidor, autocomplete_fields para user, e busca por SIAPE.
+- **Decorator @servidor_efetivo_required**: Atualizado para suportar validação canônica (pessoa_fisica.perfil_servidor) com fallback legado (perfil do almoxarifado).
+- **Migrações**: Geradas e aplicadas com sucesso:
+  - `0060_add_user_to_pessoafisica.py` (migração de esquema)
+  - `0061_link_existing_users_to_pessoafisica.py` (migração de dados com pareamento por CPF e email)
+- **Validação**: `python manage.py check` com 0 erros.
+- **Testes**: Validados 3 cenários do decorator via script de teste:
+  - ✅ Usuário com PessoaFisica + PerfilServidor com SIAPE -> Permitido
+  - ✅ Usuário sem SIAPE -> Bloqueado corretamente (PermissionDenied)
+  - ✅ Usuário sem PessoaFisica -> Bloqueado corretamente (PermissionDenied)
+
+### Arquivos modificados:
+- `cadastros/models.py` (campo user + properties)
+- `cadastros/decorators.py` (lógica híbrida canônica/legado)
+- `cadastros/admin.py` (PessoaFisicaAdmin + PerfilServidorInline)
+- `cadastros/migrations/0060_add_user_to_pessoafisica.py` (nova)
+- `cadastros/migrations/0061_link_existing_users_to_pessoafisica.py` (nova)
+
+### Observações:
+- Migração de dados vinculou 0 usuários (banco local sem dados de produção/legado)
+- Estrutura preservada para funcionamento futuro do app almoxarifado
+- Governança mantida: campo user exposto apenas no Django Admin
+
+---
+
+## [2026-09-04] Handoff Gemini → Devin: Onda 2 — Vinculação Canônica User ↔ PessoaFisica e Alinhamento do Decorator SIAPE
+
+- **Objetivo da Tarefa:** Estabelecer o elo canônico de identidade e autenticação entre `django.contrib.auth.models.User` e `cadastros.models.PessoaFisica` (`OneToOneField`), harmonizar o decorator de segurança `@servidor_efetivo_required` e criar migração de dados segura sem quebrar o módulo legado `almoxarifado`.
+- **Escopo Incluído:**
+  1. Adição do campo `user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='pessoa_fisica')` em `cadastros.models.PessoaFisica`.
+  2. Adição de properties e métodos utilitários em `PessoaFisica` (`is_servidor`, `siape`, `cargo`, `lotacao`) consultando o papel `perfil_servidor`.
+  3. Atualização do decorator `servidor_efetivo_required` em `cadastros/decorators.py` para priorizar a validação via `request.user.pessoa_fisica.perfil_servidor` mantendo fallback retrocompatível para `request.user.perfil` (`almoxarifado.models.PerfilUsuario`).
+  4. Geração de migração de esquema no app `cadastros`.
+  5. Criação de migração de dados (`DataMigration`) para vincular automaticamente instâncias existentes de `User` e `PessoaFisica` via CPF ou e-mail correspondente.
+- **Escopo Excluído:**
+  1. NÃO deletar nem modificar a estrutura da tabela `almoxarifado_perfilusuario` (preservação estrita de legado).
+  2. NÃO alterar templates de formulário de projetos (`form_projeto.html`) nem views do wizard.
+  3. NÃO implementar grupos Django (`auth.Group`) ou RBAC complexo nesta sessão (reservado para ondas subsequentes).
+- **Arquivos Liberados para Modificação:**
+  - `cadastros/models.py`
+  - `cadastros/decorators.py`
+  - `cadastros/admin.py` (registro de `PessoaFisicaAdmin` para gestão de vínculo restrita ao Admin)
+  - `cadastros/migrations/` (novas migrações geradas)
+- **Arquivos Proibidos nesta Sessão:**
+  - `cadastros/templates/cadastros/form_projeto.html`
+  - `cadastros/views.py`
+  - `almoxarifado/models.py`
+  - Qualquer arquivo de `gestao_projetos/` ou `core/`
+- **Invariante de Negócio e Segurança:**
+  - **Autoridade Estrita do Administrador:** A vinculação, alteração ou desassociação entre `User` e `PessoaFisica` é de alçada estrita e exclusiva do Administrador do Sistema (via Django Admin / superusuário). O campo `user` nunca deve ser exposto para autoedição em formulários comuns do frontend.
+  - `PessoaFisica` não exige `user` obrigatório (`null=True, blank=True`), pois nem toda pessoa física (ex: bolsistas de fora, contatos comerciais, fiscais) possui conta de acesso ao ARGUS.
+  - A integridade institucional da assinatura e liquidação de despesa pública exige que apenas servidores com SIAPE ativa e perfil de servidor validado possam executar operações sensíveis.
+  - Princípio da Não-Regressão: nenhum template do `almoxarifado` que use `request.user.perfil` pode quebrar.
+- **Riscos e Dados Legados:**
+  - Risco de colisão de CPF durante o pareamento de dados: a migração de dados deve ignorar CPFs nulos/em branco e tratar duplicidades sem interromper a execução (`get_or_create` / `filter().first()`).
+  - Risco de deleção em cascata acidental: o `on_delete` DEVE ser `models.SET_NULL`, nunca `CASCADE`.
+- **Critério de Pronto:**
+  - `python manage.py makemigrations cadastros` e `python manage.py migrate` executados com sucesso no PostgreSQL local.
+  - `python manage.py check` sem nenhum warning ou erro de sistema.
+  - Decorator `@servidor_efetivo_required` testado unitariamente ou via shell para os 3 cenários:
+    a) Usuário com `pessoa_fisica.perfil_servidor` com SIAPE -> Permitido;
+    b) Usuário legado com `perfil` do almoxarifado com SIAPE -> Permitido;
+    c) Usuário sem SIAPE ou terceirizado -> Bloqueado com 403.
+- **Decisão do Usuário:** Nenhuma pendência impeditiva. Aprovação da Onda 2 concedida.
+
+---
+
+
 
 ### 1. Resumo do Trabalho Realizado na Sessão
 - **Onda 1 de Higiene Técnica (Devin):** Concluída com sucesso — eliminação de 159 linhas duplicadas em `cadastros/views.py` e correção do import canônico de `ValidationError`.

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho
+from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho, PessoaFisica, PerfilServidor
 
 class AtividadePlanoAcaoInline(admin.TabularInline):
     model = AtividadePlanoAcao
@@ -142,3 +142,18 @@ class TermoCooperacaoAdmin(admin.ModelAdmin):
     list_display = ('numero', 'concedente', 'convenente', 'vigencia_inicio', 'vigencia_fim', 'ativo')
     list_filter = ('ativo', 'concedente')
     search_fields = ('numero', 'objeto')
+
+class PerfilServidorInline(admin.StackedInline):
+    model = PerfilServidor
+    extra = 0
+
+@admin.register(PessoaFisica)
+class PessoaFisicaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'cpf', 'user', 'email', 'get_siape')
+    search_fields = ('nome', 'cpf', 'email', 'user__username', 'perfil_servidor__siape')
+    autocomplete_fields = ['user']
+    inlines = [PerfilServidorInline]
+
+    @admin.display(description="SIAPE")
+    def get_siape(self, obj):
+        return obj.siape

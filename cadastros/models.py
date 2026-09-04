@@ -1,5 +1,6 @@
 import re
 from decimal import Decimal
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -705,6 +706,16 @@ class PessoaFisica(models.Model):
     cep = models.CharField(max_length=10, null=True, blank=True, verbose_name="CEP")
     telefone = models.CharField(max_length=20, null=True, blank=True, verbose_name="Telefone / Celular")
     email = models.EmailField(null=True, blank=True, verbose_name="E-mail")
+    
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pessoa_fisica',
+        verbose_name="Conta de Acesso (User)",
+        help_text="Vínculo institucional exclusivo do Administrador do Sistema."
+    )
 
     data_criacao = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
@@ -715,6 +726,16 @@ class PessoaFisica(models.Model):
 
     def __str__(self):
         return f"{self.nome} ({self.cpf})"
+    
+    @property
+    def siape(self):
+        if hasattr(self, 'perfil_servidor') and self.perfil_servidor:
+            return self.perfil_servidor.siape
+        return None
+
+    @property
+    def is_servidor(self):
+        return hasattr(self, 'perfil_servidor') and self.perfil_servidor and self.perfil_servidor.ativo
 
 class DadoBancario(models.Model):
     """
