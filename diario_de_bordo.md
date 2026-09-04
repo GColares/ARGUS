@@ -1,6 +1,64 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-04] Onda 4 Concluída — Hardening de Segurança (Devin)
+
+### O que foi feito:
+- **Correção de CSRF**: Removido o bypass `@csrf_exempt` da `ReordenarItensView` em `central_servicos/views.py` e adicionado cabeçalho `X-CSRFToken` na requisição AJAX em `ambiente_list.html`.
+- **Externalização de Credenciais**: Configurado `argus_core/settings.py` para ler credenciais do PostgreSQL via variáveis de ambiente (`ARGUS_DB_*`) com fallbacks seguros para desenvolvimento local.
+- **Arquivo Modelo**: Criado `.env.example` documentando todas as variáveis de ambiente requeridas pelo sistema.
+- **Integridade do Git**: Confirmado que `.env` está listado no `.gitignore` para evitar vazamento de credenciais.
+- **Validação**: `python manage.py check` com 0 erros. Testes da Onda 3 (22/22) continuam passando 100%.
+
+### Arquivos modificados:
+- `central_servicos/views.py` (remoção de csrf_exempt)
+- `central_servicos/templates/central_servicos/ambiente_list.html` (adição de X-CSRFToken)
+- `argus_core/settings.py` (leitura de variáveis de ambiente)
+- `.env.example` (novo arquivo modelo)
+
+### Segurança:
+- ✅ Nenhuma rota POST sem proteção CSRF
+- ✅ Credenciais externas do settings.py
+- ✅ `.env` protegido no .gitignore
+
+---
+
+## [2026-09-04] Handoff Gemini → Devin: Onda 4 — Hardening de Segurança (CSRF no Reorder de Espaços e Credenciais Fora de settings.py)
+
+- **Objetivo da Tarefa:** Sanar duas dívidas técnicas críticas de segurança mapeadas no `GEMINI.md` e `COPILOT.md`: (1) eliminar o bypass `@csrf_exempt` no endpoint de ordenação espacial (`ReordenarItensView`) protegendo a chamada AJAX com `X-CSRFToken`, e (2) externalizar as credenciais do banco de dados em `argus_core/settings.py` para variáveis de ambiente compatíveis com os scripts de rotina (`ARGUS_DB_*`) e arquivo `.env` local.
+- **Escopo Incluído:**
+  1. `central_servicos/views.py`: remoção do decorator `@method_decorator(csrf_exempt, name='dispatch')` da classe `ReordenarItensView`.
+  2. `central_servicos/templates/central_servicos/ambiente_list.html`: inclusão do cabeçalho `'X-CSRFToken': '{{ csrf_token }}'` na requisição `fetch` de reordenação.
+  3. `argus_core/settings.py`:
+     - Integração de `load_dotenv` (com fallback gracioso se `python-dotenv` não estiver instalado).
+     - Configuração de `DATABASES['default']` para ler `ARGUS_DB_NAME`, `ARGUS_DB_USER`, `ARGUS_DB_PASSWORD`, `ARGUS_DB_HOST`, `ARGUS_DB_PORT` a partir do `os.getenv()`.
+     - Preservação de valores de fallback seguros para desenvolvimento local (não quebrar conexões locais existentes).
+  4. `.env.example`: criação de arquivo modelo documentando as variáveis requeridas pelo sistema.
+- **Escopo Excluído:**
+  1. NÃO comitar arquivos contendo senhas reais de produção.
+  2. NÃO alterar regras de negócio de `cadastros` nem do wizard de projetos.
+  3. NÃO realizar o split do app `cadastros` nesta etapa de código (reservado para planejamento e aprovação).
+- **Arquivos Liberados para Modificação:**
+  - `central_servicos/views.py`
+  - `central_servicos/templates/central_servicos/ambiente_list.html`
+  - `argus_core/settings.py`
+  - `.env.example` (novo)
+  - `.gitignore` (garantir que `.env` esteja estritamente ignorado)
+- **Arquivos Proibidos nesta Sessão:**
+  - `cadastros/templates/`
+  - `cadastros/views.py`
+  - `almoxarifado/`
+- **Invariante de Segurança:**
+  - Nenhuma rota POST com alteração de dados no banco pode trafegar sem token CSRF.
+  - O repositório Git deve estar imune ao vazamento de credenciais locais ou de produção.
+- **Critério de Pronto:**
+  - `python manage.py check` executado com 0 erros.
+  - `python manage.py test central_servicos` e `python manage.py test cadastros` executados com 100% de sucesso.
+  - Verificação de que `.env` está devidamente listado no `.gitignore`.
+
+---
+
 ## [2026-09-04] Onda 3 Concluída — Testes Automatizados de Invariantes Financeiras e Cronograma (Devin)
+
 
 ### O que foi feito:
 - **Suíte de Testes Completa**: Implementados 22 testes automatizados em `cadastros/tests.py` cobrindo todas as invariantes financeiras e de cronograma exigidas por EMBRAPII e SUFRAMA.

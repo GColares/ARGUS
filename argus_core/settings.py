@@ -117,11 +117,11 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'argus_db',
-            'USER': 'postgres',
-            'PASSWORD': 'argus',
-            'HOST': 'localhost',
-            'PORT': '5432',
+            'NAME': os.getenv('ARGUS_DB_NAME', 'argus_db'),
+            'USER': os.getenv('ARGUS_DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('ARGUS_DB_PASSWORD', 'argus'),
+            'HOST': os.getenv('ARGUS_DB_HOST', 'localhost'),
+            'PORT': os.getenv('ARGUS_DB_PORT', '5432'),
         }
     }
 

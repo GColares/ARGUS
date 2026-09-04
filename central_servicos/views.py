@@ -669,11 +669,8 @@ class RelatoriosView(LoginRequiredMixin, TemplateView):
 
 
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 import json
 
-@method_decorator(csrf_exempt, name='dispatch')
 class ReordenarItensView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         try:
