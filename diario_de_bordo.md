@@ -1,6 +1,93 @@
 # Diário de Bordo — ARGUS
 
-## [2026-09-04] Execução Financeira (Passo 4 — Gerenciador de Matrizes DOCX e Emissão Inteligente de Ofícios para o Conveniar/FAEPI) — Concluído e Homologado
+## [2026-09-04] Execução Financeira (Passo 5 — Matriz Dinâmica de Alçadas, Funções Institucionais e Cadeia de Suplência Legal) — Concluído e Homologado
+
+### Resumo da Entrega e Auditoria Independente:
+- **Implementação e Governança:**
+  - **Entidades de Governança (`gestao_projetos/models.py`):** Modelagem de `FuncaoInstitucional`, `OcupacaoFuncao` (com ordem de prioridade de suplência 0=Titular, 1=1º Substituto, 2=2º Substituto), `AfastamentoExercicio` e `RegraAlcadaDocumento`.
+  - **Algoritmo de Resolução de Competência (`obter_responsavel_em_exercicio`):** Resolução estrita por data, garantindo o Princípio da Unicidade do Exercício (apenas uma pessoa física assina pela função) e a migração automática de competência para o 1º ou 2º substituto em caso de impedimento/afastamento legal.
+  - **Migração `0003` com Carga Inicial (Data Seed):** População das autoridades e substitutos reais do Polo de Inovação (Alyson Santos e Alexandre Martiniano na Direção-Geral; Marcelo Tomaz e Geziel Colares no RH; Jaime Alves na Reitoria; Alexandre Martiniano na Diretoria Financeira).
+  - **Desacoplamento Total de Código em `gestao_projetos/views.py`:** Emissão de ofícios de equipe e do coordenador agora consulta a matriz dinâmica de alçadas em vez de nomes e portarias fixados no código.
+  - **Painel de Governança de Alçadas (`governanca_alcadas.html`):** Tela em abas no padrão Almoxarifado com cabeçalhos centralizados (`text-center`) e card de acesso no Hub `home_gestao_projetos.html`.
+  - **Suíte de Testes Automatizados (`gestao_projetos/tests.py`):** Criada a classe `GovernancaSuplenciaTestCase` com 4 testes cobrindo titularidade, chaveamento automático para 1º substituto, chaveamento para 2º substituto em duplo afastamento e retorno do titular após fim de férias.
+- **Integração do Kiro (AWS Bedrock) no Squad:**
+  - Criado o manual tático `KIRO.md` e atualizado `PROTOCOLO_COLABORACAO_IA.md` com suas atribuições focadas em Property-Testing, Agent Hooks e automação contínua de QA.
+- **Auditoria Independente do Arquiteto (Gemini):**
+  - `python manage.py check`: **0 erros**.
+  - `python manage.py test gestao_projetos cadastros`: **36/36 testes passando com 100% de sucesso** em 9.199s.
+  - Modelos de `cadastros/models.py` mantidos 100% íntegros e intocados.
+  - **Segregação de Funções:** Respeitada rigorosamente.
+
+---
+
+## [2026-09-04] Handoff Gemini → IBM Bob / Copilot: Execução Financeira (Passo 5 — Matriz Dinâmica de Alçadas, Funções Institucionais e Cadeia de Suplência Legal)
+
+### Incidente / Mudança de Procedimento no Squad:
+- **Causa:** No serviço público federal (Lei nº 8.112/90, art. 38), funções de direção e chefia contam com titulares e substitutos legais designados formalmente por portaria. O ARGUS precisa resolver dinamicamente quem detém o poder da função em cada data (considerando afastamentos por férias, licenças ou missões), garantindo o princípio da unicidade de exercício e eliminando nomes, cargos ou portarias hardcoded no código. Além disso, o PO autorizou o recrutamento do **Kiro (AWS Bedrock)** para atuar como Engenheiro de QA Avançado e Property-Testing.
+- **Ação:** O Arquiteto Gemini estruturou a modelagem de governança (`FuncaoInstitucional`, `OcupacaoFuncao`, `AfastamentoExercicio`, `RegraAlcadaDocumento`), o algoritmo de resolução de autoridade em exercício e a integração direta com os geradores de ofício do Conveniar. Criado o manual tático `KIRO.md` e atualizado `PROTOCOLO_COLABORACAO_IA.md`.
+- **Consequência:** A implementação dos modelos, migrações com data seed dos dados reais do Polo, views, interface administrativa e testes de feature fica a cargo do **IBM Bob** (com 60% de saldo restante). O **Kiro** assume a responsabilidade de property-testing e automação de hooks de validação contínua. O Antigravity-Gemini permanece como Arquiteto e Auditor Independente.
+
+### 1. Objetivo da Tarefa:
+Implementar no módulo `gestao_projetos`:
+1. As entidades de governança institucional: `FuncaoInstitucional`, `OcupacaoFuncao` (com ordem de prioridade de suplência 0=Titular, 1=1º Substituto, 2=2º Substituto), `AfastamentoExercicio` e `RegraAlcadaDocumento` (matriz ajustável de quem assina cada documento).
+2. O método inteligente `FuncaoInstitucional.obter_responsavel_em_exercicio(data_referencia)` para resolver com garantia legal e unicidade quem assina pelo cargo na data especificada.
+3. Migração de dados com carga inicial (data seed) das autoridades e substitutos reais do Polo de Inovação (Alyson Santos e Alexandre Martiniano na Direção-Geral; Marcelo Tomaz e Geziel Colares no RH; Jaime Alves na Reitoria; Alexandre Martiniano na Diretoria Financeira).
+4. Integração com `gerar_oficio_pagamento_equipe` e `gerar_oficio_pagamento_coordenador` em `gestao_projetos/views.py`, substituindo constantes de texto por consulta dinâmica à matriz de alçadas.
+5. Painel visual de Governança de Alçadas (`/gestao_projetos/governanca/alcadas/`) no padrão Almoxarifado (`AGENTS.md`).
+
+### 2. Escopo Incluído:
+1. **Modelos em `gestao_projetos/models.py`:**
+   - `FuncaoInstitucional`: `codigo` (ex: `DIRETOR_POLO`, `REITOR`, `COORD_RH`, `DIRETOR_ADMIN_FINANCEIRO`), `nome_cargo`, `descricao`, `ativo`, método `obter_responsavel_em_exercicio(data=None)`.
+   - `OcupacaoFuncao`: `funcao` (FK), `pessoa` (FK `cadastros.PessoaFisica`), `prioridade` (0=Titular, 1=1º Substituto, 2=2º Substituto...), `portaria_designacao`, `sufixo_cargo` (ex: `""`, `"Substituto"`), `ativo`.
+   - `AfastamentoExercicio`: `ocupacao` (FK), `data_inicio`, `data_fim`, `motivo` (`FERIAS`, `LICENCA_MEDICA`, `MISSAO`, `OUTRO`), `documento_comprobatorio`, `ativo`.
+   - `RegraAlcadaDocumento`: `tipo_documento` (`OFICIO_EQUIPE`, `OFICIO_COORDENADOR`, `CONTRATACAO_BOLSISTA`, etc.), `condicao_beneficiario` (`QUALQUER_BOLSISTA`, `COORDENADOR_PROJETO`, `COORDENADOR_E_DIRETOR_CAMPUS`), `funcao_requisitante` (FK `FuncaoInstitucional`), `funcao_visto` (FK `FuncaoInstitucional` opcional), `exige_siape`, `descricao`, `ativo`.
+   - Criar migração `0003_governanca_alcadas_e_suplencia.py` e aplicar no banco.
+2. **Carga Inicial de Dados (Data Seed):**
+   - População automática das funções, titulares e 1º substitutos mapeados dos ofícios institucionais.
+3. **Refatoração das Views em `gestao_projetos/views.py`:**
+   - Remover variáveis fixas `REITOR_NOME`, `DIRETOR_POLO_NOME`, etc.
+   - Em `gerar_oficio_pagamento_equipe` e `gerar_oficio_pagamento_coordenador`: buscar os signatários resolvendo `regra.funcao_requisitante.obter_responsavel_em_exercicio(competencia)` e `regra.funcao_visto.obter_responsavel_em_exercicio(competencia)`.
+4. **Interface e Rotas em `gestao_projetos/`:**
+   - Rota `governanca/alcadas/` $\rightarrow$ `views.painel_governanca_alcadas`.
+   - Template `gestao_projetos/templates/gestao_projetos/governanca_alcadas.html` com abas (Matriz de Alçadas, Ocupações/Substitutos e Afastamentos) no padrão Almoxarifado com cabeçalhos `text-center`.
+   - Card no Hub `home_gestao_projetos.html`.
+5. **Testes Automatizados em `gestao_projetos/tests.py`:**
+   - Criar classe `GovernancaSuplenciaTestCase` cobrindo:
+     a) Resolução de titular em data sem afastamento (prioridade 0).
+     b) Chaveamento automático para o 1º Substituto em data de afastamento do titular (com carimbo "Substituto" e portaria de substituição).
+     c) Chaveamento para o 2º Substituto em caso de afastamento simultâneo de titular e 1º substituto.
+     d) Geração de ofício DOCX preenchendo automaticamente o substituto em exercício.
+
+### 3. Escopo Excluído:
+- NÃO alterar `cadastros/models.py`.
+- NÃO alterar templates de outros módulos (`almoxarifado`, `central_servicos`).
+
+### 4. Arquivos Liberados:
+- `gestao_projetos/models.py`
+- `gestao_projetos/views.py`
+- `gestao_projetos/urls.py`
+- `gestao_projetos/forms.py`
+- `gestao_projetos/templates/gestao_projetos/governanca_alcadas.html` (NOVO)
+- `gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html`
+- `gestao_projetos/tests.py`
+
+### 5. Arquivos Proibidos:
+- `cadastros/models.py`
+- `cadastros/templates/`
+- `almoxarifado/`
+
+### 6. Invariantes de Negócio:
+1. **Unicidade de Exercício:** Apenas uma pessoa física detém o poder de representação da função institucional em uma data determinada.
+2. **Ordem de Precedência:** O Substituto 1 tem precedência sobre o Substituto 2. O Substituto 2 só assume se o Titular e o Substituto 1 estiverem simultaneamente afastados.
+3. **Veto à Auto-Requisição:** O beneficiário do pagamento nunca pode ser resolvido como seu próprio requisitante.
+4. **Fidelidade de Carimbo:** O documento oficial deve conter expressamente a menção "Substituto" e o número da Portaria de Designação quando um substituto assinar.
+
+### 7. Critério de Pronto:
+- `python manage.py makemigrations gestao_projetos` e `migrate` executados com sucesso.
+- `python manage.py check` com 0 erros.
+- Suíte de testes `python manage.py test gestao_projetos cadastros` passando 100% (todos os testes anteriores + novos de suplência e governança).
+
+---
 
 ### Resumo da Entrega e Auditoria Independente:
 - **Implementação e Refinamento (IBM Bob):**

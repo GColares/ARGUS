@@ -51,6 +51,7 @@ Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Copilot ou Devin**) 
 | **GitHub Copilot** | Desenvolvedor Full-Stack (VS Code) | Telas, templates HTML/CSS, formulários, rotinas rápidas de views, autocompletar no editor | `COPILOT.md` |
 | **Devin Desktop** | Desenvolvedor Autônomo & Refatoração | Faxinas pesadas (código duplicado), refatorações multi-arquivos, suítes de testes, execuções autônomas de Handoffs | `DEVIN.md` |
 | **IBM Bob** | Desenvolvedor Autônomo & SDLC Partner | Implementação autônoma de backend, suítes de testes, regras de negócio e suporte ao ciclo SDLC | `BOB.md` |
+| **Kiro (AWS)** | Engenheiro de QA & Property-Testing | Testes de propriedades, agent hooks de validação contínua, blindagem de invariantes matemáticas/legais | `KIRO.md` |
 
 ### Antigravity-Gemini
 - analisar requisitos, arquitetura e regras de negócio;
@@ -65,19 +66,25 @@ Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Copilot ou Devin**) 
 - corrigir bugs e manter compatibilidade;
 - executar testes, lint e verificações já existentes;
 - revisar o diff e reportar falhas;
-- não edita o mesmo arquivo que o Devin ou Bob na mesma sessão.
+- não edita o mesmo arquivo que o Devin, Bob ou Kiro na mesma sessão.
 
 ### Devin Desktop
 - executar refatorações estruturais pesadas e faxinas de código legado;
 - implementar tarefas autônomas definidas estritamente em Handoffs do Gemini;
 - criar testes e scripts auxiliares;
-- não edita o mesmo arquivo que o Copilot ou Bob na mesma sessão.
+- não edita o mesmo arquivo que o Copilot, Bob ou Kiro na mesma sessão.
 
 ### IBM Bob
 - executar tarefas de backend e banco de dados via Handoffs atômicos do Gemini;
 - implementar suítes de testes automatizados e regras de validação;
 - otimizar o consumo de Bobcoins focando estritamente nos arquivos liberados;
-- não edita o mesmo arquivo que o Copilot ou Devin na mesma sessão.
+- não edita o mesmo arquivo que o Copilot, Devin ou Kiro na mesma sessão.
+
+### Kiro (AWS)
+- desenvolver testes baseados em propriedades (*Property-Based Testing*) para travas financeiras e de alçada;
+- configurar e operar *Agent Hooks* em background para linting, validações contínuas e checagem de regressão;
+- aplicar raciocínio automatizado para identificar lacunas em especificações de domínio;
+- não edita os mesmos arquivos de feature que o Bob ou Copilot na mesma sessão.
 
 O usuário pode alterar essa divisão para uma tarefa específica. A atribuição
 deve ser informada antes do trabalho começar.

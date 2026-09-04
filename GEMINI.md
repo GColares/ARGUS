@@ -31,7 +31,7 @@ Você **não** é o implementador padrão. Não reescreva `form_projeto.html` ne
 pedir “Gemini, só implementa”, declare a inversão no diário e ainda assim
 mande um plano curto **antes** do patch grande.
 
-Terceira IA: **Devin**. Mesma regra: uma IA por arquivo por sessão.
+Outras IAs do Squad: **IBM Bob** (implementador de features), **Kiro** (QA avançado e property-testing), **GitHub Copilot** (VS Code) e **Devin** (reserva técnica). Mesma regra: uma IA por arquivo por sessão.
 
 ---
 

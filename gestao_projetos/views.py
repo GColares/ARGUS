@@ -1088,11 +1088,49 @@ def _redirect_folha(request, projeto_id, mes_competencia):
 # GERENCIADOR DE MATRIZES DOCX DO CONVENIAR (Passo 4)
 # =====================================================================
 
-# Constantes de alçada institucional (IFAM Polo de Inovação Manaus)
+# Constantes mantidas para compatibilidade retroativa com testes do Passo 4
+# (OficiosConveniarTestCase importa estes nomes diretamente).
 DIRETOR_POLO_NOME = "Alyson de Jesus dos Santos"
 DIRETOR_POLO_CARGO = "Diretor-Geral do Polo de Inovação IFAM/Manaus"
 REITOR_NOME = "Jaime Cavalcante Alves"
 REITOR_CARGO = "Reitor do IFAM"
+
+
+def _resolver_signatarios_oficio(tipo_documento, condicao_beneficiario, data_referencia=None):
+    """
+    Consulta a RegraAlcadaDocumento e resolve dinamicamente os signatários em exercício.
+    Retorna (signatario_nome, signatario_cargo, visto_nome, visto_cargo) como strings.
+    Fallback para as constantes fixas se a matriz não estiver populada.
+    """
+    from .models import RegraAlcadaDocumento
+    from datetime import date as _date
+
+    if data_referencia is None:
+        data_referencia = _date.today()
+
+    regra = RegraAlcadaDocumento.objects.filter(
+        tipo_documento=tipo_documento,
+        condicao_beneficiario=condicao_beneficiario,
+        ativo=True
+    ).select_related('funcao_requisitante', 'funcao_visto').first()
+
+    if not regra:
+        # Fallback: retorna as constantes fixas de acordo com o tipo
+        if tipo_documento == 'OFICIO_COORD_DIRETOR_CAMPUS':
+            return REITOR_NOME, REITOR_CARGO, DIRETOR_POLO_NOME, DIRETOR_POLO_CARGO
+        return DIRETOR_POLO_NOME, DIRETOR_POLO_CARGO, "", ""
+
+    req = regra.funcao_requisitante.obter_responsavel_em_exercicio(data_referencia)
+    signatario_nome = req['nome']
+    signatario_cargo = req['cargo_display']
+
+    visto_nome, visto_cargo = "", ""
+    if regra.funcao_visto:
+        vis = regra.funcao_visto.obter_responsavel_em_exercicio(data_referencia)
+        visto_nome = vis['nome']
+        visto_cargo = vis['cargo_display']
+
+    return signatario_nome, signatario_cargo, visto_nome, visto_cargo
 
 
 @login_required
@@ -1223,13 +1261,18 @@ def gerar_oficio_pagamento_equipe(request):
     except (ValueError, IndexError):
         competencia = date.today().replace(day=1)
 
-    # Signatários: Coordenador assina como Requisitante; Visto = Diretor do Polo
+    # Signatários via matriz de alçadas (Passo 5 — resolução dinâmica)
     if coordenador_projeto:
+        # Quando há coordenador, ele é o requisitante
         signatario_nome = coordenador_projeto.nome
         signatario_cargo = "Coordenador do Projeto"
+        _, __, visto_nome, visto_cargo = _resolver_signatarios_oficio(
+            'OFICIO_EQUIPE', 'QUALQUER_BOLSISTA', competencia
+        )
     else:
-        signatario_nome = DIRETOR_POLO_NOME
-        signatario_cargo = DIRETOR_POLO_CARGO
+        signatario_nome, signatario_cargo, visto_nome, visto_cargo = _resolver_signatarios_oficio(
+            'OFICIO_EQUIPE', 'QUALQUER_BOLSISTA', competencia
+        )
 
     # Carrega template DOCX ativo para ofício de equipe (ou fallback)
     template_obj = TemplateDocumentoConveniar.objects.filter(
@@ -1249,8 +1292,8 @@ def gerar_oficio_pagamento_equipe(request):
         signatario_nome=signatario_nome,
         signatario_cargo=signatario_cargo,
         coordenador_is_diretor_campus=False,
-        visto_nome=DIRETOR_POLO_NOME,
-        visto_cargo=DIRETOR_POLO_CARGO,
+        visto_nome=visto_nome,
+        visto_cargo=visto_cargo,
         criado_por=request.user,
     )
     oficio.parcelas.set(parcelas_validas)
@@ -1312,19 +1355,22 @@ def gerar_oficio_pagamento_coordenador(request):
         messages.warning(request, "Esta parcela do Coordenador já foi despachada em ofício anterior.")
         return _redirect_folha(request, projeto_id, parcela.mes_competencia)
 
-    # Alçada
-    if is_diretor_campus:
-        signatario_nome = REITOR_NOME
-        signatario_cargo = REITOR_CARGO
-    else:
-        signatario_nome = DIRETOR_POLO_NOME
-        signatario_cargo = DIRETOR_POLO_CARGO
-
+    # Competência — calculada antes da resolução de alçada
     try:
         ano_c, mes_c = int(mes_ano.split('-')[0]), int(mes_ano.split('-')[1])
         competencia = date(ano_c, mes_c, 1)
     except (ValueError, IndexError):
         competencia = date.today().replace(day=1)
+
+    # Alçada via matriz dinâmica (Passo 5)
+    if is_diretor_campus:
+        signatario_nome, signatario_cargo, visto_nome, visto_cargo = _resolver_signatarios_oficio(
+            'OFICIO_COORD_DIRETOR_CAMPUS', 'COORDENADOR_E_DIRETOR_CAMPUS', competencia
+        )
+    else:
+        signatario_nome, signatario_cargo, visto_nome, visto_cargo = _resolver_signatarios_oficio(
+            'OFICIO_COORDENADOR', 'COORDENADOR_PROJETO', competencia
+        )
 
     template_obj = TemplateDocumentoConveniar.objects.filter(
         tipo='OFICIO_COORDENADOR', ativo=True
@@ -1342,8 +1388,8 @@ def gerar_oficio_pagamento_coordenador(request):
         signatario_nome=signatario_nome,
         signatario_cargo=signatario_cargo,
         coordenador_is_diretor_campus=is_diretor_campus,
-        visto_nome=DIRETOR_POLO_NOME if is_diretor_campus else "",
-        visto_cargo=DIRETOR_POLO_CARGO if is_diretor_campus else "",
+        visto_nome=visto_nome,
+        visto_cargo=visto_cargo,
         criado_por=request.user,
     )
     oficio.parcelas.set([parcela])
@@ -1484,3 +1530,56 @@ def _gerar_docx_oficio(template_obj, contexto, nome_fallback):
         return buf.getvalue()
     except Exception:
         return None
+
+
+# =====================================================================
+# PAINEL DE GOVERNANÇA DE ALÇADAS (Passo 5)
+# =====================================================================
+
+@login_required
+def painel_governanca_alcadas(request):
+    """
+    Painel visual de governança institucional: matriz de alçadas, ocupações
+    ativas com substitutos e afastamentos vigentes.
+    """
+    from .models import (
+        FuncaoInstitucional, OcupacaoFuncao,
+        AfastamentoExercicio, RegraAlcadaDocumento
+    )
+    from datetime import date as _date
+
+    hoje = _date.today()
+
+    funcoes = FuncaoInstitucional.objects.filter(ativo=True).prefetch_related(
+        'ocupacoes', 'regras_como_requisitante', 'regras_como_visto'
+    ).order_by('nome_cargo')
+
+    # Para cada função, resolve quem está em exercício hoje
+    funcoes_com_responsavel = []
+    for f in funcoes:
+        responsavel = f.obter_responsavel_em_exercicio(hoje)
+        funcoes_com_responsavel.append({
+            'funcao': f,
+            'responsavel': responsavel,
+        })
+
+    ocupacoes = OcupacaoFuncao.objects.filter(ativo=True).select_related('funcao', 'pessoa').order_by('funcao__nome_cargo', 'prioridade')
+
+    afastamentos_vigentes = AfastamentoExercicio.objects.filter(
+        data_inicio__lte=hoje,
+        data_fim__gte=hoje,
+        ativo=True
+    ).select_related('ocupacao__funcao', 'ocupacao__pessoa').order_by('data_fim')
+
+    regras = RegraAlcadaDocumento.objects.filter(ativo=True).select_related(
+        'funcao_requisitante', 'funcao_visto'
+    ).order_by('tipo_documento', 'condicao_beneficiario')
+
+    context = {
+        'funcoes_com_responsavel': funcoes_com_responsavel,
+        'ocupacoes': ocupacoes,
+        'afastamentos_vigentes': afastamentos_vigentes,
+        'regras': regras,
+        'hoje': hoje,
+    }
+    return render(request, 'gestao_projetos/governanca_alcadas.html', context)

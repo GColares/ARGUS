@@ -235,3 +235,228 @@ class OficioSolicitacao(models.Model):
 
     def __str__(self):
         return f"Ofício {self.numero_sequencial}/{self.ano} — {self.get_tipo_display()} — {self.projeto.nome}"
+
+
+# =====================================================================
+# GOVERNANÇA INSTITUCIONAL — ALÇADAS E SUPLÊNCIA LEGAL (Passo 5)
+# =====================================================================
+
+class FuncaoInstitucional(models.Model):
+    """
+    Cadastro de funções/cargos institucionais com cadeia de suplência.
+    Ex: DIRETOR_POLO, REITOR, COORD_RH, DIRETOR_ADMIN_FINANCEIRO.
+    """
+    codigo = models.CharField(
+        max_length=50, unique=True,
+        verbose_name="Código da Função",
+        help_text="Ex: DIRETOR_POLO, REITOR, COORD_RH"
+    )
+    nome_cargo = models.CharField(max_length=255, verbose_name="Nome do Cargo / Função")
+    descricao = models.TextField(blank=True, verbose_name="Descrição")
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Função Institucional"
+        verbose_name_plural = "Funções Institucionais"
+        ordering = ['nome_cargo']
+
+    def __str__(self):
+        return f"{self.codigo} — {self.nome_cargo}"
+
+    def obter_responsavel_em_exercicio(self, data_referencia=None):
+        """
+        Resolve dinamicamente quem detém o poder de representação desta função
+        na data_referencia (padrão: hoje), aplicando o princípio de unicidade de
+        exercício e a ordem de precedência de substituição.
+
+        Retorna um dict com:
+          - pessoa: PessoaFisica (ou None)
+          - nome: str
+          - cargo_display: str (inclui "Substituto" + portaria quando aplicável)
+          - portaria: str
+          - prioridade: int (0=Titular, 1=1º Sub, 2=2º Sub, …)
+        """
+        from datetime import date as _date
+        if data_referencia is None:
+            data_referencia = _date.today()
+
+        # Obtém todas as ocupações ativas em ordem de prioridade crescente
+        ocupacoes = self.ocupacoes.filter(ativo=True).order_by('prioridade')
+
+        for ocupacao in ocupacoes:
+            # Verifica se esta ocupação está afastada na data de referência
+            afastada = AfastamentoExercicio.objects.filter(
+                ocupacao=ocupacao,
+                data_inicio__lte=data_referencia,
+                data_fim__gte=data_referencia,
+                ativo=True
+            ).exists()
+
+            if not afastada:
+                # Esta pessoa está em exercício — retorna
+                if ocupacao.prioridade == 0:
+                    cargo_display = self.nome_cargo
+                else:
+                    sufixo = ocupacao.sufixo_cargo or f"{ocupacao.get_prioridade_display()}"
+                    cargo_display = f"{self.nome_cargo} ({sufixo})"
+                    if ocupacao.portaria_designacao:
+                        cargo_display += f" — {ocupacao.portaria_designacao}"
+
+                return {
+                    'pessoa': ocupacao.pessoa,
+                    'nome': ocupacao.pessoa.nome if ocupacao.pessoa else ocupacao.nome_externo or "—",
+                    'cargo_display': cargo_display,
+                    'portaria': ocupacao.portaria_designacao or "",
+                    'prioridade': ocupacao.prioridade,
+                    'ocupacao': ocupacao,
+                }
+
+        # Nenhuma ocupação ativa encontrada — retorna fallback vazio
+        return {
+            'pessoa': None,
+            'nome': f"[SEM RESPONSÁVEL — {self.nome_cargo}]",
+            'cargo_display': self.nome_cargo,
+            'portaria': "",
+            'prioridade': -1,
+            'ocupacao': None,
+        }
+
+
+class OcupacaoFuncao(models.Model):
+    """
+    Vincula uma PessoaFisica a uma FuncaoInstitucional com prioridade de suplência.
+    prioridade 0 = Titular | 1 = 1º Substituto | 2 = 2º Substituto ...
+    """
+    PRIORIDADE_CHOICES = [
+        (0, 'Titular'),
+        (1, '1º Substituto'),
+        (2, '2º Substituto'),
+        (3, '3º Substituto'),
+    ]
+
+    funcao = models.ForeignKey(
+        FuncaoInstitucional, on_delete=models.CASCADE,
+        related_name='ocupacoes', verbose_name="Função Institucional"
+    )
+    pessoa = models.ForeignKey(
+        'cadastros.PessoaFisica', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='ocupacoes_funcao', verbose_name="Pessoa Física"
+    )
+    # Usado quando a autoridade não é uma PessoaFisica cadastrada (ex: Reitor externo)
+    nome_externo = models.CharField(
+        max_length=255, blank=True,
+        verbose_name="Nome Externo (quando não cadastrado como PessoaFisica)"
+    )
+    prioridade = models.IntegerField(choices=PRIORIDADE_CHOICES, default=0, verbose_name="Prioridade de Suplência")
+    portaria_designacao = models.CharField(
+        max_length=100, blank=True,
+        verbose_name="Portaria de Designação",
+        help_text="Ex: Portaria 061/GR/IFAM"
+    )
+    sufixo_cargo = models.CharField(
+        max_length=100, blank=True,
+        verbose_name="Sufixo do Cargo",
+        help_text="Ex: 'Substituto', '1º Substituto'. Preenchido automaticamente se vazio."
+    )
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Ocupação de Função"
+        verbose_name_plural = "Ocupações de Funções"
+        unique_together = ('funcao', 'prioridade')
+        ordering = ['funcao', 'prioridade']
+
+    def __str__(self):
+        nome = self.pessoa.nome if self.pessoa else self.nome_externo or "?"
+        return f"{self.funcao.codigo} | {self.get_prioridade_display()}: {nome}"
+
+
+class AfastamentoExercicio(models.Model):
+    """
+    Registra afastamentos que suspendem o exercício de uma OcupacaoFuncao
+    em determinado período (férias, licença, missão etc.).
+    Enquanto vigente, o sistema chaveia automaticamente para o próximo substituto.
+    """
+    MOTIVO_CHOICES = [
+        ('FERIAS', 'Férias'),
+        ('LICENCA_MEDICA', 'Licença Médica'),
+        ('MISSAO', 'Missão Institucional'),
+        ('LICENCA_CAPACITACAO', 'Licença para Capacitação'),
+        ('OUTRO', 'Outro'),
+    ]
+
+    ocupacao = models.ForeignKey(
+        OcupacaoFuncao, on_delete=models.CASCADE,
+        related_name='afastamentos', verbose_name="Ocupação"
+    )
+    data_inicio = models.DateField(verbose_name="Data de Início do Afastamento")
+    data_fim = models.DateField(verbose_name="Data de Fim do Afastamento")
+    motivo = models.CharField(max_length=25, choices=MOTIVO_CHOICES, default='FERIAS', verbose_name="Motivo")
+    documento_comprobatorio = models.CharField(
+        max_length=200, blank=True,
+        verbose_name="Documento Comprobatório",
+        help_text="Número da portaria, memorando ou despacho autorizando o afastamento."
+    )
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Afastamento de Exercício"
+        verbose_name_plural = "Afastamentos de Exercício"
+        ordering = ['-data_inicio']
+
+    def __str__(self):
+        return f"Afastamento de {self.ocupacao} ({self.data_inicio} a {self.data_fim})"
+
+
+class RegraAlcadaDocumento(models.Model):
+    """
+    Matriz ajustável de alçadas: define quem assina cada tipo de documento
+    e sob qual condição do beneficiário.
+    """
+    TIPO_DOCUMENTO_CHOICES = [
+        ('OFICIO_EQUIPE', 'Ofício de Pagamento da Equipe'),
+        ('OFICIO_COORDENADOR', 'Ofício de Pagamento do Coordenador'),
+        ('OFICIO_COORD_DIRETOR_CAMPUS', 'Ofício de Pagamento do Coordenador (Diretor de Campus)'),
+        ('CONTRATACAO_BOLSISTA', 'Contratação de Bolsista'),
+        ('OUTRO', 'Outro'),
+    ]
+    CONDICAO_CHOICES = [
+        ('QUALQUER_BOLSISTA', 'Qualquer Bolsista'),
+        ('COORDENADOR_PROJETO', 'Coordenador do Projeto (não Diretor de Campus)'),
+        ('COORDENADOR_E_DIRETOR_CAMPUS', 'Coordenador que é Diretor-Geral de Campus'),
+    ]
+
+    tipo_documento = models.CharField(
+        max_length=35, choices=TIPO_DOCUMENTO_CHOICES,
+        verbose_name="Tipo do Documento"
+    )
+    condicao_beneficiario = models.CharField(
+        max_length=35, choices=CONDICAO_CHOICES,
+        default='QUALQUER_BOLSISTA',
+        verbose_name="Condição do Beneficiário"
+    )
+    funcao_requisitante = models.ForeignKey(
+        FuncaoInstitucional, on_delete=models.PROTECT,
+        related_name='regras_como_requisitante',
+        verbose_name="Função do Signatário Requisitante"
+    )
+    funcao_visto = models.ForeignKey(
+        FuncaoInstitucional, on_delete=models.PROTECT,
+        null=True, blank=True,
+        related_name='regras_como_visto',
+        verbose_name="Função do Visto (Ciência)"
+    )
+    exige_siape = models.BooleanField(default=True, verbose_name="Exige SIAPE do Signatário?")
+    descricao = models.TextField(blank=True, verbose_name="Descrição / Justificativa Legal")
+    ativo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Regra de Alçada de Documento"
+        verbose_name_plural = "Regras de Alçada de Documentos"
+        unique_together = ('tipo_documento', 'condicao_beneficiario')
+        ordering = ['tipo_documento', 'condicao_beneficiario']
+
+    def __str__(self):
+        visto = f" | Visto: {self.funcao_visto.codigo}" if self.funcao_visto else ""
+        return f"{self.get_tipo_documento_display()} [{self.get_condicao_beneficiario_display()}] → Req: {self.funcao_requisitante.codigo}{visto}"

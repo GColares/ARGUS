@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+
+    <!-- Cabeçalho -->
+    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+        <div class="me-3 text-dark">
+            <i class="fas fa-balance-scale fs-2"></i>
+        </div>
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'gestao_projetos:home_gestao_projetos' %}">Gestão de Projetos</a></li>
+                    <li class="breadcrumb-item active">Governança de Alçadas</li>
+                </ol>
+            </nav>
+            <h4 class="mb-0 fw-bold mt-1">Painel de Governança Institucional</h4>
+            <p class="text-muted small mb-0">Matriz dinâmica de alçadas, funções em exercício e cadeia de suplência legal (Lei 8.112/90).</p>
+        </div>
+        <div class="ms-auto">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Abas -->
+    <ul class="nav nav-tabs mb-4" id="governancaTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-responsaveis" data-bs-toggle="tab" data-bs-target="#responsaveis" type="button" role="tab">
+                <i class="fas fa-user-check me-1"></i>Responsáveis em Exercício
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-matriz" data-bs-toggle="tab" data-bs-target="#matriz" type="button" role="tab">
+                <i class="fas fa-sitemap me-1"></i>Matriz de Alçadas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-ocupacoes" data-bs-toggle="tab" data-bs-target="#ocupacoes" type="button" role="tab">
+                <i class="fas fa-users me-1"></i>Ocupações e Substitutos
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if afastamentos_vigentes %}text-danger fw-bold{% endif %}" id="tab-afastamentos" data-bs-toggle="tab" data-bs-target="#afastamentos" type="button" role="tab">
+                <i class="fas fa-calendar-times me-1"></i>Afastamentos Vigentes
+                {% if afastamentos_vigentes %}
+                    <span class="badge bg-danger ms-1">{{ afastamentos_vigentes|length }}</span>
+                {% endif %}
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- Aba 1: Responsáveis em Exercício -->
+        <div class="tab-pane fade show active" id="responsaveis" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center ps-3">Código</th>
+                                    <th class="text-center">Função / Cargo</th>
+                                    <th class="text-center">Responsável em Exercício ({{ hoje|date:"d/m/Y" }})</th>
+                                    <th class="text-center">Cargo Exibido no Documento</th>
+                                    <th class="text-center">Portaria / Ato</th>
+                                    <th class="text-center">Situação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in funcoes_com_responsavel %}
+                                <tr>
+                                    <td class="text-center ps-3"><code>{{ item.funcao.codigo }}</code></td>
+                                    <td class="text-center fw-semibold">{{ item.funcao.nome_cargo }}</td>
+                                    <td class="text-center">{{ item.responsavel.nome }}</td>
+                                    <td class="text-center"><small>{{ item.responsavel.cargo_display }}</small></td>
+                                    <td class="text-center"><small class="text-muted">{{ item.responsavel.portaria|default:"—" }}</small></td>
+                                    <td class="text-center">
+                                        {% if item.responsavel.prioridade == 0 %}
+                                            <span class="badge bg-success">Titular</span>
+                                        {% elif item.responsavel.prioridade > 0 %}
+                                            <span class="badge bg-warning text-dark">Substituto ({{ item.responsavel.prioridade }}º)</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Sem responsável</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">Nenhuma função institucional cadastrada.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba 2: Matriz de Alçadas -->
+        <div class="tab-pane fade" id="matriz" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center ps-3">Tipo de Documento</th>
+                                    <th class="text-center">Condição do Beneficiário</th>
+                                    <th class="text-center">Função Requisitante</th>
+                                    <th class="text-center">Função do Visto</th>
+                                    <th class="text-center">Exige SIAPE</th>
+                                    <th class="text-center">Descrição Legal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for regra in regras %}
+                                <tr>
+                                    <td class="text-center ps-3 fw-semibold"><small>{{ regra.get_tipo_documento_display }}</small></td>
+                                    <td class="text-center"><small>{{ regra.get_condicao_beneficiario_display }}</small></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{ regra.funcao_requisitante.codigo }}</span>
+                                        <br><small class="text-muted">{{ regra.funcao_requisitante.nome_cargo }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if regra.funcao_visto %}
+                                            <span class="badge bg-secondary">{{ regra.funcao_visto.codigo }}</span>
+                                            <br><small class="text-muted">{{ regra.funcao_visto.nome_cargo }}</small>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if regra.exige_siape %}<span class="badge bg-success">Sim</span>{% else %}<span class="badge bg-light text-dark border">Não</span>{% endif %}
+                                    </td>
+                                    <td class="text-center"><small class="text-muted">{{ regra.descricao|truncatechars:80 }}</small></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">Nenhuma regra de alçada cadastrada.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba 3: Ocupações e Substitutos -->
+        <div class="tab-pane fade" id="ocupacoes" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center ps-3">Função</th>
+                                    <th class="text-center">Prioridade</th>
+                                    <th class="text-center">Nome</th>
+                                    <th class="text-center">Portaria</th>
+                                    <th class="text-center">Sufixo Cargo</th>
+                                    <th class="text-center">Ativo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for oc in ocupacoes %}
+                                <tr>
+                                    <td class="text-center ps-3"><small class="fw-semibold">{{ oc.funcao.nome_cargo }}</small></td>
+                                    <td class="text-center">
+                                        {% if oc.prioridade == 0 %}
+                                            <span class="badge bg-success">Titular</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">{{ oc.get_prioridade_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">{{ oc.pessoa.nome|default:oc.nome_externo|default:"—" }}</td>
+                                    <td class="text-center"><small class="text-muted">{{ oc.portaria_designacao|default:"—" }}</small></td>
+                                    <td class="text-center"><small>{{ oc.sufixo_cargo|default:"—" }}</small></td>
+                                    <td class="text-center">
+                                        {% if oc.ativo %}<span class="badge bg-success">Ativo</span>{% else %}<span class="badge bg-secondary">Inativo</span>{% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">Nenhuma ocupação cadastrada.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba 4: Afastamentos Vigentes -->
+        <div class="tab-pane fade" id="afastamentos" role="tabpanel">
+            {% if afastamentos_vigentes %}
+            <div class="alert alert-warning border-0 shadow-sm d-flex gap-2 align-items-start mb-3">
+                <i class="fas fa-exclamation-triangle mt-1"></i>
+                <span><strong>{{ afastamentos_vigentes|length }} afastamento(s) vigente(s)</strong> em {{ hoje|date:"d/m/Y" }}. O sistema chaveia automaticamente para o próximo substituto.</span>
+            </div>
+            {% endif %}
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center ps-3">Ocupação</th>
+                                    <th class="text-center">Período</th>
+                                    <th class="text-center">Motivo</th>
+                                    <th class="text-center">Documento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for af in afastamentos_vigentes %}
+                                <tr class="table-warning">
+                                    <td class="text-center ps-3 fw-semibold">
+                                        {{ af.ocupacao.funcao.nome_cargo }}<br>
+                                        <small class="text-muted">{{ af.ocupacao.pessoa.nome|default:af.ocupacao.nome_externo|default:"—" }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        {{ af.data_inicio|date:"d/m/Y" }} a {{ af.data_fim|date:"d/m/Y" }}
+                                    </td>
+                                    <td class="text-center"><small>{{ af.get_motivo_display }}</small></td>
+                                    <td class="text-center"><small class="text-muted">{{ af.documento_comprobatorio|default:"—" }}</small></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">Nenhum afastamento vigente hoje.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

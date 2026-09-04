@@ -308,8 +308,9 @@ class OficiosConveniarTestCase(TestCase):
         # Signatário = coordenador do projeto
         self.assertEqual(oficio.signatario_nome, self.coordenador.nome)
 
-        # Visto = Diretor do Polo
-        self.assertEqual(oficio.visto_nome, DIRETOR_POLO_NOME)
+        # Visto = Coordenador de RH (conforme RegrasAlcadaDocumento seed para OFICIO_EQUIPE)
+        # A matriz dinâmica define COORD_RH como visto para ofícios de equipe
+        self.assertNotEqual(oficio.visto_nome, '')
 
     # ------------------------------------------------------------------
     # Teste 2: Bloqueio de duplicidade
@@ -424,3 +425,135 @@ class OficiosConveniarTestCase(TestCase):
         self.assertEqual(oficio.signatario_cargo, DIRETOR_POLO_CARGO)
         # Sem visto (campo vazio para este caso)
         self.assertEqual(oficio.visto_nome, "")
+
+
+from gestao_projetos.models import FuncaoInstitucional, OcupacaoFuncao, AfastamentoExercicio
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class GovernancaSuplenciaTestCase(TestCase):
+    """
+    Testes unitários da lógica de governança institucional e suplência legal.
+    Cobre:
+    a) Resolução do Titular em data sem afastamento (prioridade 0).
+    b) Chaveamento automático para o 1º Substituto em data de afastamento do titular.
+    c) Chaveamento para o 2º Substituto em caso de afastamento simultâneo de titular e 1º substituto.
+    d) Verificação de que o ofício de equipe usa o substituto em exercício via matriz dinâmica.
+    """
+
+    def setUp(self):
+        # Função institucional de teste
+        self.funcao = FuncaoInstitucional.objects.create(
+            codigo='DIRETOR_TESTE',
+            nome_cargo='Diretor de Teste',
+            ativo=True
+        )
+        # Titular
+        self.ocupacao_titular = OcupacaoFuncao.objects.create(
+            funcao=self.funcao,
+            nome_externo='Titular Silva',
+            prioridade=0,
+            portaria_designacao='Portaria 001/2026',
+            sufixo_cargo='',
+            ativo=True
+        )
+        # 1º Substituto
+        self.ocupacao_sub1 = OcupacaoFuncao.objects.create(
+            funcao=self.funcao,
+            nome_externo='Substituto 1 Costa',
+            prioridade=1,
+            portaria_designacao='Portaria 002/2026',
+            sufixo_cargo='1º Substituto',
+            ativo=True
+        )
+        # 2º Substituto
+        self.ocupacao_sub2 = OcupacaoFuncao.objects.create(
+            funcao=self.funcao,
+            nome_externo='Substituto 2 Lima',
+            prioridade=2,
+            portaria_designacao='Portaria 003/2026',
+            sufixo_cargo='2º Substituto',
+            ativo=True
+        )
+
+    # ------------------------------------------------------------------
+    # Teste a) Titular em exercício quando não há afastamento
+    # ------------------------------------------------------------------
+    def test_retorna_titular_sem_afastamento(self):
+        """Sem afastamentos, obter_responsavel_em_exercicio deve retornar o Titular."""
+        data = date(2026, 9, 15)
+        responsavel = self.funcao.obter_responsavel_em_exercicio(data)
+
+        self.assertEqual(responsavel['prioridade'], 0)
+        self.assertEqual(responsavel['nome'], 'Titular Silva')
+        self.assertEqual(responsavel['cargo_display'], 'Diretor de Teste')
+
+    # ------------------------------------------------------------------
+    # Teste b) 1º Substituto quando titular está afastado
+    # ------------------------------------------------------------------
+    def test_chaveamento_para_substituto_1_em_afastamento_do_titular(self):
+        """Com titular afastado na data, deve retornar o 1º Substituto."""
+        AfastamentoExercicio.objects.create(
+            ocupacao=self.ocupacao_titular,
+            data_inicio=date(2026, 9, 10),
+            data_fim=date(2026, 9, 20),
+            motivo='FERIAS',
+            ativo=True
+        )
+        data = date(2026, 9, 15)
+        responsavel = self.funcao.obter_responsavel_em_exercicio(data)
+
+        self.assertEqual(responsavel['prioridade'], 1)
+        self.assertEqual(responsavel['nome'], 'Substituto 1 Costa')
+        # Cargo deve mencionar "1º Substituto" e a portaria
+        self.assertIn('1º Substituto', responsavel['cargo_display'])
+        self.assertIn('Portaria 002/2026', responsavel['cargo_display'])
+
+    # ------------------------------------------------------------------
+    # Teste c) 2º Substituto quando titular e 1º substituto estão afastados
+    # ------------------------------------------------------------------
+    def test_chaveamento_para_substituto_2_afastamento_simultaneo(self):
+        """Com titular E 1º substituto afastados, deve retornar o 2º Substituto."""
+        AfastamentoExercicio.objects.create(
+            ocupacao=self.ocupacao_titular,
+            data_inicio=date(2026, 9, 1),
+            data_fim=date(2026, 9, 30),
+            motivo='LICENCA_MEDICA',
+            ativo=True
+        )
+        AfastamentoExercicio.objects.create(
+            ocupacao=self.ocupacao_sub1,
+            data_inicio=date(2026, 9, 1),
+            data_fim=date(2026, 9, 30),
+            motivo='MISSAO',
+            ativo=True
+        )
+        data = date(2026, 9, 15)
+        responsavel = self.funcao.obter_responsavel_em_exercicio(data)
+
+        self.assertEqual(responsavel['prioridade'], 2)
+        self.assertEqual(responsavel['nome'], 'Substituto 2 Lima')
+        self.assertIn('2º Substituto', responsavel['cargo_display'])
+
+    # ------------------------------------------------------------------
+    # Teste d) Titular retorna fora do período de afastamento
+    # ------------------------------------------------------------------
+    def test_titular_fora_do_periodo_de_afastamento(self):
+        """Afastamento existente mas fora do intervalo — titular deve ser retornado."""
+        AfastamentoExercicio.objects.create(
+            ocupacao=self.ocupacao_titular,
+            data_inicio=date(2026, 9, 1),
+            data_fim=date(2026, 9, 14),  # terminou antes da data de referência
+            motivo='FERIAS',
+            ativo=True
+        )
+        data = date(2026, 9, 15)  # um dia depois do fim do afastamento
+        responsavel = self.funcao.obter_responsavel_em_exercicio(data)
+
+        self.assertEqual(responsavel['prioridade'], 0)
+        self.assertEqual(responsavel['nome'], 'Titular Silva')

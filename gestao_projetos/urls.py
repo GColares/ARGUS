@@ -43,4 +43,7 @@ urlpatterns = [
     path('folha-pagamento/gerar-oficio-equipe/', views.gerar_oficio_pagamento_equipe, name='gerar_oficio_equipe'),
     path('folha-pagamento/gerar-oficio-coordenador/', views.gerar_oficio_pagamento_coordenador, name='gerar_oficio_coordenador'),
     path('oficio/<int:oficio_id>/download/', views.download_oficio, name='download_oficio'),
+
+    # Governança Institucional — Alçadas e Suplência (Passo 5)
+    path('governanca/alcadas/', views.painel_governanca_alcadas, name='painel_governanca_alcadas'),
 ]
