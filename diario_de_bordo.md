@@ -1,5 +1,36 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-04] Homologação Oficial da 1ª Entrega do Kiro (AWS Bedrock): Suíte de Property-Based Testing Concluída (22 Testes, 58/58 Globais)
+
+### Resumo da Entrega e Auditoria Independente (Gemini):
+- **Missão Executada pelo Kiro:** Implementação autônoma da especificação formal `.kiro/specs/qa-invariants-property-testing/` em `gestao_projetos/tests_properties.py`.
+- **Suíte de Property-Testing Criada (`gestao_projetos/tests_properties.py`):**
+  - **22 testes de propriedade avançados** com geradores determinísticos e pseudo-aleatórios nativos:
+    - `UniqueExercicioPropertyTests` (8 testes): Blindagem dos requisitos REQ-QA-001 a 004 da Lei nº 8.112/90 (art. 38). Testadas 150 rodadas aleatórias com 2 e 4 ocupações, monotonicidade de hierarquia com oráculo local, bordas inclusivas de datas (30 datas), linha do tempo contínua de 180 dias consecutivos e sobreposição simultânea de afastamentos com chaveamento para 2º substituto.
+    - `TravasOrcamentariasPropertyTests` (14 testes): Blindagem dos requisitos REQ-QA-005 a 007 da Portaria SUFRAMA 9835/2022 e Manual EMBRAPII. Testados teto de 30% em Serviços de Terceiros (150 valores abaixo aceitos, 150 acima rejeitados, 50 no limite exato), teto de 15% de Overhead (acumulação progressiva e vedação de fontes EMBRAPII/SEBRAE), conservação orçamentária e aporte mínimo de 10% da Empresa parceira.
+  - O Kiro respeitou estritamente a herança multi-tabela de `PessoaJuridica` $\rightarrow$ `EmpresaParceira` e as constraints de integridade do banco.
+- **Auditoria Independente do Arquiteto (Gemini):**
+  - `python manage.py check`: **0 erros**.
+  - `python manage.py test gestao_projetos.tests_properties`: **22/22 testes OK** em 12.543s.
+  - `python manage.py test gestao_projetos cadastros`: **58/58 testes globais passando com 100% de sucesso** em 21.241s.
+  - Zero regressões em código legado; modelos em `cadastros/models.py` mantidos 100% intactos.
+  - Protocolo de Segregação de Funções cumprido com perfeição.
+
+---
+
+## [2026-09-04] Atualização de Operação do Squad: Kiro Ativo e Monitoramento de Cota do IBM Bob (29% Restante)
+
+### Gestão de Recursos e Procedimento do Squad:
+- **Causa:** O Kiro restabeleceu conexão com o Amazon Bedrock e está 100% operacional no IDE, municiado com a infraestrutura `.kiro/` (steering, hook de `manage.py check` e spec de property-testing). Simultaneamente, o saldo trial do **IBM Bob** reduziu para **29% Remaining**.
+- **Ação:** Gestão prudente de cotas:
+  1. O **Kiro (AWS Bedrock)** assume a responsabilidade de implementar e executar a suíte de Property-Based Testing (`gestao_projetos/tests_properties.py`) e zelar pelos quality gates.
+  2. O saldo de **29% do IBM Bob** é preservado para tarefas cirúrgicas de backend ou alocado de forma estrita no Passo 6 da Execução Financeira (Atesto SIAPE do RA).
+  3. O **GitHub Copilot** permanece como recurso inline ilimitado para ajustes de templates e formulários.
+  4. O **Antigravity-Gemini** permanece na liderança arquitetural, validação de regras de negócio e auditoria independente.
+- **Consequência:** Máxima eficiência no consumo das cotas pagas/trials e expansão da cobertura de testes avançados via Bedrock sem sobrecarregar o Bob.
+
+---
+
 ## [2026-09-04] Execução Financeira (Passo 5 — Matriz Dinâmica de Alçadas, Funções Institucionais e Cadeia de Suplência Legal) — Concluído e Homologado
 
 ### Resumo da Entrega e Auditoria Independente:
