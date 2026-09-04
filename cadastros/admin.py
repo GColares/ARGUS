@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho, PessoaFisica, PerfilServidor
+from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho, PessoaFisica, PerfilServidor, Parcela
 
 class AtividadePlanoAcaoInline(admin.TabularInline):
     model = AtividadePlanoAcao
@@ -134,6 +134,13 @@ class TermoBolsaAdmin(admin.ModelAdmin):
     list_display = ('numero_termo', 'pessoa', 'cota_pt', 'modalidade_bolsa', 'status')
     search_fields = ('numero_termo', 'pessoa__nome')
     list_filter = ('status', 'modalidade_bolsa')
+
+@admin.register(Parcela)
+class ParcelaAdmin(admin.ModelAdmin):
+    list_display = ('numero', 'termo_bolsa', 'valor', 'mes_competencia', 'status', 'data_pagamento', 'conta_pagamento')
+    list_filter = ('status', 'conta_pagamento')
+    search_fields = ('termo_bolsa__pessoa__nome', 'termo_bolsa__numero_termo', 'numero')
+    autocomplete_fields = ['termo_bolsa']
 
 
 from .models import TermoCooperacao

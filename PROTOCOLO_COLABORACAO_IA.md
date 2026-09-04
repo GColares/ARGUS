@@ -50,6 +50,7 @@ Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Copilot ou Devin**) 
 | **Antigravity-Gemini** | Arquiteto de Software & Tech Lead | Guardião do domínio legal/arquitetura, Red Team, desenha o banco, planeja Handoffs e audita entregas | `GEMINI.md` |
 | **GitHub Copilot** | Desenvolvedor Full-Stack (VS Code) | Telas, templates HTML/CSS, formulários, rotinas rápidas de views, autocompletar no editor | `COPILOT.md` |
 | **Devin Desktop** | Desenvolvedor Autônomo & Refatoração | Faxinas pesadas (código duplicado), refatorações multi-arquivos, suítes de testes, execuções autônomas de Handoffs | `DEVIN.md` |
+| **IBM Bob** | Desenvolvedor Autônomo & SDLC Partner | Implementação autônoma de backend, suítes de testes, regras de negócio e suporte ao ciclo SDLC | `BOB.md` |
 
 ### Antigravity-Gemini
 - analisar requisitos, arquitetura e regras de negócio;
@@ -64,16 +65,23 @@ Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Copilot ou Devin**) 
 - corrigir bugs e manter compatibilidade;
 - executar testes, lint e verificações já existentes;
 - revisar o diff e reportar falhas;
-- não edita o mesmo arquivo que o Devin na mesma sessão.
+- não edita o mesmo arquivo que o Devin ou Bob na mesma sessão.
 
 ### Devin Desktop
 - executar refatorações estruturais pesadas e faxinas de código legado;
 - implementar tarefas autônomas definidas estritamente em Handoffs do Gemini;
 - criar testes e scripts auxiliares;
-- não edita o mesmo arquivo que o Copilot na mesma sessão.
+- não edita o mesmo arquivo que o Copilot ou Bob na mesma sessão.
+
+### IBM Bob
+- executar tarefas de backend e banco de dados via Handoffs atômicos do Gemini;
+- implementar suítes de testes automatizados e regras de validação;
+- otimizar o consumo de Bobcoins focando estritamente nos arquivos liberados;
+- não edita o mesmo arquivo que o Copilot ou Devin na mesma sessão.
 
 O usuário pode alterar essa divisão para uma tarefa específica. A atribuição
 deve ser informada antes do trabalho começar.
+
 
 ## Regras de sincronização
 
@@ -116,4 +124,12 @@ Mudanças complexas devem ser precedidas por uma análise Red Team contendo:
 - solução alternativa ou híbrida;
 - perfis responsáveis pelas ações sensíveis.
 
+## Gestão de Incidentes e Mudança de Procedimento (Causa, Ação e Consequência)
 
+Sempre que ocorrer um problema, impedimento técnico, queda de ferramenta, esgotamento de cotas de API/uso (ex: Devin, Copilot) ou necessidade de redistribuição de tarefas entre membros atuais ou novos do Squad, é **OBRIGATÓRIO** registrar no topo de `diario_de_bordo.md` e nos Handoffs a tríade formal:
+
+1. **Causa:** O que motivou o problema ou impedimento do agente (ex: *"Cota diária do Devin esgotada no meio da modelagem"*);
+2. **Ação:** A decisão operacional e arquitetural tomada para contornar o problema, mantendo estrita a segregação de funções entre quem constrói e quem testa/verifica (ex: *"Transferência da implementação de testes e telas para o Copilot; Gemini retido como auditor independente"*);
+3. **Consequência:** O impacto concreto nos arquivos, na esteira de validação, nas permissões de edição e na continuidade das entregas.
+
+Nenhuma IA pode substituir outra ou alterar o procedimento estabelecido silenciosamente sem registrar esse encadeamento tríplice.

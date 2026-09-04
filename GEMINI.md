@@ -60,7 +60,8 @@ passado) e conter:
 6. regras de `AGENTS.md` que se aplicam;
 7. riscos a dados legados;
 8. verificação mínima (`manage.py check`, teste nomeado, ou “usuário clica X”);
-9. decisão que **só o usuário** pode dar.
+9. decisão que **só o usuário** pode dar;
+10. em caso de incidente ou redistribuição de tarefas entre IAs: registro obrigatório de **Causa, Ação e Consequência**.
 
 Não escreva “refatore o módulo cadastros”. Escreva o passo único da onda
 atual. Planos de 15 arquivos sem dono geram o wizard quebrado de novo.
@@ -69,6 +70,11 @@ Modelo:
 
 ```
 ## [AAAA-MM-DD] Handoff Gemini → (Copilot|Devin)
+
+Incidente / Mudança de Procedimento (se houver):
+- Causa:
+- Ação:
+- Consequência:
 
 Objetivo:
 Escopo incluído / excluído:

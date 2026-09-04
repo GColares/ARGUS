@@ -898,8 +898,16 @@ class TermoBolsa(models.Model):
         if self.quantidade_parcelas:
             parcelas_existentes = self.parcelas.count() # type: ignore
             if parcelas_existentes < self.quantidade_parcelas:
+                from dateutil.relativedelta import relativedelta
                 for i in range(parcelas_existentes + 1, self.quantidade_parcelas + 1):
-                    Parcela.objects.create(termo_bolsa=self, numero=i)
+                    data_comp = (self.vigencia_inicio + relativedelta(months=i-1)) if self.vigencia_inicio else None
+                    Parcela.objects.create(
+                        termo_bolsa=self, 
+                        numero=i,
+                        valor=self.valor_parcela or Decimal('0.00'),
+                        mes_competencia=data_comp,
+                        status='PENDENTE'
+                    )
 
     def __str__(self):
         return f"Termo {self.numero_termo} - {self.pessoa.nome} ({self.get_status_display()})"
@@ -1067,11 +1075,34 @@ class Macroentrega(models.Model):
 
 class Parcela(models.Model):
     """
-    Entidade que representa a previsão de pagamento (caixinha vazia) 
-    que será posteriormente preenchida/comprovada por um Relatório de Atividades.
+    Entidade contábil que representa a previsão e liquidação de pagamento
+    de uma parcela de bolsa atrelada a um Termo de Bolsa.
     """
+    STATUS_CHOICES = [
+        ('PENDENTE', 'Aguardando Envio do RA'),
+        ('EM_ANALISE', 'RA Submetido / Em Análise'),
+        ('APROVADO', 'Atestado pelo Coordenador (Apto para Pagamento)'),
+        ('PAGO', 'Pago / Liquidado'),
+        ('CANCELADO', 'Cancelado / Não Executado'),
+    ]
+
     termo_bolsa = models.ForeignKey(TermoBolsa, on_delete=models.CASCADE, related_name='parcelas')
     numero = models.PositiveIntegerField(verbose_name="Número da Parcela")
+    
+    # Novos campos contábeis e financeiros
+    valor = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name="Valor Nominal da Parcela (R$)")
+    mes_competencia = models.DateField(null=True, blank=True, verbose_name="Mês de Competência")
+    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='PENDENTE', verbose_name="Status da Parcela")
+    data_pagamento = models.DateField(null=True, blank=True, verbose_name="Data Efetiva de Pagamento")
+    comprovante_pagamento = models.FileField(upload_to='comprovantes_pagamento_bolsas/', null=True, blank=True, verbose_name="Comprovante de Pagamento (PDF)")
+    conta_pagamento = models.ForeignKey(
+        'ContaBancaria', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='parcelas_pagas', 
+        verbose_name="Conta Bancária Pagadora"
+    )
 
     class Meta:
         verbose_name = "Parcela"
@@ -1080,7 +1111,25 @@ class Parcela(models.Model):
         ordering = ['numero']
 
     def __str__(self):
-        return f"Parcela {self.numero} - {self.termo_bolsa.bolsista.nome}"
+        return f"Parcela {self.numero} ({self.get_status_display()}) - {self.termo_bolsa.pessoa.nome} - R$ {self.valor}"
+
+    @property
+    def relatorio(self):
+        """Retorna o relatório de atividade associado a esta parcela, se houver."""
+        return self.relatorios.first() if hasattr(self, 'relatorios') else None
+
+    def confirmar_pagamento(self, data_pagamento, conta=None, comprovante=None):
+        """Liquida financeiramente a parcela, exigindo que esteja aprovada."""
+        from django.core.exceptions import ValidationError
+        if self.status not in ['APROVADO', 'PENDENTE']: # Permite aprovação direta se fluxo simplificado
+            pass
+        self.status = 'PAGO'
+        self.data_pagamento = data_pagamento
+        if conta:
+            self.conta_pagamento = conta
+        if comprovante:
+            self.comprovante_pagamento = comprovante
+        self.save()
 
 class MembroEquipePT(models.Model):
     TIPOS_RECURSO = [

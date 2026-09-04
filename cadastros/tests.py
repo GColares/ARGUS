@@ -5,7 +5,8 @@ from datetime import date, timedelta
 
 from .models import (
     PessoaJuridica, EmpresaParceira, AgenciaFomento, ProjetoPDI, 
-    PlanoDeTrabalho, RubricaOrcamentariaPT, AtividadePlanoAcao
+    PlanoDeTrabalho, RubricaOrcamentariaPT, AtividadePlanoAcao,
+    CotaBolsaPT, TermoBolsa, Parcela, ContaBancaria
 )
 
 
@@ -475,3 +476,81 @@ class AtividadePlanoAcaoTestCase(TestCase):
         
         # Não deve levantar ValidationError
         atividade2.clean()
+
+
+class ParcelaTestCase(TestCase):
+    """Testes da geração e liquidação financeira das parcelas de bolsa."""
+
+    def setUp(self):
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Bolsa LTDA",
+            cnpj="11.222.333/0001-44",
+            natureza_juridica="LTDA",
+            representante_legal="Representante Bolsa",
+            cargo_representante="Diretor"
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Bolsa",
+            fase="PROSPECCAO",
+            concedente=self.empresa
+        )
+        self.cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao="Pesquisador",
+            quantidade_vagas=1,
+            parcelas_previstas=3,
+            valor_global_previsto=Decimal("4500.00")
+        )
+        self.termo = TermoBolsa.objects.create(
+            cota_pt=self.cota,
+            numero_termo="TB-2026-001",
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 11, 30),
+            quantidade_parcelas=3,
+            valor_parcela=Decimal("1500.00")
+        )
+
+    def test_gera_parcelas_com_atributos_financeiros(self):
+        parcelas = list(self.termo.parcelas.order_by("numero"))
+
+        self.assertEqual(len(parcelas), 3)
+        self.assertEqual(
+            [parcela.valor for parcela in parcelas],
+            [Decimal("1500.00")] * 3
+        )
+        self.assertEqual(
+            [parcela.status for parcela in parcelas],
+            ["PENDENTE"] * 3
+        )
+        self.assertEqual(
+            [parcela.mes_competencia for parcela in parcelas],
+            [date(2026, 9, 1), date(2026, 10, 1), date(2026, 11, 1)]
+        )
+
+    def test_confirma_pagamento_e_grava_data(self):
+        parcela = self.termo.parcelas.get(numero=1)
+        data_pagamento = date(2026, 9, 30)
+
+        parcela.confirmar_pagamento(data_pagamento=data_pagamento)
+
+        parcela.refresh_from_db()
+        self.assertEqual(parcela.status, "PAGO")
+        self.assertEqual(parcela.data_pagamento, data_pagamento)
+
+    def test_confirma_pagamento_com_conta_pagadora(self):
+        conta = ContaBancaria.objects.create(
+            projeto=self.projeto,
+            conta="12345",
+            dv="6"
+        )
+        parcela = self.termo.parcelas.get(numero=1)
+
+        parcela.confirmar_pagamento(
+            data_pagamento=date(2026, 9, 30),
+            conta=conta
+        )
+
+        parcela.refresh_from_db()
+        self.assertEqual(parcela.status, "PAGO")
+        self.assertEqual(parcela.conta_pagamento, conta)
+        self.assertEqual(parcela.conta_pagamento_id, conta.pk)

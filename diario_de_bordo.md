@@ -1,6 +1,58 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-04] Execução Financeira (Passo 1 — Enriquecimento e Testes da Parcela) — Concluído e Homologado
+
+### Resumo da Entrega e Auditoria:
+- **Modelagem Contábil e Migrações (Devin):** Entidade `Parcela` enriquecida com `valor`, `mes_competencia`, `status`, `data_pagamento`, `comprovante_pagamento`, `conta_pagamento` e método `confirmar_pagamento()`. Migrações `0062` e `0063` aplicadas no PostgreSQL local.
+- **Implementação da Suíte de Testes (Copilot & Bob):** Implementação e validação da classe `ParcelaTestCase` em `cadastros/tests.py` com 3 testes cobrindo geração automática de parcelas, competências mensais progressivas e transição de liquidação financeira com conta pagadora.
+- **Auditoria Independente do Arquiteto (Gemini):**
+  - `python manage.py check`: 0 erros.
+  - `python manage.py test cadastros`: **25/25 testes passando com 100% de sucesso** em 0.645s.
+  - Segregação de Funções rigorosamente respeitada entre modelagem, teste e homologação independente.
+
+---
+
+## [2026-09-04] Handoff Gemini → IBM Bob: Execução Financeira (Passo 1 — Testes da Máquina de Estados da Parcela)
+
+
+### Incidente e Mudança de Procedimento no Squad:
+- **Causa:** Durante a execução do Handoff do Passo 1 da Execução Financeira, o Devin Desktop teve sua cota diária esgotada (*"Your daily usage quota has been exhausted"*), interrompendo a sessão após aplicar as migrações e modelos no backend.
+- **Ação:** O Product Owner autorizou a integração do **IBM Bob** ao Squad com período de teste de 30 dias e 50 Bobcoins. O IBM Bob assume o papel de **Desenvolvedor Autônomo & SDLC Partner** para implementar a suíte de testes em `cadastros/tests.py`, preservando estritamente a Segregação de Funções (o Gemini permanece como Arquiteto e Auditor Independente).
+- **Consequência:** A titularidade de implementação autônoma passa ao IBM Bob (com manual tático `BOB.md`). O modelo e migrações entregues pelo Devin foram congelados e serão validados pela nova suíte de testes escrita pelo IBM Bob antes da homologação final pelo Gemini.
+
+---
+
+### Status Atual Herdado do Devin (Passo 1 - 95% Concluído):
+- ✅ `cadastros/models.py`: Modelo `Parcela` enriquecido com campos contábeis (`valor`, `mes_competencia`, `status`, `data_pagamento`, `comprovante_pagamento`, `conta_pagamento`) e método `confirmar_pagamento()`. `TermoBolsa.save()` já calcula competência e valor automaticamente.
+- ✅ `cadastros/admin.py`: `ParcelaAdmin` registrado com sucesso.
+- ✅ Banco de dados PostgreSQL: Migrações `0062_add_financial_fields_to_parcela` e `0063_populate_existing_parcelas_financial_data` aplicadas com sucesso.
+- ✅ `python manage.py check`: 0 erros.
+
+---
+
+### Tarefa Imediata do IBM Bob:
+- **Objetivo da Tarefa:** Implementar a classe de testes automatizados `ParcelaTestCase` em `cadastros/tests.py` para blindar a integridade da nova máquina de estados de `Parcela` e a automação de competências, consumindo o mínimo de Bobcoins possível via execução atômica e focada.
+- **Escopo Incluído:**
+  1. `cadastros/tests.py`:
+     - Testar criação automática de parcelas com valor nominal herdado de `TermoBolsa.valor_parcela`.
+     - Testar cálculo progressivo de `mes_competencia` (`vigencia_inicio + (i-1) meses`).
+     - Testar transição de status de `PENDENTE` para `PAGO` via `parcela.confirmar_pagamento(data_pagamento=date.today())`.
+     - Testar associação com `ContaBancaria` pagadora.
+- **Escopo Excluído:**
+  - NÃO alterar modelos nem templates nesta etapa.
+- **Arquivos Liberados para o IBM Bob:**
+  - `cadastros/tests.py`
+- **Arquivos Proibidos para o IBM Bob nesta Sessão:**
+  - `cadastros/models.py` (código congelado pelo Arquiteto para teste independente)
+  - `cadastros/templates/`
+  - `cadastros/views.py`
+- **Critério de Pronto:**
+  - `python manage.py test cadastros` executando todos os testes (22 anteriores + novos testes de Parcela) com 100% de sucesso.
+
+
+
 ## [2026-09-04] Onda 4 Concluída — Hardening de Segurança (Devin)
+
 
 ### O que foi feito:
 - **Correção de CSRF**: Removido o bypass `@csrf_exempt` da `ReordenarItensView` em `central_servicos/views.py` e adicionado cabeçalho `X-CSRFToken` na requisição AJAX em `ambiente_list.html`.
