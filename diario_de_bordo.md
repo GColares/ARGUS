@@ -1,6 +1,108 @@
 # Diário de Bordo — ARGUS
 
-## [2026-09-04] Execução Financeira (Passo 2 — Folha Mensal de Bolsas e Confirmação de Pagamento) — Concluído e Homologado
+## [2026-09-04] Execução Financeira (Passo 4 — Gerenciador de Matrizes DOCX e Emissão Inteligente de Ofícios para o Conveniar/FAEPI) — Concluído e Homologado
+
+### Resumo da Entrega e Auditoria Independente:
+- **Implementação e Refinamento (IBM Bob):**
+  - **Biblioteca de Matrizes DOCX (`TemplateDocumentoConveniar`):** Modelagem com `nome`, `tipo`, `descricao`, `arquivo_docx`, `versao`, `ativo`, `tags_disponiveis` e formulários/telas no padrão Almoxarifado (`templates_conveniar_list.html` e `templates_conveniar_form.html`).
+  - **Rastreabilidade de Ofícios (`OficioSolicitacao`):** Modelagem com numeração sequencial por projeto/ano, signatários, flag `coordenador_is_diretor_campus`, parcelas vinculadas via ManyToMany e armazenamento dos `.docx` gerados. Migração `0002` aplicada.
+  - **Emissão da Equipe na Folha Mensal:** Seleção flexível de bolsistas por checkbox, banner de diagnóstico orientando sobre lotes parciais e complementares, trava de idempotência (parcela despachada ganha badge com link de download e não pode ser duplicada) e agrupamento automático por contas bancárias das fontes (Empresa, SEBRAE, EMBRAPII).
+  - **Alçada Automática da Coordenação:** Se o Coordenador for Diretor-Geral de Campus $\rightarrow$ Requisitante: **Reitor do IFAM** (`Jaime Cavalcante Alves`), Visto: Diretor do Polo. Se docente/servidor $\rightarrow$ Requisitante: **Diretor-Geral do Polo** (`Alyson de Jesus dos Santos`).
+  - **Hub do Módulo (`home_gestao_projetos.html`):** Adicionado card "Matrizes DOCX Conveniar" integrado ao grid.
+  - **Suíte de Testes Automatizados (`gestao_projetos/tests.py`):** Criada a classe `OficiosConveniarTestCase` com 4 testes cobrindo geração válida de ofício, bloqueio de duplicidade e ambas as alçadas (Reitor vs Diretor do Polo).
+- **Auditoria Independente do Arquiteto (Gemini):**
+  - `python manage.py check`: **0 erros**.
+  - `python manage.py test gestao_projetos cadastros`: **32/32 testes passando com 100% de sucesso** em 9.393s.
+  - Modelos de `cadastros/models.py` e templates do wizard mantidos 100% íntegros e intocados.
+  - Alinhamento de UI: Cabeçalhos centralizados com `text-center` em `templates_conveniar_list.html` e `folha_pagamento_mensal.html`.
+  - **Segregação de Funções:** Respeitada integralmente (IBM Bob executou consumindo 40% das cotas; Gemini auditou e homologou).
+
+---
+
+## [2026-09-04] Handoff Gemini → IBM Bob / Copilot: Execução Financeira (Passo 4 — Gerenciador de Matrizes DOCX e Emissão Inteligente de Ofícios para o Conveniar/FAEPI)
+
+### Incidente / Mudança de Procedimento no Squad:
+- **Causa:** O processo de execução financeira do Polo de Inovação revelou que a FAEPI utiliza o sistema externo **Conveniar**, exigindo que o ARGUS atue como gerador dos insumos formais (Ofícios Requisitórios assinados via Gov.br). Além disso, a FAEPI possui uma ampla biblioteca de modelos que sofrem constantes atualizações de layout, exigindo um Gerenciador de Matrizes DOCX dinâmico no ARGUS.
+- **Ação:** O Arquiteto Gemini desenhou a modelagem `TemplateDocumentoConveniar` e `OficioSolicitacao`, o assistente de fechamento de lote flexível com responsabilidade na folha mensal (permitindo ofícios parciais e complementares sem duplicidade) e a alçada estrita para a Coordenação (Reitor para Diretores de Campus, Diretor do Polo para os demais).
+- **Consequência:** A titularidade de implementação fica sob responsabilidade do **IBM Bob** (ou Copilot). O Antigravity-Gemini permanece como Arquiteto e Auditor Independente para homologação com suíte de testes.
+
+### 1. Objetivo da Tarefa:
+Implementar no módulo `gestao_projetos`:
+1. O **Gerenciador de Matrizes DOCX do Conveniar** (`TemplateDocumentoConveniar`), permitindo upload, versionamento e manutenção de matrizes institucionais de documentos.
+2. A entidade **`OficioSolicitacao`** para controle e rastreabilidade dos ofícios emitidos.
+3. A **Emissão de Ofício de Pagamento da Equipe** na Folha Mensal com seleção flexível de bolsistas por checkbox, alerta de pendências de RA e rateio automático por contas bancárias das fontes (Empresa, SEBRAE, EMBRAPII).
+4. A **Emissão de Ofício de Pagamento do Coordenador do Projeto** com alçada institucional automática (Reitor do IFAM se o coordenador for Diretor-Geral de Campus; Diretor-Geral do Polo se docente/servidor).
+
+### 2. Escopo Incluído:
+1. **Modelos em `gestao_projetos/models.py`:**
+   - `TemplateDocumentoConveniar`: `nome`, `tipo` (choices), `descricao` (obrigatório), `arquivo_docx`, `versao`, `ativo`, `tags_disponiveis`, `atualizado_em`, `atualizado_por`.
+   - `OficioSolicitacao`: `projeto` (FK ProjetoPDI), `template_utilizado` (FK TemplateDocumentoConveniar opcional), `numero_sequencial`, `ano`, `tipo`, `competencia`, `signatario_nome`, `signatario_cargo`, `coordenador_is_diretor_campus`, `visto_nome`, `visto_cargo`, `parcelas` (ManyToMany com `cadastros.Parcela`, related_name `oficios_conveniar`), `arquivo_docx`, `arquivo_pdf`, `criado_em`, `criado_por`.
+   - Criar e aplicar migração de dados em `gestao_projetos`.
+2. **Rotas em `gestao_projetos/urls.py`:**
+   - `templates-conveniar/` $\rightarrow$ listagem de matrizes DOCX.
+   - `templates-conveniar/novo/` $\rightarrow$ upload de nova matriz DOCX.
+   - `templates-conveniar/<int:template_id>/download/` $\rightarrow$ download da matriz atual.
+   - `folha-pagamento/gerar-oficio-equipe/` (POST) $\rightarrow$ gera ofício `.docx` em lote com parcelas selecionadas.
+   - `folha-pagamento/gerar-oficio-coordenador/` (POST) $\rightarrow$ gera ofício `.docx` individual da coordenação.
+   - `oficio/<int:oficio_id>/download/` $\rightarrow$ download do `.docx` gerado.
+3. **Backend em `gestao_projetos/views.py`:**
+   - Atualizar `folha_mensal_pagamentos` para sinalizar parcelas que já pertencem a um ofício emitido (desabilitando nova seleção para evitar duplicidade).
+   - Implementar `gerar_oficio_pagamento_equipe`:
+     - Valida parcelas selecionadas (exige RA `CONCLUIDO`, dados bancários e ausência de ofício prévio).
+     - Agrupa as parcelas pelas contas do projeto.
+     - Carrega matriz DOCX ativa de `TemplateDocumentoConveniar` (ou fallback para `Modelo Oficio de Pagamento.docx`).
+     - Preenche tabelas por conta e define signatários (Coordenador como Requisitante; Diretor do Polo no Visto).
+     - Cria `OficioSolicitacao`, vincula as parcelas e retorna download.
+   - Implementar `gerar_oficio_pagamento_coordenador`:
+     - Se `coordenador_is_diretor_campus == True`: Requisitante = Reitor (`Jaime Cavalcante Alves`), Visto = Diretor do Polo.
+     - Se `coordenador_is_diretor_campus == False`: Requisitante = Diretor do Polo (`Alyson de Jesus dos Santos`).
+     - Gera `.docx` individual e grava `OficioSolicitacao`.
+4. **Templates em `gestao_projetos/templates/gestao_projetos/`:**
+   - Atualizar `folha_pagamento_mensal.html`:
+     - Coluna com checkbox para seleção de parcelas aptas.
+     - Banner com diagnóstico de pendências de RA (orientando sobre ofício parcial + complementar).
+     - Botões no cabeçalho: *"Gerar Ofício da Equipe"* e *"Gerar Ofício do Coordenador"* com modais de confirmação.
+     - Badge com número do ofício nas parcelas já despachadas (com link para download).
+   - Criar `templates_conveniar_list.html` e `templates_conveniar_form.html` com padrão visual Almoxarifado (`AGENTS.md`).
+5. **Testes Automatizados em `gestao_projetos/tests.py`:**
+   - Criar `OficiosConveniarTestCase` testando:
+     - Geração de ofício de equipe com rateio por contas bancárias.
+     - Bloqueio de duplicidade (parcela despachada não entra em novo ofício).
+     - Alçada do Reitor vs Diretor do Polo no ofício do coordenador.
+     - Download e integridade de `TemplateDocumentoConveniar`.
+
+### 3. Escopo Excluído:
+- NÃO alterar `cadastros/models.py` (modelos congelados).
+- NÃO alterar templates de outros módulos (`almoxarifado`, `central_servicos`).
+
+### 4. Arquivos Liberados:
+- `gestao_projetos/models.py`
+- `gestao_projetos/urls.py`
+- `gestao_projetos/views.py`
+- `gestao_projetos/forms.py`
+- `gestao_projetos/templates/gestao_projetos/folha_pagamento_mensal.html`
+- `gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html`
+- `gestao_projetos/templates/gestao_projetos/templates_conveniar_list.html` (NOVO)
+- `gestao_projetos/templates/gestao_projetos/templates_conveniar_form.html` (NOVO)
+- `gestao_projetos/tests.py`
+
+### 5. Arquivos Proibidos:
+- `cadastros/models.py`
+- `cadastros/templates/`
+- `almoxarifado/`
+
+### 6. Invariantes de Negócio:
+1. **Segregação do Coordenador:** O Coordenador do Projeto NUNCA entra no ofício da equipe e NUNCA solicita o próprio pagamento.
+2. **Alçada do Reitor:** Apenas quando o Coordenador for Diretor-Geral de Campus do IFAM o Reitor assina como solicitante. Nos demais casos, assina o Diretor-Geral do Polo.
+3. **Idempotência de Ofício:** Uma parcela associada a um ofício não pode ser incluída em outro ofício.
+4. **Exigência de RA Atestado:** Apenas parcelas com RA `CONCLUIDO` por servidor SIAPE podem ser incluídas em ofício.
+
+### 7. Critério de Pronto:
+- `python manage.py check` com 0 erros.
+- `python manage.py makemigrations` e `migrate` executados com sucesso.
+- Suíte `python manage.py test gestao_projetos cadastros` passando 100%.
+
+---
 
 ### Resumo da Entrega e Auditoria Independente:
 - **Implementação e Refinamento (IBM Bob):**

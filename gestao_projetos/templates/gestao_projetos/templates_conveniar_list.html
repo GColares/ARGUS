@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+
+    <!-- Cabeçalho -->
+    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+        <div class="me-3 text-secondary">
+            <i class="fas fa-file-word fs-2"></i>
+        </div>
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'gestao_projetos:home_gestao_projetos' %}">Gestão de Projetos</a></li>
+                    <li class="breadcrumb-item active">Templates Conveniar</li>
+                </ol>
+            </nav>
+            <h4 class="mb-0 fw-bold mt-1">Gerenciador de Matrizes DOCX — Conveniar / FAEPI</h4>
+            <p class="text-muted small mb-0">Biblioteca de modelos institucionais para geração de ofícios e documentos do Conveniar.</p>
+        </div>
+        <div class="ms-auto d-flex gap-2">
+            <a href="{% url 'gestao_projetos:novo_template_conveniar' %}" class="btn btn-primary btn-sm fw-bold">
+                <i class="fas fa-upload me-1"></i>Novo Template
+            </a>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Tabela de Templates -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th class="ps-3">Nome</th>
+                            <th>Tipo</th>
+                            <th>Versão</th>
+                            <th class="text-center">Ativo</th>
+                            <th>Atualizado em</th>
+                            <th>Atualizado por</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tmpl in templates %}
+                        <tr>
+                            <td class="ps-3 fw-semibold">{{ tmpl.nome }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ tmpl.get_tipo_display }}</span></td>
+                            <td>{{ tmpl.versao }}</td>
+                            <td class="text-center">
+                                {% if tmpl.ativo %}
+                                    <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td><small class="text-muted">{{ tmpl.atualizado_em|date:"d/m/Y H:i" }}</small></td>
+                            <td><small>{{ tmpl.atualizado_por.get_full_name|default:tmpl.atualizado_por.username|default:"—" }}</small></td>
+                            <td class="text-center">
+                                <a href="{% url 'gestao_projetos:download_template_conveniar' tmpl.id %}"
+                                   class="btn btn-sm btn-outline-primary" title="Baixar DOCX">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                Nenhum template cadastrado. <a href="{% url 'gestao_projetos:novo_template_conveniar' %}">Cadastrar agora</a>.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

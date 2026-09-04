@@ -7,8 +7,9 @@ description: "Rotina de envios parciais e leves (commit e push). Salva as modifi
 
 Oriente o usuário a executar `.\scripts\salvar.ps1` no terminal. A IA não
 deve executar a rotina diretamente nem declarar sucesso sem confirmação.
+**Obrigatório:** sempre que sugerir a execução de `.\scripts\salvar.ps1`, forneça junto uma **sugestão clara, semântica e descritiva de mensagem de commit** pronta para ser copiada e colada no prompt interativo do script.
 
-Sempre que o usuário enviar o comando "salvar" (ex: "salvar", "salva isso", "commit parcial"), você deverá realizar a rotina de salvamento parcial de código no GitHub.
+Sempre que o usuário enviar o comando "salvar" (ex: "salvar", "salva isso", "commit parcial"), você deverá orientar o salvamento parcial de código no GitHub com a respectiva sugestão de commit.
 
 Siga os passos rigorosamente nesta ordem:
 

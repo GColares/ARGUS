@@ -963,6 +963,9 @@ def folha_mensal_pagamentos(request):
             if parcela.status == 'PAGO':
                 total_liquidado += parcela.valor or Decimal('0.00')
 
+            # Ofício mais recente vinculado a esta parcela (para badge de rastreabilidade)
+            oficio_obj = parcela.oficios_conveniar.order_by('-criado_em').first() if hasattr(parcela, 'oficios_conveniar') else None
+
             linhas_folha.append({
                 'parcela': parcela,
                 'termo': termo,
@@ -973,6 +976,8 @@ def folha_mensal_pagamentos(request):
                 'ra_status_label': ra_status_label,
                 'ra_status_badge': ra_status_badge,
                 'tem_dados_bancarios': dados_bancarios is not None,
+                'em_oficio': oficio_obj is not None,
+                'oficio': oficio_obj,
             })
 
     saldo_pendente = total_folha - total_liquidado
@@ -1077,3 +1082,405 @@ def _redirect_folha(request, projeto_id, mes_competencia):
     mes_ano = mes_competencia.strftime('%Y-%m') if mes_competencia else date.today().strftime('%Y-%m')
     url = reverse('gestao_projetos:folha_mensal_pagamentos')
     return redirect(f"{url}?projeto_id={projeto_id}&mes_ano={mes_ano}")
+
+
+# =====================================================================
+# GERENCIADOR DE MATRIZES DOCX DO CONVENIAR (Passo 4)
+# =====================================================================
+
+# Constantes de alçada institucional (IFAM Polo de Inovação Manaus)
+DIRETOR_POLO_NOME = "Alyson de Jesus dos Santos"
+DIRETOR_POLO_CARGO = "Diretor-Geral do Polo de Inovação IFAM/Manaus"
+REITOR_NOME = "Jaime Cavalcante Alves"
+REITOR_CARGO = "Reitor do IFAM"
+
+
+@login_required
+def listar_templates_conveniar(request):
+    """Lista todos os templates DOCX cadastrados para o Conveniar/FAEPI."""
+    from .models import TemplateDocumentoConveniar
+    templates = TemplateDocumentoConveniar.objects.all()
+    return render(request, 'gestao_projetos/templates_conveniar_list.html', {
+        'templates': templates,
+    })
+
+
+@login_required
+def novo_template_conveniar(request):
+    """Upload de nova matriz DOCX para o Conveniar."""
+    from .forms import TemplateDocumentoConveniarForm
+    if request.method == 'POST':
+        form = TemplateDocumentoConveniarForm(request.POST, request.FILES)
+        if form.is_valid():
+            template = form.save(commit=False)
+            template.atualizado_por = request.user
+            template.save()
+            messages.success(request, f"Template '{template.nome}' cadastrado com sucesso!")
+            return redirect('gestao_projetos:listar_templates_conveniar')
+        else:
+            messages.error(request, "Corrija os erros abaixo antes de continuar.")
+    else:
+        form = TemplateDocumentoConveniarForm()
+
+    from .forms import TemplateDocumentoConveniarForm
+    return render(request, 'gestao_projetos/templates_conveniar_form.html', {'form': form})
+
+
+@login_required
+def download_template_conveniar(request, template_id):
+    """Download direto do arquivo DOCX de um template."""
+    from .models import TemplateDocumentoConveniar
+    template = get_object_or_404(TemplateDocumentoConveniar, id=template_id)
+    if not template.arquivo_docx:
+        messages.error(request, "Este template não possui arquivo associado.")
+        return redirect('gestao_projetos:listar_templates_conveniar')
+    response = HttpResponse(
+        template.arquivo_docx.read(),
+        content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
+    nome_arquivo = template.arquivo_docx.name.split('/')[-1]
+    response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
+    return response
+
+
+def _proximo_numero_oficio(projeto, ano):
+    """Retorna o próximo número sequencial de ofício para o projeto/ano."""
+    from .models import OficioSolicitacao
+    ultimo = OficioSolicitacao.objects.filter(projeto=projeto, ano=ano).order_by('-numero_sequencial').first()
+    return (ultimo.numero_sequencial + 1) if ultimo else 1
+
+
+@login_required
+def gerar_oficio_pagamento_equipe(request):
+    """
+    Gera o Ofício de Pagamento da Equipe em lote para as parcelas selecionadas.
+    Invariantes:
+    - Apenas parcelas com RA CONCLUIDO.
+    - Parcela ainda não despachada em ofício anterior.
+    - Bolsista não é o Coordenador do Projeto.
+    - Rateio automático por contas bancárias das fontes.
+    """
+    from cadastros.models import Parcela, ProjetoPDI
+    from .models import TemplateDocumentoConveniar, OficioSolicitacao
+
+    if request.method != 'POST':
+        return redirect('gestao_projetos:folha_mensal_pagamentos')
+
+    projeto_id = request.POST.get('projeto_id')
+    mes_ano = request.POST.get('mes_ano', date.today().strftime('%Y-%m'))
+    parcela_ids = request.POST.getlist('parcela_ids')
+
+    if not projeto_id or not parcela_ids:
+        messages.error(request, "Selecione pelo menos uma parcela e um projeto.")
+        return redirect('gestao_projetos:folha_mensal_pagamentos')
+
+    # Autorização
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden("Acesso negado.")
+
+    parcelas_validas = []
+    erros = []
+    coordenador_projeto = projeto.coordenador  # PessoaFisica ou None
+
+    for pid in parcela_ids:
+        try:
+            parcela = Parcela.objects.select_related(
+                'termo_bolsa__pessoa', 'termo_bolsa__cota_pt'
+            ).get(id=int(pid), termo_bolsa__cota_pt__projeto=projeto)
+        except (Parcela.DoesNotExist, ValueError):
+            erros.append(f"Parcela ID {pid} não encontrada neste projeto.")
+            continue
+
+        pessoa = parcela.termo_bolsa.pessoa
+
+        # Segregação do Coordenador
+        if coordenador_projeto and pessoa and pessoa.id == coordenador_projeto.id:
+            erros.append(f"Parcela {parcela.numero} ({pessoa.nome}): Coordenador não entra no ofício da equipe.")
+            continue
+
+        # Exige RA CONCLUIDO
+        if not parcela.relatorios.filter(status='CONCLUIDO').exists():
+            erros.append(f"Parcela {parcela.numero} ({pessoa.nome if pessoa else '?'}): RA não atestado.")
+            continue
+
+        # Idempotência: não pode estar em ofício anterior
+        if parcela.oficios_conveniar.exists():
+            erros.append(f"Parcela {parcela.numero} ({pessoa.nome if pessoa else '?'}): já despachada em ofício anterior.")
+            continue
+
+        parcelas_validas.append(parcela)
+
+    if not parcelas_validas:
+        messages.error(request, f"Nenhuma parcela válida para emissão. Erros: {'; '.join(erros[:3])}")
+        return _redirect_folha(request, projeto_id, None)
+
+    # Determina competência (primeiro dia do mês)
+    try:
+        ano_c, mes_c = int(mes_ano.split('-')[0]), int(mes_ano.split('-')[1])
+        competencia = date(ano_c, mes_c, 1)
+    except (ValueError, IndexError):
+        competencia = date.today().replace(day=1)
+
+    # Signatários: Coordenador assina como Requisitante; Visto = Diretor do Polo
+    if coordenador_projeto:
+        signatario_nome = coordenador_projeto.nome
+        signatario_cargo = "Coordenador do Projeto"
+    else:
+        signatario_nome = DIRETOR_POLO_NOME
+        signatario_cargo = DIRETOR_POLO_CARGO
+
+    # Carrega template DOCX ativo para ofício de equipe (ou fallback)
+    template_obj = TemplateDocumentoConveniar.objects.filter(
+        tipo='OFICIO_EQUIPE', ativo=True
+    ).order_by('-atualizado_em').first()
+
+    # Cria OficioSolicitacao
+    ano_oficio = date.today().year
+    numero_oficio = _proximo_numero_oficio(projeto, ano_oficio)
+    oficio = OficioSolicitacao.objects.create(
+        projeto=projeto,
+        template_utilizado=template_obj,
+        numero_sequencial=numero_oficio,
+        ano=ano_oficio,
+        tipo='EQUIPE',
+        competencia=competencia,
+        signatario_nome=signatario_nome,
+        signatario_cargo=signatario_cargo,
+        coordenador_is_diretor_campus=False,
+        visto_nome=DIRETOR_POLO_NOME,
+        visto_cargo=DIRETOR_POLO_CARGO,
+        criado_por=request.user,
+    )
+    oficio.parcelas.set(parcelas_validas)
+
+    # Monta DOCX com docxtpl (fallback simples se template não existir)
+    contexto_docx = _montar_contexto_oficio_equipe(oficio, parcelas_validas, projeto)
+    arquivo_docx_gerado = _gerar_docx_oficio(template_obj, contexto_docx, 'Modelo_Oficio_Pagamento_Equipe.docx')
+
+    if arquivo_docx_gerado:
+        from django.core.files.base import ContentFile
+        nome_arquivo = f"Oficio_{numero_oficio}_{ano_oficio}_Equipe_{projeto.id}.docx"
+        oficio.arquivo_docx.save(nome_arquivo, ContentFile(arquivo_docx_gerado), save=True)
+
+    aviso_erros = f" ({len(erros)} parcela(s) ignorada(s))" if erros else ""
+    messages.success(
+        request,
+        f"Ofício nº {numero_oficio}/{ano_oficio} gerado com {len(parcelas_validas)} parcela(s).{aviso_erros}"
+    )
+    return redirect('gestao_projetos:download_oficio', oficio_id=oficio.id)
+
+
+@login_required
+def gerar_oficio_pagamento_coordenador(request):
+    """
+    Gera o Ofício de Pagamento individual do Coordenador do Projeto.
+    Alçada:
+    - coordenador_is_diretor_campus=True  → Requisitante = Reitor
+    - coordenador_is_diretor_campus=False → Requisitante = Diretor do Polo
+    """
+    from cadastros.models import Parcela, ProjetoPDI
+    from .models import TemplateDocumentoConveniar, OficioSolicitacao
+
+    if request.method != 'POST':
+        return redirect('gestao_projetos:folha_mensal_pagamentos')
+
+    projeto_id = request.POST.get('projeto_id')
+    mes_ano = request.POST.get('mes_ano', date.today().strftime('%Y-%m'))
+    parcela_id = request.POST.get('parcela_coordenador_id')
+    is_diretor_campus = request.POST.get('coordenador_is_diretor_campus') == '1'
+
+    if not projeto_id or not parcela_id:
+        messages.error(request, "Dados insuficientes para geração do ofício do Coordenador.")
+        return redirect('gestao_projetos:folha_mensal_pagamentos')
+
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden("Acesso negado.")
+
+    parcela = get_object_or_404(Parcela, id=int(parcela_id), termo_bolsa__cota_pt__projeto=projeto)
+
+    # Exige RA CONCLUIDO
+    if not parcela.relatorios.filter(status='CONCLUIDO').exists():
+        messages.error(request, "RA da parcela do Coordenador não está atestado.")
+        return _redirect_folha(request, projeto_id, parcela.mes_competencia)
+
+    # Idempotência
+    if parcela.oficios_conveniar.exists():
+        messages.warning(request, "Esta parcela do Coordenador já foi despachada em ofício anterior.")
+        return _redirect_folha(request, projeto_id, parcela.mes_competencia)
+
+    # Alçada
+    if is_diretor_campus:
+        signatario_nome = REITOR_NOME
+        signatario_cargo = REITOR_CARGO
+    else:
+        signatario_nome = DIRETOR_POLO_NOME
+        signatario_cargo = DIRETOR_POLO_CARGO
+
+    try:
+        ano_c, mes_c = int(mes_ano.split('-')[0]), int(mes_ano.split('-')[1])
+        competencia = date(ano_c, mes_c, 1)
+    except (ValueError, IndexError):
+        competencia = date.today().replace(day=1)
+
+    template_obj = TemplateDocumentoConveniar.objects.filter(
+        tipo='OFICIO_COORDENADOR', ativo=True
+    ).order_by('-atualizado_em').first()
+
+    ano_oficio = date.today().year
+    numero_oficio = _proximo_numero_oficio(projeto, ano_oficio)
+    oficio = OficioSolicitacao.objects.create(
+        projeto=projeto,
+        template_utilizado=template_obj,
+        numero_sequencial=numero_oficio,
+        ano=ano_oficio,
+        tipo='COORDENADOR',
+        competencia=competencia,
+        signatario_nome=signatario_nome,
+        signatario_cargo=signatario_cargo,
+        coordenador_is_diretor_campus=is_diretor_campus,
+        visto_nome=DIRETOR_POLO_NOME if is_diretor_campus else "",
+        visto_cargo=DIRETOR_POLO_CARGO if is_diretor_campus else "",
+        criado_por=request.user,
+    )
+    oficio.parcelas.set([parcela])
+
+    contexto_docx = _montar_contexto_oficio_coordenador(oficio, parcela, projeto)
+    arquivo_docx_gerado = _gerar_docx_oficio(template_obj, contexto_docx, 'Modelo_Oficio_Pagamento_Coordenador.docx')
+
+    if arquivo_docx_gerado:
+        from django.core.files.base import ContentFile
+        nome_arquivo = f"Oficio_{numero_oficio}_{ano_oficio}_Coordenador_{projeto.id}.docx"
+        oficio.arquivo_docx.save(nome_arquivo, ContentFile(arquivo_docx_gerado), save=True)
+
+    messages.success(request, f"Ofício nº {numero_oficio}/{ano_oficio} do Coordenador gerado com sucesso!")
+    return redirect('gestao_projetos:download_oficio', oficio_id=oficio.id)
+
+
+@login_required
+def download_oficio(request, oficio_id):
+    """Download do DOCX de um ofício já emitido."""
+    from .models import OficioSolicitacao
+    oficio = get_object_or_404(OficioSolicitacao, id=oficio_id)
+
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=oficio.projeto, usuario=request.user).exists():
+            return HttpResponseForbidden("Acesso negado.")
+
+    if not oficio.arquivo_docx:
+        messages.error(request, "Este ofício não possui arquivo DOCX gerado.")
+        return _redirect_folha(request, oficio.projeto.id, oficio.competencia)
+
+    response = HttpResponse(
+        oficio.arquivo_docx.read(),
+        content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
+    nome = oficio.arquivo_docx.name.split('/')[-1]
+    response['Content-Disposition'] = f'attachment; filename="{nome}"'
+    return response
+
+
+# ---- Helpers privados de montagem DOCX --------------------------------
+
+def _montar_contexto_oficio_equipe(oficio, parcelas, projeto):
+    """Constrói o dicionário de contexto para o template docxtpl do ofício de equipe."""
+    linhas = []
+    for parcela in parcelas:
+        pessoa = parcela.termo_bolsa.pessoa
+        dado_bancario = None
+        if pessoa:
+            dado_bancario = pessoa.dados_bancarios.filter(ativo=True, finalidade='PAGAMENTO_BOLSA').first() \
+                            or pessoa.dados_bancarios.filter(ativo=True).first()
+        linhas.append({
+            'nome': pessoa.nome if pessoa else '—',
+            'cpf': pessoa.cpf if pessoa else '—',
+            'funcao': parcela.termo_bolsa.cota_pt.perfil_funcao,
+            'numero_termo': parcela.termo_bolsa.numero_termo,
+            'parcela': f"{parcela.numero}/{parcela.termo_bolsa.quantidade_parcelas}",
+            'valor': f"R$ {parcela.valor:.2f}".replace('.', ','),
+            'banco': dado_bancario.banco_codigo if dado_bancario else '—',
+            'agencia': dado_bancario.agencia if dado_bancario else '—',
+            'conta': dado_bancario.conta if dado_bancario else '—',
+            'pix': dado_bancario.chave_pix if dado_bancario else '—',
+            'conta_pagadora': str(parcela.conta_pagamento) if parcela.conta_pagamento else '—',
+        })
+
+    total = sum(p.valor for p in parcelas)
+    return {
+        'numero_oficio': f"{oficio.numero_sequencial}/{oficio.ano}",
+        'competencia': oficio.competencia.strftime('%B de %Y'),
+        'projeto_nome': projeto.nome,
+        'signatario_nome': oficio.signatario_nome,
+        'signatario_cargo': oficio.signatario_cargo,
+        'visto_nome': oficio.visto_nome,
+        'visto_cargo': oficio.visto_cargo,
+        'linhas': linhas,
+        'total_geral': f"R$ {total:.2f}".replace('.', ','),
+        'data_geracao': date.today().strftime('%d/%m/%Y'),
+    }
+
+
+def _montar_contexto_oficio_coordenador(oficio, parcela, projeto):
+    """Constrói o dicionário de contexto para o template do ofício do coordenador."""
+    pessoa = parcela.termo_bolsa.pessoa
+    dado_bancario = None
+    if pessoa:
+        dado_bancario = pessoa.dados_bancarios.filter(ativo=True, finalidade='PAGAMENTO_BOLSA').first() \
+                        or pessoa.dados_bancarios.filter(ativo=True).first()
+    return {
+        'numero_oficio': f"{oficio.numero_sequencial}/{oficio.ano}",
+        'competencia': oficio.competencia.strftime('%B de %Y'),
+        'projeto_nome': projeto.nome,
+        'coordenador_nome': pessoa.nome if pessoa else '—',
+        'coordenador_cpf': pessoa.cpf if pessoa else '—',
+        'funcao': parcela.termo_bolsa.cota_pt.perfil_funcao,
+        'numero_termo': parcela.termo_bolsa.numero_termo,
+        'parcela': f"{parcela.numero}/{parcela.termo_bolsa.quantidade_parcelas}",
+        'valor': f"R$ {parcela.valor:.2f}".replace('.', ','),
+        'banco': dado_bancario.banco_codigo if dado_bancario else '—',
+        'agencia': dado_bancario.agencia if dado_bancario else '—',
+        'conta': dado_bancario.conta if dado_bancario else '—',
+        'pix': dado_bancario.chave_pix if dado_bancario else '—',
+        'signatario_nome': oficio.signatario_nome,
+        'signatario_cargo': oficio.signatario_cargo,
+        'visto_nome': oficio.visto_nome,
+        'visto_cargo': oficio.visto_cargo,
+        'data_geracao': date.today().strftime('%d/%m/%Y'),
+    }
+
+
+def _gerar_docx_oficio(template_obj, contexto, nome_fallback):
+    """
+    Tenta renderizar o DOCX com docxtpl a partir do template cadastrado.
+    Se não houver template ou arquivo, tenta o fallback estático em gestao_projetos/modelos/.
+    Retorna os bytes do arquivo ou None se não houver template disponível.
+    """
+    import os
+    from io import BytesIO
+
+    template_path = None
+
+    if template_obj and template_obj.arquivo_docx:
+        template_path = template_obj.arquivo_docx.path
+    else:
+        fallback = os.path.join(
+            settings.BASE_DIR, 'gestao_projetos', 'modelos', nome_fallback
+        )
+        if os.path.exists(fallback):
+            template_path = fallback
+
+    if not template_path:
+        return None  # Sem template disponível — ofício gravado sem DOCX
+
+    try:
+        from docxtpl import DocxTemplate
+        doc = DocxTemplate(template_path)
+        doc.render(contexto)
+        buf = BytesIO()
+        doc.save(buf)
+        return buf.getvalue()
+    except Exception:
+        return None

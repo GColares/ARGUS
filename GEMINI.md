@@ -167,8 +167,8 @@ Não concorde e já descreva `models.py` completo.
 Oriente o usuário:
 
 - início: diário + `.\scripts\bom_dia.ps1`
-- meio: `.\scripts\salvar.ps1`
-- fim: diário + `.\scripts\ate_amanha.ps1`
+- meio: `.\scripts\salvar.ps1` — **Obrigatório:** sempre que sugerir salvar ou atualizar o repositório, forneça junto ao comando uma **sugestão clara e descritiva de mensagem de commit** pronta para ser copiada/colada no prompt interativo do script.
+- fim: diário + `.\scripts\ate_amanha.ps1` — também acompanhado de sugestão de mensagem de commit descritiva do dia.
 - contexto Gemini: `.\scripts\gemini_contexto.ps1`
 
 Não declare sucesso sem confirmação do terminal. Restore destrutivo exige

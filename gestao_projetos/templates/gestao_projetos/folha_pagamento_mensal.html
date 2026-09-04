@@ -97,20 +97,52 @@
         </div>
     </div>
 
+    <!-- Banner de diagnóstico de pendências -->
+    {% if linhas_folha %}
+    {% with pendentes=linhas_folha|length %}
+    {% if qtd_ras_atestados < qtd_parcelas %}
+    <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-start gap-3" role="alert">
+        <i class="fas fa-exclamation-triangle fs-5 mt-1"></i>
+        <div>
+            <strong>Atenção — ofício parcial possível.</strong>
+            {{ qtd_parcelas|add:"-"|add:qtd_ras_atestados }} parcela(s) ainda sem RA atestado esta competência.
+            Você pode emitir um ofício parcial agora e um ofício complementar após o atesto dos RAs pendentes.
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% endif %}
+
     <!-- Tabela da Folha -->
+    <form method="POST" action="{% url 'gestao_projetos:gerar_oficio_equipe' %}" id="formOficioEquipe">
+        {% csrf_token %}
+        <input type="hidden" name="projeto_id" value="{{ projeto_selecionado.id }}">
+        <input type="hidden" name="mes_ano" value="{{ mes_ano }}">
+
     <div class="card shadow-sm border-0">
-        <div class="card-header bg-white border-bottom py-3">
+        <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <h5 class="mb-0 fw-bold">
                 <i class="fas fa-table me-2 text-primary"></i>
                 Folha de Pagamentos — {{ projeto_selecionado.nome }}
                 <span class="badge bg-light text-dark border ms-2 fw-normal" style="font-size: 0.8rem;">{{ mes_ano }}</span>
             </h5>
+            <div class="d-flex gap-2">
+                <button type="submit" form="formOficioEquipe" class="btn btn-sm btn-primary fw-bold">
+                    <i class="fas fa-file-invoice me-1"></i>Gerar Ofício da Equipe
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalOficioCoordenador">
+                    <i class="fas fa-user-tie me-1"></i>Gerar Ofício do Coordenador
+                </button>
+            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
                     <thead class="table-light text-center">
                         <tr>
+                            <th class="text-center" style="width:2.5rem;">
+                                <input type="checkbox" id="selecionar_todos" class="form-check-input" title="Selecionar todos">
+                            </th>
                             <th class="text-start ps-3">Bolsista</th>
                             <th>Cota / Perfil</th>
                             <th>Parcela</th>
@@ -118,13 +150,22 @@
                             <th>Dados Bancários</th>
                             <th>Situação RA</th>
                             <th>Conta Pagadora</th>
-                            <th>Status</th>
+                            <th>Status / Ofício</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for linha in linhas_folha %}
                         <tr>
+                            <!-- Checkbox de seleção -->
+                            <td class="text-center">
+                                {% if linha.parcela.status != 'PAGO' and linha.parcela.status != 'CANCELADO' and linha.relatorio and linha.ra_status == 'CONCLUIDO' and not linha.em_oficio %}
+                                    <input type="checkbox" name="parcela_ids" value="{{ linha.parcela.id }}"
+                                           class="form-check-input parcela-check">
+                                {% else %}
+                                    <input type="checkbox" class="form-check-input" disabled>
+                                {% endif %}
+                            </td>
                             <!-- Bolsista -->
                             <td class="ps-3">
                                 <strong>{{ linha.pessoa.nome|default:"—" }}</strong>
@@ -188,7 +229,7 @@
                                 {% endif %}
                             </td>
 
-                            <!-- Status -->
+                            <!-- Status / Ofício -->
                             <td class="text-center">
                                 {% if linha.parcela.status == 'PAGO' %}
                                     <span class="badge bg-success">Pago</span>
@@ -203,6 +244,14 @@
                                     <span class="badge bg-dark">Cancelado</span>
                                 {% else %}
                                     <span class="badge bg-secondary">Pendente</span>
+                                {% endif %}
+                                {% if linha.oficio %}
+                                    <br>
+                                    <a href="{% url 'gestao_projetos:download_oficio' linha.oficio.id %}"
+                                       class="badge bg-info text-dark text-decoration-none mt-1"
+                                       title="Ofício {{ linha.oficio.numero_sequencial }}/{{ linha.oficio.ano }}">
+                                        <i class="fas fa-file-contract me-1"></i>Of. {{ linha.oficio.numero_sequencial }}/{{ linha.oficio.ano }}
+                                    </a>
                                 {% endif %}
                             </td>
 
@@ -249,6 +298,7 @@
             </div>
         </div>
     </div>
+    </form>
 
     {% else %}
     <div class="text-center text-muted my-5 py-5">
@@ -308,22 +358,82 @@
     </div>
 </div>
 
+<!-- Modal Ofício do Coordenador -->
+<div class="modal fade" id="modalOficioCoordenador" tabindex="-1" aria-labelledby="modalOficioCoordenadorLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title fw-bold" id="modalOficioCoordenadorLabel">
+                    <i class="fas fa-user-tie me-2"></i>Ofício de Pagamento do Coordenador
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <form method="POST" action="{% url 'gestao_projetos:gerar_oficio_coordenador' %}">
+                {% csrf_token %}
+                <input type="hidden" name="projeto_id" value="{% if projeto_selecionado %}{{ projeto_selecionado.id }}{% endif %}">
+                <input type="hidden" name="mes_ano" value="{{ mes_ano }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="parcela_coordenador_id" class="form-label fw-semibold">Parcela do Coordenador <span class="text-danger">*</span></label>
+                        <select name="parcela_coordenador_id" id="parcela_coordenador_id" class="form-select" required>
+                            <option value="">-- Selecione a parcela --</option>
+                            {% for linha in linhas_folha %}
+                                {% if linha.relatorio and linha.ra_status == 'CONCLUIDO' and not linha.em_oficio %}
+                                <option value="{{ linha.parcela.id }}">
+                                    {{ linha.pessoa.nome|default:"—" }} — Parcela {{ linha.parcela.numero }}/{{ linha.termo.quantidade_parcelas }} (R$ {{ linha.parcela.valor|floatformat:2 }})
+                                </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="coordenador_is_diretor_campus" value="1"
+                               id="coordenador_is_diretor_campus" class="form-check-input">
+                        <label class="form-check-label" for="coordenador_is_diretor_campus">
+                            Coordenador é <strong>Diretor-Geral de Campus</strong> do IFAM
+                            <small class="text-muted d-block">Quando marcado, o Reitor assina como Requisitante.</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-dark btn-sm fw-bold">
+                        <i class="fas fa-file-contract me-1"></i>Gerar Ofício
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 (function () {
+    // Modal de Confirmação de Pagamento
     var modal = document.getElementById('modalPagamento');
-    if (!modal) return;
-    modal.addEventListener('show.bs.modal', function (event) {
-        var btn = event.relatedTarget;
-        var parcelaId = btn.getAttribute('data-parcela-id');
-        var parcelaNum = btn.getAttribute('data-parcela-num');
-        var bolsista = btn.getAttribute('data-bolsista');
-        var valor = btn.getAttribute('data-valor');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function (event) {
+            var btn = event.relatedTarget;
+            var parcelaId = btn.getAttribute('data-parcela-id');
+            var parcelaNum = btn.getAttribute('data-parcela-num');
+            var bolsista = btn.getAttribute('data-bolsista');
+            var valor = btn.getAttribute('data-valor');
 
-        var urlTemplate = modal.getAttribute('data-url-template');
-        document.getElementById('formPagamento').action = urlTemplate.replace('0', parcelaId);
-        document.getElementById('modalDescricao').textContent =
-            'Bolsista: ' + bolsista + ' | Parcela nº ' + parcelaNum + ' | Valor: R$ ' + valor;
-    });
+            var urlTemplate = modal.getAttribute('data-url-template');
+            document.getElementById('formPagamento').action = urlTemplate.replace('0', parcelaId);
+            document.getElementById('modalDescricao').textContent =
+                'Bolsista: ' + bolsista + ' | Parcela nº ' + parcelaNum + ' | Valor: R$ ' + valor;
+        });
+    }
+
+    // Selecionar todos os checkboxes habilitados
+    var selecionarTodos = document.getElementById('selecionar_todos');
+    if (selecionarTodos) {
+        selecionarTodos.addEventListener('change', function () {
+            document.querySelectorAll('.parcela-check').forEach(function (cb) {
+                cb.checked = selecionarTodos.checked;
+            });
+        });
+    }
 })();
 </script>
 

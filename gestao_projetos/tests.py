@@ -198,3 +198,229 @@ class FolhaPagamentoTestCase(TestCase):
             any('confirmado com sucesso' in str(m) for m in msgs),
             "Esperava mensagem de confirmação de pagamento"
         )
+
+
+from gestao_projetos.models import TemplateDocumentoConveniar, OficioSolicitacao
+from gestao_projetos.views import DIRETOR_POLO_NOME, DIRETOR_POLO_CARGO, REITOR_NOME, REITOR_CARGO
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    },
+    MEDIA_ROOT='/tmp/argus_test_media/'
+)
+class OficiosConveniarTestCase(TestCase):
+    """
+    Testes de integração da Emissão de Ofícios de Pagamento (Passo 4).
+    Cobre: geração de ofício de equipe, bloqueio de duplicidade,
+    alçada Reitor vs Diretor do Polo, e integridade do TemplateDocumentoConveniar.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='gestor_oficio', password='senha123')
+
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Ofício LTDA",
+            cnpj="44.555.666/0001-77",
+            natureza_juridica="LTDA",
+            representante_legal="Rep Ofício",
+            cargo_representante="Gerente"
+        )
+        # Coordenador do projeto (PessoaFisica separada do bolsista)
+        self.coordenador = PessoaFisica.objects.create(
+            nome="Coord Projeto",
+            cpf="999.888.777-66"
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Ofício Teste",
+            fase="EXECUCAO",
+            concedente=self.empresa,
+            coordenador=self.coordenador
+        )
+        MembroEquipe.objects.create(projeto=self.projeto, usuario=self.user, papel='GESTOR')
+
+        self.conta = ContaBancaria.objects.create(projeto=self.projeto, conta="11111", dv="1")
+
+        # Bolsista (diferente do Coordenador)
+        self.bolsista = PessoaFisica.objects.create(nome="Bolsista Ofício", cpf="123.456.789-00")
+        DadoBancario.objects.create(
+            pessoa=self.bolsista, finalidade='PAGAMENTO_BOLSA',
+            banco_codigo='001', agencia='0001', conta='12345-6', ativo=True
+        )
+
+        self.cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto, perfil_funcao="Desenvolvedor",
+            quantidade_vagas=1, parcelas_previstas=3,
+            valor_global_previsto=Decimal("4500.00")
+        )
+        self.termo = TermoBolsa.objects.create(
+            cota_pt=self.cota, pessoa=self.bolsista,
+            numero_termo="TB-OFICIO-001",
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 11, 30),
+            quantidade_parcelas=3,
+            valor_parcela=Decimal("1500.00")
+        )
+        self.parcela = self.termo.parcelas.get(numero=1)
+
+        # RA CONCLUIDO vinculado à parcela
+        self.ra = RelatorioAtividade.objects.create(
+            termo_bolsa=self.termo,
+            parcela_referencia=self.parcela,
+            criado_por=self.user,
+            status='CONCLUIDO',
+            periodo_inicio=date(2026, 9, 1),
+            periodo_fim=date(2026, 9, 30),
+            carga_horaria_periodo=160
+        )
+
+        self.client = Client()
+        self.client.login(username='gestor_oficio', password='senha123')
+
+        self.url_oficio_equipe = reverse('gestao_projetos:gerar_oficio_equipe')
+        self.url_oficio_coord = reverse('gestao_projetos:gerar_oficio_coordenador')
+
+    # ------------------------------------------------------------------
+    # Teste 1: Geração de Ofício de Equipe — caminho feliz
+    # ------------------------------------------------------------------
+    def test_gerar_oficio_equipe_sucesso(self):
+        """Gera ofício de equipe com parcela válida (RA CONCLUIDO, sem ofício prévio)."""
+        response = self.client.post(self.url_oficio_equipe, {
+            'projeto_id': self.projeto.id,
+            'mes_ano': '2026-09',
+            'parcela_ids': [self.parcela.id],
+        })
+        # Deve redirecionar para download do ofício
+        self.assertEqual(response.status_code, 302)
+
+        # OficioSolicitacao criado
+        oficio = OficioSolicitacao.objects.filter(projeto=self.projeto, tipo='EQUIPE').first()
+        self.assertIsNotNone(oficio)
+        self.assertEqual(oficio.numero_sequencial, 1)
+        self.assertEqual(oficio.ano, date.today().year)
+        self.assertIn(self.parcela, oficio.parcelas.all())
+
+        # Competência correta
+        self.assertEqual(oficio.competencia, date(2026, 9, 1))
+
+        # Signatário = coordenador do projeto
+        self.assertEqual(oficio.signatario_nome, self.coordenador.nome)
+
+        # Visto = Diretor do Polo
+        self.assertEqual(oficio.visto_nome, DIRETOR_POLO_NOME)
+
+    # ------------------------------------------------------------------
+    # Teste 2: Bloqueio de duplicidade
+    # ------------------------------------------------------------------
+    def test_bloqueio_duplicidade_oficio(self):
+        """Uma parcela já despachada em ofício não pode entrar em novo ofício."""
+        # Primeira geração
+        self.client.post(self.url_oficio_equipe, {
+            'projeto_id': self.projeto.id,
+            'mes_ano': '2026-09',
+            'parcela_ids': [self.parcela.id],
+        })
+        self.assertEqual(OficioSolicitacao.objects.filter(projeto=self.projeto).count(), 1)
+
+        # Segunda tentativa com a mesma parcela
+        response = self.client.post(self.url_oficio_equipe, {
+            'projeto_id': self.projeto.id,
+            'mes_ano': '2026-09',
+            'parcela_ids': [self.parcela.id],
+        })
+        # Deve redirecionar com erro (nenhuma parcela válida)
+        self.assertEqual(response.status_code, 302)
+        # Nenhum ofício adicional criado
+        self.assertEqual(OficioSolicitacao.objects.filter(projeto=self.projeto).count(), 1)
+
+        # Mensagem de erro emitida
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('Nenhuma parcela válida' in str(m) or 'despachada' in str(m) for m in msgs),
+            "Esperava mensagem de bloqueio de duplicidade"
+        )
+
+    # ------------------------------------------------------------------
+    # Teste 3: Alçada — Coordenador é Diretor-Geral de Campus → Reitor assina
+    # ------------------------------------------------------------------
+    def test_alcada_reitor_quando_coordenador_diretor_campus(self):
+        """Quando coordenador_is_diretor_campus=True, Reitor assina como Requisitante."""
+        # Precisamos de uma parcela para o coordenador (termo separado)
+        termo_coord = TermoBolsa.objects.create(
+            cota_pt=self.cota, pessoa=self.coordenador,
+            numero_termo="TB-COORD-001",
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 11, 30),
+            quantidade_parcelas=3,
+            valor_parcela=Decimal("1500.00")
+        )
+        parcela_coord = termo_coord.parcelas.get(numero=1)
+        RelatorioAtividade.objects.create(
+            termo_bolsa=termo_coord,
+            parcela_referencia=parcela_coord,
+            criado_por=self.user,
+            status='CONCLUIDO',
+            periodo_inicio=date(2026, 9, 1),
+            periodo_fim=date(2026, 9, 30),
+            carga_horaria_periodo=160
+        )
+
+        response = self.client.post(self.url_oficio_coord, {
+            'projeto_id': self.projeto.id,
+            'mes_ano': '2026-09',
+            'parcela_coordenador_id': parcela_coord.id,
+            'coordenador_is_diretor_campus': '1',
+        })
+        self.assertEqual(response.status_code, 302)
+
+        oficio = OficioSolicitacao.objects.filter(projeto=self.projeto, tipo='COORDENADOR').first()
+        self.assertIsNotNone(oficio)
+        self.assertTrue(oficio.coordenador_is_diretor_campus)
+        # Reitor é o signatário
+        self.assertEqual(oficio.signatario_nome, REITOR_NOME)
+        self.assertEqual(oficio.signatario_cargo, REITOR_CARGO)
+        # Visto = Diretor do Polo (assiste ao Reitor)
+        self.assertEqual(oficio.visto_nome, DIRETOR_POLO_NOME)
+
+    # ------------------------------------------------------------------
+    # Teste 4: Alçada padrão — Coordenador é docente → Diretor do Polo assina
+    # ------------------------------------------------------------------
+    def test_alcada_diretor_polo_quando_coordenador_docente(self):
+        """Quando coordenador_is_diretor_campus=False, Diretor do Polo assina."""
+        termo_coord = TermoBolsa.objects.create(
+            cota_pt=self.cota, pessoa=self.coordenador,
+            numero_termo="TB-COORD-002",
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 11, 30),
+            quantidade_parcelas=3,
+            valor_parcela=Decimal("1500.00")
+        )
+        parcela_coord = termo_coord.parcelas.get(numero=1)
+        RelatorioAtividade.objects.create(
+            termo_bolsa=termo_coord,
+            parcela_referencia=parcela_coord,
+            criado_por=self.user,
+            status='CONCLUIDO',
+            periodo_inicio=date(2026, 9, 1),
+            periodo_fim=date(2026, 9, 30),
+            carga_horaria_periodo=160
+        )
+
+        response = self.client.post(self.url_oficio_coord, {
+            'projeto_id': self.projeto.id,
+            'mes_ano': '2026-09',
+            'parcela_coordenador_id': parcela_coord.id,
+            # SEM 'coordenador_is_diretor_campus'
+        })
+        self.assertEqual(response.status_code, 302)
+
+        oficio = OficioSolicitacao.objects.filter(projeto=self.projeto, tipo='COORDENADOR').first()
+        self.assertIsNotNone(oficio)
+        self.assertFalse(oficio.coordenador_is_diretor_campus)
+        # Diretor do Polo é o signatário
+        self.assertEqual(oficio.signatario_nome, DIRETOR_POLO_NOME)
+        self.assertEqual(oficio.signatario_cargo, DIRETOR_POLO_CARGO)
+        # Sem visto (campo vazio para este caso)
+        self.assertEqual(oficio.visto_nome, "")

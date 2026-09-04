@@ -33,4 +33,14 @@ urlpatterns = [
     path('poc-extracao/', views.extrair_tabelas_docx_poc, name='poc_extracao'),
 
     path('projeto/<int:projeto_id>/importar-cronograma/', views.importar_cronograma_projeto, name='importar_cronograma'),
+
+    # Gerenciador de Matrizes DOCX do Conveniar/FAEPI
+    path('templates-conveniar/', views.listar_templates_conveniar, name='listar_templates_conveniar'),
+    path('templates-conveniar/novo/', views.novo_template_conveniar, name='novo_template_conveniar'),
+    path('templates-conveniar/<int:template_id>/download/', views.download_template_conveniar, name='download_template_conveniar'),
+
+    # Ofícios de Pagamento (Passo 4)
+    path('folha-pagamento/gerar-oficio-equipe/', views.gerar_oficio_pagamento_equipe, name='gerar_oficio_equipe'),
+    path('folha-pagamento/gerar-oficio-coordenador/', views.gerar_oficio_pagamento_coordenador, name='gerar_oficio_coordenador'),
+    path('oficio/<int:oficio_id>/download/', views.download_oficio, name='download_oficio'),
 ]
