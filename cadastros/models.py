@@ -525,13 +525,13 @@ class RubricaOrcamentariaPT(models.Model):
         if not hasattr(self, 'plano_trabalho') or not self.plano_trabalho:
             return
 
-        # 1. Capital e Equipamentos: Proibido usar recursos EMBRAPII
-        if self.categoria == 'CAPITAL' and self.fonte_recurso == 'EMBRAPII':
-            raise ValidationError({'fonte_recurso': "Regra EMBRAPII: É proibido usar recursos EMBRAPII para Capital e Equipamentos. Utilize recursos da Empresa."})
+        # 1. Capital e Equipamentos: Proibido usar recursos EMBRAPII e SEBRAE
+        if self.categoria == 'CAPITAL' and self.fonte_recurso in ['EMBRAPII', 'SEBRAE']:
+            raise ValidationError({'fonte_recurso': "Regra EMBRAPII: É proibido usar recursos EMBRAPII ou SEBRAE para Capital e Equipamentos. Utilize recursos da Empresa."})
 
         # 2. Suporte Operacional (Overhead): Só pago pela Empresa ou Contrapartida
         if self.categoria == 'SUPORTE' and self.fonte_recurso not in ['EMPRESA', 'CONTRAPARTIDA']:
-            raise ValidationError({'fonte_recurso': "Regra de Overhead: O Suporte Operacional/Administrativo só pode ser pago com recursos da Empresa Parceira ou como Contrapartida da Unidade."})
+            raise ValidationError({'fonte_recurso': "Regra de Overhead: O Suporte Operacional/Administrativo só pode ser pago com recursos da Empresa Parceira ou como Contrapartida da Unidade (não aceita EMBRAPII ou SEBRAE)."})
 
         # Limites Percentuais: Calcular total global do plano e somar as rubricas existentes
         v_global = self.plano_trabalho.valor_global or Decimal('0.00')

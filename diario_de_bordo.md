@@ -1,6 +1,60 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-04] Onda 3 Concluída — Testes Automatizados de Invariantes Financeiras e Cronograma (Devin)
+
+### O que foi feito:
+- **Suíte de Testes Completa**: Implementados 22 testes automatizados em `cadastros/tests.py` cobrindo todas as invariantes financeiras e de cronograma exigidas por EMBRAPII e SUFRAMA.
+- **Testes de PlanoDeTrabalho**: Validados aportes mínimos (EMBRAPII >= 10%, Empresa >= 10% com exceção para Agência de Fomento) e consistência de datas.
+- **Testes de RubricaOrcamentariaPT**: Validadas vedação de CAPITAL com EMBRAPII/SEBRAE, regras de SUPORTE (máx 15%, apenas EMPRESA/CONTRAPARTIDA), e limite de TERCEIROS (máx 30%).
+- **Testes de AtividadePlanoAcao**: Validados sequenciamento temporal (mes_inicio <= mes_fim) e vedação de sobreposição temporal entre macroentregas.
+- **Aperfeiçoamento de Models**: Adicionada trava SEBRAE no clean() de RubricaOrcamentariaPT para vedação de CAPITAL e SUPORTE com fonte SEBRAE.
+- **Validação**: `python manage.py test cadastros` executado com **100% de sucesso (22/22 OK)**.
+- **Integridade**: `python manage.py check` com 0 erros.
+
+### Arquivos modificados:
+- `cadastros/tests.py` (suíte completa de 22 testes)
+- `cadastros/models.py` (aperfeiçoamento do clean() de RubricaOrcamentariaPT)
+
+### Cobertura de Testes:
+- ✅ 8 testes de invariantes de aportes globais (PlanoDeTrabalho)
+- ✅ 10 testes de rubricas orçamentárias (RubricaOrcamentariaPT)
+- ✅ 4 testes de cronograma físico (AtividadePlanoAcao)
+
+---
+
+## [2026-09-04] Handoff Gemini → Devin: Onda 3 — Testes Automatizados de Invariantes Financeiras e Cronograma (EMBRAPII e SUFRAMA)
+
+- **Objetivo da Tarefa:** Implementar uma suíte completa de testes automatizados em Django TestCase para validar com rigor matemático as travas de domínio orçamentário (aportes mínimos, tetos de rubricas e fontes vedadas) e cronograma físico (não sobreposição de macroentregas) exigidas pelas regras EMBRAPII/SUFRAMA.
+- **Escopo Incluído:**
+  1. Criação/implementação de testes unitários abrangentes em `cadastros/tests.py` cobrindo:
+     - `PlanoDeTrabalho.clean()`: validação de aporte mínimo EMBRAPII (>=10%), aporte mínimo Empresa (>=10%) e exceção para Agência de Fomento, além de validação de datas (`data_inicio <= data_fim`).
+     - `RubricaOrcamentariaPT.clean()`: vedação de `CAPITAL` com fonte `EMBRAPII` ou `SEBRAE`; vedação de `SUPORTE` (Overhead) pago com recursos que não sejam `EMPRESA` ou `CONTRAPARTIDA`; teto de 30% para `TERCEIROS`; teto de 15% para `SUPORTE`.
+     - `AtividadePlanoAcao.clean()`: validação de meses (`mes_inicio <= mes_fim`) e vedação de sobreposição temporal entre macroentregas do mesmo plano de trabalho.
+  2. Ajustes pontuais em `cadastros/models.py` **estritamente se necessário** para aperfeiçoar o método `.clean()` (por exemplo, garantir que a vedação de `SEBRAE` em Capital e Suporte também seja barrada no `.clean()`, conforme diretriz de `AGENTS.md`).
+- **Escopo Excluído:**
+  1. NÃO alterar rotas, views, templates nem código do wizard de projetos (`form_projeto.html`).
+  2. NÃO mexer em outros apps (`almoxarifado`, `gestao_projetos`).
+  3. NÃO criar testes de integração de interface/HTML (foco exclusivo em invariantes de domínio e regras de negócio de backend).
+- **Arquivos Liberados para Modificação:**
+  - `cadastros/tests.py` (ou `cadastros/tests/`)
+  - `cadastros/models.py` (apenas refinamento dos métodos `clean()` para compatibilização com as invariantes)
+- **Arquivos Proibidos nesta Sessão:**
+  - `cadastros/templates/`
+  - `cadastros/views.py`
+  - Todos os outros aplicativos do sistema
+- **Invariante de Negócio e Segurança:**
+  - Cálculos percentuais devem utilizar `Decimal` para evitar erros de ponto flutuante.
+  - Testes de fronteira (Boundary Tests) devem checar exatamente $9{,}99\%$ (erro) e $10{,}00\%$ (sucesso); $30{,}00\%$ (sucesso) e $30{,}01\%$ (erro); $15{,}00\%$ (sucesso) e $15{,}01\%$ (erro).
+  - Isolamento de testes: uso de banco de teste limpo provido pelo Django (`TestCase`).
+- **Critério de Pronto:**
+  - `python manage.py test cadastros` executado com 100% de aprovação (zero falhas e zero erros).
+  - Cobertura de todos os cenários positivos e negativos previstos na matriz de invariantes financeiras.
+  - `python manage.py check` limpo.
+
+---
+
 ## [2026-09-04] Onda 2 Concluída — Vinculação Canônica User ↔ PessoaFisica (Devin)
+
 
 ### O que foi feito:
 - **Modelo PessoaFisica**: Adicionado campo `user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='pessoa_fisica')` com help text de governança estrita do Administrador.

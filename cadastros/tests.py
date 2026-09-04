@@ -1,3 +1,477 @@
 from django.test import TestCase
+from django.core.exceptions import ValidationError
+from decimal import Decimal
+from datetime import date, timedelta
 
-# Create your tests here.
+from .models import (
+    PessoaJuridica, EmpresaParceira, AgenciaFomento, ProjetoPDI, 
+    PlanoDeTrabalho, RubricaOrcamentariaPT, AtividadePlanoAcao
+)
+
+
+class PlanoDeTrabalhoTestCase(TestCase):
+    """Testes de invariantes de aportes globais do Plano de Trabalho."""
+    
+    def setUp(self):
+        # Cria entidades básicas para os testes
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Teste LTDA",
+            cnpj="12.345.678/0001-90",
+            natureza_juridica="LTDA",
+            representante_legal="Teste Representante",
+            cargo_representante="Diretor"
+        )
+        
+        self.agencia = AgenciaFomento.objects.create(
+            nome="Agência Teste",
+            cnpj="98.765.432/0001-10",
+            natureza_juridica="Associação",
+            representante_legal="Agência Rep",
+            cargo_representante="Presidente"
+        )
+        
+        self.projeto_empresa = ProjetoPDI.objects.create(
+            nome="Projeto Empresa",
+            fase="PROSPECCAO",
+            concedente=self.empresa
+        )
+        
+        self.projeto_agencia = ProjetoPDI.objects.create(
+            nome="Projeto Agência",
+            fase="PROSPECCAO",
+            concedente=self.agencia
+        )
+    
+    def test_embrapii_minimo_10_porcento_erro(self):
+        """Testa erro quando aporte EMBRAPII é menor que 10% (9.99%)."""
+        plano = PlanoDeTrabalho(
+            projeto=self.projeto_empresa,
+            aporte_empresa=Decimal('45000.00'),
+            aporte_embrapii=Decimal('9999.00'),  # 9.99%
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('45001.00'),
+            data_inicio=date.today(),
+            data_fim=date.today() + timedelta(days=365)
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            plano.clean()
+        
+        self.assertIn('aporte_embrapii', str(context.exception))
+    
+    def test_embrapii_minimo_10_porcento_sucesso(self):
+        """Testa sucesso quando aporte EMBRAPII é exatamente 10%."""
+        plano = PlanoDeTrabalho(
+            projeto=self.projeto_empresa,
+            aporte_empresa=Decimal('45000.00'),
+            aporte_embrapii=Decimal('10000.00'),  # 10.00%
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('45000.00'),
+            data_inicio=date.today(),
+            data_fim=date.today() + timedelta(days=365)
+        )
+        
+        # Não deve levantar ValidationError
+        plano.clean()
+    
+    def test_empresa_minimo_10_porcento_erro(self):
+        """Testa erro quando aporte Empresa é menor que 10% com EmpresaParceira."""
+        plano = PlanoDeTrabalho(
+            projeto=self.projeto_empresa,
+            aporte_empresa=Decimal('9999.00'),  # 9.99%
+            aporte_embrapii=Decimal('45000.00'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('45001.00'),
+            data_inicio=date.today(),
+            data_fim=date.today() + timedelta(days=365)
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            plano.clean()
+        
+        self.assertIn('aporte_empresa', str(context.exception))
+    
+    def test_empresa_minimo_10_porcento_sucesso(self):
+        """Testa sucesso quando aporte Empresa é exatamente 10% com EmpresaParceira."""
+        plano = PlanoDeTrabalho(
+            projeto=self.projeto_empresa,
+            aporte_empresa=Decimal('10000.00'),  # 10.00%
+            aporte_embrapii=Decimal('45000.00'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('45000.00'),
+            data_inicio=date.today(),
+            data_fim=date.today() + timedelta(days=365)
+        )
+        
+        # Não deve levantar ValidationError
+        plano.clean()
+    
+    def test_empresa_zero_com_agencia_fomento(self):
+        """Testa que projeto com Agência de Fomento pode ter aporte Empresa zero."""
+        plano = PlanoDeTrabalho(
+            projeto=self.projeto_agencia,
+            aporte_empresa=Decimal('0.00'),  # Zero com Agência de Fomento
+            aporte_embrapii=Decimal('50000.00'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('50000.00'),
+            data_inicio=date.today(),
+            data_fim=date.today() + timedelta(days=365)
+        )
+        
+        # Não deve levantar ValidationError
+        plano.clean()
+    
+    def test_data_inicio_posterior_data_fim_erro(self):
+        """Testa erro quando data_inicio é posterior a data_fim."""
+        plano = PlanoDeTrabalho(
+            projeto=self.projeto_empresa,
+            aporte_empresa=Decimal('33333.33'),
+            aporte_embrapii=Decimal('33333.33'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('33333.34'),
+            data_inicio=date.today() + timedelta(days=365),  # Início após fim
+            data_fim=date.today()
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            plano.clean()
+        
+        self.assertIn('data_fim', str(context.exception))
+    
+    def test_datas_validas_sucesso(self):
+        """Testa sucesso quando data_inicio é anterior ou igual a data_fim."""
+        plano = PlanoDeTrabalho(
+            projeto=self.projeto_empresa,
+            aporte_empresa=Decimal('33333.33'),
+            aporte_embrapii=Decimal('33333.33'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('33333.34'),
+            data_inicio=date.today(),
+            data_fim=date.today() + timedelta(days=365)
+        )
+        
+        # Não deve levantar ValidationError
+        plano.clean()
+
+
+class RubricaOrcamentariaPTTestCase(TestCase):
+    """Testes de invariantes de rubricas orçamentárias."""
+    
+    def setUp(self):
+        # Cria estrutura básica para testes de rubricas
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Teste LTDA",
+            cnpj="12.345.678/0001-90",
+            natureza_juridica="LTDA",
+            representante_legal="Teste Representante",
+            cargo_representante="Diretor"
+        )
+        
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Teste",
+            fase="PROSPECCAO",
+            concedente=self.empresa
+        )
+        
+        self.plano = PlanoDeTrabalho.objects.create(
+            projeto=self.projeto,
+            aporte_empresa=Decimal('25000.00'),
+            aporte_embrapii=Decimal('25000.00'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('50000.00'),
+            data_inicio=date.today(),
+            data_fim=date.today() + timedelta(days=365)
+        )
+    
+    def test_capital_com_embrapii_erro(self):
+        """Testa erro quando CAPITAL usa fonte EMBRAPII."""
+        rubrica = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='CAPITAL',
+            descricao='Equipamento Teste',
+            valor_previsto=Decimal('10000.00'),
+            fonte_recurso='EMBRAPII'
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            rubrica.clean()
+        
+        self.assertIn('fonte_recurso', str(context.exception))
+    
+    def test_capital_com_sebrae_erro(self):
+        """Testa erro quando CAPITAL usa fonte SEBRAE."""
+        rubrica = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='CAPITAL',
+            descricao='Equipamento Teste',
+            valor_previsto=Decimal('10000.00'),
+            fonte_recurso='SEBRAE'
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            rubrica.clean()
+        
+        self.assertIn('fonte_recurso', str(context.exception))
+    
+    def test_capital_com_empresa_sucesso(self):
+        """Testa sucesso quando CAPITAL usa fonte EMPRESA."""
+        rubrica = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='CAPITAL',
+            descricao='Equipamento Teste',
+            valor_previsto=Decimal('10000.00'),
+            fonte_recurso='EMPRESA'
+        )
+        
+        # Não deve levantar ValidationError
+        rubrica.clean()
+    
+    def test_suporte_com_embrapii_erro(self):
+        """Testa erro quando SUPORTE usa fonte EMBRAPII."""
+        rubrica = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='SUPORTE',
+            descricao='Administrativo',
+            valor_previsto=Decimal('5000.00'),
+            fonte_recurso='EMBRAPII'
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            rubrica.clean()
+        
+        self.assertIn('fonte_recurso', str(context.exception))
+    
+    def test_suporte_com_sebrae_erro(self):
+        """Testa erro quando SUPORTE usa fonte SEBRAE."""
+        rubrica = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='SUPORTE',
+            descricao='Administrativo',
+            valor_previsto=Decimal('5000.00'),
+            fonte_recurso='SEBRAE'
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            rubrica.clean()
+        
+        self.assertIn('fonte_recurso', str(context.exception))
+    
+    def test_suporte_max_15_porcento_erro(self):
+        """Testa erro quando SUPORTE excede 15% do valor global."""
+        # Valor global = 100.000, 15% = 15.000
+        rubrica = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='SUPORTE',
+            descricao='Administrativo',
+            valor_previsto=Decimal('15001.00'),  # 15.001% - erro
+            fonte_recurso='EMPRESA'
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            rubrica.clean()
+        
+        self.assertIn('valor_previsto', str(context.exception))
+    
+    def test_suporte_max_15_porcento_sucesso(self):
+        """Testa sucesso quando SUPORTE é exatamente 15% do valor global."""
+        rubrica = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='SUPORTE',
+            descricao='Administrativo',
+            valor_previsto=Decimal('15000.00'),  # 15.00% - sucesso
+            fonte_recurso='EMPRESA'
+        )
+        
+        # Não deve levantar ValidationError
+        rubrica.clean()
+    
+    def test_terceiros_max_30_porcento_erro(self):
+        """Testa erro quando TERCEIROS excede 30% do valor global."""
+        # Valor global = 100.000, 30% = 30.000
+        rubrica = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='TERCEIROS',
+            descricao='Consultoria',
+            valor_previsto=Decimal('30001.00'),  # 30.001% - erro
+            fonte_recurso='EMPRESA'
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            rubrica.clean()
+        
+        self.assertIn('valor_previsto', str(context.exception))
+    
+    def test_terceiros_max_30_porcento_sucesso(self):
+        """Testa sucesso quando TERCEIROS é exatamente 30% do valor global."""
+        rubrica = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='TERCEIROS',
+            descricao='Consultoria',
+            valor_previsto=Decimal('30000.00'),  # 30.00% - sucesso
+            fonte_recurso='EMPRESA'
+        )
+        
+        # Não deve levantar ValidationError
+        rubrica.clean()
+    
+    def test_suporte_acumulado_excede_15_porcento(self):
+        """Testa erro quando soma de rubricas SUPORTE excede 15% acumuladamente."""
+        # Cria primeira rubrica SUPORTE de 10.000
+        rubrica1 = RubricaOrcamentariaPT.objects.create(
+            plano_trabalho=self.plano,
+            categoria='SUPORTE',
+            descricao='Administrativo 1',
+            valor_previsto=Decimal('10000.00'),
+            fonte_recurso='EMPRESA'
+        )
+        
+        # Tenta criar segunda rubrica que faria o total exceder 15%
+        rubrica2 = RubricaOrcamentariaPT(
+            plano_trabalho=self.plano,
+            categoria='SUPORTE',
+            descricao='Administrativo 2',
+            valor_previsto=Decimal('5001.00'),  # Total seria 15.001
+            fonte_recurso='EMPRESA'
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            rubrica2.clean()
+        
+        self.assertIn('valor_previsto', str(context.exception))
+
+
+class AtividadePlanoAcaoTestCase(TestCase):
+    """Testes de invariantes de cronograma físico."""
+    
+    def setUp(self):
+        # Cria estrutura básica para testes de atividades
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Teste LTDA",
+            cnpj="12.345.678/0001-90",
+            natureza_juridica="LTDA",
+            representante_legal="Teste Representante",
+            cargo_representante="Diretor"
+        )
+        
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Teste",
+            fase="PROSPECCAO",
+            concedente=self.empresa
+        )
+        
+        self.plano = PlanoDeTrabalho.objects.create(
+            projeto=self.projeto,
+            aporte_empresa=Decimal('25000.00'),
+            aporte_embrapii=Decimal('25000.00'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('50000.00'),
+            data_inicio=date.today(),
+            data_fim=date.today() + timedelta(days=365)
+        )
+    
+    def test_mes_inicio_posterior_mes_fim_erro(self):
+        """Testa erro quando mes_inicio é posterior a mes_fim."""
+        atividade = AtividadePlanoAcao(
+            plano_trabalho=self.plano,
+            numero=1,
+            nome='Atividade Teste',
+            descricao='Descrição teste',
+            mes_inicio=10,
+            mes_fim=5  # Fim anterior ao início
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            atividade.clean()
+        
+        self.assertIn('mes_fim', str(context.exception))
+    
+    def test_meses_validos_sucesso(self):
+        """Testa sucesso quando mes_inicio é anterior ou igual a mes_fim."""
+        atividade = AtividadePlanoAcao(
+            plano_trabalho=self.plano,
+            numero=1,
+            nome='Atividade Teste',
+            descricao='Descrição teste',
+            mes_inicio=1,
+            mes_fim=6
+        )
+        
+        # Não deve levantar ValidationError
+        atividade.clean()
+    
+    def test_sobreposicao_temporal_erro(self):
+        """Testa erro quando há sobreposição temporal entre atividades."""
+        # Cria primeira atividade: Mês 1 ao Mês 6
+        atividade1 = AtividadePlanoAcao.objects.create(
+            plano_trabalho=self.plano,
+            numero=1,
+            nome='Atividade 1',
+            descricao='Primeira atividade',
+            mes_inicio=1,
+            mes_fim=6
+        )
+        
+        # Tenta criar segunda atividade sobreposta: Mês 5 ao Mês 10
+        atividade2 = AtividadePlanoAcao(
+            plano_trabalho=self.plano,
+            numero=2,
+            nome='Atividade 2',
+            descricao='Segunda atividade sobreposta',
+            mes_inicio=5,  # Inicia durante a primeira atividade
+            mes_fim=10
+        )
+        
+        with self.assertRaises(ValidationError) as context:
+            atividade2.clean()
+        
+        self.assertIn('sobrepostos', str(context.exception).lower())
+    
+    def test_sobreposicao_limite_sucesso(self):
+        """Testa sucesso quando atividades iniciam exatamente no fim da anterior (sem sobreposição)."""
+        # Cria primeira atividade: Mês 1 ao Mês 6
+        atividade1 = AtividadePlanoAcao.objects.create(
+            plano_trabalho=self.plano,
+            numero=1,
+            nome='Atividade 1',
+            descricao='Primeira atividade',
+            mes_inicio=1,
+            mes_fim=6
+        )
+        
+        # Cria segunda atividade iniciando no Mês 6 (limite exato)
+        atividade2 = AtividadePlanoAcao(
+            plano_trabalho=self.plano,
+            numero=2,
+            nome='Atividade 2',
+            descricao='Segunda atividade sem sobreposição',
+            mes_inicio=6,  # Inicia exatamente quando a primeira termina
+            mes_fim=10
+        )
+        
+        # Não deve levantar ValidationError
+        atividade2.clean()
+    
+    def test_sobreposicao_posterior_sucesso(self):
+        """Testa sucesso quando atividades iniciam após o fim da anterior."""
+        # Cria primeira atividade: Mês 1 ao Mês 6
+        atividade1 = AtividadePlanoAcao.objects.create(
+            plano_trabalho=self.plano,
+            numero=1,
+            nome='Atividade 1',
+            descricao='Primeira atividade',
+            mes_inicio=1,
+            mes_fim=6
+        )
+        
+        # Cria segunda atividade iniciando no Mês 7 (após o fim da primeira)
+        atividade2 = AtividadePlanoAcao(
+            plano_trabalho=self.plano,
+            numero=2,
+            nome='Atividade 2',
+            descricao='Segunda atividade posterior',
+            mes_inicio=7,  # Inicia após a primeira terminar
+            mes_fim=10
+        )
+        
+        # Não deve levantar ValidationError
+        atividade2.clean()
