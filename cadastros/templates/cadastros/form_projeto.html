@@ -99,25 +99,35 @@
     #step5 .col-md-12 + .col-md-12 {
         margin-top: 0.5rem !important;
     }
-    .richtext-editor-container.preview-editor .ql-toolbar {
+    .wizard-step .richtext-editor-container .ql-toolbar {
         display: none !important;
     }
-    .wizard-step .richtext-editor-container.preview-editor .ql-container {
-        height: 80px;
-        min-height: 80px;
-        max-height: 80px;
-        overflow-y: auto;
+    .wizard-step .richtext-editor-container,
+    .wizard-step .richtext-editor-container .ql-container,
+    .wizard-step .richtext-editor-container .ql-editor {
+        height: auto !important;
+        min-height: 100px;
+        max-height: 48vh !important;
+        overflow-y: auto !important;
+    }
+    #step4 .richtext-editor-container,
+    #step4 .richtext-editor-container .ql-container,
+    #step4 .richtext-editor-container .ql-editor {
+        max-height: calc(100vh - 418px) !important;
+    }
+    .wizard-step .richtext-editor-container.is-editing .ql-toolbar {
+        display: block !important;
+        background-color: #f8f9fa;
         border: 1px solid #ced4da;
-        border-radius: 0.375rem;
+        border-bottom: none;
+        border-top-left-radius: 0.375rem;
+        border-top-right-radius: 0.375rem;
     }
-    .wizard-step .richtext-editor-container.preview-editor .ql-editor {
-        min-height: 80px;
-        max-height: 80px;
-        overflow-y: hidden;
-        white-space: normal;
-        overflow-wrap: anywhere;
+    .wizard-step .richtext-editor-container.is-editing .ql-container {
+        border-top-left-radius: 0 !important;
+        border-top-right-radius: 0 !important;
     }
-    #step5 .richtext-expand {
+    #step5 .richtext-toggle-btn {
         margin-left: 0.35rem;
         padding: 0.1rem 0.3rem;
         line-height: 1;
@@ -128,7 +138,7 @@
         align-items: center;
         width: 100% !important;
     }
-    .richtext-edit-target .richtext-expand {
+    .richtext-edit-target .richtext-toggle-btn {
         margin-left: auto !important;
         flex-shrink: 0;
     }
@@ -138,21 +148,8 @@
         gap: 0.25rem;
         flex-shrink: 0;
     }
-    .richtext-actions .richtext-expand,
-    .richtext-actions .richtext-preview {
+    .richtext-actions .richtext-toggle-btn {
         margin-left: 0 !important;
-    }
-    .richtext-preview.is-on {
-        color: #fff;
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
-    .richtext-editor-container.preview-expanded .ql-container,
-    .richtext-editor-container.preview-expanded .ql-editor {
-        height: auto !important;
-        min-height: 108px;
-        max-height: none !important;
-        overflow: visible !important;
     }
     #project-wizard-shell.is-fullscreen {
         padding-left: 0 !important;
@@ -169,39 +166,69 @@
     #step5 label.richtext-edit-target {
         max-width: 100%;
     }
-    #richtext-edit-modal .modal-dialog {
-        max-width: min(1100px, 92vw);
+    .ql-editor img {
+        max-width: 100%;
+        height: auto;
+        display: inline-block !important;
+        vertical-align: middle;
+        margin: 0.25rem;
+        border-radius: 0.375rem;
     }
-    #richtext-edit-modal .ql-toolbar {
-        display: block !important;
-    }
-    #richtext-edit-modal .ql-container {
-        height: 55vh;
-        min-height: 320px;
-        max-height: 55vh;
-    }
-    #richtext-edit-modal .ql-editor {
-        min-height: 320px;
-        max-height: 55vh;
+    .wizard-content-panel {
+        min-height: 680px;
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 0 !important;
     }
     .wizard-step {
         display: none;
+        flex-direction: column;
+        flex-grow: 1;
         min-height: 0;
     }
     .wizard-step.active {
-        display: flex;
-        flex-direction: column;
+        display: flex !important;
         width: 100%;
-        flex: 0 0 auto;
+        flex: 1 1 auto;
         min-height: 0;
         overflow: visible;
-        padding-bottom: 1rem;
+        padding-bottom: 0 !important;
+    }
+    .wizard-step .d-flex.border-top {
+        margin-top: auto !important;
+    }
+    .wizard-step > .border-top {
+        position: sticky !important;
+        bottom: 0 !important;
+        background-color: #ffffff !important;
+        z-index: 1050 !important;
+        margin-top: auto !important;
+        padding-top: 0.85rem !important;
+        padding-bottom: 0.5cm !important;
+        margin-bottom: 0 !important;
+        border-top: 1px solid #dee2e6 !important;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05) !important;
     }
 
     .wizard-step > .row {
         width: 100%;
         flex: 0 0 auto;
         margin-bottom: 0;
+    }
+    .wizard-step > .row,
+    .wizard-step > .row.g-4 {
+        padding-bottom: 1.5rem;
+    }
+    #step4 > .row,
+    #step4 > .row.g-4 {
+        padding-bottom: 0 !important;
+        margin-bottom: 0.2cm !important;
+        --bs-gutter-y: 0 !important;
+    }
+    #step4 > .row > .col-md-12,
+    #step4 .richtext-wrapper {
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
     }
 
     .wizard-step .col-md-12 {
@@ -442,9 +469,6 @@
                                         <label class="form-label fw-bold text-muted small text-uppercase">1.3 Fundação de Apoio (Interveniente) <span class='text-danger'>*</span></label>
                                         {{ form_projeto.interveniente }}
                                         
-                                    </div>
-                                    <div class="col-md-12 mt-4">
-                                        <p class="text-muted small"><i class="fas fa-info-circle"></i> O projeto EMBRAPII de capacitação não exige Empresa Parceira. O IFAM e a FAEPI podem ser padronizados como convenente e interveniente.</p>
                                     </div>
                                     <div class="col-md-12 mt-4 pt-3 border-top bg-light p-3 rounded">
                                         <label class="form-label fw-bold text-primary small text-uppercase"><i class="fas fa-sitemap me-2"></i>Programa</label>
@@ -886,8 +910,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const isEditMode = {% if projeto %}true{% else %}false{% endif %};
     const form = document.getElementById(formId);
     const quillInstances = {};
-    let activeModalQuill = null;
-    let activeModalTextarea = null;
 
     if(typeof jQuery !== 'undefined') {
         jQuery('.select2-multiple').select2({
@@ -910,6 +932,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const toolbarOptions = [
             [{ 'header': [1, 2, 3, false] }],
             ['bold', 'italic', 'underline', 'strike'],
+            [{ 'align': [] }],
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
             [{ 'indent': '-1'}, { 'indent': '+1' }],
             ['link', 'image', 'video'],
@@ -918,17 +941,14 @@ document.addEventListener("DOMContentLoaded", function() {
         const quill = new Quill(editorContainer, {
             theme: 'snow',
             modules: {
-                toolbar: false
+                toolbar: toolbarOptions
             }
         });
+        const toolbarElem = quill.getModule('toolbar').container;
+        if (toolbarElem) toolbarElem.style.display = 'none';
 
         quillInstances[textarea.id] = quill;
-        quill.root.setAttribute('contenteditable', 'false');
-        editorContainer.classList.add('preview-editor');
-        const previewToolbar = editorContainer.querySelector('.ql-toolbar');
-        if (previewToolbar) {
-            previewToolbar.style.setProperty('display', 'none', 'important');
-        }
+        quill.enable(false);
 
         quill.on('text-change', function() {
             textarea.value = quill.root.innerHTML;
@@ -948,120 +968,33 @@ document.addEventListener("DOMContentLoaded", function() {
             actions.className = 'richtext-actions';
             editTarget.appendChild(actions);
 
-            const previewButton = document.createElement('button');
-            previewButton.type = 'button';
-            previewButton.className = 'btn btn-sm btn-outline-secondary richtext-preview';
-            previewButton.innerHTML = '<i class="fas fa-search" aria-hidden="true"></i>';
-            previewButton.title = 'Visualizar texto completo';
-            previewButton.setAttribute('aria-label', 'Visualizar texto completo');
-            previewButton.setAttribute('aria-pressed', 'false');
-            actions.appendChild(previewButton);
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'btn btn-sm btn-outline-primary richtext-toggle-btn fw-bold';
+            editBtn.innerHTML = '<i class="fas fa-edit me-1"></i> Editar';
+            editBtn.title = 'Habilitar edição';
+            actions.appendChild(editBtn);
 
-            const expandButton = document.createElement('button');
-            expandButton.type = 'button';
-            expandButton.className = 'btn btn-sm btn-outline-primary richtext-expand';
-            expandButton.innerHTML = '<i class="fas fa-edit" aria-hidden="true"></i>';
-            expandButton.title = 'Expandir editor';
-            expandButton.setAttribute('aria-label', 'Expandir editor');
-            actions.appendChild(expandButton);
-
-            previewButton.addEventListener('click', function() {
-                const isVisible = editorContainer.classList.toggle('preview-expanded');
-                previewButton.classList.toggle('is-on', isVisible);
-                previewButton.setAttribute('aria-pressed', String(isVisible));
-                previewButton.title = isVisible ? 'Recolher visualização' : 'Visualizar texto completo';
-                previewButton.setAttribute('aria-label', previewButton.title);
-                previewButton.innerHTML = isVisible
-                    ? '<i class="fas fa-search-minus" aria-hidden="true"></i>'
-                    : '<i class="fas fa-search" aria-hidden="true"></i>';
-            });
-
-            let modal = document.getElementById('richtext-edit-modal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'richtext-edit-modal';
-                modal.className = 'modal fade';
-                modal.tabIndex = -1;
-                modal.setAttribute('aria-hidden', 'true');
-                modal.innerHTML = `
-                    <div class="modal-dialog modal-dialog-centered modal-xl">
-                        <div class="modal-content border-0 shadow-lg">
-                            <div class="modal-header bg-light">
-                                <h5 class="modal-title fw-bold text-secondary" id="richtext-edit-title">Editor de texto</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                            </div>
-                            <div class="modal-body p-3" id="richtext-edit-body"></div>
-                            <div class="modal-footer bg-light">
-                                <button type="button" class="btn btn-outline-danger fw-bold" id="richtext-clear-button">
-                                    <i class="fas fa-eraser me-1"></i> Limpar
-                                </button>
-                                <div class="flex-grow-1"></div>
-                                <button type="button" class="btn btn-primary fw-bold" data-bs-dismiss="modal">
-                                    <i class="fas fa-check me-1"></i> Concluir edição
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
-                document.body.appendChild(modal);
-            }
-
-            const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
-            const modalBody = modal.querySelector('#richtext-edit-body');
-            const modalTitle = modal.querySelector('#richtext-edit-title');
-            let modalQuill = null;
-            const clearButton = modal.querySelector('#richtext-clear-button');
-
-            if (clearButton && !clearButton.dataset.bound) {
-                clearButton.dataset.bound = 'true';
-                clearButton.addEventListener('click', function() {
-                    if (!activeModalQuill || !window.confirm('Limpar todo o conteúdo deste campo?')) {
-                        return;
-                    }
-                    activeModalQuill.setText('');
-                    if (activeModalTextarea) {
-                        activeModalTextarea.value = '';
-                    }
+            editBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const isEditing = editorContainer.classList.toggle('is-editing');
+                if (isEditing) {
+                    quill.enable(true);
+                    if (toolbarElem) toolbarElem.style.display = 'block';
+                    quill.focus();
+                    editBtn.className = 'btn btn-sm btn-success richtext-toggle-btn fw-bold';
+                    editBtn.innerHTML = '<i class="fas fa-check me-1"></i> Concluir';
+                    editBtn.title = 'Concluir edição e salvar';
+                } else {
+                    quill.enable(false);
+                    if (toolbarElem) toolbarElem.style.display = 'none';
+                    editBtn.className = 'btn btn-sm btn-outline-primary richtext-toggle-btn fw-bold';
+                    editBtn.innerHTML = '<i class="fas fa-edit me-1"></i> Editar';
+                    editBtn.title = 'Habilitar edição';
+                    textarea.value = quill.root.innerHTML;
                     autoSave();
-                });
-            }
-
-            expandButton.addEventListener('click', function() {
-                modalTitle.textContent = editTarget.textContent.replace(/\s+/g, ' ').trim();
-                modalBody.innerHTML = '<div class="richtext-modal-editor"></div>';
-                modalQuill = new Quill(modalBody.firstElementChild, {
-                    theme: 'snow',
-                    modules: {
-                        toolbar: toolbarOptions
-                    }
-                });
-                modalQuill.root.innerHTML = quill.root.innerHTML;
-                activeModalQuill = modalQuill;
-                activeModalTextarea = textarea;
-                modalQuill.on('text-change', function() {
-                    quill.root.innerHTML = modalQuill.root.innerHTML;
-                    textarea.value = modalQuill.root.innerHTML;
-                    autoSave();
-                });
-                expandButton.title = 'Editor aberto';
-                expandButton.setAttribute('aria-label', 'Editor aberto');
-                modalInstance.show();
-                setTimeout(() => modalQuill.focus(), 150);
-            });
-
-            modal.addEventListener('hidden.bs.modal', function() {
-                if (modalQuill) {
-                    quill.root.innerHTML = modalQuill.root.innerHTML;
-                    textarea.value = modalQuill.root.innerHTML;
-                    if (activeModalQuill === modalQuill) {
-                        activeModalQuill = null;
-                        activeModalTextarea = null;
-                    }
-                    modalQuill = null;
                 }
-                modalBody.innerHTML = '';
-                expandButton.title = 'Expandir editor';
-                expandButton.setAttribute('aria-label', 'Expandir editor');
-                autoSave();
             });
         }
     });

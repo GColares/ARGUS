@@ -1,3 +1,435 @@
+# Diário de Bordo — ARGUS
+
+## [2026-09-03] Encerramento do Expediente: Estabilização de UX, Quill e Rodapé do Wizard de Projetos
+
+### 1. Resumo do Trabalho Realizado na Sessão
+- **Onda 1 de Higiene Técnica (Devin):** Concluída com sucesso — eliminação de 159 linhas duplicadas em `cadastros/views.py` e correção do import canônico de `ValidationError`.
+- **Governança do Squad:** Protocolo consolidado (`PROTOCOLO_COLABORACAO_IA.md`, `COPILOT.md`, `DEVIN.md`), unificação de UTF-8 e adição de diretrizes de seleção de modelo (Flash vs Pro) em `GEMINI.md`.
+- **Editor RichText (Quill):**
+  - Eliminação de modais e sanfonas instáveis em favor do padrão de **Edição Inline Sob Demanda** (toolbar aparece no topo da caixa apenas ao clicar em "Editar").
+  - Restauração da capacidade de posicionar **2 ou mais imagens lado a lado na mesma linha** (remoção do `display: block` restritivo e aplicação de `display: inline-block !important; vertical-align: middle; margin: 0.25rem;`).
+  - Inclusão do seletor de alinhamento (`[{ 'align': [] }]`) na barra de ferramentas.
+- **Micro-Layout e Geometria do Wizard (`form_projeto.html`):**
+  - Implementação de rodapé aderente (`position: sticky; bottom: 0;`) para a barra de navegação, mantendo os botões "Voltar" e "Próximo" permanentemente visíveis em todos os 17 passos.
+  - Alinhamento milimétrico da base dos botões a exatamente **0,5 cm (~19 px)** acima da linha inferior do quadro branco.
+  - Ajuste ergonômico no Passo 4 (Motivação): eliminação do vão residual de 1 cm (remoção do padding-bottom de 1.5rem da row e margens) e expansão da caixa de texto até parar a exatos **0,2 cm (~8,5 px)** da linha superior do rodapé.
+
+### 2. Lista Ostensiva de Alterações de Interface / HTML na Sessão
+- **Arquivo Modificado:** `cadastros/templates/cadastros/form_projeto.html`
+- **Regras CSS Adicionadas / Alteradas (`<style>`):**
+  - `.ql-editor img`: alterado de `display: block; margin: 1rem auto;` para `max-width: 100%; height: auto; display: inline-block !important; vertical-align: middle; margin: 0.25rem; border-radius: 0.375rem;`.
+  - `.wizard-content-panel`: adicionado `padding-bottom: 0 !important;`.
+  - `.wizard-step.active`: adicionado `padding-bottom: 0 !important;`.
+  - `.wizard-step > .border-top`: configurado como `position: sticky !important; bottom: 0 !important; background-color: #ffffff !important; z-index: 1050 !important; margin-top: auto !important; padding-top: 0.85rem !important; padding-bottom: 0.5cm !important; margin-bottom: 0 !important; border-top: 1px solid #dee2e6 !important; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05) !important;`.
+  - `#step4 .richtext-editor-container, #step4 .ql-container, #step4 .ql-editor`: `max-height: calc(100vh - 418px) !important;`.
+  - `#step4 > .row, #step4 > .row.g-4`: `padding-bottom: 0 !important; margin-bottom: 0.2cm !important; --bs-gutter-y: 0 !important;`.
+  - `#step4 > .row > .col-md-12, #step4 .richtext-wrapper`: `padding-bottom: 0 !important; margin-bottom: 0 !important;`.
+- **Scripts JavaScript Alterados (`<script>`):**
+  - Inclusão do módulo de alinhamento em `toolbarOptions`: `[{ 'align': [] }]`.
+  - Captura e ocultação inicial da toolbar via `quill.getModule('toolbar').container`.
+  - Evento de clique no botão `editBtn`: alterna classe `.is-editing`, aciona `quill.enable(true/false)`, exibe/oculta a toolbar e sincroniza o textarea chamando `autoSave()`.
+  - Remoção de código legado de modais (`#richtext-edit-modal`, `#richtext-read-modal`) e classes de preview.
+
+### 3. Fila de Continuidade para Amanhã
+1. **Onda 2:** Vinculação formal `User` ↔ `PessoaFisica` (OneToOne) e alinhamento do decorator de permissão SIAPE.
+2. **Onda 3:** Testes automatizados de invariantes financeiras (EMBRAPII e SUFRAMA — travas de percentuais e rubricas).
+3. **Onda 4:** Planejamento arquitetural para decomposição e modularização do app `cadastros` e consolidação de grupos de RBAC.
+
+---
+
+## [2026-09-03] Ajuste Direto Gemini: Eliminação do Vazio de 1 cm e Calibração dos 0,2 cm no Passo 4
+
+Inversão declarada:
+- A pedido do usuário para eliminar o gap de 1 cm visível a 100% de tela e cravar a expansão da textbox a 0,2 cm do rodapé, o Gemini investigou o box model e aplicou as correções no CSS de `cadastros/templates/cadastros/form_projeto.html`.
+
+Causas identificadas e eliminadas:
+1. `padding-bottom: 1.5rem` (24px / 0,63cm) em `.wizard-step > .row` — removido exclusivamente para o `#step4`.
+2. `margin-bottom` residual em `.col-md-12` e `.richtext-wrapper` — zerados no `#step4`.
+3. `max-height` recalibrado para `calc(100vh - 418px)` — considerando a área útil real do navegador com interface desktop (940px de altura útil em 1080p).
+
+Verificação:
+- Teste com Playwright na viewport real de desktop (940px) comprovou a distância exata de 8.5px (~0,22 cm) entre a borda inferior da textbox e a linha do rodapé dos botões, preenchendo o vazio de 1 cm anterior com perfeita nitidez visual.
+
+---
+
+## [2026-09-03] Ajuste Direto Gemini: Altura dos Botões 'Próximo' e 'Voltar' a 0,5 cm do Quadro Branco
+
+Inversão declarada:
+- A pedido expresso do usuário ("ajuste a altura do botão PROXIMO e VOLTAR para 0,5 cm acima da linha do quadro branco"), o Gemini aplicou o ajuste de micro-layout diretamente no CSS de `cadastros/templates/cadastros/form_projeto.html`.
+
+Alterações realizadas:
+1. `.wizard-content-panel`: adicionado `padding-bottom: 0 !important;` para alinhar o término da área rolável com a borda inferior do card.
+2. `.wizard-step.active`: ajustado `padding-bottom: 0 !important;`.
+3. `.wizard-step > .border-top`: definido `padding-bottom: 0.5cm !important;` e `bottom: 0 !important;`, posicionando o limite inferior dos botões a exatamente 0,5 cm (~19px) da linha inferior do quadro branco.
+
+Verificação:
+- Medição via Playwright no Passo 1 e Passo 2 confirmou distância exata de ~19.8px (~0,5 cm) da base dos botões à borda inferior do painel, com altura perfeitamente nivelada e sincronizada.
+
+---
+
+## [2026-09-03] Handoff Gemini → Copilot: Rodapé Fixo de Navegação (Sticky) e Trava Ergonômica da Textbox (48vh)
+
+Objetivo:
+Implementar a arquitetura híbrida de visualização no Wizard do Projeto (`cadastros/templates/cadastros/form_projeto.html`):
+1. Fixar a barra de navegação dos botões 'Voltar' e 'Próximo' como rodapé aderente (`position: sticky; bottom: 0;`), garantindo que os botões fiquem sempre visíveis e estáveis na base da tela em todos os 17 passos, mesmo quando o conteúdo rolar.
+2. Limitar a expansão máxima da caixa de texto rica (Quill) a 48% da altura da tela (`max-height: 48vh; overflow-y: auto;`), permitindo abertura natural para textos curtos/médios, mas ativando rolagem interna suave quando o texto ou fotos forem muito extensos.
+
+Escopo de Implementação em `cadastros/templates/cadastros/form_projeto.html`:
+1. No CSS (`<style>`):
+   - Atualizar a regra das caixas de texto rico:
+     ```css
+     .wizard-step .richtext-editor-container,
+     .wizard-step .richtext-editor-container .ql-container,
+     .wizard-step .richtext-editor-container .ql-editor {
+         height: auto !important;
+         min-height: 100px;
+         max-height: 48vh !important;
+         overflow-y: auto !important;
+     }
+     ```
+   - Tornar a barra de botões de navegação aderente na base do painel:
+     ```css
+     .wizard-step > .border-top {
+         position: sticky !important;
+         bottom: 0 !important;
+         background-color: #ffffff !important;
+         z-index: 1050 !important;
+         margin-top: auto !important;
+         padding-top: 0.85rem !important;
+         padding-bottom: 0.85rem !important;
+         margin-bottom: 0 !important;
+         border-top: 1px solid #dee2e6 !important;
+         box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05) !important;
+     }
+     ```
+   - Garantir respiro de rolagem no conteúdo dos passos para não sobrepor o rodapé:
+     ```css
+     .wizard-step > .row,
+     .wizard-step > .row.g-4 {
+         padding-bottom: 1.5rem;
+     }
+     ```
+
+Arquivos liberados:
+- `cadastros/templates/cadastros/form_projeto.html`
+
+Arquivos proibidos:
+- Todos os demais
+
+Critério de pronto:
+- Em qualquer tela (mesmo com texto longo ou dezenas de itens na tabela), a barra com os botões 'Voltar' e 'Próximo' permanece visível na base da tela sem exigir rolagem para ser encontrada.
+- Textos longos no Quill crescem até 48vh e depois ganham rolagem interna suave sem quebrar a proporção da tela.
+
+---
+
+## [2026-09-03] Handoff Gemini → Copilot: Restauração de Fotos Inline e Recursos de Edição no Quill
+
+Objetivo:
+Restaurar o comportamento nativo de edição do Quill em `cadastros/templates/cadastros/form_projeto.html`:
+1. Permitir que 2 ou mais fotos fiquem lado a lado na mesma linha (inline-block), eliminando o `display: block` e `margin: 1rem auto` que forçavam quebras de linha e texto gigante.
+2. Adicionar opção de alinhamento (`[{ 'align': [] }]`) na barra de ferramentas do Quill para facilitar o posicionamento de fotos e textos.
+3. Garantir que a exibição/ocultação da barra de ferramentas (toolbar) ao clicar em 'Editar' funcione perfeitamente controlando o container da toolbar diretamente via JS (`quill.getModule('toolbar').container`).
+
+Escopo de Implementação em `cadastros/templates/cadastros/form_projeto.html`:
+1. No CSS (`<style>`):
+   - Substituir a regra restritiva de `.ql-editor img`:
+     ```css
+     .ql-editor img {
+         max-width: 100%;
+         height: auto;
+         display: inline-block !important;
+         vertical-align: middle;
+         margin: 0.25rem;
+         border-radius: 0.375rem;
+     }
+     ```
+2. No JavaScript:
+   - Adicionar alinhamento em `toolbarOptions`:
+     ```javascript
+     const toolbarOptions = [
+         [{ 'header': [1, 2, 3, false] }],
+         ['bold', 'italic', 'underline', 'strike'],
+         [{ 'align': [] }],
+         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+         [{ 'indent': '-1'}, { 'indent': '+1' }],
+         ['link', 'image', 'video'],
+         ['clean']
+     ];
+     ```
+   - No controle da toolbar sob demanda:
+     Ao instanciar o Quill, capturar a toolbar:
+     `const toolbarElem = quill.getModule('toolbar').container;`
+     `toolbarElem.style.display = 'none';`
+     No evento do botão 'Editar':
+     - Se `isEditing`: `toolbarElem.style.display = 'block';`
+     - Se concluído: `toolbarElem.style.display = 'none';`
+
+Arquivos liberados:
+- `cadastros/templates/cadastros/form_projeto.html`
+
+Arquivos proibidos:
+- Todos os demais
+
+Invariante de negócio / UI:
+- Imagens inseridas devem poder fluir lado a lado na mesma linha quando couberem na largura da caixa.
+- O modo leitura esconde a toolbar; o modo edição exibe a toolbar no topo da respectiva caixa.
+
+Critério de pronto:
+- Ao colar ou inserir 2 imagens pequenas consecutivas no Quill, elas permanecem na mesma linha horizontal.
+- A barra de menu só aparece ao clicar em 'Editar' e some ao clicar em 'Concluir'.
+
+---
+
+## [2026-09-03] Handoff Gemini → Copilot: Altura Padronizada dos Botões de Navegação (Base Passo 1)
+
+Objetivo:
+Fixar a altura dos botões 'Voltar' e 'Próximo' em todas as 17 telas do Wizard usando a altura do Passo 1 como padrão absoluto, eliminando saltos verticais da barra de ações.
+
+Escopo de Implementação em cadastros/templates/cadastros/form_projeto.html:
+1. No CSS (<style>):
+   - Padronizar a altura mínima do painel de conteúdo:
+     .wizard-content-panel {
+         min-height: 680px;
+         display: flex;
+         flex-direction: column;
+     }
+     .wizard-step {
+         display: none;
+         flex-direction: column;
+         flex-grow: 1;
+         min-height: 100%;
+     }
+     .wizard-step.active {
+         display: flex !important;
+     }
+   - Garantir que todos os containers de botões (.border-top com btn-prev e btn-next) usem:
+     margin-top: auto !important;
+     padding-top: 1rem;
+     padding-bottom: 0.75rem;
+     margin-bottom: 0.5rem;
+
+Arquivos liberados:
+- cadastros/templates/cadastros/form_projeto.html
+
+Critério de pronto:
+- Ao alternar entre o Passo 1 e os demais passos (2, 3, 4, 5, etc.), os botões 'Voltar' e 'Próximo' permanecem exatamente na mesma altura/posição vertical na tela.
+
+---
+## [2026-09-03] Handoff Gemini → Copilot: Edição Inline Sob Demanda (Toolbar Toggle on Click)
+
+Objetivo:
+Substituir o modal de edição pelo padrão 'Edição Inline Sob Demanda' nos campos RichText em cadastros/templates/cadastros/form_projeto.html:
+- Por padrão, a toolbar do Quill fica oculta e o texto em modo somente leitura na página (altura 100% natural).
+- Ao clicar no botão 'Editar', a barra de ferramentas do Quill aparece no topo da caixa e o campo fica editável.
+- Ao clicar em 'Concluir', a toolbar some novamente, o campo volta para somente leitura e dispara o autoSave.
+- Eliminar completamente os modais de rich text (#richtext-edit-modal e #richtext-read-modal).
+
+Escopo de Implementação:
+1. No CSS (<style>):
+   - .richtext-editor-container:
+     - Caixa sempre aberta na totalidade do texto: min-height: 90px; height: auto !important; max-height: none !important;
+   - .ql-editor:
+     - min-height: 90px; height: auto !important; max-height: none !important; overflow-y: visible !important;
+   - Controle da Toolbar:
+     - .richtext-editor-container .ql-toolbar { display: none !important; }
+     - .richtext-editor-container.is-editing .ql-toolbar { display: block !important; border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem; background: #f8f9fa; }
+   - Imagens responsivas:
+     - .ql-editor img { max-width: 100% !important; height: auto !important; display: block; margin: 1rem auto; border-radius: 0.375rem; }
+
+2. No JavaScript:
+   - Criar cada Quill com sua toolbar normal (toolbarOptions), mas com quill.enable(false) inicialmente.
+   - Botão de ação:
+     - Inicia como: <button type="button" class="btn btn-sm btn-outline-primary btn-toggle-edit fw-bold"><i class="fas fa-edit me-1"></i> Editar</button>.
+     - Ao clicar:
+       - Alterna a classe is-editing no ditorContainer.
+       - Se estiver editando:
+         - quill.enable(true)
+         - quill.focus()
+         - Botão vira: <i class="fas fa-check me-1"></i> Concluir (classe tn-success).
+       - Se concluiu a edição:
+         - quill.enable(false)
+         - Botão volta para: <i class="fas fa-edit me-1"></i> Editar (classe tn-outline-primary).
+         - Sincroniza o textarea e chama utoSave().
+   - Remover código e estruturas de modais (#richtext-edit-modal e #richtext-read-modal).
+
+Arquivos liberados:
+- cadastros/templates/cadastros/form_projeto.html
+
+---
+## [2026-09-03] Handoff Gemini → Copilot: Caixas Abertas na Totalidade + Edição Focada em Modal
+
+Objetivo:
+Simplificar drasticamente a interface dos campos RichText em cadastros/templates/cadastros/form_projeto.html:
+1. Caixas na página abertas na totalidade do conteúdo (altura natural automática, sem travas de 80px, sem barras de menu na tela para não poluir).
+2. Eliminar os botões de sanfona e lupa.
+3. Manter um único botão elegante de 'Editar' (<i class='fas fa-edit me-1'></i> Editar) que abre o modal de edição completo com a barra de ferramentas do Quill.
+
+Escopo de Implementação:
+1. No CSS (<style>):
+   - .wizard-step .richtext-editor-container.preview-editor,
+     .wizard-step .richtext-editor-container.preview-editor .ql-container,
+     .wizard-step .richtext-editor-container.preview-editor .ql-editor:
+     - Remover travas de 80px!
+     - Definir: height: auto !important; min-height: 90px; max-height: none !important; overflow-y: visible !important;
+     - Garantir que a toolbar fique escondida na página: .preview-editor .ql-toolbar { display: none !important; }
+   - Imagens responsivas:
+     .ql-editor img, #richtext-edit-body img {
+         max-width: 100% !important;
+         height: auto !important;
+         display: block;
+         margin: 1rem auto;
+         border-radius: 0.375rem;
+     }
+   - Remover classes de sanfona e estilos não utilizados.
+
+2. No JavaScript (inicialização de textareas.richtext):
+   - Remover a criação do accordionButton (sanfona) e do previewButton (lupa).
+   - Remover o readModal (não é mais necessário, já que a página exibe o texto todo).
+   - Manter apenas o botão de Editar:
+     const expandButton = document.createElement('button');
+     expandButton.type = 'button';
+     expandButton.className = 'btn btn-sm btn-outline-primary richtext-expand fw-bold';
+     expandButton.innerHTML = '<i class=\"fas fa-pen-to-square me-1\"></i> Editar';
+     expandButton.title = 'Editar conteúdo';
+     actions.appendChild(expandButton);
+   - Manter a abertura do modal #richtext-edit-modal com Quill completo, toolbar, botão de limpar e botão de concluir.
+   - Garantir que ao concluir a edição, o Quill da página receba o HTML e se expanda na totalidade do novo texto.
+
+Arquivos liberados:
+- cadastros/templates/cadastros/form_projeto.html
+
+---
+## [2026-09-03] Handoff Gemini → Copilot: Modal de Leitura Adaptável e Imagens Responsivas
+
+Objetivo:
+Tornar o modal de leitura (#richtext-read-modal) adaptável ao conteúdo em cadastros/templates/cadastros/form_projeto.html, garantindo que imagens não vazem para fora da caixa e o modal acomode diagramas amplos com rolagem elegante.
+
+Escopo de Correção:
+1. No CSS (<style>):
+   - Forçar imagens responsivas no modal e no editor:
+     #richtext-read-body img, #richtext-edit-body img, .ql-editor img {
+         max-width: 100% !important;
+         height: auto !important;
+         display: block;
+         margin: 1rem auto;
+         border-radius: 0.375rem;
+         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+     }
+   - Configurar o modal para adaptar-se dinamicamente:
+     #richtext-read-modal .modal-dialog {
+         max-width: min(1200px, 94vw);
+     }
+     #richtext-read-body {
+         max-height: 80vh;
+         overflow-y: auto;
+         word-break: break-word;
+     }
+
+2. No JS/HTML de criação do readModal:
+   - Trocar a classe de modal-dialog modal-dialog-centered modal-lg para:
+     modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable
+
+Arquivos liberados:
+- cadastros/templates/cadastros/form_projeto.html
+
+---
+## [2026-09-03] Handoff Gemini → Copilot: Estabilização do Botão Sanfona (Eventos e Transição)
+
+Objetivo:
+Estabilizar o comportamento da Sanfona nos campos RichText em cadastros/templates/cadastros/form_projeto.html, eliminando a oscilação/flicker e garantindo abertura/fechamento 100% confiável e suave.
+
+Causa identificada:
+1. Como os botões estão inseridos dentro do <label>, o clique sem .stopPropagation() e .preventDefault() sobe para o label disparando eventos duplicados do navegador (duplo clique fantasma).
+2. A substituição via innerHTML destrói o elemento <i> durante o evento do mouse.
+3. Ausência de transição CSS suave, causando pulo abrupto do layout.
+
+Escopo de Correção:
+1. No JS:
+   - Adicionar .preventDefault(); e.stopPropagation(); no evento de clique do ccordionButton, previewButton e xpandButton.
+   - Alterar o ícone sem destruir o DOM: apenas alternar as classes a-chevron-down e a-chevron-up no elemento <i> existente.
+2. No CSS:
+   - Aplicar transição suave de altura (	ransition: max-height 0.3s ease-in-out).
+   - Quando recolhido: max-height: 80px; overflow-y: hidden;.
+   - Quando expandido (.accordion-expanded): max-height: 3000px !important; height: auto !important; overflow-y: visible !important;.
+
+Arquivos liberados:
+- cadastros/templates/cadastros/form_projeto.html
+
+---
+## [2026-09-03] Handoff Gemini → Copilot: Tríade RichText (Sanfona + Lupa Leitura + Lápis Edição)
+
+Objetivo:
+Implementar a tríade completa de interação dos campos RichText em cadastros/templates/cadastros/form_projeto.html:
+1. Botão Sanfona (expandir/recolher inline na página, empurrando o conteúdo)
+2. Botão Lupa (abrir modal de visualização/leitura ampla formatada sem toolbar)
+3. Botão Lápis (abrir modal de edição com toolbar completo do Quill)
+
+Escopo incluído:
+1. Em cadastros/templates/cadastros/form_projeto.html:
+   - No CSS:
+     - Definir altura compacta padrão para .preview-editor: height: 85px; max-height: 85px; overflow-y: hidden;.
+     - Definir expansão da sanfona para .accordion-expanded: height: auto !important; max-height: none !important; overflow-y: visible !important;.
+     - Estilo para os 3 botões em .richtext-actions.
+   - No HTML/JS:
+     - Adicionar o botão de Sanfona (.richtext-accordion) com ícone as fa-chevron-down que alterna para a-chevron-up e adiciona/remove .accordion-expanded no container do editor.
+     - Atualizar o botão da Lupa (.richtext-preview) com as fa-search para abrir um modal de LEITURA (#richtext-read-modal), exibindo o título do campo e o conteúdo formatado em HTML com botão "Fechar".
+     - Manter o botão do Lápis (.richtext-expand) com as fa-edit para abrir o modal de EDIÇÃO (#richtext-edit-modal) com Quill completo.
+
+Escopo excluído:
+- Nenhuma alteração em backend (cadastros/views.py, models, forms).
+- Nenhuma alteração fora de cadastros/templates/cadastros/form_projeto.html.
+
+Arquivos liberados:
+- cadastros/templates/cadastros/form_projeto.html
+
+Arquivos proibidos:
+- cadastros/views.py
+- cadastros/models.py
+- Qualquer outro arquivo.
+
+Invariante de negócio:
+- Manter o utoSave() e sincronização com textareas intactos.
+- Os dados digitados no modal de edição devem continuar salvando perfeitamente.
+
+Critério de pronto:
+- Usuário vê 3 botões por campo de texto.
+- Clicar na sanfona empurra o layout para baixo mostrando o texto todo.
+- Clicar na lupa abre o modal limpo de leitura.
+- Clicar no lápis abre o modal de edição com toolbar.
+
+---
+## [2026-09-03] Handoff Gemini → Copilot
+
+Objetivo:
+Testar a Opção B de visualização dos campos RichText no Wizard: expandir o container naturalmente para exibir todo o texto na página sem travas de 80px e sem efeito sanfona da lupa.
+
+Escopo incluído:
+1. Em cadastros/templates/cadastros/form_projeto.html:
+   - Atualizar as regras CSS de .wizard-step .richtext-editor-container.preview-editor .ql-container e .ql-editor:
+     - Alterar height, min-height e max-height para permitir expansão natural: min-height: 120px; height: auto !important; max-height: none !important; overflow-y: visible !important;.
+   - No CSS ou no script de criação dos botões, ocultar ou desativar o botão .richtext-preview (a lupa), mantendo apenas o .richtext-expand (o lápis para edição em modal).
+
+Escopo excluído:
+- Nenhuma alteração em backend (cadastros/views.py, models, forms).
+- Nenhuma alteração nos passos do wizard além do estilo/comportamento do container richtext.
+
+Arquivos liberados:
+- cadastros/templates/cadastros/form_projeto.html
+
+Arquivos proibidos:
+- cadastros/views.py (recém-higienizado pelo Devin)
+- cadastros/models.py
+- Qualquer outro arquivo fora do template.
+
+Invariante de negócio:
+- O salvamento assíncrono (autoSave) e a sincronização com os textareas ocultos (syncQuills) devem continuar intactos.
+- O botão do lápis deve continuar abrindo o modal #richtext-edit-modal normalmente.
+
+Critério de pronto:
+- As caixas de texto com conteúdo mostram o texto integral sem rolagem interna ou cortes em 80px.
+- O botão da lupa não interfere mais com comportamento sanfona.
+
+---
 ## [2026-09-03] Auditoria de Conformidade: Onda 1 de Higiene - APROVADA
 
 Status da Auditoria pelo Arquiteto (Antigravity-Gemini):
@@ -356,6 +788,13 @@ O projeto está avançando com foco na melhoria da usabilidade (ordenamento espa
 
 **O que está pendente no nosso radar:**
 - **Gestão de Projetos:** Investigar e registrar dados de Relatórios de Atividade (RA) ausentes no módulo de gestão de projetos.
+
+
+
+
+
+
+
 
 
 
