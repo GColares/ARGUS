@@ -1,28 +1,82 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-5">
-    <div class="row mb-5">
-        <div class="col-12 text-center">
-            <h1 class="display-4 fw-bold text-dark">Sistema ARGUS</h1>
-            <p class="lead text-muted">Gestão Integrada e Incorporação Tecnológica - Polo de Inovação IFAM</p>
-        </div>
-    </div>
+<style>
+    .argus-home {
+        background:
+            linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.08), transparent 45%),
+            linear-gradient(315deg, rgba(var(--bs-info-rgb), 0.08), transparent 55%);
+    }
 
-    <div class="row g-4 justify-content-center">
-        {% for modulo in modulos %}
-        <div class="col-md-4 mb-4">
-            <div class="card border-0 shadow-sm h-100 bg-white">
-                <div class="card-body p-4 text-center">
-                    <div class="bg-{{ modulo.cor }} bg-opacity-10 text-{{ modulo.cor }} rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
-                        <i class="fas {{ modulo.icone }} fa-2x"></i>
+    .argus-hero {
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 1rem 3rem rgba(var(--bs-dark-rgb), 0.08);
+    }
+
+    .modulo-card {
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 0.5rem 1.5rem rgba(var(--bs-dark-rgb), 0.08);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .modulo-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 2rem rgba(var(--bs-primary-rgb), 0.16);
+    }
+
+    .modulo-icon {
+        width: 4.5rem;
+        height: 4.5rem;
+        color: var(--bs-primary);
+        background: rgba(var(--bs-primary-rgb), 0.1);
+        transition: transform 0.25s ease, background-color 0.25s ease;
+    }
+
+    .modulo-card:hover .modulo-icon {
+        transform: scale(1.1);
+        background: rgba(var(--bs-primary-rgb), 0.16);
+    }
+
+    .modulo-description {
+        min-height: 3.25rem;
+    }
+</style>
+
+<main class="argus-home min-vh-100 py-5">
+    <div class="container">
+        <header class="argus-hero rounded-4 p-4 p-md-5 mb-5 text-center">
+            <span class="badge text-bg-primary rounded-pill px-3 py-2 mb-3">Portal Integrado</span>
+            <h1 class="display-5 fw-bold text-primary mb-3">Sistema ARGUS</h1>
+            <p class="lead text-body-secondary mb-0">
+                Gestão Integrada e Incorporação Tecnológica - Polo de Inovação IFAM
+            </p>
+        </header>
+
+        <div class="row g-4 justify-content-center">
+            {% for modulo in modulos %}
+            <div class="col-sm-6 col-xl-4">
+                <article class="modulo-card rounded-4 h-100">
+                    <div class="card-body p-4 p-lg-5 text-center d-flex flex-column h-100">
+                        <div class="modulo-icon rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-4">
+                            <i class="fas {{ modulo.icone }} fa-2x"></i>
+                        </div>
+                        <h2 class="h4 fw-bold text-body mb-3">{{ modulo.nome }}</h2>
+                        <p class="modulo-description text-body-secondary mb-4">
+                            {{ modulo.descricao|default:"Acesse este módulo para consultar e gerenciar os recursos do ARGUS." }}
+                        </p>
+                        <a href="{% url modulo.url %}" class="btn btn-outline-primary rounded-pill fw-semibold mt-auto">
+                            Acessar módulo <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
                     </div>
-                    <h5 class="fw-bold text-dark mb-2">{{ modulo.nome }}</h5>
-                    <a href="{% url modulo.url %}" class="btn btn-outline-{{ modulo.cor }} fw-bold w-100 mt-3">Acessar Módulo</a>
-                </div>
+                </article>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
-
-</div>
+</main>
 {% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:listar_termos_parceria' %}" class="text-decoration-none">Termos de Parceria</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Detalhes</li>
+        </ol>
+    </nav>
+
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-file-contract text-danger me-2"></i>{{ termo.numero }}</h2>
+            <p class="text-muted small mb-0 mt-1">Detalhes do Termo de Parceria e seus instrumentos vinculados.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'cadastros:editar_termo_parceria' termo.pk %}" class="btn btn-primary fw-bold shadow-sm">
+                <i class="fas fa-edit me-2"></i>Editar
+            </a>
+            <a href="{% url 'cadastros:excluir_termo_parceria' termo.pk %}" class="btn btn-outline-danger fw-bold">
+                <i class="fas fa-trash me-2"></i>Excluir
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-file-alt me-2"></i>Dados Gerais</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">Número</dt>
+                        <dd class="col-sm-7 fw-bold">{{ termo.numero }}</dd>
+                        <dt class="col-sm-5 text-muted">Data de Assinatura</dt>
+                        <dd class="col-sm-7">{{ termo.data_assinatura|date:"d/m/Y"|default:"-" }}</dd>
+                        <dt class="col-sm-5 text-muted">Objeto / Descrição</dt>
+                        <dd class="col-sm-7">{{ termo.objeto|default:"Não informado" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-users me-2"></i>Atores da Hélice Tríplice</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">Concedente</dt>
+                        <dd class="col-sm-7">{{ termo.concedente.nome }}</dd>
+                        <dt class="col-sm-5 text-muted">Convenente (ICT)</dt>
+                        <dd class="col-sm-7">{{ termo.convenente.nome }}</dd>
+                        <dt class="col-sm-5 text-muted">Interveniente</dt>
+                        <dd class="col-sm-7">{{ termo.interveniente.nome }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-tasks me-2"></i>Planos de Trabalho Vinculados</h5>
+                </div>
+                <div class="card-body">
+                    {% for plano in termo.planos_homologados.all %}
+                    <div class="border rounded p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="fw-bold mb-1">{{ plano.projeto.nome|default:"Plano sem projeto" }}</h6>
+                            <span class="badge text-bg-secondary">{{ plano.get_status_display }}</span>
+                        </div>
+                        <p class="text-muted small mb-0">{{ plano.objetivo_geral|default:"Objetivo não informado" }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Nenhum plano de trabalho está vinculado a este termo.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

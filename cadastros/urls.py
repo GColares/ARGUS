@@ -54,6 +54,7 @@ urlpatterns = [
     # Termos de Parceria
     path('termos-parceria/', views.TermoDeParceriaListView.as_view(), name='listar_termos_parceria'),
     path('termos-parceria/novo/', views.TermoDeParceriaCreateView.as_view(), name='cadastrar_termo_parceria'),
+    path('termos-parceria/<int:pk>/visualizar/', views.TermoDeParceriaDetailView.as_view(), name='visualizar_termo_parceria'),
     path('termos-parceria/<int:pk>/editar/', views.TermoDeParceriaUpdateView.as_view(), name='editar_termo_parceria'),
     path('termos-parceria/<int:pk>/excluir/', views.TermoDeParceriaDeleteView.as_view(), name='excluir_termo_parceria'),
 

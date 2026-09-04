@@ -1,6 +1,7 @@
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -843,6 +844,11 @@ class TermoDeParceriaListView(ListView):
     template_name = 'cadastros/termo_parceria_list.html'
     context_object_name = 'termos'
     ordering = ['-id']
+
+class TermoDeParceriaDetailView(LoginRequiredMixin, DetailView):
+    model = TermoDeParceria
+    template_name = 'cadastros/termo_parceria_detail.html'
+    context_object_name = 'termo'
 
 class TermoDeParceriaCreateView(CreateView):
     model = TermoDeParceria

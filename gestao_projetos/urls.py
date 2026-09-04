@@ -46,4 +46,7 @@ urlpatterns = [
 
     # Governança Institucional — Alçadas e Suplência (Passo 5)
     path('governanca/alcadas/', views.painel_governanca_alcadas, name='painel_governanca_alcadas'),
+
+    # Atesto SIAPE do Relatório de Atividades (Passo 6)
+    path('relatorio/<int:relatorio_id>/atestar/', views.atestar_relatorio, name='atestar_relatorio'),
 ]

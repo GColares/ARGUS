@@ -78,7 +78,28 @@ class RelatorioAtividade(models.Model):
         null=True, 
         verbose_name="Demais informações pertinentes (Parecer)"
     )
-    
+
+    # ── Passo 6: Atesto SIAPE (preenchido pela view atestar_relatorio) ──
+    atestado_por = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='relatorios_atestados',
+        verbose_name="Atestado por (Servidor Efetivo)",
+    )
+    data_atesto = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Data/Hora do Atesto",
+    )
+    siape_atesto = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        verbose_name="Matrícula SIAPE do Servidor Atestante",
+    )
+
     class Meta:
         db_table = 'argus_relatorio_atividade'
         unique_together = ('termo_bolsa', 'parcela_referencia')

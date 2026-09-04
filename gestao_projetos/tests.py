@@ -557,3 +557,412 @@ class GovernancaSuplenciaTestCase(TestCase):
 
         self.assertEqual(responsavel['prioridade'], 0)
         self.assertEqual(responsavel['nome'], 'Titular Silva')
+
+
+from cadastros.models import PessoaFisica, PerfilServidor
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class AtestoSIAPETestCase(TestCase):
+    """
+    Testes de integração do Passo 6 — Atesto SIAPE do Relatório de Atividades.
+
+    Cobre:
+    a) Atesto bem-sucedido por servidor SIAPE (campos gravados, status CONCLUIDO).
+    b) Bloqueio de auto-atesto: bolsista tenta atestar o próprio relatório.
+    c) Bloqueio de edição após CONCLUIDO (alterar_relatorio redirecionado).
+    d) Bloqueio de usuário sem SIAPE (não é servidor efetivo).
+    e) Idempotência: relatório já CONCLUIDO não muda ao chamar atestar novamente.
+    f) Superusuário acessa visualizar_relatorio mesmo sem MembroEquipe.
+    """
+
+    def setUp(self):
+        # ── Servidor efetivo com SIAPE (atestante) ──
+        self.user_servidor = User.objects.create_user(
+            username='servidor_siape',
+            password='senha123',
+            first_name='Ana',
+            last_name='Servidora',
+        )
+        self.pessoa_servidor = PessoaFisica.objects.create(
+            nome='Ana Servidora',
+            cpf='000.111.222-33',
+            user=self.user_servidor,
+        )
+        PerfilServidor.objects.create(
+            pessoa=self.pessoa_servidor,
+            siape='1234567',
+            cargo='Coordenador de Pesquisa',
+            lotacao='IFAM/Manaus',
+            ativo=True,
+        )
+
+        # ── Bolsista com User vinculado (para teste de SoD) ──
+        self.user_bolsista = User.objects.create_user(
+            username='bolsista_passo6',
+            password='senha123',
+        )
+        self.pessoa_bolsista = PessoaFisica.objects.create(
+            nome='Carlos Bolsista',
+            cpf='444.555.666-77',
+            user=self.user_bolsista,
+        )
+        DadoBancario.objects.create(
+            pessoa=self.pessoa_bolsista,
+            finalidade='PAGAMENTO_BOLSA',
+            banco_codigo='001',
+            agencia='0001',
+            conta='11111-1',
+            ativo=True,
+        )
+
+        # ── Estrutura do projeto ──
+        self.empresa = EmpresaParceira.objects.create(
+            nome='Empresa Atesto LTDA',
+            cnpj='99.888.777/0001-66',
+            natureza_juridica='LTDA',
+            representante_legal='Rep Atesto',
+            cargo_representante='Diretor',
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome='Projeto Atesto Passo 6',
+            fase='EXECUCAO',
+            concedente=self.empresa,
+        )
+
+        # ── RBAC: servidor é membro da equipe ──
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=self.user_servidor,
+            papel='GESTOR',
+        )
+        # Bolsista também é membro (para conseguir chamar URLs)
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=self.user_bolsista,
+            papel='COLABORADOR',
+        )
+
+        # ── Cota, Termo e Parcela ──
+        self.cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao='Pesquisador Junior',
+            quantidade_vagas=1,
+            parcelas_previstas=2,
+            valor_global_previsto=Decimal('3000.00'),
+        )
+        self.termo = TermoBolsa.objects.create(
+            cota_pt=self.cota,
+            pessoa=self.pessoa_bolsista,
+            numero_termo='TB-ATESTO-001',
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 10, 31),
+            quantidade_parcelas=2,
+            valor_parcela=Decimal('1500.00'),
+        )
+        self.parcela = self.termo.parcelas.get(numero=1)
+
+        # ── Relatório PENDENTE base ──
+        self.relatorio = RelatorioAtividade.objects.create(
+            termo_bolsa=self.termo,
+            parcela_referencia=self.parcela,
+            criado_por=self.user_servidor,
+            status='PENDENTE',
+            periodo_inicio=date(2026, 9, 1),
+            periodo_fim=date(2026, 9, 30),
+            carga_horaria_periodo=160,
+        )
+
+        # URLs
+        self.url_atestar = reverse(
+            'gestao_projetos:atestar_relatorio',
+            args=[self.relatorio.id],
+        )
+        self.url_alterar = reverse(
+            'gestao_projetos:alterar_relatorio',
+            args=[self.relatorio.id],
+        )
+        self.url_visualizar = reverse(
+            'gestao_projetos:visualizar_relatorio',
+            args=[self.relatorio.id],
+        )
+
+        self.client = Client()
+
+    # ------------------------------------------------------------------ #
+    # Teste a) Atesto bem-sucedido por servidor SIAPE                     #
+    # ------------------------------------------------------------------ #
+    def test_atesto_siape_sucesso(self):
+        """Servidor SIAPE ativo atesta o relatório: campos gravados e status=CONCLUIDO."""
+        self.client.login(username='servidor_siape', password='senha123')
+
+        response = self.client.post(self.url_atestar, {
+            'cumpriu_carga_horaria': '1',
+            'parecer_coordenador': 'Desempenho excelente.',
+        })
+
+        # Deve redirecionar para visualizar
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            str(self.relatorio.id),
+            response['Location'],
+            "Deve redirecionar para visualizar_relatorio após atesto."
+        )
+
+        # Verifica campos gravados no banco
+        self.relatorio.refresh_from_db()
+        self.assertEqual(self.relatorio.status, 'CONCLUIDO')
+        self.assertEqual(self.relatorio.atestado_por, self.user_servidor)
+        self.assertEqual(self.relatorio.siape_atesto, '1234567')
+        self.assertIsNotNone(self.relatorio.data_atesto)
+        self.assertTrue(self.relatorio.cumpriu_carga_horaria)
+        self.assertEqual(self.relatorio.parecer_coordenador, 'Desempenho excelente.')
+
+        # Mensagem de sucesso emitida
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('homologado com sucesso' in str(m) for m in msgs),
+            "Esperava mensagem de homologação bem-sucedida."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste b) Bloqueio de auto-atesto do bolsista (SoD)                  #
+    # ------------------------------------------------------------------ #
+    def test_bloqueio_auto_atesto_bolsista(self):
+        """O próprio bolsista não pode atestar seu relatório (SoD)."""
+        self.client.login(username='bolsista_passo6', password='senha123')
+
+        # Precisamos dar SIAPE ao bolsista para que ele passe a verificação de servidor
+        # (testamos especificamente a regra de SoD, não a de ausência de SIAPE)
+        PerfilServidor.objects.create(
+            pessoa=self.pessoa_bolsista,
+            siape='9999999',
+            cargo='Técnico',
+            lotacao='IFAM/Manaus',
+            ativo=True,
+        )
+
+        response = self.client.post(self.url_atestar, {
+            'cumpriu_carga_horaria': '1',
+            'parecer_coordenador': 'Auto-atesto indevido.',
+        })
+
+        # Deve redirecionar de volta para visualizar (não atestar)
+        self.assertEqual(response.status_code, 302)
+
+        # Status NÃO pode ter mudado para CONCLUIDO
+        self.relatorio.refresh_from_db()
+        self.assertEqual(
+            self.relatorio.status, 'PENDENTE',
+            "Auto-atesto deve ser bloqueado — relatório deve permanecer PENDENTE."
+        )
+        self.assertIsNone(
+            self.relatorio.atestado_por,
+            "atestado_por não deve ser gravado em caso de auto-atesto."
+        )
+
+        # Mensagem de erro de SoD emitida
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('Segregação de Funções' in str(m) for m in msgs),
+            "Esperava mensagem de violação de Segregação de Funções."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste c) Bloqueio de edição após CONCLUIDO (trava de congelamento)  #
+    # ------------------------------------------------------------------ #
+    def test_bloqueio_alterar_relatorio_concluido(self):
+        """alterar_relatorio deve bloquear e redirecionar quando status=CONCLUIDO."""
+        # Atesta manualmente o relatório
+        self.relatorio.status = 'CONCLUIDO'
+        self.relatorio.atestado_por = self.user_servidor
+        self.relatorio.siape_atesto = '1234567'
+        self.relatorio.save()
+
+        self.client.login(username='servidor_siape', password='senha123')
+
+        # POST de alteração (tenta fazer upload de PDF)
+        response = self.client.post(self.url_alterar, {})
+
+        # Deve redirecionar (sem 200, pois a view bloqueia antes do processamento)
+        self.assertEqual(response.status_code, 302)
+
+        # Relatório deve continuar CONCLUIDO e intacto
+        self.relatorio.refresh_from_db()
+        self.assertEqual(
+            self.relatorio.status, 'CONCLUIDO',
+            "Relatório CONCLUIDO não deve poder ser alterado."
+        )
+
+        # Mensagem de aviso de congelamento
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('congelado' in str(m).lower() or 'homologado' in str(m).lower() for m in msgs),
+            "Esperava mensagem de congelamento/homologação."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste d) Bloqueio de usuário sem SIAPE                              #
+    # ------------------------------------------------------------------ #
+    def test_bloqueio_atesto_usuario_sem_siape(self):
+        """Usuário sem perfil de servidor SIAPE não pode atestar."""
+        # Cria usuário simples sem PerfilServidor
+        user_sem_siape = User.objects.create_user(
+            username='sem_siape_p6',
+            password='senha123',
+        )
+        pessoa_sem_siape = PessoaFisica.objects.create(
+            nome='Pedro Sem SIAPE',
+            cpf='777.888.999-00',
+            user=user_sem_siape,
+        )
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=user_sem_siape,
+            papel='COLABORADOR',
+        )
+
+        self.client.login(username='sem_siape_p6', password='senha123')
+
+        response = self.client.post(self.url_atestar, {
+            'cumpriu_carga_horaria': '1',
+        })
+
+        # Deve redirecionar (sem atestar)
+        self.assertEqual(response.status_code, 302)
+
+        # Status permanece PENDENTE
+        self.relatorio.refresh_from_db()
+        self.assertEqual(
+            self.relatorio.status, 'PENDENTE',
+            "Usuário sem SIAPE não deve conseguir atestar."
+        )
+
+        # Mensagem de acesso negado
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('SIAPE' in str(m) or 'Servidores Efetivos' in str(m) for m in msgs),
+            "Esperava mensagem de acesso negado por ausência de SIAPE."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste e) Idempotência: atestar relatório já CONCLUIDO               #
+    # ------------------------------------------------------------------ #
+    def test_atesto_idempotente_relatorio_ja_concluido(self):
+        """Atestar um relatório já CONCLUIDO não deve alterar os dados originais."""
+        # Atesta primeiro pelo servidor correto
+        self.relatorio.status = 'CONCLUIDO'
+        self.relatorio.atestado_por = self.user_servidor
+        self.relatorio.siape_atesto = '1234567'
+        from django.utils import timezone
+        data_original = timezone.now()
+        self.relatorio.data_atesto = data_original
+        self.relatorio.parecer_coordenador = 'Parecer original.'
+        self.relatorio.save()
+
+        self.client.login(username='servidor_siape', password='senha123')
+
+        # Tenta atestar novamente
+        response = self.client.post(self.url_atestar, {
+            'cumpriu_carga_horaria': '0',
+            'parecer_coordenador': 'Tentativa de sobrescrita.',
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        # Dados originais devem ter sido preservados
+        self.relatorio.refresh_from_db()
+        self.assertEqual(self.relatorio.status, 'CONCLUIDO')
+        self.assertEqual(
+            self.relatorio.parecer_coordenador, 'Parecer original.',
+            "Parecer original não deve ser sobrescrito em atesto idempotente."
+        )
+        self.assertTrue(
+            self.relatorio.cumpriu_carga_horaria,
+            "cumpriu_carga_horaria original não deve ser alterado."
+        )
+
+        # Mensagem informativa emitida
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('já está homologado' in str(m) for m in msgs),
+            "Esperava mensagem informando que relatório já está homologado."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste f) Superusuário acessa visualizar_relatorio sem MembroEquipe  #
+    # ------------------------------------------------------------------ #
+    def test_superuser_acessa_visualizar_sem_membro_equipe(self):
+        """Superusuário deve acessar visualizar_relatorio mesmo sem MembroEquipe."""
+        superuser = User.objects.create_superuser(
+            username='super_p6',
+            password='senha123',
+            email='super_p6@ifam.edu.br',
+        )
+        self.client.login(username='super_p6', password='senha123')
+
+        response = self.client.get(self.url_visualizar)
+
+        # Deve retornar 200 (acesso permitido)
+        self.assertEqual(
+            response.status_code, 200,
+            "Superusuário deve ter acesso ao visualizar_relatorio sem MembroEquipe."
+        )
+        self.assertIn('relatorio_obj', response.context)
+
+    # ------------------------------------------------------------------ #
+    # Teste g) GET em atestar_relatorio redireciona para visualizar       #
+    # ------------------------------------------------------------------ #
+    def test_get_atestar_redireciona_para_visualizar(self):
+        """GET na URL de atesto deve redirecionar para visualizar (sem atestar)."""
+        self.client.login(username='servidor_siape', password='senha123')
+
+        response = self.client.get(self.url_atestar)
+
+        self.assertEqual(response.status_code, 302)
+        # Não deve ter atestado
+        self.relatorio.refresh_from_db()
+        self.assertEqual(self.relatorio.status, 'PENDENTE')
+
+    # ------------------------------------------------------------------ #
+    # Teste h) GET em alterar_relatorio quando CONCLUIDO também bloqueia  #
+    # ------------------------------------------------------------------ #
+    def test_get_alterar_relatorio_concluido_bloqueado(self):
+        """GET em alterar_relatorio com status CONCLUIDO deve redirecionar."""
+        self.relatorio.status = 'CONCLUIDO'
+        self.relatorio.save()
+
+        self.client.login(username='servidor_siape', password='senha123')
+
+        response = self.client.get(self.url_alterar)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            str(self.relatorio.id),
+            response['Location'],
+            "Deve redirecionar para visualizar_relatorio."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste i) Atesto com cumpriu=0 grava corretamente False              #
+    # ------------------------------------------------------------------ #
+    def test_atesto_cumpriu_carga_horaria_nao(self):
+        """Atesto com cumpriu_carga_horaria='0' deve gravar False no banco."""
+        self.client.login(username='servidor_siape', password='senha123')
+
+        self.client.post(self.url_atestar, {
+            'cumpriu_carga_horaria': '0',
+            'parecer_coordenador': 'Bolsista não cumpriu a carga horária do período.',
+        })
+
+        self.relatorio.refresh_from_db()
+        self.assertEqual(self.relatorio.status, 'CONCLUIDO')
+        self.assertFalse(
+            self.relatorio.cumpriu_carga_horaria,
+            "Quando cumpriu_carga_horaria='0', deve gravar False."
+        )

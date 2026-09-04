@@ -1,5 +1,119 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-04] Sessão de Sincronia Multi-IA: Passo 6 (Kiro) e CRUD Termo de Parceria + Home Geral (Copilot) — Concluídos e Homologados (67/67 Testes OK)
+
+### 1. Entrega do Kiro (AWS Bedrock) — Passo 6 da Execução Financeira:
+- **Campos de Atesto no Modelo (`gestao_projetos/models.py`):** `atestado_por` (FK `User`), `data_atesto` (DateTimeField) e `siape_atesto` (CharField 20).
+- **Migração `0004_atesto_siape_relatorio_atividade.py`:** Gerada e aplicada com sucesso.
+- **View `atestar_relatorio` (`gestao_projetos/views.py`):** Homologação por servidor com SIAPE ativo (`@servidor_efetivo_required`), trava de SoD (bloqueio de auto-atesto do bolsista beneficiário), idempotência e transição de status para `CONCLUIDO`.
+- **Trava de Congelamento em `alterar_relatorio`:** Relatórios com status `CONCLUIDO` são imutáveis; tentativa de upload/edição é bloqueada com mensagem de aviso.
+- **Espelho HTML (`visualizar_relatorio.html`):** Carimbo oficial de atesto eletrônico com nome, matrícula SIAPE, data/hora e parecer; modal de atesto para a coordenação; bypass para superusuários.
+- **Suíte `AtestoSIAPETestCase` (`gestao_projetos/tests.py`):** 9 testes cobrindo todos os cenários de negócio com 100% de sucesso.
+- **Resolução de Bugs Pré-Existentes Identificados pelo Kiro:**
+  1. `UnboundLocalError: messages` em `alterar_relatorio`;
+  2. Acesso incorreto a `termo_bolsa.bolsista` corrigido para `termo_bolsa.pessoa`;
+  3. Acesso inseguro a `projeto.convenio` substituído por `getattr` seguro com fallback.
+
+### 2. Entregas do GitHub Copilot (VS Code):
+- **CRUD Completo de Termos de Parceria (`cadastros`):**
+  - Implementada `TermoDeParceriaDetailView` em `cadastros/views.py`.
+  - Rota `termos-parceria/<int:pk>/visualizar/` registrada em `cadastros/urls.py`.
+  - Botão "Visualizar" com ícone `fa-eye` adicionado na tabela de `termo_parceria_list.html`.
+  - Criado o template `termo_parceria_detail.html` no padrão Almoxarifado com Breadcrumb, Voltar dinâmico, dados gerais, atores da Hélice Tríplice e lista de planos de trabalho vinculados.
+- **Home Principal do ARGUS (`templates/home_geral.html`):**
+  - Refatoração estética com Glassmorphism (`backdrop-filter: blur(10px)`), cores 100% semânticas via variáveis Bootstrap (zero cores HEX fixas), microinterações de hover suaves e responsividade aprimorada.
+
+### 3. Auditoria Independente do Arquiteto (Gemini):
+- `python manage.py check`: **0 erros**.
+- `python manage.py test gestao_projetos cadastros --keepdb`: **67/67 testes passando com 100% de sucesso** em 45.561s.
+- Zero regressões. `cadastros/models.py` e o wizard permanecem 100% intactos.
+- Segregação de arquivos respeitada com perfeição entre Kiro e Copilot.
+
+---
+
+## [2026-09-04] Handoff Gemini → GitHub Copilot: Tela de Visualizar (DetailView) do Termo de Parceria (CRUD Completo)
+
+### 1. Objetivo da Tarefa:
+Atender à regra mandatória de **CRUD Completo** de `.agents/AGENTS.md` para as Listas Mestras: implementar a ação e tela de **Visualizar** (`DetailView`) para o `TermoDeParceria`, permitindo inspecionar todos os dados do instrumento, partícipes da Hélice Tríplice (Empresa Concedente, ICT Convenente e Fundação Interveniente) e planos de trabalho associados.
+
+### 2. Escopo Incluído e Excluído:
+- **Incluído:**
+  1. Adicionar `TermoDeParceriaDetailView` em `cadastros/views.py`.
+  2. Adicionar rota `termos-parceria/<int:pk>/visualizar/` em `cadastros/urls.py` (`name='visualizar_termo_parceria'`).
+  3. Adicionar o botão "Visualizar" com ícone `fa-eye` na coluna de Ações de `cadastros/templates/cadastros/termo_parceria_list.html`.
+  4. Criar o template `cadastros/templates/cadastros/termo_parceria_detail.html` no **Padrão Almoxarifado** de `.agents/AGENTS.md` (Breadcrumbs, link Voltar dinâmico `javascript:history.back()`, cabeçalhos `text-center`, cards informativos com os partícipes e vigência).
+- **Excluído:**
+  - NÃO alterar `cadastros/models.py`.
+  - NÃO tocar no wizard `cadastros/templates/cadastros/form_projeto.html`.
+  - NÃO tocar em NENHUM arquivo de `gestao_projetos/` (posse ativa do Kiro).
+
+### 3. Arquivos Liberados:
+- `cadastros/views.py`
+- `cadastros/urls.py`
+- `cadastros/templates/cadastros/termo_parceria_list.html`
+- `cadastros/templates/cadastros/termo_parceria_detail.html` [NOVO]
+
+### 4. Arquivos Proibidos:
+- Todos de `gestao_projetos/*`
+- `cadastros/models.py`
+- `cadastros/templates/cadastros/form_projeto.html`
+
+### 5. Critério de Pronto:
+- `python manage.py check` com 0 erros.
+- Acesso à rota `/cadastros/termos-parceria/` exibindo o botão Visualizar, abrindo a tela de detalhes sem quebras.
+
+---
+
+## [2026-09-04] Execução Financeira (Passo 6 — Atesto SIAPE do RA, SoD e Trava de Congelamento) e Home Geral — Concluídos e Homologados (67/67 Testes OK)
+
+### Resumo da Sessão de Colaboração Multi-IA:
+- **Entrega do Kiro (AWS Bedrock) — Passo 6 da Execução Financeira:**
+  - **Campos de Auditoria no Modelo (`gestao_projetos/models.py`):** Adicionados `atestado_por` (FK `User`), `data_atesto` (DateTimeField) e `siape_atesto` (CharField 20).
+  - **Migração `0004_atesto_siape_relatorio_atividade.py`:** Gerada e aplicada com sucesso.
+  - **View de Homologação (`gestao_projetos/views.py`):** Criada a view `atestar_relatorio(request, relatorio_id)` com validação de servidor efetivo SIAPE (`@servidor_efetivo_required`), trava de Segregação de Funções (SoD) impedindo auto-atesto do próprio bolsista beneficiário e transição de status para `CONCLUIDO`.
+  - **Trava de Congelamento (`alterar_relatorio`):** Bloqueio estrito de qualquer alteração ou upload em relatórios com status `CONCLUIDO`.
+  - **Espelho HTML (`visualizar_relatorio.html`):** Selo formal de homologação eletrônica com nome, matrícula SIAPE, data/hora e parecer do coordenador quando concluído; modal de atesto da coordenação quando pendente; acesso liberado para superusuários.
+  - **Suíte de Testes (`gestao_projetos/tests.py`):** Criada a classe `AtestoSIAPETestCase` com 9 testes automatizados cobrindo todos os fluxos de sucesso, trava de auto-atesto, trava de congelamento e bloqueio sem SIAPE.
+- **Entrega do GitHub Copilot (VS Code) — Home Principal do ARGUS:**
+  - Refatoração de `templates/home_geral.html` aplicando a **Estética de Dashboards** de `.agents/AGENTS.md`: Glassmorphism com `backdrop-filter: blur(10px)`, cores baseadas estritamente em variáveis nativas do Bootstrap (zero cores HEX fixas), microinterações de hover com escala de ícones e elevação dos cards, tipografia responsiva e exibição harmoniosa de títulos e descrições de todos os módulos.
+- **Auditoria Independente do Arquiteto (Gemini):**
+  - Ajuste de compatibilidade em `montar_contexto_relatorio` (`termo.pessoa`).
+  - `python manage.py check`: **0 erros**.
+  - `python manage.py test gestao_projetos cadastros --keepdb`: **67/67 testes passando com 100% de sucesso** em 54.338s.
+  - Zero regressões em dados ou telas legadas. Modelos de `cadastros/models.py` e o wizard permanecem 100% intocados.
+  - Segregação de arquivos respeitada com perfeição entre Kiro e Copilot.
+
+---
+
+## [2026-09-04] Handoff Gemini → GitHub Copilot: Modernização Premium da Home Principal (`templates/home_geral.html`)
+
+### 1. Objetivo da Tarefa:
+Refatorar a tela inicial do sistema (`templates/home_geral.html`) aplicando rigorosamente as diretrizes de **Estética de Dashboards** contidas em `.agents/AGENTS.md`. A tela deve ganhar aspecto profissional, moderno e interativo (Premium).
+
+### 2. Escopo Incluído e Excluído:
+- **Incluído:** Exclusivamente o arquivo de template `templates/home_geral.html` (e bloco `<style>` interno ou classes utilitárias semânticas).
+- **Excluído:** Nenhuma alteração em views, URLs ou models. A view `home_argus` em `argus_core/views.py` permanece intocada.
+
+### 3. Arquivos Liberados:
+- `templates/home_geral.html`
+
+### 4. Arquivos Estritamente Proibidos nesta Sessão:
+- Qualquer arquivo do app `gestao_projetos/` (posse ativa do Kiro no Passo 6);
+- `cadastros/models.py`, `cadastros/views.py` e o wizard `cadastros/templates/cadastros/form_projeto.html`.
+
+### 5. Comportamento e Padrões de UI Esperados (`AGENTS.md`):
+1. **Glassmorphism:** Utilizar cards com fundo translúcido (`rgba(255, 255, 255, 0.85)` a `0.9`) e `backdrop-filter: blur(10px)`.
+2. **Cores Semânticas:** Usar estritamente variáveis do Bootstrap (`var(--bs-primary)`, `var(--bs-danger)`, `rgba(var(--bs-primary-rgb), 0.1)`). É **terminantemente proibido** usar cores hexadecimais fixadas (`#...`) no CSS.
+3. **Microinterações e Hover:** Efeito de hover nos cards (`.cs-card` ou `.modulo-card`) com elevação sutil (`transform: translateY(-4px)` ou `translateY(-6px)`), sombra suave (`box-shadow`) e transição suave no ícone (`transform: scale(1.1)`).
+4. **Fidelidade de Informação:** Exibir com destaque o título do módulo (`modulo.nome`), descrição explicativa (`modulo.descricao`) e botão de ação integrado ao card com estilo outline ou sutil.
+5. **Responsividade:** Grid Bootstrap 5 com espaçamento uniforme (`row g-4 justify-content-center`) e visual fluido.
+
+### 6. Critério de Pronto:
+- `python manage.py check` com 0 erros.
+- Acesso à rota `/` renderizando todos os módulos com os novos efeitos visuais sem quebrar links.
+
+---
+
 ## [2026-09-04] Homologação Oficial da 1ª Entrega do Kiro (AWS Bedrock): Suíte de Property-Based Testing Concluída (22 Testes, 58/58 Globais)
 
 ### Resumo da Entrega e Auditoria Independente (Gemini):

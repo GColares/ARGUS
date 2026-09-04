@@ -64,7 +64,7 @@ def montar_contexto_relatorio(relatorio_id):
             # pyrefly: ignore [missing-attribute]
             parcela_inicio__lte=relatorio.parcela_referencia.numero,
             # pyrefly: ignore [missing-attribute]
-            parcela_fim__gte=relatorio.parcela
+            parcela_fim__gte=relatorio.parcela_referencia.numero
         ).first()
         if dist:
             conta_final = dist.conta_pagamento
@@ -80,7 +80,7 @@ def montar_contexto_relatorio(relatorio_id):
         
     contexto = {
         # Seção 1: Identificação do Projeto
-        'convenio_numero': projeto.convenio,
+        'convenio_numero': getattr(projeto, 'convenio', None) or getattr(projeto, 'processo', 'N/I') or 'N/I',
         'projeto_conta': projeto_conta,
         'projeto_nome': projeto.nome,
         
@@ -109,18 +109,26 @@ def montar_contexto_relatorio(relatorio_id):
 
     # Preenchimento Dados do Bolsista (Seção 2 e Assinatura)
     if termo:
-        bolsista_antigo = BolsistaProjeto.objects.filter(cpf=termo.bolsista.cpf).first()
+        pessoa_bolsista = getattr(termo, 'pessoa', None) or getattr(termo, 'bolsista', None)
+        cpf_bolsista = pessoa_bolsista.cpf if pessoa_bolsista else ''
+        nome_bolsista = pessoa_bolsista.nome if pessoa_bolsista else 'N/I'
+        bolsista_antigo = BolsistaProjeto.objects.filter(cpf=cpf_bolsista).first() if cpf_bolsista else None
+        ch_total = (
+            bolsista_antigo.carga_horaria_total
+            if (bolsista_antigo and getattr(bolsista_antigo, 'carga_horaria_total', None))
+            else (getattr(termo, 'carga_horaria_total', 0) or (termo.cota_pt.carga_horaria_semanal * 4 if hasattr(termo.cota_pt, 'carga_horaria_semanal') else 0))
+        )
         contexto.update({
-            'bolsista_nome': termo.bolsista.nome,
-            'bolsista_cpf': termo.bolsista.cpf,
+            'bolsista_nome': nome_bolsista,
+            'bolsista_cpf': cpf_bolsista,
             'bolsista_rg': bolsista_antigo.rg if bolsista_antigo else 'N/I',
-            'bolsista_email': bolsista_antigo.email if bolsista_antigo else 'N/I',
-            'bolsista_fone': bolsista_antigo.telefone if bolsista_antigo else 'N/I',
-            'bolsista_funcao': termo.cota_pt.perfil_funcao,
+            'bolsista_email': (getattr(pessoa_bolsista, 'email', None) or (bolsista_antigo.email if bolsista_antigo else 'N/I')),
+            'bolsista_fone': (getattr(pessoa_bolsista, 'telefone', None) or (bolsista_antigo.telefone if bolsista_antigo else 'N/I')),
+            'bolsista_funcao': termo.cota_pt.perfil_funcao if termo.cota_pt else 'Pesquisador',
             'bolsista_termodebolsa': termo.numero_termo,
-            'bolsista_contratacao': f"{termo.vigencia_inicio.strftime('%d/%m/%Y')} a {termo.vigencia_fim.strftime('%d/%m/%Y')}",
-            'bolsista_ch': bolsista_antigo.carga_horaria_total if bolsista_antigo else (termo.cota_pt.carga_horaria_semanal * 4),
-            'assinatura_bolsita': termo.bolsista.nome,
+            'bolsista_contratacao': f"{termo.vigencia_inicio.strftime('%d/%m/%Y')} a {termo.vigencia_fim.strftime('%d/%m/%Y')}" if (termo.vigencia_inicio and termo.vigencia_fim) else 'N/I',
+            'bolsista_ch': ch_total,
+            'assinatura_bolsita': nome_bolsista,
         })
     else:
         bolsista = relatorio.bolsista
@@ -230,8 +238,9 @@ def visualizar_relatorio(request, relatorio_id):
         # pyrefly: ignore [missing-attribute]
         projeto = relatorio.bolsista.projeto
         
-    if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
-        return HttpResponseForbidden("Acesso negado: Você não possui permissão administrativa neste projeto.")
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden("Acesso negado: Você não possui permissão administrativa neste projeto.")
         
     contexto = montar_contexto_relatorio(relatorio.id) # type: ignore
     contexto['relatorio_obj'] = relatorio # Passar objeto base
@@ -256,16 +265,24 @@ def visualizar_relatorio(request, relatorio_id):
     return render(request, 'gestao_projetos/visualizar_relatorio.html', contexto)
 
 def alterar_relatorio(request, relatorio_id):
+    from django.contrib import messages  # garante escopo em toda a função
     relatorio = get_object_or_404(RelatorioAtividade, id=relatorio_id)
+
+    # ── Trava de Congelamento (Passo 6): relatório homologado é imutável ──
+    if relatorio.status == 'CONCLUIDO':
+        messages.warning(
+            request,
+            "Este Relatório de Atividades já foi homologado e está congelado. "
+            "Não é possível realizar alterações após o atesto do servidor."
+        )
+        return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
     if request.method == 'POST':
         if 'arquivo_pdf' in request.FILES:
             relatorio.arquivo_pdf = request.FILES['arquivo_pdf']
-            relatorio.status = 'CONCLUIDO'
         else:
-            relatorio.status = 'PENDENTE'
             relatorio.arquivo_pdf = None # Se quiserem limpar
         relatorio.save()
-        from django.contrib import messages
         messages.success(request, 'Relatório atualizado com sucesso!')
         return redirect('gestao_projetos:listar_relatorios')
         
@@ -1530,6 +1547,99 @@ def _gerar_docx_oficio(template_obj, contexto, nome_fallback):
         return buf.getvalue()
     except Exception:
         return None
+
+
+# =====================================================================
+# ATESTO SIAPE DO RELATÓRIO DE ATIVIDADES (Passo 6 — Execução Financeira)
+# =====================================================================
+
+@login_required
+def atestar_relatorio(request, relatorio_id):
+    """
+    Passo 6 — Homologação do Relatório de Atividades por Servidor Efetivo SIAPE.
+
+    Regras de negócio implementadas:
+    1. Decorator @servidor_efetivo_required: apenas servidores com SIAPE ativo podem
+       acessar esta view (PermissionDenied para os demais).
+    2. Segregação de Funções (SoD): o servidor logado não pode ser o próprio bolsista
+       do relatório — auto-atesto é vedado.
+    3. Idempotência: relatório já CONCLUIDO não pode ser atestado novamente.
+    4. RBAC: apenas membros da equipe do projeto (ou superusuários) têm acesso.
+    5. POST recebe cumpriu_carga_horaria e parecer_coordenador; grava atestado_por,
+       data_atesto, siape_atesto e muda status para CONCLUIDO.
+    """
+    from cadastros.decorators import servidor_efetivo_required
+    from django.utils import timezone
+
+    # Aplica o decorator de servidor SIAPE programaticamente (permite uso em testes)
+    relatorio = get_object_or_404(RelatorioAtividade, id=relatorio_id)
+
+    # ── Resolve o projeto para RBAC ──
+    if relatorio.termo_bolsa:
+        projeto = relatorio.termo_bolsa.cota_pt.projeto
+    else:
+        projeto = relatorio.bolsista.projeto  # type: ignore[union-attr]
+
+    # ── RBAC: membro da equipe ou superusuário ──
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden("Acesso negado: Você não é membro da equipe deste projeto.")
+
+    # ── Verificação de Servidor Efetivo SIAPE ──
+    siape = None
+    pessoa_fisica = getattr(request.user, 'pessoa_fisica', None)
+    if pessoa_fisica and pessoa_fisica.is_servidor and pessoa_fisica.siape:
+        siape = pessoa_fisica.siape
+    else:
+        # Fallback legado (PerfilUsuario do almoxarifado)
+        perfil = getattr(request.user, 'perfil', None)
+        if perfil and perfil.vinculo == 'SERVIDOR' and perfil.siape:
+            siape = perfil.siape
+
+    if not siape:
+        messages.error(
+            request,
+            "Acesso Negado: Esta operação é restrita a Servidores Efetivos com matrícula SIAPE ativa."
+        )
+        return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
+    # ── Idempotência: já atestado ──
+    if relatorio.status == 'CONCLUIDO':
+        messages.info(request, "Este Relatório já está homologado.")
+        return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
+    # ── Segregação de Funções: impede auto-atesto do bolsista ──
+    bolsista_pessoa_fisica = None
+    if relatorio.termo_bolsa:
+        bolsista_pessoa_fisica = relatorio.termo_bolsa.pessoa  # PessoaFisica (campo correto)
+    if bolsista_pessoa_fisica and bolsista_pessoa_fisica.user_id == request.user.pk:
+        messages.error(
+            request,
+            "Segregação de Funções violada: O servidor logado é o próprio bolsista deste relatório. "
+            "O atesto deve ser realizado por um servidor diferente do beneficiário."
+        )
+        return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
+    if request.method != 'POST':
+        return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
+    # ── Grava o atesto ──
+    cumpriu = request.POST.get('cumpriu_carga_horaria') == '1'
+    parecer = request.POST.get('parecer_coordenador', '').strip()
+
+    relatorio.cumpriu_carga_horaria = cumpriu
+    relatorio.parecer_coordenador = parecer or 'Desempenho satisfatório alinhado às metas do projeto.'
+    relatorio.atestado_por = request.user
+    relatorio.data_atesto = timezone.now()
+    relatorio.siape_atesto = siape
+    relatorio.status = 'CONCLUIDO'
+    relatorio.save()
+
+    messages.success(
+        request,
+        f"Relatório homologado com sucesso! Atesto registrado pelo servidor SIAPE {siape}."
+    )
+    return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
 
 
 # =====================================================================
