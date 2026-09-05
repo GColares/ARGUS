@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+import hashlib
 
 from django.contrib.auth.models import User
 from django.test import TestCase, Client, override_settings
@@ -198,6 +199,105 @@ class FolhaPagamentoTestCase(TestCase):
             any('confirmado com sucesso' in str(m) for m in msgs),
             "Esperava mensagem de confirmação de pagamento"
         )
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class ReciboBolsaExtratoTestCase(TestCase):
+    """Testa emissão, autenticidade e controle de acesso do recibo de bolsa."""
+
+    def setUp(self):
+        self.bolsista_user = User.objects.create_user(
+            username='bolsista_recibo',
+            password='senha123'
+        )
+        self.terceiro_user = User.objects.create_user(
+            username='terceiro_recibo',
+            password='senha123'
+        )
+        empresa = EmpresaParceira.objects.create(
+            nome="Empresa Recibo LTDA",
+            cnpj="77.888.999/0001-00",
+            natureza_juridica="LTDA",
+            representante_legal="Rep Recibo",
+            cargo_representante="Diretor"
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Recibo Teste",
+            fase="EXECUCAO",
+            concedente=empresa
+        )
+        self.pessoa = PessoaFisica.objects.create(
+            nome="Bolsista Recibo",
+            cpf="222.333.444-55",
+            user=self.bolsista_user
+        )
+        DadoBancario.objects.create(
+            pessoa=self.pessoa,
+            finalidade='PAGAMENTO_BOLSA',
+            banco_codigo='001',
+            agencia='1234',
+            conta='56789-0',
+            ativo=True
+        )
+        cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao="Pesquisador",
+            quantidade_vagas=1,
+            parcelas_previstas=1,
+            valor_global_previsto=Decimal("1500.00")
+        )
+        termo = TermoBolsa.objects.create(
+            cota_pt=cota,
+            pessoa=self.pessoa,
+            numero_termo="TB-RECIBO-001",
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 9, 30),
+            quantidade_parcelas=1,
+            valor_parcela=Decimal("1500.00")
+        )
+        self.parcela = termo.parcelas.get(numero=1)
+        self.parcela.status = 'PAGO'
+        self.parcela.data_pagamento = date(2026, 9, 30)
+        self.parcela.save()
+        self.url = reverse(
+            'gestao_projetos:visualizar_recibo_bolsa',
+            args=[self.parcela.id]
+        )
+
+    def test_bolsista_titular_visualiza_recibo_com_hash(self):
+        self.client.login(username='bolsista_recibo', password='senha123')
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        esperado = hashlib.sha256(
+            f"{self.parcela.id}-{self.parcela.data_pagamento}-"
+            f"{self.parcela.valor}-{self.pessoa.cpf}".encode()
+        ).hexdigest()[:16].upper()
+        self.assertEqual(response.context['hash_doc'], esperado)
+        self.assertContains(response, esperado)
+
+    def test_terceiro_recebe_forbidden(self):
+        self.client.login(username='terceiro_recibo', password='senha123')
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_parcela_nao_paga_redireciona_para_folha(self):
+        self.parcela.status = 'PENDENTE'
+        self.parcela.save()
+        self.client.login(username='bolsista_recibo', password='senha123')
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('folha-pagamento', response.url)
 
 
 from gestao_projetos.models import TemplateDocumentoConveniar, OficioSolicitacao

@@ -325,6 +325,10 @@
                                         </button>
                                     {% endif %}
                                 {% elif linha.parcela.status == 'PAGO' %}
+                                    <a href="{% url 'gestao_projetos:visualizar_recibo_bolsa' linha.parcela.id %}" target="_blank"
+                                       class="btn btn-sm btn-outline-secondary" title="Imprimir Recibo">
+                                        <i class="fas fa-file-invoice"></i>
+                                    </a>
                                     {% if linha.parcela.comprovante_pagamento %}
                                         <a href="{{ linha.parcela.comprovante_pagamento.url }}" target="_blank"
                                            class="btn btn-sm btn-outline-secondary">

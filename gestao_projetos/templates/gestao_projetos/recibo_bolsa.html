@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{# ── Estilos de impressão ────────────────────────────────────────────── #}
+<style>
+@media print {
+    /* Oculta elementos de navegação e ação ao imprimir */
+    .no-print,
+    nav.breadcrumb,
+    .breadcrumb,
+    .navbar,
+    .sidebar,
+    footer,
+    .footer-institucional,
+    .btn-imprimir-wrapper { display: none !important; }
+
+    body { background: #fff !important; }
+    .recibo-card { box-shadow: none !important; border: 1px solid #aaa !important; }
+    .recibo-selo { border: 2px solid #198754 !important; }
+}
+
+/* Espaçamento da área de impressão */
+.recibo-card {
+    max-width: 860px;
+    margin: 0 auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+}
+.recibo-timbrado {
+    border-bottom: 3px solid #1a5276;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+.recibo-titulo {
+    letter-spacing: 0.06em;
+    font-size: 1.1rem;
+}
+.recibo-secao th {
+    background-color: #f8f9fa;
+    width: 38%;
+    vertical-align: middle;
+}
+.recibo-secao td {
+    vertical-align: middle;
+}
+.recibo-selo {
+    background: #f0fdf4;
+    border: 2px dashed #198754;
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+}
+.recibo-assinatura-linha {
+    border-top: 1px solid #333;
+    width: 280px;
+    margin: 0 auto;
+}
+</style>
+
+{# ── Ações (ocultas na impressão) ──────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'gestao_projetos:home_gestao_projetos' %}">Gestão de Projetos</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'gestao_projetos:folha_mensal_pagamentos' %}?projeto_id={{ projeto.id }}">Folha de Pagamentos</a>
+                </li>
+                <li class="breadcrumb-item active">Recibo de Pagamento</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold mt-1 mb-0">
+            <i class="fas fa-file-invoice-dollar text-success me-2"></i>Recibo de Pagamento de Bolsa
+        </h4>
+    </div>
+    <div class="btn-imprimir-wrapper d-flex gap-2">
+        <a href="{% url 'gestao_projetos:folha_mensal_pagamentos' %}?projeto_id={{ projeto.id }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Voltar
+        </a>
+        <button type="button" class="btn btn-success btn-sm fw-bold" onclick="window.print()">
+            <i class="fas fa-print me-1"></i>Imprimir / Salvar PDF
+        </button>
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════
+   RECIBO — Documento principal
+══════════════════════════════════════════════════════════════════════ #}
+<div class="recibo-card shadow-sm bg-white p-4 p-md-5 mb-5">
+
+    {# ── Timbrado Institucional ── #}
+    <div class="recibo-timbrado text-center">
+        <p class="mb-0 small text-muted fw-semibold text-uppercase" style="letter-spacing:0.08em;">
+            Instituto Federal de Educação, Ciência e Tecnologia do Amazonas — IFAM
+        </p>
+        <p class="mb-0 small text-muted" style="letter-spacing:0.05em;">
+            Polo de Inovação de Manaus &bull; Unidade Credenciada EMBRAPII
+        </p>
+        <p class="mb-0 small text-muted">
+            CNPJ: 10.774.090/0001-75 &bull; Av. Governador Danilo de Matos Areosa, 1672 — Manaus/AM
+        </p>
+    </div>
+
+    {# ── Título ── #}
+    <div class="text-center mb-4">
+        <h5 class="recibo-titulo fw-bold text-uppercase text-dark">
+            Recibo Oficial de Pagamento de Bolsa de Pesquisa
+        </h5>
+        <p class="text-muted small mb-0">
+            Documento emitido eletronicamente pelo Sistema ARGUS em
+            {{ data_emissao|date:"d \d\e F \d\e Y" }}
+        </p>
+    </div>
+
+    {# ── Nº do Recibo ── #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <span class="badge bg-secondary fs-6 px-3 py-2">
+            Parcela Nº {{ parcela.numero }} / {{ termo.quantidade_parcelas }}
+        </span>
+        <span class="badge bg-success fs-6 px-3 py-2">
+            <i class="fas fa-check-circle me-1"></i>PAGO / LIQUIDADO
+        </span>
+    </div>
+
+    {# ── Seção 1: Identificação do Projeto ── #}
+    <h6 class="fw-bold text-uppercase border-bottom pb-2 mb-3 text-primary small">
+        <i class="fas fa-project-diagram me-1"></i>1. Identificação do Projeto
+    </h6>
+    <table class="table table-bordered table-sm recibo-secao mb-4" style="font-size:0.9rem;">
+        <tbody>
+            <tr>
+                <th>Projeto PDI</th>
+                <td colspan="3">{{ projeto.nome }}</td>
+            </tr>
+            <tr>
+                <th>Sigla / Código</th>
+                <td>{{ projeto.projeto|default:"—" }}</td>
+                <th>Processo IFAM</th>
+                <td>{{ projeto.processo|default:"—" }}</td>
+            </tr>
+            <tr>
+                <th>Concedente / Empresa</th>
+                <td>{{ projeto.concedente|default:"—" }}</td>
+                <th>Fase</th>
+                <td>{{ projeto.get_fase_display }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {# ── Seção 2: Identificação do Bolsista ── #}
+    <h6 class="fw-bold text-uppercase border-bottom pb-2 mb-3 text-primary small">
+        <i class="fas fa-user-graduate me-1"></i>2. Identificação do Bolsista / Pesquisador
+    </h6>
+    <table class="table table-bordered table-sm recibo-secao mb-4" style="font-size:0.9rem;">
+        <tbody>
+            <tr>
+                <th>Nome Completo</th>
+                <td colspan="3"><strong>{{ pessoa.nome|default:"—" }}</strong></td>
+            </tr>
+            <tr>
+                <th>CPF</th>
+                <td>{{ pessoa.cpf|default:"—" }}</td>
+                <th>Perfil / Função</th>
+                <td>{{ cota.perfil_funcao|default:"—" }}</td>
+            </tr>
+            <tr>
+                <th>Termo de Bolsa Nº</th>
+                <td>{{ termo.numero_termo }}</td>
+                <th>Modalidade</th>
+                <td>{{ termo.get_modalidade_bolsa_display|default:"—" }}</td>
+            </tr>
+            <tr>
+                <th>Vigência</th>
+                <td colspan="3">
+                    {{ termo.vigencia_inicio|date:"d/m/Y" }} a {{ termo.vigencia_fim|date:"d/m/Y" }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    {# ── Seção 3: Dados Financeiros da Parcela ── #}
+    <h6 class="fw-bold text-uppercase border-bottom pb-2 mb-3 text-primary small">
+        <i class="fas fa-coins me-1"></i>3. Dados Financeiros da Parcela
+    </h6>
+    <table class="table table-bordered table-sm recibo-secao mb-4" style="font-size:0.9rem;">
+        <tbody>
+            <tr>
+                <th>Competência</th>
+                <td>
+                    {% if parcela.mes_competencia %}
+                        {{ parcela.mes_competencia|date:"F \d\e Y" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <th>Parcela Nº</th>
+                <td class="fw-bold">{{ parcela.numero }} / {{ termo.quantidade_parcelas }}</td>
+            </tr>
+            <tr>
+                <th>Valor Nominal</th>
+                <td class="fw-bold text-success fs-6">
+                    R$ {{ parcela.valor|floatformat:2 }}
+                </td>
+                <th>Data do Pagamento</th>
+                <td class="fw-bold">
+                    {{ parcela.data_pagamento|date:"d/m/Y"|default:"—" }}
+                </td>
+            </tr>
+            {% if parcela.conta_pagamento %}
+            <tr>
+                <th>Conta Pagadora</th>
+                <td colspan="3">
+                    {{ parcela.conta_pagamento.fonte_recurso|default:"—" }} —
+                    {{ parcela.conta_pagamento.banco }}
+                    Ag: {{ parcela.conta_pagamento.agencia }}
+                    CC: {{ parcela.conta_pagamento.conta }}-{{ parcela.conta_pagamento.dv }}
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    {# ── Seção 4: Conta de Crédito do Bolsista ── #}
+    <h6 class="fw-bold text-uppercase border-bottom pb-2 mb-3 text-primary small">
+        <i class="fas fa-university me-1"></i>4. Conta de Crédito do Bolsista
+    </h6>
+    {% if dado_bancario %}
+    <table class="table table-bordered table-sm recibo-secao mb-4" style="font-size:0.9rem;">
+        <tbody>
+            <tr>
+                <th>Banco (Código)</th>
+                <td>{{ dado_bancario.banco_codigo }}</td>
+                <th>Agência</th>
+                <td>{{ dado_bancario.agencia }}</td>
+            </tr>
+            <tr>
+                <th>Conta Corrente</th>
+                <td>{{ dado_bancario.conta }}</td>
+                <th>Chave PIX</th>
+                <td>{{ dado_bancario.chave_pix|default:"—" }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-warning small mb-4">
+        <i class="fas fa-exclamation-triangle me-1"></i>
+        Dados bancários do bolsista não cadastrados no sistema.
+    </div>
+    {% endif %}
+
+    {# ── Seção 5: Carimbo de Autenticidade SHA-256 ── #}
+    <div class="recibo-selo mt-4 mb-5">
+        <div class="d-flex align-items-start gap-3">
+            <div class="text-success mt-1">
+                <i class="fas fa-shield-alt fa-2x"></i>
+            </div>
+            <div>
+                <p class="mb-1 fw-bold text-success small text-uppercase">
+                    Código de Autenticidade Digital (SHA-256)
+                </p>
+                <p class="mb-1 font-monospace fw-bold fs-5 text-dark" style="letter-spacing:0.12em;">
+                    {{ chave_autenticidade }}
+                </p>
+                <p class="mb-0 text-muted" style="font-size:0.78rem;">
+                    Este código é gerado a partir dos dados imutáveis da parcela (ID, data, valor e CPF do
+                    beneficiário) usando o algoritmo SHA-256. Qualquer adulteração nos dados invalida a chave.
+                    <br>Emitido em: {{ data_emissao|date:"d/m/Y" }} &bull; Sistema ARGUS / Polo de Inovação IFAM.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {# ── Área de Assinaturas ── #}
+    <div class="row mt-5 pt-3">
+        <div class="col-md-5 text-center mb-4 mb-md-0">
+            <div class="recibo-assinatura-linha mb-2"></div>
+            <p class="mb-0 small fw-bold">{{ pessoa.nome|default:"Bolsista" }}</p>
+            <p class="text-muted" style="font-size:0.78rem;">
+                CPF: {{ pessoa.cpf|default:"—" }}<br>
+                Bolsista / Pesquisador
+            </p>
+        </div>
+        <div class="col-md-2"></div>
+        <div class="col-md-5 text-center">
+            <div class="recibo-assinatura-linha mb-2"></div>
+            <p class="mb-0 small fw-bold">
+                {% if projeto.coordenador %}{{ projeto.coordenador.nome }}{% else %}Coordenador do Projeto{% endif %}
+            </p>
+            <p class="text-muted" style="font-size:0.78rem;">
+                {% if projeto.coordenador %}
+                    CPF: {{ projeto.coordenador.cpf|default:"—" }}<br>
+                {% endif %}
+                Coordenador do Projeto
+            </p>
+        </div>
+    </div>
+
+</div>{# /recibo-card #}
+
+{% endblock %}

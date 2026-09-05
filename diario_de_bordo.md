@@ -3,28 +3,23 @@
 ## [2026-09-04] Homologação das Entregas do Squad: Cadastros, Execução Financeira (Passo 7) e Documentação Técnica
 
 ### 1. Entregas Homologadas:
-- **GitHub Copilot (Cadastros & UI):**
-  - Conformidade de CRUD Completo em `TermoDeParceria`: adicionada gaveta colapsável de Filtros Avançados (`data-bs-toggle="collapse"`) em `cadastros/templates/cadastros/termo_parceria_list.html` seguindo o Padrão Almoxarifado.
-  - Faxina de cabeçalhos DataTables: centralizados com `text-center` os cabeçalhos de `listar_fontes_recurso.html`, `listar_pessoas_fisicas.html` e `listar_processos_global.html`.
+- **GitHub Copilot (Assumindo Frente Unificada de Implementação):**
+  - **Passo 8 da Execução Financeira (`gestao_projetos`):** View `visualizar_recibo_bolsa` com travas de status (`PAGO`), RBAC estrito (apenas titular, coordenador ou superusuário), hash de autenticidade SHA-256 e template `recibo_bolsa.html` pronto para impressão A4. Botão na folha mensal e suíte `ReciboBolsaExtratoTestCase` (3 testes OK).
+  - **Conformidade de CRUD Completo em Pessoa Jurídica (`cadastros`):** Criada `PessoaJuridicaDetailView`, rota `visualizar_pessoa_juridica`, template `pessoa_juridica_detail.html` no Padrão Almoxarifado e botões "Visualizar" em todas as abas de `listar_pessoas_juridicas.html`.
+  - **Conformidade de CRUD em Termos de Parceria:** Gaveta colapsável de Filtros Avançados (`termo_parceria_list.html`) e `SuccessMessageMixin` nas CBVs.
+  - **Faxina de cabeçalhos DataTables:** `text-center` em `listar_fontes_recurso.html`, `listar_pessoas_fisicas.html` e `listar_processos_global.html`.
 - **Kiro (AWS Bedrock / Gestão Financeira - Passo 7):**
-  - View `liquidar_folha_lote` com transação atômica, baixa em lote de parcelas de bolsas, upload de comprovante de transferência consolidado e trava fail-fast de RA concluído com atesto SIAPE.
-  - Interface em `folha_pagamento_mensal.html` com checkboxes individuais, checkbox mestre de aptas e modal de liquidação em lote.
-  - Rota `projeto/<int:projeto_id>/folha/liquidar-lote/` em `gestao_projetos/urls.py`.
-  - Suíte `LiquidacaoFolhaLoteTestCase` com 10 testes de integração passando 100%.
+  - View `liquidar_folha_lote` com transação atômica, baixa em lote de parcelas de bolsas, upload de comprovante de transferência consolidado e trava fail-fast de RA concluído com atesto SIAPE. Interface e 10 testes de integração em `LiquidacaoFolhaLoteTestCase`.
 - **Antigravity-Gemini (Arquitetura & Documentação Técnica):**
-  - Criação da pasta oficial `documentacao-tecnica/` com 5 artefatos de engenharia de software em Markdown e diagramas Mermaid nativos:
-    * `README.md`: Sumário executivo e guia de renderização dos diagramas.
-    * `01_ESPECIFICACAO_REQUISITOS.md`: SRS completo com Requisitos Funcionais (RF), Não-Funcionais (RNF), Regras Legais (Lei 10.973, SUFRAMA, EMBRAPII) e Matriz de Rastreabilidade.
-    * `02_MER_BANCO_DE_DADOS.md`: Modelo Entidade-Relacionamento visual (ERD Mermaid) e dicionário de dados dos núcleos de Governança, Hélice Tríplice, LGPD Party-Role, Plano de Trabalho e Espaços.
-    * `03_ARQUITETURA_E_UML.md`: Diagrama de Classes, Diagramas de Máquinas de Estados (Ciclo PDI e Parcela/RA) e Diagramas de Sequência (SoD e Liquidação FAEPI).
-    * `04_MATRIZ_RBAC_E_GOVERNANCA.md`: Matriz RACI de Operações Críticas e catálogo de perfis normativos do Polo IFAM.
-  - Atualização do `PROTOCOLO_COLABORACAO_IA.md` com o diagrama de fluxo de trabalho do Squad.
-  - Correção cirúrgica de redirecionamento em `gestao_projetos/views.py`.
+  - Criação da pasta oficial `documentacao-tecnica/` com 5 artefatos formais (SRS, MER, UML, RBAC e README).
+  - Atualização do `PROTOCOLO_COLABORACAO_IA.md` com diagrama do Squad.
+  - Alinhamento tático de cota: preservação da reserva técnica do Kiro e unificação de execução no Copilot.
 
 ### 2. Auditoria e Qualidade:
 - `python manage.py check`: 0 erros (0 silenciados).
-- Testes automatizados de `cadastros`: 25/25 testes OK (100% de aprovação).
-- Testes de integração de liquidação de bolsas (`LiquidacaoFolhaLoteTestCase`): 10/10 testes OK (100% de aprovação).
+- Testes de `cadastros`: 25/25 testes OK (100%).
+- Testes do Passo 7 (`LiquidacaoFolhaLoteTestCase`): 10/10 testes OK (100%).
+- Testes do Passo 8 (`ReciboBolsaExtratoTestCase`): 3/3 testes OK (100%).
 
 ---
 

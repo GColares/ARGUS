@@ -102,6 +102,7 @@
                                     <td class="text-center">{{ pj.cnpj }}</td>
                                     <td class="text-center">{{ pj.natureza_juridica }}</td>
                                     <td class="text-center">
+                                        <a href="{% url 'cadastros:visualizar_pessoa_juridica' pj.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
                                         <a href="{% url 'cadastros:editar_pessoa_juridica' pj.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
@@ -141,6 +142,7 @@
                                     <td class="text-center">{{ empresa.get_porte_display|default:"-" }}</td>
                                     <td class="text-center">{{ empresa.segmento_atuacao|default:"-" }}</td>
                                     <td class="text-center">
+                                        <a href="{% url 'cadastros:visualizar_pessoa_juridica' empresa.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
                                         <a href="{% url 'cadastros:editar_pessoa_juridica' empresa.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
                                         <a href="{% url 'cadastros:excluir_pessoa_juridica' empresa.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
                                     </td>
@@ -182,6 +184,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-center">
+                                        <a href="{% url 'cadastros:visualizar_pessoa_juridica' ict.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
                                         <a href="{% url 'cadastros:editar_pessoa_juridica' ict.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
                                         <a href="{% url 'cadastros:excluir_pessoa_juridica' ict.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
                                     </td>
@@ -222,6 +225,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-center">
+                                        <a href="{% url 'cadastros:visualizar_pessoa_juridica' f.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
                                         <a href="{% url 'cadastros:editar_pessoa_juridica' f.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
                                         <a href="{% url 'cadastros:excluir_pessoa_juridica' f.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
                                     </td>
@@ -257,6 +261,7 @@
                                     <td class="text-center">{{ a.cnpj }}</td>
                                     <td class="text-center">{{ a.get_esfera_display|default:"-" }}</td>
                                     <td class="text-center">
+                                        <a href="{% url 'cadastros:visualizar_pessoa_juridica' a.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
                                         <a href="{% url 'cadastros:editar_pessoa_juridica' a.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
                                         <a href="{% url 'cadastros:excluir_pessoa_juridica' a.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
                                     </td>
@@ -292,6 +297,7 @@
                                     <td class="text-center">{{ forn.cnpj }}</td>
                                     <td class="text-center">{{ forn.email|default:"-" }}</td>
                                     <td class="text-center">
+                                        <a href="{% url 'cadastros:visualizar_pessoa_juridica' forn.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
                                         <a href="{% url 'cadastros:editar_pessoa_juridica' forn.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
                                         <a href="{% url 'cadastros:excluir_pessoa_juridica' forn.id %}" class="btn btn-sm btn-outline-danger ms-1" title="Excluir"><i class="fas fa-trash-alt"></i></a>
                                     </td>

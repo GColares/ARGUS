@@ -41,6 +41,7 @@ urlpatterns = [
     path('pessoas-fisicas/<int:id>/excluir/', views.excluir_pessoa_fisica, name='excluir_pessoa_fisica'),
     path('pessoas-juridicas/', views.listar_pessoas_juridicas, name='listar_pessoas_juridicas'),
     path('pessoas-juridicas/nova/', views.cadastrar_pessoa_juridica, name='cadastrar_pessoa_juridica'),
+    path('pessoas-juridicas/<int:pk>/visualizar/', views.PessoaJuridicaDetailView.as_view(), name='visualizar_pessoa_juridica'),
     path('pessoas-juridicas/<int:id>/editar/', views.editar_pessoa_juridica, name='editar_pessoa_juridica'),
     path('pessoas-juridicas/<int:id>/excluir/', views.excluir_pessoa_juridica, name='excluir_pessoa_juridica'),
     path('processos/', views.listar_processos_global, name='listar_processos_global'),

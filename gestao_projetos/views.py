@@ -1834,3 +1834,102 @@ def _redirect_folha_lote(projeto_id):
     from django.urls import reverse as _reverse
     url = _reverse('gestao_projetos:folha_mensal_pagamentos')
     return redirect(f"{url}?projeto_id={projeto_id}")
+
+
+# =====================================================================
+# RECIBO INDIVIDUAL DE PAGAMENTO DE BOLSA (Passo 8)
+# =====================================================================
+
+@login_required
+def visualizar_recibo_bolsa(request, parcela_id):
+    """
+    Passo 8 — Emissão do Recibo Individual de Pagamento de Bolsa.
+
+    Regras de negócio:
+    1. Trava de Status: apenas parcelas com status='PAGO' geram recibo.
+       Parcelas PENDENTE/EM_ANALISE/APROVADO/CANCELADO são rejeitadas com
+       mensagem de erro e redirecionamento para a folha.
+    2. RBAC triplo:
+       a) Bolsista titular: parcela.termo_bolsa.pessoa.user_id == request.user.id
+       b) Coordenador do projeto: projeto.coordenador.user_id == request.user.id
+       c) Superusuário: bypass total
+       d) Qualquer outro: 403 Forbidden
+    3. Chave de autenticidade SHA-256 (16 hex upper): blindagem documental.
+    4. Dados bancários ativos do bolsista são injetados no contexto.
+    """
+    import hashlib
+    from cadastros.models import Parcela
+
+    parcela = get_object_or_404(
+        Parcela.objects.select_related(
+            'termo_bolsa__pessoa__user',
+            'termo_bolsa__cota_pt__projeto__coordenador__user',
+            'conta_pagamento',
+        ),
+        id=parcela_id,
+    )
+
+    projeto = parcela.termo_bolsa.cota_pt.projeto
+    pessoa = parcela.termo_bolsa.pessoa
+
+    # ── Trava de Status ──
+    if parcela.status != 'PAGO':
+        messages.error(
+            request,
+            f"O recibo só pode ser emitido para parcelas liquidadas. "
+            f"Esta parcela está com status: {parcela.get_status_display()}."
+        )
+        mes_ano = parcela.mes_competencia.strftime('%Y-%m') if parcela.mes_competencia else date.today().strftime('%Y-%m')
+        from django.urls import reverse as _r
+        return redirect(
+            f"{_r('gestao_projetos:folha_mensal_pagamentos')}?projeto_id={projeto.id}&mes_ano={mes_ano}"
+        )
+
+    # ── RBAC triplo ──
+    if not request.user.is_superuser:
+        e_bolsista_titular = (
+            pessoa is not None
+            and pessoa.user_id is not None
+            and pessoa.user_id == request.user.id
+        )
+        e_coordenador = (
+            projeto.coordenador is not None
+            and projeto.coordenador.user_id is not None
+            and projeto.coordenador.user_id == request.user.id
+        )
+        if not e_bolsista_titular and not e_coordenador:
+            return HttpResponseForbidden(
+                "Acesso negado: O recibo de pagamento só pode ser acessado pelo "
+                "bolsista titular, pelo coordenador do projeto ou por administradores."
+            )
+
+    # ── Dados bancários do bolsista ──
+    dado_bancario = None
+    if pessoa:
+        dado_bancario = (
+            pessoa.dados_bancarios.filter(finalidade='PAGAMENTO_BOLSA', ativo=True).first()
+            or pessoa.dados_bancarios.filter(ativo=True).first()
+        )
+
+    # ── Gera chave de autenticidade SHA-256 ──
+    cpf_raw = pessoa.cpf if pessoa else 'sem-cpf'
+    payload = (
+        f"{parcela.id}-"
+        f"{parcela.data_pagamento}-"
+        f"{parcela.valor}-"
+        f"{cpf_raw}"
+    )
+    chave_autenticidade = hashlib.sha256(payload.encode()).hexdigest()[:16].upper()
+
+    contexto = {
+        'parcela': parcela,
+        'termo': parcela.termo_bolsa,
+        'pessoa': pessoa,
+        'projeto': projeto,
+        'cota': parcela.termo_bolsa.cota_pt,
+        'dado_bancario': dado_bancario,
+        'chave_autenticidade': chave_autenticidade,
+        'hash_doc': chave_autenticidade,
+        'data_emissao': date.today(),
+    }
+    return render(request, 'gestao_projetos/recibo_bolsa.html', contexto)

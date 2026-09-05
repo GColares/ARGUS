@@ -6,7 +6,8 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from .models import Fornecedor, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa
+from django.db.models import Q
+from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa
 from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -39,6 +40,33 @@ def listar_pessoas_juridicas(request):
         'agencias': agencias,
     }
     return render(request, 'cadastros/listar_pessoas_juridicas.html', context)
+
+class PessoaJuridicaDetailView(LoginRequiredMixin, DetailView):
+    model = PessoaJuridica
+    template_name = 'cadastros/pessoa_juridica_detail.html'
+    context_object_name = 'pj'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        child = self.object.get_child()
+        context['subtipo'] = child._meta.verbose_name
+        context['entidade'] = child
+
+        projetos = Q(concedente=self.object)
+        termos = Q(concedente=self.object)
+        if isinstance(child, ICT):
+            projetos |= Q(convenente=child)
+            termos |= Q(convenente=child)
+        elif isinstance(child, FundacaoApoio):
+            projetos |= Q(interveniente=child)
+            termos |= Q(interveniente=child)
+
+        context['projetos_vinculados'] = ProjetoPDI.objects.filter(projetos).distinct()
+        context['termos_vinculados'] = TermoDeParceria.objects.filter(termos).distinct()
+        context['termos_cooperacao_vinculados'] = TermoCooperacao.objects.filter(
+            Q(concedente=self.object) | Q(convenente=child)
+        ).distinct()
+        return context
 
 @login_required
 def listar_processos_global(request):

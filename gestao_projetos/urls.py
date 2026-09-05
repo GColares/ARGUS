@@ -52,4 +52,7 @@ urlpatterns = [
 
     # Liquidação e Baixa em Lote da Folha de Bolsas (Passo 7)
     path('projeto/<int:projeto_id>/folha/liquidar-lote/', views.liquidar_folha_lote, name='liquidar_folha_lote'),
+
+    # Recibo Individual de Pagamento de Bolsa (Passo 8)
+    path('parcela/<int:parcela_id>/recibo/', views.visualizar_recibo_bolsa, name='visualizar_recibo_bolsa'),
 ]
