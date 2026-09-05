@@ -1,5 +1,154 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-04] Homologação das Entregas do Squad: Cadastros, Execução Financeira (Passo 7) e Documentação Técnica
+
+### 1. Entregas Homologadas:
+- **GitHub Copilot (Cadastros & UI):**
+  - Conformidade de CRUD Completo em `TermoDeParceria`: adicionada gaveta colapsável de Filtros Avançados (`data-bs-toggle="collapse"`) em `cadastros/templates/cadastros/termo_parceria_list.html` seguindo o Padrão Almoxarifado.
+  - Faxina de cabeçalhos DataTables: centralizados com `text-center` os cabeçalhos de `listar_fontes_recurso.html`, `listar_pessoas_fisicas.html` e `listar_processos_global.html`.
+- **Kiro (AWS Bedrock / Gestão Financeira - Passo 7):**
+  - View `liquidar_folha_lote` com transação atômica, baixa em lote de parcelas de bolsas, upload de comprovante de transferência consolidado e trava fail-fast de RA concluído com atesto SIAPE.
+  - Interface em `folha_pagamento_mensal.html` com checkboxes individuais, checkbox mestre de aptas e modal de liquidação em lote.
+  - Rota `projeto/<int:projeto_id>/folha/liquidar-lote/` em `gestao_projetos/urls.py`.
+  - Suíte `LiquidacaoFolhaLoteTestCase` com 10 testes de integração passando 100%.
+- **Antigravity-Gemini (Arquitetura & Documentação Técnica):**
+  - Criação da pasta oficial `documentacao-tecnica/` com 5 artefatos de engenharia de software em Markdown e diagramas Mermaid nativos:
+    * `README.md`: Sumário executivo e guia de renderização dos diagramas.
+    * `01_ESPECIFICACAO_REQUISITOS.md`: SRS completo com Requisitos Funcionais (RF), Não-Funcionais (RNF), Regras Legais (Lei 10.973, SUFRAMA, EMBRAPII) e Matriz de Rastreabilidade.
+    * `02_MER_BANCO_DE_DADOS.md`: Modelo Entidade-Relacionamento visual (ERD Mermaid) e dicionário de dados dos núcleos de Governança, Hélice Tríplice, LGPD Party-Role, Plano de Trabalho e Espaços.
+    * `03_ARQUITETURA_E_UML.md`: Diagrama de Classes, Diagramas de Máquinas de Estados (Ciclo PDI e Parcela/RA) e Diagramas de Sequência (SoD e Liquidação FAEPI).
+    * `04_MATRIZ_RBAC_E_GOVERNANCA.md`: Matriz RACI de Operações Críticas e catálogo de perfis normativos do Polo IFAM.
+  - Atualização do `PROTOCOLO_COLABORACAO_IA.md` com o diagrama de fluxo de trabalho do Squad.
+  - Correção cirúrgica de redirecionamento em `gestao_projetos/views.py`.
+
+### 2. Auditoria e Qualidade:
+- `python manage.py check`: 0 erros (0 silenciados).
+- Testes automatizados de `cadastros`: 25/25 testes OK (100% de aprovação).
+- Testes de integração de liquidação de bolsas (`LiquidacaoFolhaLoteTestCase`): 10/10 testes OK (100% de aprovação).
+
+---
+
+## [2026-09-04] Handoff Gemini → GitHub Copilot: Conformidade de CRUD Completo (Termo de Parceria) e Faxina de Cabeçalhos/DataTables em Cadastros
+
+### 1. Objetivo da Tarefa:
+Atender aos requisitos de governança e padronização visual de UI do ARGUS (`AGENTS.md`), executando:
+1. **Conformidade de CRUD Completo nos Termos de Parceria:** Verificar e garantir que o ciclo de vida (Listar, Visualizar, Criar, Editar, Excluir) do `TermoDeParceria` siga rigorosamente o padrão Almoxarifado, incluindo gaveta de filtros, mensagens de sucesso e navegação fluida.
+2. **Faxina de Cabeçalhos e Regras DataTables nas Listagens de `cadastros`:** Padronizar todos os cabeçalhos `<th>` com `text-center`, assegurar `javascript:history.back()` no botão Voltar e conferir a ausência de `{% empty %}` em tabelas DataTables.
+
+### 2. Escopo Incluído e Excluído:
+- **Incluído:**
+  1. **Ajuste Cirúrgico de Cabeçalhos `<th>` (`text-center`):**
+     - `cadastros/templates/cadastros/listar_fontes_recurso.html` (linhas 25-26: substituir `text-start` por `text-center`);
+     - `cadastros/templates/cadastros/listar_pessoas_fisicas.html` (linhas 41-42: aplicar `text-center`);
+     - `cadastros/templates/cadastros/listar_processos_global.html` (linha 35: aplicar `text-center`).
+  2. **Refinamento do Padrão Almoxarifado em `termo_parceria_list.html`:**
+     - Inserir botão e gaveta de Filtros Avançados (`data-bs-toggle="collapse"`) conforme padrão Almoxarifado;
+     - Assegurar mensagens de sucesso nas CBVs (`TermoDeParceriaCreateView`, `UpdateView`, `DeleteView` com `SuccessMessageMixin` em `cadastros/views.py`).
+- **Excluído:**
+  - NÃO tocar em `gestao_projetos/*` (posse do Kiro).
+  - NÃO modificar `cadastros/models.py`.
+  - NÃO alterar o formulário ou wizard de criação de projetos (`form_projeto.html`).
+
+### 3. Arquivos Liberados para o Copilot:
+- `cadastros/templates/cadastros/termo_parceria_list.html`
+- `cadastros/templates/cadastros/listar_fontes_recurso.html`
+- `cadastros/templates/cadastros/listar_pessoas_fisicas.html`
+- `cadastros/templates/cadastros/listar_processos_global.html`
+- `cadastros/views.py` (exclusivamente para conferência/adição de mixin de mensagens em `TermoDeParceria*View`)
+
+### 4. Arquivos Proibidos:
+- Todos os arquivos de `gestao_projetos/` (posse do Kiro);
+- `cadastros/models.py` (congelado);
+- `cadastros/templates/cadastros/form_projeto.html` (congelado).
+
+### 5. Critério de Pronto:
+- `manage.py check` com 0 erros;
+- `manage.py test cadastros` passando sem regressões;
+- Todos os cabeçalhos de listagem centralizados e compatíveis com DataTables.
+
+---
+
+## [2026-09-04] Handoff Gemini → Kiro (AWS Bedrock): Execução Financeira (Passo 7 — Liquidação e Baixa em Lote da Folha com Comprovante)
+
+### 1. Objetivo da Tarefa:
+Implementar a funcionalidade de **Liquidação e Baixa em Lote das Parcelas de Bolsas** da competência na tela de Folha Mensal (`gestao_projetos/templates/gestao_projetos/folha_pagamento_mensal.html`), permitindo que após o pagamento realizado pela FAEPI, o gestor selecione as parcelas pagas, anexe o comprovante de transferência consolidado e confirme a baixa contábil (`status = 'PAGO'`).
+
+### 2. Escopo Incluído e Excluído:
+- **Incluído:**
+  1. **View `liquidar_folha_lote(request, projeto_id)` em `gestao_projetos/views.py`:**
+     - Recebe POST com: `parcelas_ids` (array de IDs), `data_pagamento` (date), `conta_pagamento` (ID de ContaBancaria) e `comprovante_pagamento` (arquivo).
+     - **Trava de Integridade:** Permite liquidar EXCLUSIVAMENTE parcelas cujos Relatórios de Atividades estejam com `status = 'CONCLUIDO'` (homologados no Passo 6).
+     - Executa `parcela.confirmar_pagamento(data_pagamento, conta, comprovante)` dentro de transação atômica (`transaction.atomic()`).
+     - Emite mensagem de sucesso informando quantidade de parcelas e valor total liquidado.
+  2. **Rota em `gestao_projetos/urls.py`:** `projeto/<int:projeto_id>/folha/liquidar-lote/`.
+  3. **Interface em `folha_pagamento_mensal.html`:**
+     - Checkboxes de seleção nas linhas de parcelas aptas (`status == 'PENDENTE'` e RA `CONCLUIDO`);
+     - Checkbox mestre "Selecionar Todas Aptas";
+     - Botão e Modal de Liquidação em Lote com campos: Data de Pagamento (`type="date"`), Conta Pagadora (dropdown) e Comprovante (`type="file"`).
+  4. **Suíte de Testes em `gestao_projetos/tests.py`:** Classe `LiquidacaoFolhaLoteTestCase` cobrindo liquidação com comprovante, trava impedindo baixa de parcela com RA pendente e recálculo dos KPIs da folha.
+- **Excluído:**
+  - NÃO alterar `cadastros/models.py`.
+  - NÃO tocar no wizard de projetos.
+  - NÃO tocar nos arquivos de `cadastros/` (posse ativa do Copilot).
+
+### 3. Arquivos Liberados:
+- `gestao_projetos/views.py`
+- `gestao_projetos/urls.py`
+- `gestao_projetos/templates/gestao_projetos/folha_pagamento_mensal.html`
+- `gestao_projetos/tests.py`
+
+### 4. Arquivos Proibidos:
+- Todos os arquivos de `cadastros/*` (posse do Copilot);
+- `cadastros/models.py` e o wizard.
+
+### 5. Critério de Pronto:
+- `python manage.py check` com 0 erros.
+- `python manage.py test gestao_projetos` passando 100%.
+
+---
+
+## [2026-09-04] Handoff Gemini → GitHub Copilot: DetailViews da Hierarquia Guarda-Chuva (Termo de Cooperação e Programa)
+
+### 1. Objetivo da Tarefa:
+Completar o CRUD Mestre da governança de fomento em `cadastros`, criando a ação e tela de **Visualizar** (`DetailView`) para o `TermoCooperacao` e para o `Programa`, estabelecendo a navegação visual completa da Hélice Tríplice: Acordo-Mestre (Termo de Cooperação) $\rightarrow$ Linha de Fomento (Programa) $\rightarrow$ Pesquisa (Projeto PDI).
+
+### 2. Escopo Incluído e Excluído:
+- **Incluído:**
+  1. **`TermoCooperacaoDetailView` em `cadastros/views.py`:**
+     - Model: `TermoCooperacao`, template: `cadastros/termocooperacao_detail.html`, context: `termo`.
+     - Exibe dados gerais, vigência, concedente, convenente, aditivos vinculados (`termo.aditivos.all`) e programas vinculados (`termo.programas.all`).
+  2. **`ProgramaDetailView` em `cadastros/views.py`:**
+     - Model: `Programa`, template: `cadastros/programa_detail.html`, context: `programa`.
+     - Exibe dados do programa, link para o Termo de Cooperação pai (`programa.termo_cooperacao`) e lista de Projetos PDI vinculados (`programa.projetos_vinculados.all`).
+  3. **Rotas em `cadastros/urls.py`:**
+     - `termos/<int:pk>/visualizar/` (`name='visualizar_termo'`).
+     - `programas/<int:pk>/visualizar/` (`name='visualizar_programa'`).
+  4. **Atualização das Listas no Padrão Almoxarifado (`AGENTS.md`):**
+     - Em `termocooperacao_list.html`: adicionar botão 'Visualizar' (`fa-eye`) e centralizar cabeçalhos `<th>` com `text-center`.
+     - Em `programa_list.html`: adicionar botão 'Visualizar' (`fa-eye`) e centralizar cabeçalhos `<th>` com `text-center`.
+- **Excluído:**
+  - NÃO alterar `cadastros/models.py`.
+  - NÃO tocar no wizard `cadastros/templates/cadastros/form_projeto.html`.
+  - NÃO tocar em NENHUM arquivo de `gestao_projetos/*` (posse ativa do Kiro).
+
+### 3. Arquivos Liberados:
+- `cadastros/views.py`
+- `cadastros/urls.py`
+- `cadastros/templates/cadastros/termocooperacao_list.html`
+- `cadastros/templates/cadastros/termocooperacao_detail.html` [NOVO]
+- `cadastros/templates/cadastros/programa_list.html`
+- `cadastros/templates/cadastros/programa_detail.html` [NOVO]
+
+### 4. Arquivos Proibidos:
+- Todos os arquivos de `gestao_projetos/*` (posse do Kiro);
+- `cadastros/models.py` e o wizard.
+
+### 5. Critério de Pronto:
+- `python manage.py check` com 0 erros.
+- Acesso a `/cadastros/termos/` e `/cadastros/programas/` com navegação fluida de pai para filho.
+
+---
+
 ## [2026-09-04] Sessão de Sincronia Multi-IA: Passo 6 (Kiro) e CRUD Termo de Parceria + Home Geral (Copilot) — Concluídos e Homologados (67/67 Testes OK)
 
 ### 1. Entrega do Kiro (AWS Bedrock) — Passo 6 da Execução Financeira:

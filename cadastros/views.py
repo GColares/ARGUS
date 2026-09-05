@@ -2,6 +2,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -795,7 +796,12 @@ class TermoCooperacaoListView(ListView):
     model = TermoCooperacao
     template_name = 'cadastros/termocooperacao_list.html'
     context_object_name = 'termos'
-    
+
+class TermoCooperacaoDetailView(LoginRequiredMixin, DetailView):
+    model = TermoCooperacao
+    template_name = 'cadastros/termocooperacao_detail.html'
+    context_object_name = 'termo'
+
 class TermoCooperacaoCreateView(CreateView):
     model = TermoCooperacao
     form_class = TermoCooperacaoForm
@@ -821,6 +827,11 @@ class ProgramaListView(ListView):
     template_name = 'cadastros/programa_list.html'
     context_object_name = 'programas'
 
+class ProgramaDetailView(LoginRequiredMixin, DetailView):
+    model = Programa
+    template_name = 'cadastros/programa_detail.html'
+    context_object_name = 'programa'
+
 class ProgramaCreateView(CreateView):
     model = Programa
     form_class = ProgramaForm
@@ -845,27 +856,48 @@ class TermoDeParceriaListView(ListView):
     context_object_name = 'termos'
     ordering = ['-id']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        numero = self.request.GET.get('numero', '').strip()
+        ativo = self.request.GET.get('ativo', '').strip()
+        if numero:
+            queryset = queryset.filter(numero__icontains=numero)
+        if ativo in {'true', 'false'}:
+            queryset = queryset.filter(ativo=(ativo == 'true'))
+        return queryset
+
 class TermoDeParceriaDetailView(LoginRequiredMixin, DetailView):
     model = TermoDeParceria
     template_name = 'cadastros/termo_parceria_detail.html'
     context_object_name = 'termo'
 
-class TermoDeParceriaCreateView(CreateView):
+class TermoDeParceriaCreateView(SuccessMessageMixin, CreateView):
     model = TermoDeParceria
     form_class = TermoDeParceriaForm
     template_name = 'cadastros/termo_parceria_form.html'
     success_url = reverse_lazy('cadastros:listar_termos_parceria')
+    success_message = 'Termo de parceria criado com sucesso.'
 
-class TermoDeParceriaUpdateView(UpdateView):
+class TermoDeParceriaUpdateView(SuccessMessageMixin, UpdateView):
     model = TermoDeParceria
     form_class = TermoDeParceriaForm
     template_name = 'cadastros/termo_parceria_form.html'
     success_url = reverse_lazy('cadastros:listar_termos_parceria')
+    success_message = 'Termo de parceria atualizado com sucesso.'
 
-class TermoDeParceriaDeleteView(DeleteView):
+class TermoDeParceriaDeleteView(SuccessMessageMixin, DeleteView):
     model = TermoDeParceria
     template_name = 'cadastros/termo_parceria_confirm_delete.html'
     success_url = reverse_lazy('cadastros:listar_termos_parceria')
+    success_message = 'Termo de parceria excluído com sucesso.'
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_message = self.get_success_message({})
+        response = super().delete(request, *args, **kwargs)
+        if success_message:
+            messages.success(request, success_message)
+        return response
 
 # Trigger restart
 

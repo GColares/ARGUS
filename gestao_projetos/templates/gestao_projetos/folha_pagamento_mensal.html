@@ -33,7 +33,7 @@
             <form method="GET" class="row g-3 align-items-end">
                 <div class="col-md-6">
                     <label for="projeto_id" class="form-label fw-semibold small mb-1">Projeto</label>
-                    <select name="projeto_id" id="projeto_id" class="form-select select2-projeto" onchange="this.form.submit()">
+                    <select name="projeto_id" id="projeto_id" class="form-select" onchange="this.form.submit()">
                         <option value="">-- Selecione um Projeto --</option>
                         {% for p in projetos %}
                             <option value="{{ p.id }}" {% if projeto_selecionado and p.id == projeto_selecionado.id %}selected{% endif %}>
@@ -99,7 +99,6 @@
 
     <!-- Banner de diagnóstico de pendências -->
     {% if linhas_folha %}
-    {% with pendentes=linhas_folha|length %}
     {% if qtd_ras_atestados < qtd_parcelas %}
     <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-start gap-3" role="alert">
         <i class="fas fa-exclamation-triangle fs-5 mt-1"></i>
@@ -110,14 +109,29 @@
         </div>
     </div>
     {% endif %}
-    {% endwith %}
     {% endif %}
 
-    <!-- Tabela da Folha -->
+    {# ══════════════════════════════════════════════════════════════════
+       FORM PRINCIPAL — envolve a tabela e suporta:
+         • Gerar Ofício da Equipe (submit do formOficioEquipe interno)
+         • Liquidação em Lote (submit do formLiquidacaoLote — action diferente)
+       enctype="multipart/form-data" necessário para upload do comprovante.
+    ══════════════════════════════════════════════════════════════════ #}
+
+    <!-- Form do Ofício da Equipe (sem enctype, ação separada) -->
     <form method="POST" action="{% url 'gestao_projetos:gerar_oficio_equipe' %}" id="formOficioEquipe">
         {% csrf_token %}
         <input type="hidden" name="projeto_id" value="{{ projeto_selecionado.id }}">
         <input type="hidden" name="mes_ano" value="{{ mes_ano }}">
+    </form>
+
+    <!-- Form de Liquidação em Lote (multipart, ação do Passo 7) -->
+    <form method="POST"
+          action="{% url 'gestao_projetos:liquidar_folha_lote' projeto_selecionado.id %}"
+          id="formLiquidacaoLote"
+          enctype="multipart/form-data">
+        {% csrf_token %}
+    </form>
 
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -126,7 +140,18 @@
                 Folha de Pagamentos — {{ projeto_selecionado.nome }}
                 <span class="badge bg-light text-dark border ms-2 fw-normal" style="font-size: 0.8rem;">{{ mes_ano }}</span>
             </h5>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
+                {# Botão Liquidar em Lote — abre modal #}
+                <button type="button"
+                        class="btn btn-sm btn-success fw-bold"
+                        id="btnAbrirLote"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalLiquidacaoLote"
+                        disabled
+                        title="Selecione parcelas aptas para habilitar">
+                    <i class="fas fa-layer-group me-1"></i>Liquidar em Lote
+                    <span class="badge bg-white text-success ms-1 fw-bold" id="badgeQtdSelecionadas">0</span>
+                </button>
                 <button type="submit" form="formOficioEquipe" class="btn btn-sm btn-primary fw-bold">
                     <i class="fas fa-file-invoice me-1"></i>Gerar Ofício da Equipe
                 </button>
@@ -135,13 +160,18 @@
                 </button>
             </div>
         </div>
+
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
                     <thead class="table-light text-center">
                         <tr>
                             <th class="text-center" style="width:2.5rem;">
-                                <input type="checkbox" id="selecionar_todos" class="form-check-input" title="Selecionar todos">
+                                {# Checkbox mestre — seleciona apenas parcelas APTAS para lote #}
+                                <input type="checkbox"
+                                       id="selecionar_todos_lote"
+                                       class="form-check-input"
+                                       title="Selecionar todas as parcelas aptas para liquidação em lote">
                             </th>
                             <th class="text-start ps-3">Bolsista</th>
                             <th>Cota / Perfil</th>
@@ -157,15 +187,29 @@
                     <tbody>
                         {% for linha in linhas_folha %}
                         <tr>
-                            <!-- Checkbox de seleção -->
+                            <!-- Checkbox de seleção para lote -->
                             <td class="text-center">
-                                {% if linha.parcela.status != 'PAGO' and linha.parcela.status != 'CANCELADO' and linha.relatorio and linha.ra_status == 'CONCLUIDO' and not linha.em_oficio %}
-                                    <input type="checkbox" name="parcela_ids" value="{{ linha.parcela.id }}"
-                                           class="form-check-input parcela-check">
+                                {% if linha.parcela.status == 'PENDENTE' and linha.relatorio and linha.ra_status == 'CONCLUIDO' %}
+                                    {# Parcela APTA: PENDENTE + RA CONCLUIDO #}
+                                    <input type="checkbox"
+                                           name="parcelas_ids"
+                                           value="{{ linha.parcela.id }}"
+                                           class="form-check-input parcela-check-lote"
+                                           data-valor="{{ linha.parcela.valor }}"
+                                           form="formLiquidacaoLote"
+                                           title="{{ linha.pessoa.nome|default:'—' }} — Parcela {{ linha.parcela.numero }}">
+                                {% elif linha.parcela.status == 'PAGO' %}
+                                    {# Já liquidada — checkbox bloqueado com ícone visual #}
+                                    <span title="Parcela já liquidada">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    </span>
                                 {% else %}
-                                    <input type="checkbox" class="form-check-input" disabled>
+                                    {# Não apta (sem RA ou RA pendente) #}
+                                    <input type="checkbox" class="form-check-input" disabled
+                                           title="Não apta: RA ausente ou não homologado">
                                 {% endif %}
                             </td>
+
                             <!-- Bolsista -->
                             <td class="ps-3">
                                 <strong>{{ linha.pessoa.nome|default:"—" }}</strong>
@@ -255,17 +299,17 @@
                                 {% endif %}
                             </td>
 
-                            <!-- Ações -->
+                            <!-- Ações (confirmação individual) -->
                             <td class="text-center">
                                 {% if linha.parcela.status != 'PAGO' and linha.parcela.status != 'CANCELADO' %}
                                     {% if not linha.tem_dados_bancarios %}
                                         <button type="button" class="btn btn-sm btn-outline-success" disabled
-                                                title="Cadastre os dados bancários do bolsista antes de confirmar o pagamento.">
+                                                title="Cadastre os dados bancários antes de confirmar.">
                                             <i class="fas fa-check-circle me-1"></i>Confirmar
                                         </button>
                                     {% elif not linha.relatorio or linha.ra_status != 'CONCLUIDO' %}
                                         <button type="button" class="btn btn-sm btn-outline-success" disabled
-                                                title="Liquidação bloqueada: O Relatório de Atividades (RA) desta competência ainda não foi atestado pelo Coordenador (servidor SIAPE).">
+                                                title="RA ainda não atestado — aguardando homologação SIAPE.">
                                             <i class="fas fa-check-circle me-1"></i>Confirmar
                                         </button>
                                     {% else %}
@@ -296,9 +340,25 @@
                     </tbody>
                 </table>
             </div>
+        </div>{# /card-body #}
+
+        {# Rodapé com resumo de seleção — visível quando há checkboxes marcados #}
+        <div class="card-footer bg-light border-top py-2 d-none" id="footerResumoLote">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <span class="small text-muted">
+                    <strong id="resumoQtd">0</strong> parcela(s) selecionada(s) —
+                    Total: <strong class="text-success" id="resumoValor">R$ 0,00</strong>
+                </span>
+                <button type="button"
+                        class="btn btn-success btn-sm fw-bold"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalLiquidacaoLote">
+                    <i class="fas fa-layer-group me-1"></i>Liquidar Selecionadas em Lote
+                </button>
+            </div>
         </div>
-    </div>
-    </form>
+
+    </div>{# /card #}
 
     {% else %}
     <div class="text-center text-muted my-5 py-5">
@@ -307,10 +367,118 @@
     </div>
     {% endif %}
 
+</div>{# /container-fluid #}
+
+{# ══════════════════════════════════════════════════════════════════════
+   MODAL — Liquidação em Lote (Passo 7)
+══════════════════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalLiquidacaoLote" tabindex="-1"
+     aria-labelledby="modalLoteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="modalLoteLabel">
+                    <i class="fas fa-layer-group me-2"></i>Liquidação em Lote
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            {# Os campos do modal são injetados no formLiquidacaoLote via target="formLiquidacaoLote" #}
+            <div class="modal-body">
+
+                <div class="alert alert-info small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Esta operação liquida em bloco todas as parcelas selecionadas cujos
+                    <strong>Relatórios de Atividades estejam homologados (CONCLUIDO)</strong>.
+                    Um único comprovante consolidado pode ser anexado para toda a remessa.
+                </div>
+
+                {# Resumo das parcelas selecionadas #}
+                <div class="card border-success mb-3">
+                    <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-muted">Parcelas selecionadas</span>
+                        <span class="fw-bold text-success" id="modalResumoQtd">0 parcela(s)</span>
+                    </div>
+                    <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center border-top">
+                        <span class="small fw-semibold text-muted">Valor total a liquidar</span>
+                        <span class="fw-bold fs-5 text-success" id="modalResumoValor">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="lote_data_pagamento" class="form-label fw-semibold">
+                        Data do Pagamento <span class="text-danger">*</span>
+                    </label>
+                    <input type="date"
+                           name="data_pagamento"
+                           id="lote_data_pagamento"
+                           class="form-control"
+                           required
+                           form="formLiquidacaoLote">
+                </div>
+
+                <div class="mb-3">
+                    <label for="lote_conta_pagamento" class="form-label fw-semibold">
+                        Conta Pagadora
+                    </label>
+                    <select name="conta_pagamento"
+                            id="lote_conta_pagamento"
+                            class="form-select"
+                            form="formLiquidacaoLote">
+                        <option value="">-- Nenhuma (definir depois) --</option>
+                        {% if projeto_selecionado %}
+                        {% for conta in contas_projeto %}
+                            <option value="{{ conta.id }}">
+                                {{ conta.fonte_recurso }} — {{ conta.banco }}
+                                Ag: {{ conta.agencia }} CC: {{ conta.conta }}-{{ conta.dv }}
+                            </option>
+                        {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="lote_comprovante" class="form-label fw-semibold">
+                        Comprovante Consolidado
+                        <span class="text-muted fw-normal small">(opcional)</span>
+                    </label>
+                    <input type="file"
+                           name="comprovante_pagamento"
+                           id="lote_comprovante"
+                           class="form-control"
+                           accept=".pdf,.png,.jpg,.jpeg"
+                           form="formLiquidacaoLote">
+                    <div class="form-text">Formatos aceitos: PDF, PNG, JPG, JPEG.</div>
+                </div>
+
+                <div class="alert alert-warning small mb-0">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong>Atenção:</strong> A liquidação em lote é irreversível.
+                    Parcelas com RA não homologado serão <strong>automaticamente bloqueadas</strong>
+                    e a operação inteira será cancelada para preservar a integridade contábil.
+                </div>
+            </div>
+
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit"
+                        form="formLiquidacaoLote"
+                        class="btn btn-success fw-bold px-4">
+                    <i class="fas fa-layer-group me-1"></i>
+                    Confirmar Liquidação em Lote
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Modal de Confirmação de Pagamento -->
-<div class="modal fade" id="modalPagamento" tabindex="-1" aria-labelledby="modalPagamentoLabel" aria-hidden="true"
+{# ══════════════════════════════════════════════════════════════════════
+   MODAL — Confirmação de Pagamento Individual (mantido do Passo 2)
+══════════════════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalPagamento" tabindex="-1"
+     aria-labelledby="modalPagamentoLabel" aria-hidden="true"
      data-url-template="{% url 'gestao_projetos:confirmar_pagamento_parcela' 0 %}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -318,37 +486,44 @@
                 <h5 class="modal-title fw-bold" id="modalPagamentoLabel">
                     <i class="fas fa-check-circle me-2"></i>Confirmar Pagamento
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <form id="formPagamento" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-body">
                     <p class="mb-3 text-muted small" id="modalDescricao"></p>
-
                     <div class="mb-3">
-                        <label for="data_pagamento" class="form-label fw-semibold">Data do Pagamento <span class="text-danger">*</span></label>
-                        <input type="date" name="data_pagamento" id="data_pagamento" class="form-control" required>
+                        <label for="data_pagamento" class="form-label fw-semibold">
+                            Data do Pagamento <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" name="data_pagamento" id="data_pagamento"
+                               class="form-control" required>
                     </div>
-
                     <div class="mb-3">
                         <label for="conta_pagamento_id" class="form-label fw-semibold">Conta Pagadora</label>
                         <select name="conta_pagamento_id" id="conta_pagamento_id" class="form-select">
                             <option value="">-- Nenhuma (definir depois) --</option>
                             {% for conta in contas_projeto %}
-                                <option value="{{ conta.id }}">{{ conta.fonte_recurso }} — {{ conta.banco }} Ag: {{ conta.agencia }} CC: {{ conta.conta }}-{{ conta.dv }}</option>
+                                <option value="{{ conta.id }}">
+                                    {{ conta.fonte_recurso }} — {{ conta.banco }}
+                                    Ag: {{ conta.agencia }} CC: {{ conta.conta }}-{{ conta.dv }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
-
                     <div class="mb-3">
-                        <label for="comprovante_pagamento" class="form-label fw-semibold">Comprovante de Pagamento</label>
-                        <input type="file" name="comprovante_pagamento" id="comprovante_pagamento" class="form-control"
-                               accept=".pdf,.png,.jpg,.jpeg">
+                        <label for="comprovante_pagamento" class="form-label fw-semibold">
+                            Comprovante de Pagamento
+                        </label>
+                        <input type="file" name="comprovante_pagamento" id="comprovante_pagamento"
+                               class="form-control" accept=".pdf,.png,.jpg,.jpeg">
                         <div class="form-text">Formatos aceitos: PDF, PNG, JPG, JPEG.</div>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-success btn-sm fw-bold">
                         <i class="fas fa-check me-1"></i>Confirmar Liquidação
                     </button>
@@ -358,29 +533,39 @@
     </div>
 </div>
 
-<!-- Modal Ofício do Coordenador -->
-<div class="modal fade" id="modalOficioCoordenador" tabindex="-1" aria-labelledby="modalOficioCoordenadorLabel" aria-hidden="true">
+{# ══════════════════════════════════════════════════════════════════════
+   MODAL — Ofício do Coordenador (mantido do Passo 4)
+══════════════════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalOficioCoordenador" tabindex="-1"
+     aria-labelledby="modalOficioCoordenadorLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-secondary text-white">
                 <h5 class="modal-title fw-bold" id="modalOficioCoordenadorLabel">
                     <i class="fas fa-user-tie me-2"></i>Ofício de Pagamento do Coordenador
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <form method="POST" action="{% url 'gestao_projetos:gerar_oficio_coordenador' %}">
                 {% csrf_token %}
-                <input type="hidden" name="projeto_id" value="{% if projeto_selecionado %}{{ projeto_selecionado.id }}{% endif %}">
+                <input type="hidden" name="projeto_id"
+                       value="{% if projeto_selecionado %}{{ projeto_selecionado.id }}{% endif %}">
                 <input type="hidden" name="mes_ano" value="{{ mes_ano }}">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="parcela_coordenador_id" class="form-label fw-semibold">Parcela do Coordenador <span class="text-danger">*</span></label>
-                        <select name="parcela_coordenador_id" id="parcela_coordenador_id" class="form-select" required>
+                        <label for="parcela_coordenador_id" class="form-label fw-semibold">
+                            Parcela do Coordenador <span class="text-danger">*</span>
+                        </label>
+                        <select name="parcela_coordenador_id" id="parcela_coordenador_id"
+                                class="form-select" required>
                             <option value="">-- Selecione a parcela --</option>
                             {% for linha in linhas_folha %}
                                 {% if linha.relatorio and linha.ra_status == 'CONCLUIDO' and not linha.em_oficio %}
                                 <option value="{{ linha.parcela.id }}">
-                                    {{ linha.pessoa.nome|default:"—" }} — Parcela {{ linha.parcela.numero }}/{{ linha.termo.quantidade_parcelas }} (R$ {{ linha.parcela.valor|floatformat:2 }})
+                                    {{ linha.pessoa.nome|default:"—" }} —
+                                    Parcela {{ linha.parcela.numero }}/{{ linha.termo.quantidade_parcelas }}
+                                    (R$ {{ linha.parcela.valor|floatformat:2 }})
                                 </option>
                                 {% endif %}
                             {% endfor %}
@@ -391,12 +576,15 @@
                                id="coordenador_is_diretor_campus" class="form-check-input">
                         <label class="form-check-label" for="coordenador_is_diretor_campus">
                             Coordenador é <strong>Diretor-Geral de Campus</strong> do IFAM
-                            <small class="text-muted d-block">Quando marcado, o Reitor assina como Requisitante.</small>
+                            <small class="text-muted d-block">
+                                Quando marcado, o Reitor assina como Requisitante.
+                            </small>
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-dark btn-sm fw-bold">
                         <i class="fas fa-file-contract me-1"></i>Gerar Ofício
                     </button>
@@ -408,32 +596,93 @@
 
 <script>
 (function () {
-    // Modal de Confirmação de Pagamento
-    var modal = document.getElementById('modalPagamento');
-    if (modal) {
-        modal.addEventListener('show.bs.modal', function (event) {
-            var btn = event.relatedTarget;
-            var parcelaId = btn.getAttribute('data-parcela-id');
-            var parcelaNum = btn.getAttribute('data-parcela-num');
-            var bolsista = btn.getAttribute('data-bolsista');
-            var valor = btn.getAttribute('data-valor');
+    'use strict';
 
-            var urlTemplate = modal.getAttribute('data-url-template');
-            document.getElementById('formPagamento').action = urlTemplate.replace('0', parcelaId);
+    // ── Helpers ──────────────────────────────────────────────────────
+    function formatarReais(valor) {
+        return 'R$ ' + valor.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // ── Recalcula resumo de seleção para o lote ───────────────────────
+    function recalcularResumoLote() {
+        var checks = document.querySelectorAll('.parcela-check-lote:checked');
+        var qtd = checks.length;
+        var total = 0;
+
+        checks.forEach(function (cb) {
+            total += parseFloat(cb.dataset.valor || '0');
+        });
+
+        // Badge no botão do cabeçalho
+        var badge = document.getElementById('badgeQtdSelecionadas');
+        if (badge) badge.textContent = qtd;
+
+        // Botão do cabeçalho (habilita/desabilita)
+        var btnLote = document.getElementById('btnAbrirLote');
+        if (btnLote) btnLote.disabled = (qtd === 0);
+
+        // Rodapé resumo
+        var footer = document.getElementById('footerResumoLote');
+        if (footer) footer.classList.toggle('d-none', qtd === 0);
+
+        var resumoQtd = document.getElementById('resumoQtd');
+        if (resumoQtd) resumoQtd.textContent = qtd;
+
+        var resumoValor = document.getElementById('resumoValor');
+        if (resumoValor) resumoValor.textContent = formatarReais(total);
+
+        // Resumo dentro do modal
+        var modalQtd = document.getElementById('modalResumoQtd');
+        if (modalQtd) modalQtd.textContent = qtd + ' parcela(s)';
+
+        var modalValor = document.getElementById('modalResumoValor');
+        if (modalValor) modalValor.textContent = formatarReais(total);
+    }
+
+    // ── Checkbox mestre de lote ───────────────────────────────────────
+    var checkMestre = document.getElementById('selecionar_todos_lote');
+    if (checkMestre) {
+        checkMestre.addEventListener('change', function () {
+            document.querySelectorAll('.parcela-check-lote').forEach(function (cb) {
+                cb.checked = checkMestre.checked;
+            });
+            recalcularResumoLote();
+        });
+    }
+
+    // ── Checkboxes individuais de lote ────────────────────────────────
+    document.querySelectorAll('.parcela-check-lote').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            recalcularResumoLote();
+            // Atualiza estado indeterminado do mestre
+            if (checkMestre) {
+                var todos = document.querySelectorAll('.parcela-check-lote');
+                var marcados = document.querySelectorAll('.parcela-check-lote:checked');
+                checkMestre.indeterminate = (marcados.length > 0 && marcados.length < todos.length);
+                checkMestre.checked = (marcados.length === todos.length && todos.length > 0);
+            }
+        });
+    });
+
+    // ── Modal de confirmação individual (Passo 2 — mantido) ──────────
+    var modalPag = document.getElementById('modalPagamento');
+    if (modalPag) {
+        modalPag.addEventListener('show.bs.modal', function (event) {
+            var btn = event.relatedTarget;
+            var parcelaId  = btn.getAttribute('data-parcela-id');
+            var parcelaNum = btn.getAttribute('data-parcela-num');
+            var bolsista   = btn.getAttribute('data-bolsista');
+            var valor      = btn.getAttribute('data-valor');
+            var urlTpl     = modalPag.getAttribute('data-url-template');
+
+            document.getElementById('formPagamento').action = urlTpl.replace('0', parcelaId);
             document.getElementById('modalDescricao').textContent =
                 'Bolsista: ' + bolsista + ' | Parcela nº ' + parcelaNum + ' | Valor: R$ ' + valor;
         });
     }
 
-    // Selecionar todos os checkboxes habilitados
-    var selecionarTodos = document.getElementById('selecionar_todos');
-    if (selecionarTodos) {
-        selecionarTodos.addEventListener('change', function () {
-            document.querySelectorAll('.parcela-check').forEach(function (cb) {
-                cb.checked = selecionarTodos.checked;
-            });
-        });
-    }
+    // Inicializa contador (caso haja checks pré-marcados após reload parcial)
+    recalcularResumoLote();
 })();
 </script>
 

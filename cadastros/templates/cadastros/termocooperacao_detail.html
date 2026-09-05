@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:listar_termos' %}" class="text-decoration-none">Termos de Cooperação</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Detalhes</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-handshake text-success me-2"></i>{{ termo.numero }}</h2>
+            <p class="text-muted small mb-0 mt-1">Detalhes do Termo de Cooperação e seus programas vinculados.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'cadastros:editar_termo' termo.pk %}" class="btn btn-primary fw-bold shadow-sm"><i class="fas fa-edit me-2"></i>Editar</a>
+            <a href="{% url 'cadastros:excluir_termo' termo.pk %}" class="btn btn-outline-danger fw-bold"><i class="fas fa-trash me-2"></i>Excluir</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white py-3"><h5 class="mb-0 fw-bold"><i class="fas fa-file-alt me-2"></i>Dados Gerais</h5></div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">Número</dt><dd class="col-sm-7 fw-bold">{{ termo.numero }}</dd>
+                        <dt class="col-sm-5 text-muted">Objeto</dt><dd class="col-sm-7">{{ termo.objeto }}</dd>
+                        <dt class="col-sm-5 text-muted">Valor Global</dt><dd class="col-sm-7">{{ termo.valor_global|default:"-" }}</dd>
+                        <dt class="col-sm-5 text-muted">Status</dt><dd class="col-sm-7">{% if termo.ativo %}<span class="badge text-bg-success">Ativo</span>{% else %}<span class="badge text-bg-danger">Inativo</span>{% endif %}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white py-3"><h5 class="mb-0 fw-bold"><i class="fas fa-calendar-alt me-2"></i>Vigência e Partícipes</h5></div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">Início</dt><dd class="col-sm-7">{{ termo.vigencia_inicio|date:"d/m/Y" }}</dd>
+                        <dt class="col-sm-5 text-muted">Fim</dt><dd class="col-sm-7">{{ termo.vigencia_fim|date:"d/m/Y" }}</dd>
+                        <dt class="col-sm-5 text-muted">Parceiro</dt><dd class="col-sm-7">{{ termo.concedente }}</dd>
+                        <dt class="col-sm-5 text-muted">ICT</dt><dd class="col-sm-7">{{ termo.convenente }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3"><h5 class="mb-0 fw-bold"><i class="fas fa-sitemap me-2"></i>Programas Vinculados</h5></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="text-center">Programa</th><th class="text-center">Descrição</th><th class="text-center">Status</th></tr></thead>
+                            <tbody>
+                                {% for programa in termo.programas.all %}
+                                <tr><td class="fw-bold text-center"><a href="{% url 'cadastros:visualizar_programa' programa.pk %}">{{ programa.nome }}</a></td><td>{{ programa.descricao|default:"-" }}</td><td class="text-center">{% if programa.ativo %}<span class="badge text-bg-success">Ativo</span>{% else %}<span class="badge text-bg-danger">Inativo</span>{% endif %}</td></tr>
+                                {% empty %}<tr><td colspan="3" class="text-center text-muted py-4">Nenhum programa vinculado.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

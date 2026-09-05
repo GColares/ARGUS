@@ -23,6 +23,36 @@
         </div>
     </div>
 
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <button class="btn btn-outline-secondary fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosAvancadosTermos" aria-expanded="false" aria-controls="filtrosAvancadosTermos">
+                <i class="fas fa-filter me-2"></i>Filtros Avançados
+            </button>
+        </div>
+        <div class="collapse" id="filtrosAvancadosTermos">
+            <div class="card-body border-top">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label for="filtroNumero" class="form-label fw-semibold">Número do Termo</label>
+                        <input type="search" id="filtroNumero" name="numero" value="{{ request.GET.numero }}" class="form-control" placeholder="Digite parte do número">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtroStatus" class="form-label fw-semibold">Status</label>
+                        <select id="filtroStatus" name="ativo" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="true" {% if request.GET.ativo == 'true' %}selected{% endif %}>Ativo</option>
+                            <option value="false" {% if request.GET.ativo == 'false' %}selected{% endif %}>Inativo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-search me-1"></i>Filtrar</button>
+                        <a href="{% url 'cadastros:listar_termos_parceria' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-sm rounded-3">
         <div class="card-body p-0">
             <div class="table-responsive">

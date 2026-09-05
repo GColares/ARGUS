@@ -966,3 +966,425 @@ class AtestoSIAPETestCase(TestCase):
             self.relatorio.cumpriu_carga_horaria,
             "Quando cumpriu_carga_horaria='0', deve gravar False."
         )
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class LiquidacaoFolhaLoteTestCase(TestCase):
+    """
+    Testes de integração do Passo 7 — Liquidação e Baixa em Lote da Folha de Bolsas.
+
+    Cobre:
+    a) Baixa em lote com sucesso (2 parcelas com RA CONCLUIDO).
+    b) Trava: parcela com RA PENDENTE aborta toda a operação (fail-fast).
+    c) Trava: parcela sem RA aborta toda a operação.
+    d) Idempotência: parcelas já PAGAS são ignoradas silenciosamente.
+    e) Recálculo dos KPIs da folha após a liquidação.
+    f) Bloqueio de usuário sem permissão de equipe (RBAC).
+    g) GET na URL redireciona sem efetuar nenhuma baixa.
+    h) Lista vazia de parcelas retorna erro sem alterar nada.
+    i) Baixa em lote com comprovante — arquivo associado à parcela.
+    j) Liquidação parcial: 1 apta + 1 não-apta aborta sem baixar nenhuma.
+    """
+
+    def _criar_empresa(self, sufixo):
+        """Cria EmpresaParceira única para cada TestCase."""
+        import time
+        cnpj_n = f"{abs(hash(sufixo)) % 100000000000000:014d}"
+        cnpj = f"{cnpj_n[:2]}.{cnpj_n[2:8]}/{cnpj_n[8:12]}-{cnpj_n[12:14]}"
+        from cadastros.models import EmpresaParceira as EP
+        return EP.objects.create(
+            nome=f"Empresa Lote {sufixo}",
+            nome_fantasia=f"EL {sufixo}",
+            cnpj=cnpj,
+            natureza_juridica="LTDA",
+            endereco="Rua Lote, 7",
+            representante_legal="Rep Lote",
+            cargo_representante="Dir",
+        )
+
+    def setUp(self):
+        # ── Usuário gestor (membro da equipe) ──
+        self.user_gestor = User.objects.create_user(
+            username='gestor_lote_p7',
+            password='senha123',
+        )
+
+        # ── Projeto ──
+        self.empresa = self._criar_empresa("P7")
+        self.projeto = ProjetoPDI.objects.create(
+            nome='Projeto Lote Passo 7',
+            fase='EXECUCAO',
+            concedente=self.empresa,
+        )
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=self.user_gestor,
+            papel='GESTOR',
+        )
+
+        # ── Conta bancária do projeto ──
+        self.conta = ContaBancaria.objects.create(
+            projeto=self.projeto,
+            conta='77777',
+            dv='7',
+        )
+
+        # ── Bolsista A ──
+        self.pessoa_a = PessoaFisica.objects.create(
+            nome='Bolsista A Lote',
+            cpf='100.200.300-40',
+        )
+        DadoBancario.objects.create(
+            pessoa=self.pessoa_a,
+            finalidade='PAGAMENTO_BOLSA',
+            banco_codigo='001',
+            agencia='0001',
+            conta='10001-0',
+            ativo=True,
+        )
+
+        # ── Bolsista B ──
+        self.pessoa_b = PessoaFisica.objects.create(
+            nome='Bolsista B Lote',
+            cpf='500.600.700-80',
+        )
+        DadoBancario.objects.create(
+            pessoa=self.pessoa_b,
+            finalidade='PAGAMENTO_BOLSA',
+            banco_codigo='033',
+            agencia='0002',
+            conta='20002-0',
+            ativo=True,
+        )
+
+        # ── Cota e Termos ──
+        self.cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao='Analista Lote',
+            quantidade_vagas=2,
+            parcelas_previstas=2,
+            valor_global_previsto=Decimal('6000.00'),
+        )
+        self.termo_a = TermoBolsa.objects.create(
+            cota_pt=self.cota,
+            pessoa=self.pessoa_a,
+            numero_termo='TB-LOTE-A',
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 10, 31),
+            quantidade_parcelas=2,
+            valor_parcela=Decimal('1500.00'),
+        )
+        self.termo_b = TermoBolsa.objects.create(
+            cota_pt=self.cota,
+            pessoa=self.pessoa_b,
+            numero_termo='TB-LOTE-B',
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 10, 31),
+            quantidade_parcelas=2,
+            valor_parcela=Decimal('1500.00'),
+        )
+
+        # Parcela 1 de cada bolsista
+        self.parcela_a = self.termo_a.parcelas.get(numero=1)
+        self.parcela_b = self.termo_b.parcelas.get(numero=1)
+
+        # ── RAs CONCLUIDOS para ambos ──
+        self.ra_a = RelatorioAtividade.objects.create(
+            termo_bolsa=self.termo_a,
+            parcela_referencia=self.parcela_a,
+            criado_por=self.user_gestor,
+            status='CONCLUIDO',
+            periodo_inicio=date(2026, 9, 1),
+            periodo_fim=date(2026, 9, 30),
+            carga_horaria_periodo=160,
+        )
+        self.ra_b = RelatorioAtividade.objects.create(
+            termo_bolsa=self.termo_b,
+            parcela_referencia=self.parcela_b,
+            criado_por=self.user_gestor,
+            status='CONCLUIDO',
+            periodo_inicio=date(2026, 9, 1),
+            periodo_fim=date(2026, 9, 30),
+            carga_horaria_periodo=160,
+        )
+
+        self.url_lote = reverse(
+            'gestao_projetos:liquidar_folha_lote',
+            args=[self.projeto.id],
+        )
+        self.url_folha = reverse('gestao_projetos:folha_mensal_pagamentos')
+
+        self.client = Client()
+        self.client.login(username='gestor_lote_p7', password='senha123')
+
+    # ------------------------------------------------------------------ #
+    # Teste a) Baixa em lote com sucesso (2 parcelas, RA CONCLUIDO)       #
+    # ------------------------------------------------------------------ #
+    def test_baixa_lote_sucesso_duas_parcelas(self):
+        """2 parcelas com RA CONCLUIDO são liquidadas em lote; status → PAGO."""
+        response = self.client.post(self.url_lote, {
+            'parcelas_ids': [self.parcela_a.id, self.parcela_b.id],
+            'data_pagamento': '2026-09-30',
+            'conta_pagamento': self.conta.id,
+        })
+
+        self.assertEqual(response.status_code, 302,
+                         "Deve redirecionar após liquidação bem-sucedida.")
+
+        self.parcela_a.refresh_from_db()
+        self.parcela_b.refresh_from_db()
+        self.assertEqual(self.parcela_a.status, 'PAGO',
+                         "Parcela A deve estar PAGO após lote.")
+        self.assertEqual(self.parcela_b.status, 'PAGO',
+                         "Parcela B deve estar PAGO após lote.")
+        self.assertEqual(self.parcela_a.data_pagamento, date(2026, 9, 30))
+        self.assertEqual(self.parcela_b.data_pagamento, date(2026, 9, 30))
+        self.assertEqual(self.parcela_a.conta_pagamento, self.conta)
+        self.assertEqual(self.parcela_b.conta_pagamento, self.conta)
+
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('2' in str(m) and 'liquidada' in str(m) for m in msgs),
+            "Mensagem de sucesso deve mencionar 2 parcelas liquidadas."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste b) Trava: RA PENDENTE aborta toda a operação (fail-fast)      #
+    # ------------------------------------------------------------------ #
+    def test_trava_ra_pendente_aborta_lote(self):
+        """Se uma parcela tem RA PENDENTE, nenhuma parcela do lote é baixada."""
+        # Muda RA do bolsista A para PENDENTE
+        self.ra_a.status = 'PENDENTE'
+        self.ra_a.save()
+
+        response = self.client.post(self.url_lote, {
+            'parcelas_ids': [self.parcela_a.id, self.parcela_b.id],
+            'data_pagamento': '2026-09-30',
+            'conta_pagamento': self.conta.id,
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        # Nenhuma parcela deve ter transitado para PAGO
+        self.parcela_a.refresh_from_db()
+        self.parcela_b.refresh_from_db()
+        self.assertNotEqual(self.parcela_a.status, 'PAGO',
+                            "Parcela A não deve ser baixada (RA pendente).")
+        self.assertNotEqual(self.parcela_b.status, 'PAGO',
+                            "Parcela B não deve ser baixada (operação abortada por fail-fast).")
+
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('cancelada' in str(m).lower() or 'não possui RA homologado' in str(m) for m in msgs),
+            "Mensagem de erro de trava de integridade deve ser emitida."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste c) Trava: parcela sem RA aborta toda a operação               #
+    # ------------------------------------------------------------------ #
+    def test_trava_sem_ra_aborta_lote(self):
+        """Parcela sem RA nenhum aborta o lote inteiro."""
+        self.ra_a.delete()
+
+        response = self.client.post(self.url_lote, {
+            'parcelas_ids': [self.parcela_a.id, self.parcela_b.id],
+            'data_pagamento': '2026-09-30',
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        self.parcela_a.refresh_from_db()
+        self.parcela_b.refresh_from_db()
+        self.assertNotEqual(self.parcela_a.status, 'PAGO')
+        self.assertNotEqual(self.parcela_b.status, 'PAGO')
+
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('cancelada' in str(m).lower() or 'RA homologado' in str(m) for m in msgs),
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste d) Idempotência: parcelas já PAGAS são ignoradas              #
+    # ------------------------------------------------------------------ #
+    def test_idempotencia_parcela_ja_paga_ignorada(self):
+        """Parcela já PAGA incluída no lote é ignorada; a outra é baixada normalmente."""
+        # Marca parcela_a como já PAGA
+        self.parcela_a.status = 'PAGO'
+        self.parcela_a.data_pagamento = date(2026, 9, 15)
+        self.parcela_a.save()
+
+        response = self.client.post(self.url_lote, {
+            'parcelas_ids': [self.parcela_a.id, self.parcela_b.id],
+            'data_pagamento': '2026-09-30',
+            'conta_pagamento': self.conta.id,
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        # parcela_a permanece com a data original (não regravada)
+        self.parcela_a.refresh_from_db()
+        self.assertEqual(self.parcela_a.data_pagamento, date(2026, 9, 15),
+                         "Data de pagamento original não deve ser sobrescrita.")
+
+        # parcela_b é baixada
+        self.parcela_b.refresh_from_db()
+        self.assertEqual(self.parcela_b.status, 'PAGO',
+                         "Parcela B deve ser baixada normalmente.")
+
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('liquidada' in str(m) for m in msgs),
+            "Mensagem de sucesso deve ser emitida."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste e) KPIs da folha refletem o estado após liquidação            #
+    # ------------------------------------------------------------------ #
+    def test_kpis_folha_apos_liquidacao_lote(self):
+        """Após baixa em lote, total_liquidado e saldo_pendente refletem o novo estado."""
+        # Liquida ambas via lote
+        self.client.post(self.url_lote, {
+            'parcelas_ids': [self.parcela_a.id, self.parcela_b.id],
+            'data_pagamento': '2026-09-30',
+            'conta_pagamento': self.conta.id,
+        })
+
+        # Acessa a folha e verifica KPIs
+        response = self.client.get(
+            self.url_folha,
+            {'projeto_id': self.projeto.id, 'mes_ano': '2026-09'},
+        )
+        self.assertEqual(response.status_code, 200)
+
+        total_liquidado = response.context['total_liquidado']
+        saldo_pendente = response.context['saldo_pendente']
+        total_folha = response.context['total_folha']
+
+        self.assertEqual(total_liquidado, Decimal('3000.00'),
+                         "Total liquidado deve ser R$ 3.000,00 após lote.")
+        self.assertEqual(saldo_pendente, Decimal('0.00'),
+                         "Saldo pendente deve ser zero após liquidação de todas as parcelas.")
+        self.assertEqual(total_folha, Decimal('3000.00'))
+
+    # ------------------------------------------------------------------ #
+    # Teste f) RBAC — usuário sem permissão recebe 403                    #
+    # ------------------------------------------------------------------ #
+    def test_rbac_usuario_sem_permissao_bloqueado(self):
+        """Usuário não membro da equipe recebe HttpResponseForbidden."""
+        outro_user = User.objects.create_user(
+            username='intruso_lote_p7',
+            password='senha123',
+        )
+        self.client.login(username='intruso_lote_p7', password='senha123')
+
+        response = self.client.post(self.url_lote, {
+            'parcelas_ids': [self.parcela_a.id],
+            'data_pagamento': '2026-09-30',
+        })
+
+        self.assertEqual(response.status_code, 403,
+                         "Usuário sem permissão deve receber 403 Forbidden.")
+
+        # Parcela não deve ter sido alterada
+        self.parcela_a.refresh_from_db()
+        self.assertNotEqual(self.parcela_a.status, 'PAGO')
+
+    # ------------------------------------------------------------------ #
+    # Teste g) GET na URL redireciona sem efetuar baixas                  #
+    # ------------------------------------------------------------------ #
+    def test_get_redireciona_sem_baixas(self):
+        """GET na URL de lote redireciona sem alterar nenhuma parcela."""
+        response = self.client.get(self.url_lote)
+
+        self.assertEqual(response.status_code, 302)
+
+        self.parcela_a.refresh_from_db()
+        self.parcela_b.refresh_from_db()
+        self.assertNotEqual(self.parcela_a.status, 'PAGO')
+        self.assertNotEqual(self.parcela_b.status, 'PAGO')
+
+    # ------------------------------------------------------------------ #
+    # Teste h) Lista vazia de parcelas retorna erro sem alterar nada      #
+    # ------------------------------------------------------------------ #
+    def test_lista_vazia_retorna_erro(self):
+        """POST sem parcelas_ids retorna mensagem de erro e não altera nada."""
+        response = self.client.post(self.url_lote, {
+            'parcelas_ids': [],
+            'data_pagamento': '2026-09-30',
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        self.parcela_a.refresh_from_db()
+        self.assertNotEqual(self.parcela_a.status, 'PAGO')
+
+        msgs = list(response.wsgi_request._messages)
+        self.assertTrue(
+            any('Selecione pelo menos' in str(m) for m in msgs),
+            "Mensagem de erro por lista vazia deve ser emitida."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste i) Baixa em lote com comprovante — arquivo associado          #
+    # ------------------------------------------------------------------ #
+    def test_baixa_lote_com_comprovante(self):
+        """Comprovante enviado é associado às parcelas liquidadas."""
+        import io
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        comprovante = SimpleUploadedFile(
+            'comprovante_lote.pdf',
+            b'%PDF-1.4 fake content',
+            content_type='application/pdf',
+        )
+
+        response = self.client.post(self.url_lote, {
+            'parcelas_ids': [self.parcela_a.id, self.parcela_b.id],
+            'data_pagamento': '2026-09-30',
+            'conta_pagamento': self.conta.id,
+            'comprovante_pagamento': comprovante,
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        self.parcela_a.refresh_from_db()
+        self.parcela_b.refresh_from_db()
+        self.assertEqual(self.parcela_a.status, 'PAGO')
+        self.assertEqual(self.parcela_b.status, 'PAGO')
+
+        # Comprovante deve estar associado
+        self.assertTrue(
+            bool(self.parcela_a.comprovante_pagamento) or bool(self.parcela_b.comprovante_pagamento),
+            "Pelo menos uma parcela deve ter comprovante associado."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste j) Liquidação parcial: 1 apta + 1 não-apta aborta tudo       #
+    # ------------------------------------------------------------------ #
+    def test_liquidacao_parcial_aborta_se_uma_nao_apta(self):
+        """
+        Mesmo que parcela_b tenha RA CONCLUIDO, a presença de parcela_a
+        com RA PENDENTE deve abortar toda a operação (fail-fast atômico).
+        """
+        self.ra_a.status = 'PENDENTE'
+        self.ra_a.save()
+
+        response = self.client.post(self.url_lote, {
+            'parcelas_ids': [self.parcela_a.id, self.parcela_b.id],
+            'data_pagamento': '2026-09-30',
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        # Ambas devem continuar PENDENTES — nenhuma parcela baixada
+        self.parcela_a.refresh_from_db()
+        self.parcela_b.refresh_from_db()
+        self.assertNotEqual(self.parcela_a.status, 'PAGO',
+                            "Parcela A não deve ter sido baixada.")
+        self.assertNotEqual(self.parcela_b.status, 'PAGO',
+                            "Parcela B NÃO deve ser baixada por atomicidade — fail-fast abortou o lote.")

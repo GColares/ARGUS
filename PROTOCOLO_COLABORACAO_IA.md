@@ -53,6 +53,19 @@ Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Copilot ou Devin**) 
 | **IBM Bob** | Desenvolvedor Autônomo & SDLC Partner | Implementação autônoma de backend, suítes de testes, regras de negócio e suporte ao ciclo SDLC | `BOB.md` |
 | **Kiro (AWS)** | Engenheiro de QA & Property-Testing | Testes de propriedades, agent hooks de validação contínua, blindagem de invariantes matemáticas/legais | `KIRO.md` |
 
+```mermaid
+flowchart TD
+    User([👤 Usuário / Product Owner]) -->|1. Demanda & Diretrizes| Gemini[🧠 Antigravity-Gemini<br><i>Arquiteto & Guardião do Domínio</i>]
+    Gemini -->|2. Red Team, Modelagem & Planejamento| Diario[(📝 diário_de_bordo.md)]
+    Gemini -->|3. Prompt de Handoff Cirúrgico| User
+    User -->|4. Aciona a IA Especialista| Squad{🛠️ Implementadores}
+    Squad -->|Cadastros, Templates & UI| Copilot[GitHub Copilot<br><i>VS Code</i>]
+    Squad -->|Regras Financeiras & QA| Kiro[Kiro IDE<br><i>AWS Bedrock</i>]
+    Squad -->|Refatorações Pesadas| Devin[Devin / IBM Bob]
+    Squad -->|5. Código Entregue| Gemini
+    Gemini -->|6. Auditoria de Conformidade, Testes & Commit| User
+```
+
 ### Antigravity-Gemini
 - analisar requisitos, arquitetura e regras de negócio;
 - pesquisar documentação e impactos entre módulos;

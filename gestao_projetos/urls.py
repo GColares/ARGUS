@@ -49,4 +49,7 @@ urlpatterns = [
 
     # Atesto SIAPE do Relatório de Atividades (Passo 6)
     path('relatorio/<int:relatorio_id>/atestar/', views.atestar_relatorio, name='atestar_relatorio'),
+
+    # Liquidação e Baixa em Lote da Folha de Bolsas (Passo 7)
+    path('projeto/<int:projeto_id>/folha/liquidar-lote/', views.liquidar_folha_lote, name='liquidar_folha_lote'),
 ]

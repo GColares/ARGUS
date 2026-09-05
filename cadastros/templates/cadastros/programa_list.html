@@ -26,9 +26,9 @@
             <table class="table table-hover table-striped mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Nome do Programa</th>
-                        <th>Termo de Cooperação Vinculado</th>
-                        <th>Status</th>
+                        <th class="text-center">Nome do Programa</th>
+                        <th class="text-center">Termo de Cooperação Vinculado</th>
+                        <th class="text-center">Status</th>
                         <th class="text-center" style="width: 150px;">Ações</th>
                     </tr>
                 </thead>
@@ -45,6 +45,7 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
+                            <a href="{% url 'cadastros:visualizar_programa' p.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
                             <a href="{% url 'cadastros:editar_programa' p.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
                             <a href="{% url 'cadastros:excluir_programa' p.id %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
                         </td>

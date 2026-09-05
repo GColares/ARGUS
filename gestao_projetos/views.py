@@ -1693,3 +1693,144 @@ def painel_governanca_alcadas(request):
         'hoje': hoje,
     }
     return render(request, 'gestao_projetos/governanca_alcadas.html', context)
+
+
+# =====================================================================
+# LIQUIDAÇÃO E BAIXA EM LOTE DA FOLHA DE BOLSAS (Passo 7)
+# =====================================================================
+
+@login_required
+def liquidar_folha_lote(request, projeto_id):
+    """
+    Passo 7 — Liquidação e Baixa em Lote das Parcelas de Bolsas.
+
+    Regras de negócio:
+    1. Apenas POST; GET redireciona para a folha.
+    2. RBAC: membro da equipe do projeto ou superusuário.
+    3. Trava de Integridade: TODAS as parcelas selecionadas devem ter RA
+       com status='CONCLUIDO'. Qualquer parcela com RA pendente ou ausente
+       aborta toda a operação com mensagem de erro (fail-fast).
+    4. Trava de Idempotência: parcelas já PAGAS são silenciosamente ignoradas
+       (não contam como erro, apenas puladas).
+    5. Validação do arquivo de comprovante (extensões seguras).
+    6. Execução dentro de transaction.atomic(): ou tudo é confirmado, ou nada.
+    7. Mensagem de sucesso com quantidade e valor total liquidado.
+    """
+    from decimal import Decimal
+    from datetime import datetime
+    from django.db import transaction
+    from django.urls import reverse as _url_reverse
+    from cadastros.models import Parcela, ProjetoPDI, ContaBancaria
+
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+
+    # ── RBAC ──
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden("Acesso negado: Você não é membro da equipe deste projeto.")
+
+    # ── Aceita apenas POST ──
+    if request.method != 'POST':
+        return _redirect_folha_lote(projeto_id)
+
+    # ── Coleta e valida os parâmetros ──
+    parcela_ids = request.POST.getlist('parcelas_ids')
+    data_pagamento_str = request.POST.get('data_pagamento', '').strip()
+    conta_id = request.POST.get('conta_pagamento', '').strip()
+    comprovante = request.FILES.get('comprovante_pagamento')
+
+    if not parcela_ids:
+        messages.error(request, "Selecione pelo menos uma parcela para liquidar em lote.")
+        return _redirect_folha_lote(projeto_id)
+
+    # Valida data
+    try:
+        data_pagamento = datetime.strptime(data_pagamento_str, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        messages.error(request, "Data de pagamento inválida.")
+        return _redirect_folha_lote(projeto_id)
+
+    # Valida extensão do comprovante
+    if comprovante:
+        extensao = comprovante.name.rsplit('.', 1)[-1].lower()
+        if extensao not in ('pdf', 'png', 'jpg', 'jpeg'):
+            messages.error(request, "Formato de comprovante inválido. Use PDF, PNG, JPG ou JPEG.")
+            return _redirect_folha_lote(projeto_id)
+
+    # Conta pagadora (opcional)
+    conta = None
+    if conta_id:
+        conta = ContaBancaria.objects.filter(id=conta_id, projeto=projeto).first()
+
+    # ── Carrega parcelas e aplica a Trava de Integridade ──
+    try:
+        ids_int = [int(pid) for pid in parcela_ids]
+    except ValueError:
+        messages.error(request, "IDs de parcelas inválidos.")
+        return _redirect_folha_lote(projeto_id)
+
+    parcelas_qs = Parcela.objects.filter(
+        id__in=ids_int,
+        termo_bolsa__cota_pt__projeto=projeto,
+    ).select_related('termo_bolsa__pessoa')
+
+    if parcelas_qs.count() != len(ids_int):
+        messages.error(request, "Uma ou mais parcelas não pertencem a este projeto.")
+        return _redirect_folha_lote(projeto_id)
+
+    # Trava de Integridade: verifica RA CONCLUIDO em TODAS as parcelas não-PAGAS
+    parcelas_sem_ra = []
+    parcelas_a_liquidar = []
+
+    for parcela in parcelas_qs:
+        if parcela.status == 'PAGO':
+            continue  # Idempotência: ignora parcelas já liquidadas
+
+        tem_ra_concluido = parcela.relatorios.filter(status='CONCLUIDO').exists()
+        if not tem_ra_concluido:
+            nome = parcela.termo_bolsa.pessoa.nome if parcela.termo_bolsa.pessoa else '?'
+            parcelas_sem_ra.append(f"Parcela {parcela.numero} ({nome})")
+        else:
+            parcelas_a_liquidar.append(parcela)
+
+    # Fail-fast: qualquer RA pendente aborta toda a operação
+    if parcelas_sem_ra:
+        messages.error(
+            request,
+            "Operação cancelada — as seguintes parcelas não possuem RA homologado: "
+            + ", ".join(parcelas_sem_ra)
+            + ". Ateste todos os Relatórios de Atividades antes de realizar a baixa em lote."
+        )
+        return _redirect_folha_lote(projeto_id)
+
+    if not parcelas_a_liquidar:
+        messages.info(request, "Todas as parcelas selecionadas já estavam liquidadas.")
+        return _redirect_folha_lote(projeto_id)
+
+    # ── Executa a liquidação em transação atômica ──
+    total_liquidado = Decimal('0.00')
+    qtd_liquidadas = 0
+
+    with transaction.atomic():
+        for parcela in parcelas_a_liquidar:
+            parcela.confirmar_pagamento(
+                data_pagamento=data_pagamento,
+                conta=conta,
+                comprovante=comprovante,
+            )
+            total_liquidado += parcela.valor or Decimal('0.00')
+            qtd_liquidadas += 1
+
+    messages.success(
+        request,
+        f"{qtd_liquidadas} parcela(s) liquidada(s) com sucesso! "
+        f"Valor total baixado: R$ {total_liquidado:,.2f}."
+    )
+    return _redirect_folha_lote(projeto_id)
+
+
+def _redirect_folha_lote(projeto_id):
+    """Helper: redireciona para a folha de pagamentos preservando o projeto."""
+    from django.urls import reverse as _reverse
+    url = _reverse('gestao_projetos:folha_mensal_pagamentos')
+    return redirect(f"{url}?projeto_id={projeto_id}")

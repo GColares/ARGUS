@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:listar_programas' %}" class="text-decoration-none">Programas</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Detalhes</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-sitemap text-primary me-2"></i>{{ programa.nome }}</h2>
+            <p class="text-muted small mb-0 mt-1">Detalhes do programa e projetos PDI associados.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'cadastros:editar_programa' programa.pk %}" class="btn btn-primary fw-bold shadow-sm"><i class="fas fa-edit me-2"></i>Editar</a>
+            <a href="{% url 'cadastros:excluir_programa' programa.pk %}" class="btn btn-outline-danger fw-bold"><i class="fas fa-trash me-2"></i>Excluir</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white py-3"><h5 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2"></i>Dados do Programa</h5></div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-muted">Nome</dt><dd class="col-sm-7 fw-bold">{{ programa.nome }}</dd>
+                        <dt class="col-sm-5 text-muted">Descrição</dt><dd class="col-sm-7">{{ programa.descricao|default:"-" }}</dd>
+                        <dt class="col-sm-5 text-muted">Status</dt><dd class="col-sm-7">{% if programa.ativo %}<span class="badge text-bg-success">Ativo</span>{% else %}<span class="badge text-bg-danger">Inativo</span>{% endif %}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white py-3"><h5 class="mb-0 fw-bold"><i class="fas fa-handshake me-2"></i>Termo de Cooperação Pai</h5></div>
+                <div class="card-body">
+                    <p class="text-muted mb-1">Termo de Cooperação vinculado</p>
+                    <a href="{% url 'cadastros:visualizar_termo' programa.termo_cooperacao.pk %}" class="h5 text-decoration-none">{{ programa.termo_cooperacao.numero }}</a>
+                    <p class="mt-3 mb-0">{{ programa.termo_cooperacao.objeto }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3"><h5 class="mb-0 fw-bold"><i class="fas fa-project-diagram me-2"></i>Projetos PDI Vinculados</h5></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light"><tr><th class="text-center">Projeto</th><th class="text-center">Fase</th><th class="text-center">Ação</th></tr></thead>
+                            <tbody>
+                                {% for projeto in programa.projetos_vinculados.all %}
+                                <tr><td class="fw-bold">{{ projeto.nome }}</td><td class="text-center">{{ projeto.get_fase_display }}</td><td class="text-center"><a href="{% url 'cadastros:visualizar_projeto' projeto.pk %}" class="btn btn-sm btn-outline-info" title="Visualizar"><i class="fas fa-eye"></i></a></td></tr>
+                                {% empty %}<tr><td colspan="3" class="text-center text-muted py-4">Nenhum projeto PDI vinculado.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
