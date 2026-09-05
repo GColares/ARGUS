@@ -30,6 +30,16 @@ Invoke-CheckedCommand "Sincronizando código com a nuvem..." { git pull --rebase
 Invoke-CheckedCommand "Instalando dependências..." { .\.venv\Scripts\python.exe -m pip install -r requirements.txt }
 Invoke-CheckedCommand "Aplicando migrações..." { .\.venv\Scripts\python.exe manage.py migrate }
 
+# Restauração automática de arquivos de mídia (uploads)
+if (Test-Path 'backups/media_seed.zip') {
+    if (-not (Test-Path 'media') -or (Get-ChildItem 'media' -Force | Measure-Object).Count -eq 0) {
+        Write-Host "Restaurando arquivos de mídia (uploads/anexos)..." -ForegroundColor Cyan
+        New-Item -ItemType Directory -Force -Path 'media' | Out-Null
+        Expand-Archive -Path 'backups/media_seed.zip' -DestinationPath 'media' -Force
+        Write-Host "Arquivos de mídia restaurados com sucesso!" -ForegroundColor Green
+    }
+}
+
 $backupFiles = @(Get-BackupFiles)
 if ($backupFiles.Count -eq 0) {
     Write-Host "Nenhum backup versionado foi encontrado; restauração indisponível." -ForegroundColor DarkYellow
@@ -65,11 +75,25 @@ if ($backupFiles.Count -eq 0) {
     } elseif ($restaurar -match '^[sS]$') {
         $arquivo = $latestBackups | Where-Object Extension -eq '.sql' | Select-Object -First 1
         if (-not $arquivo) { throw "Não há backup SQL para o ID mais recente." }
-        if ([string]::IsNullOrWhiteSpace($env:ARGUS_DB_USER) -or
-            [string]::IsNullOrWhiteSpace($env:ARGUS_DB_NAME) -or
-            [string]::IsNullOrWhiteSpace($env:ARGUS_DB_PASSWORD)) {
-            throw "Defina ARGUS_DB_USER, ARGUS_DB_NAME e ARGUS_DB_PASSWORD antes da restauração."
+        if ([string]::IsNullOrWhiteSpace($env:ARGUS_DB_USER)) { $env:ARGUS_DB_USER = 'postgres' }
+        if ([string]::IsNullOrWhiteSpace($env:ARGUS_DB_NAME)) { $env:ARGUS_DB_NAME = 'argus_db' }
+        if ([string]::IsNullOrWhiteSpace($env:ARGUS_DB_PASSWORD)) { $env:ARGUS_DB_PASSWORD = 'argus' }
+
+        # Localiza psql de forma resiliente
+        $psqlTool = "C:\Program Files\PostgreSQL\18\bin\psql.exe"
+        if (-not (Test-Path $psqlTool)) {
+            $foundPsql = (Get-Command psql -ErrorAction SilentlyContinue)
+            if ($foundPsql) {
+                $psqlTool = $foundPsql.Source
+            } else {
+                $altPsql = Get-ChildItem "C:\Program Files\PostgreSQL" -Filter "psql.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
+                if ($altPsql) { $psqlTool = $altPsql }
+            }
         }
+        if (-not (Test-Path $psqlTool)) {
+            throw "psql.exe nao encontrado no disco para restauracao SQL."
+        }
+
         Write-Host "ATENÇÃO: o schema public será apagado e substituído por $($arquivo.Name)." -ForegroundColor Red
         if ((Read-Host "Digite SUBSTITUIR para confirmar") -ne 'SUBSTITUIR') {
             throw "Restauração cancelada pelo usuário."
@@ -77,10 +101,10 @@ if ($backupFiles.Count -eq 0) {
         $env:PGCLIENTENCODING = 'utf8'
         $env:PGPASSWORD = $env:ARGUS_DB_PASSWORD
         Invoke-CheckedCommand "Limpando schema public para restauração SQL..." {
-            & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U $env:ARGUS_DB_USER -d $env:ARGUS_DB_NAME -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO $env:ARGUS_DB_USER; GRANT ALL ON SCHEMA public TO public;"
+            & $psqlTool -U $env:ARGUS_DB_USER -d $env:ARGUS_DB_NAME -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO $env:ARGUS_DB_USER; GRANT ALL ON SCHEMA public TO public;"
         }
         Invoke-CheckedCommand "Restaurando backup SQL..." {
-            & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U $env:ARGUS_DB_USER -d $env:ARGUS_DB_NAME -f $arquivo.FullName
+            & $psqlTool -U $env:ARGUS_DB_USER -d $env:ARGUS_DB_NAME -f $arquivo.FullName
         }
         Invoke-CheckedCommand "Validando migrações após restauração..." {
             .\.venv\Scripts\python.exe manage.py showmigrations

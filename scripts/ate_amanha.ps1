@@ -22,20 +22,42 @@ if ($null -eq $lastId) { $lastId = 0 }
 $idStr = ($lastId + 1).ToString('000')
 $timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm'
 
-if ([string]::IsNullOrWhiteSpace($env:ARGUS_DB_USER) -or
-    [string]::IsNullOrWhiteSpace($env:ARGUS_DB_NAME) -or
-    [string]::IsNullOrWhiteSpace($env:ARGUS_DB_PASSWORD)) {
-    throw "Defina ARGUS_DB_USER, ARGUS_DB_NAME e ARGUS_DB_PASSWORD antes do backup."
+if ([string]::IsNullOrWhiteSpace($env:ARGUS_DB_USER)) { $env:ARGUS_DB_USER = 'postgres' }
+if ([string]::IsNullOrWhiteSpace($env:ARGUS_DB_NAME)) { $env:ARGUS_DB_NAME = 'argus_db' }
+if ([string]::IsNullOrWhiteSpace($env:ARGUS_DB_PASSWORD)) { $env:ARGUS_DB_PASSWORD = 'argus' }
+
+# Localiza pg_dump de forma resiliente
+$pgDump = "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe"
+if (-not (Test-Path $pgDump)) {
+    $found = (Get-Command pg_dump -ErrorAction SilentlyContinue)
+    if ($found) {
+        $pgDump = $found.Source
+    } else {
+        $alt = Get-ChildItem "C:\Program Files\PostgreSQL" -Filter "pg_dump.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
+        if ($alt) { $pgDump = $alt }
+    }
 }
 
 $env:PGCLIENTENCODING = 'utf8'
 $env:PGPASSWORD = $env:ARGUS_DB_PASSWORD
-Invoke-CheckedCommand "Gerando backup SQL ($idStr)..." {
-    & "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" -U $env:ARGUS_DB_USER -d $env:ARGUS_DB_NAME -f "backups/sql/${idStr}_db_backup_${timestamp}.sql"
+
+if (Test-Path $pgDump) {
+    Invoke-CheckedCommand "Gerando backup SQL ($idStr)..." {
+        & $pgDump -U $env:ARGUS_DB_USER -d $env:ARGUS_DB_NAME -f "backups/sql/${idStr}_db_backup_${timestamp}.sql"
+    }
+} else {
+    Write-Host "pg_dump.exe nao encontrado no disco. Pulando backup SQL (o backup JSON garantira a paridade)." -ForegroundColor DarkYellow
 }
+
 Invoke-CheckedCommand "Gerando backup JSON ($idStr)..." {
     .\.venv\Scripts\python.exe -X utf8 manage.py dumpdata -e contenttypes -e auth.Permission --indent 2 > "backups/json/${idStr}_db_backup_${timestamp}.json"
 }
+
+# Atualiza seed de media se houver arquivos
+if (Test-Path 'media') {
+    Compress-Archive -Path "media\*" -DestinationPath "backups\media_seed.zip" -CompressionLevel Fastest -Force
+}
+
 Invoke-CheckedCommand "Exportando dependências..." {
     .\.venv\Scripts\python.exe -m pip freeze > requirements.txt
 }
