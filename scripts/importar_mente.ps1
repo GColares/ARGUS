@@ -9,7 +9,8 @@ if (-not (Test-Path $zipPath)) {
     throw "Arquivo mente_gemini_argus.zip nao encontrado na pasta Downloads ($zipPath)."
 }
 
-New-Item -ItemType Directory -Force -Path $destino | Out-Null
-Expand-Archive -Path $zipPath -DestinationPath $destino -Force
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.gemini\antigravity" | Out-Null
+Expand-Archive -Path $zipPath -DestinationPath "$env:USERPROFILE\.gemini\antigravity" -Force
 Write-Host "Memoria do Antigravity restaurada com sucesso em: $destino" -ForegroundColor Green
 Write-Host "Abra o Antigravity na maquina de casa para continuar da mesma sessao!" -ForegroundColor Cyan
+
