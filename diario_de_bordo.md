@@ -1,5 +1,16 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Aprendizado Contínuo (/learn): Modelo Mínimo Gemini 3.1 Pro e Autorização Prévia Mandatória
+
+### 1. Diretrizes Institucionalizadas (Antigravity-Gemini / Imposição PO):
+- **Criação da Regra `.agents/rules/AUTORIZACAO_PREVIA_E_MODELO_MINIMO.md`:**
+  - **Tier Mínimo de Raciocínio:** O Antigravity só pode programar/modificar código com modelo **Gemini 3.1 Pro no mínimo**. Modelos compactos ou Flash estão terminantemente vedados de alterar código de produção.
+  - **Portão Mandatório de Autorização Prévia (Stop & Explain):** O Antigravity é proibido de alterar arquivos de código por iniciativa própria. Deve obrigatoriamente parar, explicar ao PO o que vai fazer, quais arquivos/funções serão tocados e a justificativa, e aguardar aprovação explícita antes de editar qualquer código.
+- **Atualização Cruzada em `.agents/rules/SEGREGAÇÃO_FUNCOES_E_DUPLO_CHECK.md`:**
+  - Vinculação formal do protocolo de autorização prévia e modelo mínimo na cláusula de implementação excepcional.
+
+---
+
 ## [2026-09-05] Duplo Check de Engenharia de Produção: 2ª Auditoria Independente LGPD (GitHub Copilot)
 
 ### 1. Parecer de Engenharia de Produção (Auditor: GitHub Copilot):
