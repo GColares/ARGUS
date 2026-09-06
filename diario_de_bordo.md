@@ -1,5 +1,26 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Segurança & Autonomia: Self-Hosting do Font Awesome 7.3.1 Local (0 CDNs Externos)
+
+### 1. Modernização e Blindagem de Supply Chain (Antigravity-Gemini / Aprovação PO):
+- **Diagnóstico e Upgrade:** O PO Geziel disponibilizou a versão mais recente do mercado: **Font Awesome Free 7.3.1 for Web** (2026), com 1.992 ícones (+97 novos ícones em relação à versão 6 anterior).
+- **Estruturação Enxuta em `static/vendor/fontawesome/`:**
+  * `css/all.min.css`: 90 KB (minificado e com retrocompatibilidade total para `.fas`, `.far`, `.fab`).
+  * `webfonts/`: 250 KB (arquivos `.woff2` ultra-compactados para alta velocidade).
+  * Limpeza total de instaladores e arquivos pesados brutos (+160 MB economizados no Git).
+- **Substituição no Template Base (`templates/base.html`):**
+  * Eliminação da dependência de CDN externa (`cdnjs.cloudflare.com`).
+  * Chamada blindada e 100% local: `<link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">`.
+  * O ERP ARGUS agora opera com ícones em redes internas governamentais/intranet mesmo completamente isolado da internet (Air-Gapped / Offline ready).
+
+### 2. Métricas de Qualidade:
+- `manage.py check`: 0 erros.
+- `manage.py test cadastros`: **37/37 testes OK (100%)**.
+- `manage.py test gestao_projetos`: **61/61 testes OK (100%)**.
+- **Total Global: 98 testes automatizados aprovados (0 regressões).**
+
+---
+
 ## [2026-09-05] Homologação Sprint 1: Tokens e Componentes do Design System no CSS Global (IBM Bob)
 
 ### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
