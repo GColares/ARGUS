@@ -1,5 +1,22 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Criação do Design System Canônico do ARGUS (05_DESIGN_SYSTEM_ARGUS.md)
+
+### 1. Diagnóstico de UI/UX Realizado pelo IBM Bob:
+- **Inventário de 70 Templates:** Mapeamento de inconsistências prioritárias (coexistência indevida de Bootstrap Icons com FontAwesome, divergência de cores em badges de status como `PENDENTE`, duplicação de cards de KPI e blocos `<style>` inline).
+- **Consolidação do Padrão Almoxarifado / ARGUS:** Reconhecimento da solidez da paleta híbrida `--argus-*` / `--inova-*` e dos padrões maduros de layout.
+
+### 2. Oficialização da Documentação Técnica (Antigravity-Gemini / Aprovação PO):
+- **Criação de [`documentacao-tecnica/05_DESIGN_SYSTEM_ARGUS.md`](documentacao-tecnica/05_DESIGN_SYSTEM_ARGUS.md):**
+  1. *Tokens Semânticos de Cores:* Definição formal das cores de superfície, elevações e contraste.
+  2. *Matriz Canônica de Badges de Status:* Tabela mandatória que unifica `ATIVO` (verde), `PENDENTE` (âmbar), `CANCELADO` (vermelho), `CONGELADO` (cinza) e `PROSPECÇÃO` (ciano) em todo o sistema.
+  3. *Biblioteca de Ícones Oficial:* FontAwesome 6 exclusivo (`fas fa-*`), eliminando Bootstrap Icons (`bi`).
+  4. *Componentes Canônicos:* Estrutura de página master, cards de KPI (`.card-kpi-argus`), tabelas DataTables com cabeçalho escuro e botões de ação padronizados.
+  5. *Regras de Ouro de Frontend:* Proibição terminante de `{% empty %}` em DataTables, proibição de estilos inline (`style="..."`) e eventos inline (`onmouseover`).
+- **Atualização do Índice Geral:** Inclusão do novo artefato em `documentacao-tecnica/README.md`.
+
+---
+
 ## [2026-09-05] Homologação Final Corporativa (Triplo Check): Parecer do IBM Bob (SDLC Partner)
 
 ### 1. Parecer Técnico de Auditoria Independente (Auditor: IBM Bob):
