@@ -130,15 +130,17 @@ flowchart LR
 **Foco:** Geração de relatórios gerenciais consolidados para os órgãos reguladores e diretoria.
 
 #### Módulo Transversal: `gestao_projetos` & `central_servicos`
-1. **Painel de Indicadores Oficiais EMBRAPII (Etapa 4.1):** `[CONCLUÍDO & HOMOLOGADO]`
+1. **Painel de Indicadores Oficiais EMBRAPII (Etapas 4.1 & 4.2):** `[CONCLUÍDO & HOMOLOGADO]`
    - Taxa de alavancagem de recursos privados (Aporte Empresa / Aporte Total).
-   - Indicador normativo de maturidade tecnológica (Escala EMBRAPII TRL 3 a 6).
+   - Indicador de maturidade tecnológica TRL alcançado por Macroentrega (TRL 3 a 6) via schema evolutivo null-safe.
    - Percentual de Overhead retido e creditado no Fundo de Reserva (`categoria='SUPORTE'`).
-   - **Entrega Técnica (118/118 testes OK):**
-     * Criação da rota `indicadores-embrapii/` em `gestao_projetos/urls.py`.
-     * View executiva `painel_indicadores_embrapii` com RBAC canônico (`COORDENADOR`, `GESTOR`, `ANALISTA`), prevenção de dupla contagem e proteção contra divisão por zero.
-     * Template `painel_indicadores_embrapii.html` no Padrão Almoxarifado com 4 KPIs canônicos, composição orçamentária e tabela analítica DataTables-safe.
-     * Suíte de 6 testes automatizados `PainelIndicadoresEmbrapiiTestCase` em `gestao_projetos/tests.py`.
+   - **Entrega Técnica (119/119 testes OK):**
+     * Criação da rota `indicadores-embrapii/` em `gestao_projetos/urls.py` e card de acesso em `home_gestao_projetos.html`.
+     * Evolução do modelo `Macroentrega` em `cadastros/models.py` com o campo opcional `trl` (`TRL_CHOICES` 3 a 6) e migração `0064_macroentrega_trl.py`.
+     * Atualização do admin inline `MacroentregaInline` com campos de TRL e datas.
+     * View executiva `painel_indicadores_embrapii` com cálculo dinâmico de TRL médio, TRL máximo por projeto, agregação de alavancagem e Fundo de Reserva.
+     * Template `painel_indicadores_embrapii.html` no Padrão Almoxarifado com barras visuais de distribuição TRL e KPIs dinâmicos.
+     * Suíte de 7 testes automatizados `PainelIndicadoresEmbrapiiTestCase` em `gestao_projetos/tests.py`.
 2. **Trilha de Auditoria com Simple History:**
    - Interface de visualização para auditores do TCU/CGU: delta de modificações em planos de trabalho, cotas de bolsas e movimentações orçamentárias.
 

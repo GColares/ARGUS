@@ -93,8 +93,16 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">Maturidade Tecnológica</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">Escala TRL 3 a 6</div>
-                            <small class="text-muted">{{ total_macros_global }} Macroentregas cadastradas</small>
+                            <div class="h4 mb-0 fw-bold text-gray-800">
+                                {% if trl_medio %}TRL {{ trl_medio|floatformat:1 }}{% else %}Escala 3 a 6{% endif %}
+                            </div>
+                            <small class="text-muted">
+                                {% if total_macros_com_trl > 0 %}
+                                    {{ total_macros_com_trl }} de {{ total_macros_global }} classificadas
+                                {% else %}
+                                    {{ total_macros_global }} Macroentregas cadastradas
+                                {% endif %}
+                            </small>
                         </div>
                         <div class="text-info opacity-50">
                             <i class="fas fa-rocket fa-2x"></i>
@@ -158,33 +166,53 @@
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white py-3 border-0">
                     <h6 class="m-0 fw-bold text-dark">
-                        <i class="fas fa-layer-group text-info me-2"></i>Escala de Maturidade Tecnológica (Normativo EMBRAPII)
+                        <i class="fas fa-layer-group text-info me-2"></i>Distribuição de Maturidade Tecnológica (TRL)
                     </h6>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted small mb-3">Enquadramento dos projetos no ciclo de inovação pré-competitiva:</p>
-                    <ul class="list-group list-group-flush small">
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <span><strong>TRL 3:</strong> Prova de Conceito Analítica e Experimental</span>
-                            <span class="badge bg-info text-dark">Pesquisa Aplicada</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <span><strong>TRL 4:</strong> Validação de Componentes em Laboratório</span>
-                            <span class="badge bg-primary">Desenvolvimento</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <span><strong>TRL 5:</strong> Validação em Ambiente Relevante / Simulado</span>
-                            <span class="badge bg-warning text-dark">Escala Piloto</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <span><strong>TRL 6:</strong> Demonstração de Protótipo Operacional</span>
-                            <span class="badge bg-success">Homologação</span>
-                        </li>
-                    </ul>
+                    <p class="text-muted small mb-3">Macroentregas ativas distribuídas na esteira de desenvolvimento tecnológico:</p>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <span>TRL 3 — Prova de Conceito Analítica / Experimental</span>
+                            <span>{{ distribuicao_trl.3 }} entrega(s)</span>
+                        </div>
+                        <div class="progress progress-bar-trl">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {% if total_macros_com_trl > 0 %}{% widthratio distribuicao_trl.3 total_macros_com_trl 100 %}{% else %}0{% endif %}%;"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <span>TRL 4 — Validação de Componentes em Laboratório</span>
+                            <span>{{ distribuicao_trl.4 }} entrega(s)</span>
+                        </div>
+                        <div class="progress progress-bar-trl">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {% if total_macros_com_trl > 0 %}{% widthratio distribuicao_trl.4 total_macros_com_trl 100 %}{% else %}0{% endif %}%;"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <span>TRL 5 — Validação em Ambiente Relevante / Simulado</span>
+                            <span>{{ distribuicao_trl.5 }} entrega(s)</span>
+                        </div>
+                        <div class="progress progress-bar-trl">
+                            <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: {% if total_macros_com_trl > 0 %}{% widthratio distribuicao_trl.5 total_macros_com_trl 100 %}{% else %}0{% endif %}%;"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <span>TRL 6 — Demonstração de Protótipo Operacional</span>
+                            <span>{{ distribuicao_trl.6 }} entrega(s)</span>
+                        </div>
+                        <div class="progress progress-bar-trl">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {% if total_macros_com_trl > 0 %}{% widthratio distribuicao_trl.6 total_macros_com_trl 100 %}{% else %}0{% endif %}%;"></div>
+                        </div>
+                    </div>
+                    {% if total_macros_com_trl == 0 %}
                     <div class="alert alert-light border mt-3 mb-0 py-2 small text-muted">
                         <i class="fas fa-info-circle text-primary me-1"></i>
-                        A mensuração individual de TRL por macroentrega será integrada na Etapa 4.2 do Plano Mestre.
+                        Nenhuma macroentrega possui TRL classificado ainda. O enquadramento pode ser realizado na edição do Plano de Trabalho.
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -208,7 +236,7 @@
                             <th class="text-end">Aporte Empresa</th>
                             <th class="text-center">Alavancagem</th>
                             <th class="text-end">Fundo de Reserva</th>
-                            <th class="text-center">Macroentregas</th>
+                            <th class="text-center">TRL / Entregas</th>
                             <th class="text-center pe-3">Ações</th>
                         </tr>
                     </thead>
@@ -232,7 +260,12 @@
                                 <div class="small text-muted">({{ item.pct_overhead|floatformat:1 }}%)</div>
                             </td>
                             <td class="text-center">
-                                <span class="badge bg-secondary">{{ item.total_macros }} entregas</span>
+                                {% if item.trl_max %}
+                                    <span class="badge bg-dark">TRL {{ item.trl_max }}</span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">Não informado</span>
+                                {% endif %}
+                                <div class="small text-muted">{{ item.total_macros }} entrega(s)</div>
                             </td>
                             <td class="text-center pe-3">
                                 <a href="{% url 'gestao_projetos:extrato_financeiro_projeto' item.projeto.id %}" class="btn btn-outline-primary btn-sm" title="Extrato Financeiro">

@@ -2277,10 +2277,11 @@ class PainelIndicadoresEmbrapiiTestCase(TestCase):
             valor_previsto=Decimal('10000.00'),
             fonte_recurso='EMPRESA'
         )
-        Macroentrega.objects.create(
+        self.macro1 = Macroentrega.objects.create(
             plano_trabalho=self.plano,
             numero=1,
-            nome="Macroentrega Prova de Conceito"
+            nome="Macroentrega Prova de Conceito",
+            trl=3
         )
 
         self.url = reverse('gestao_projetos:painel_indicadores_embrapii')
@@ -2338,3 +2339,33 @@ class PainelIndicadoresEmbrapiiTestCase(TestCase):
         self.assertEqual(response.context['total_empresa'], Decimal('60000.00'))
         self.assertEqual(response.context['total_global'], Decimal('100000.00'))
         self.assertAlmostEqual(float(response.context['alavancagem_global']), 60.0, places=1)
+
+    def test_metrica_trl_dinamica_e_null_safe(self):
+        from cadastros.models import Macroentrega
+        # Adiciona macro com TRL 5
+        Macroentrega.objects.create(
+            plano_trabalho=self.plano,
+            numero=2,
+            nome="Macroentrega Prototipo",
+            trl=5
+        )
+        # Adiciona macro sem TRL (null safe)
+        Macroentrega.objects.create(
+            plano_trabalho=self.plano,
+            numero=3,
+            nome="Macroentrega Sem TRL"
+        )
+        self.client.login(username='gestor_bi', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        # Total macros = 3, classificadas = 2
+        self.assertEqual(response.context['total_macros_global'], 3)
+        self.assertEqual(response.context['total_macros_com_trl'], 2)
+        # TRL médio: (3 + 5) / 2 = 4.0
+        self.assertAlmostEqual(float(response.context['trl_medio']), 4.0, places=1)
+        # Distribuição: 1 no TRL 3, 1 no TRL 5
+        self.assertEqual(response.context['distribuicao_trl'][3], 1)
+        self.assertEqual(response.context['distribuicao_trl'][5], 1)
+        # TRL máx do projeto piloto deve ser 5
+        proj_item = response.context['projetos_metricas'][0]
+        self.assertEqual(proj_item['trl_max'], 5)

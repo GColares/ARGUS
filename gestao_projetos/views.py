@@ -2258,7 +2258,7 @@ def painel_indicadores_embrapii(request):
     - RBAC: Superusuários, Staff, ou MembroEquipe (COORDENADOR, GESTOR, ANALISTA).
     """
     from decimal import Decimal
-    from django.db.models import Sum
+    from django.db.models import Sum, Avg
     from django.core.exceptions import PermissionDenied
     from cadastros.models import PlanoDeTrabalho, RubricaOrcamentariaPT, Macroentrega, ProjetoPDI, MembroEquipe
 
@@ -2284,6 +2284,7 @@ def painel_indicadores_embrapii(request):
     total_global = Decimal('0.00')
     total_fundo_reserva = Decimal('0.00')
     total_macros_global = 0
+    planos_vigentes_ids = []
 
     projetos_metricas = []
     for proj in projetos:
@@ -2291,6 +2292,8 @@ def painel_indicadores_embrapii(request):
         plano = proj.planos_trabalho.filter(ativo=True).order_by('-versao').first()
         if not plano:
             continue
+
+        planos_vigentes_ids.append(plano.pk)
 
         v_empresa = plano.aporte_empresa or Decimal('0.00')
         v_embrapii = plano.aporte_embrapii or Decimal('0.00')
@@ -2315,8 +2318,12 @@ def painel_indicadores_embrapii(request):
 
         pct_overhead_proj = (overhead_proj / v_global * Decimal('100.0')) if v_global > Decimal('0.00') else Decimal('0.00')
 
-        macros_proj_count = Macroentrega.objects.filter(plano_trabalho=plano).count()
+        macros_proj = Macroentrega.objects.filter(plano_trabalho=plano)
+        macros_proj_count = macros_proj.count()
         total_macros_global += macros_proj_count
+
+        # TRL máximo alcançado no projeto
+        trl_max = macros_proj.filter(trl__isnull=False).order_by('-trl').values_list('trl', flat=True).first()
 
         projetos_metricas.append({
             'projeto': proj,
@@ -2330,6 +2337,7 @@ def painel_indicadores_embrapii(request):
             'overhead': overhead_proj,
             'pct_overhead': pct_overhead_proj,
             'total_macros': macros_proj_count,
+            'trl_max': trl_max,
         })
 
     # Taxa Global de Alavancagem e Fundo de Reserva
@@ -2341,6 +2349,19 @@ def painel_indicadores_embrapii(request):
     pct_embrapii = float(total_embrapii / total_global * Decimal('100.0')) if total_global > Decimal('0.00') else 0.0
     pct_sebrae = float(total_sebrae / total_global * Decimal('100.0')) if total_global > Decimal('0.00') else 0.0
     pct_contra = float(total_contrapartida / total_global * Decimal('100.0')) if total_global > Decimal('0.00') else 0.0
+
+    # 4. Distribuição e Média de TRL nas Macroentregas da Carteira
+    macros_ativas = Macroentrega.objects.filter(plano_trabalho__in=planos_vigentes_ids)
+    macros_com_trl = macros_ativas.filter(trl__isnull=False)
+    total_macros_com_trl = macros_com_trl.count()
+
+    distribuicao_trl = {
+        3: macros_com_trl.filter(trl=3).count(),
+        4: macros_com_trl.filter(trl=4).count(),
+        5: macros_com_trl.filter(trl=5).count(),
+        6: macros_com_trl.filter(trl=6).count(),
+    }
+    trl_medio = macros_com_trl.aggregate(media=Avg('trl'))['media']
 
     context = {
         'total_empresa': total_empresa,
@@ -2357,5 +2378,8 @@ def painel_indicadores_embrapii(request):
         'pct_sebrae': pct_sebrae,
         'pct_contra': pct_contra,
         'projetos_metricas': projetos_metricas,
+        'total_macros_com_trl': total_macros_com_trl,
+        'trl_medio': trl_medio,
+        'distribuicao_trl': distribuicao_trl,
     }
     return render(request, 'gestao_projetos/painel_indicadores_embrapii.html', context)

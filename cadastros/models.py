@@ -1057,11 +1057,26 @@ class NotaFiscal(models.Model):
         return f"NF {self.numero} - {nome_fornecedor}"
 
 class Macroentrega(models.Model):
+    TRL_CHOICES = [
+        (3, 'TRL 3 — Prova de Conceito Analítica/Experimental'),
+        (4, 'TRL 4 — Validação de Componentes em Laboratório'),
+        (5, 'TRL 5 — Validação em Ambiente Relevante/Simulado'),
+        (6, 'TRL 6 — Demonstração de Protótipo Operacional'),
+    ]
+
     plano_trabalho = models.ForeignKey(PlanoDeTrabalho, on_delete=models.CASCADE, related_name='macroentregas')
     numero = models.IntegerField(verbose_name="Número (Ex: 1, 2, 3)")
     nome = models.CharField(max_length=200, verbose_name="Nome da Macroentrega")
     micro_entregas = models.TextField(blank=True, null=True, verbose_name="Micro-Entregas (Rich Text)")
-    
+
+    trl = models.PositiveSmallIntegerField(
+        choices=TRL_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name="Nível TRL (Maturidade Tecnológica)",
+        help_text="Nível de maturidade tecnológica no padrão EMBRAPII (escala 3 a 6)."
+    )
+
     data_inicio = models.DateField(verbose_name="Data Início Absoluta", null=True, blank=True)
     data_fim = models.DateField(verbose_name="Data Fim Absoluta", null=True, blank=True)
 
@@ -1071,7 +1086,8 @@ class Macroentrega(models.Model):
         ordering = ['numero']
 
     def __str__(self):
-        return f"M{self.numero} - {self.nome}"
+        trl_str = f" [TRL {self.trl}]" if self.trl else ""
+        return f"M{self.numero} - {self.nome}{trl_str}"
 
 class Parcela(models.Model):
     """

@@ -1,5 +1,27 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Fase 4 — Etapa 4.2: Evolução de Schema para TRL em Macroentregas (IBM Bob)
+
+### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`cadastros/models.py`](cadastros/models.py) (Adição do campo `trl` opcional/null-safe no modelo `Macroentrega` com `TRL_CHOICES` na faixa EMBRAPII 3 a 6).
+  * [`cadastros/migrations/0064_macroentrega_trl.py`](cadastros/migrations/0064_macroentrega_trl.py) (Migração não-destrutiva gerada e aplicada).
+  * [`cadastros/admin.py`](cadastros/admin.py) (Atualização do inline `MacroentregaInline` com campos de TRL e datas de vigência).
+  * [`gestao_projetos/views.py`](gestao_projetos/views.py) (Cálculo dinâmico de TRL médio da carteira, distribuição por nível e `trl_max` por projeto).
+  * [`gestao_projetos/templates/gestao_projetos/painel_indicadores_embrapii.html`](gestao_projetos/templates/gestao_projetos/painel_indicadores_embrapii.html) (Renderização de badges e barras progressivas de TRL dinâmicas).
+  * [`gestao_projetos/tests.py`](gestao_projetos/tests.py) (Inclusão do teste `test_metrica_trl_dinamica_e_null_safe`, totalizando 7 testes na suíte).
+- **Ajustes de Negócio e Governança:**
+  1. *Compatibilidade Legada Total:* Macroentregas existentes permanecem válidas com `trl=None`, sem imposição forçada de valores históricos.
+  2. *Maturidade Tecnológica no BI:* Painel agora exibe distribuição real de TRL (3 a 6) por macroentrega quando classificadas.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test gestao_projetos.tests.PainelIndicadoresEmbrapiiTestCase`: **7/7 testes OK (100%)**.
+- **Total Global ARGUS: 119/119 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: IBM Bob | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Homologação Fase 4 — Etapa 4.1: Painel de Indicadores Oficiais EMBRAPII (IBM Bob)
 
 ### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):

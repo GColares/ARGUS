@@ -84,7 +84,7 @@ from .models import Macroentrega
 class MacroentregaInline(admin.TabularInline):
     model = Macroentrega
     extra = 1
-    fields = ('numero', 'nome', 'mes_inicio_relativo', 'mes_fim_relativo')
+    fields = ('numero', 'nome', 'trl', 'data_inicio', 'data_fim')
 
 class MembroEquipePTInline(admin.TabularInline):
     model = MembroEquipePT
