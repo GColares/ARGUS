@@ -43,9 +43,14 @@
   * `F-10`: Hash SHA-256 de 8 hex suficiente.
   * `F-11`: Imports internos sem impacto funcional.
 
-### 3. Backlog de Hardening (Não-bloqueantes para o próximo sprint):
-- `F-08` (Risco MÉDIO): Adicionar `@user_passes_test(lambda u: u.is_superuser or u.is_staff)` à view `excluir_pessoa_fisica`.
-- `F-09` (Risco BAIXO): Corrigir `papel='COLABORADOR'` para `'ANALISTA'` em `cadastros/tests.py:883`.
+### 3. Backlog de Hardening — RESOLVIDO & HOMOLOGADO (GitHub Copilot & Antigravity):
+- `F-08` (Risco MÉDIO): Resolvido! Inserido `@user_passes_test(lambda u: u.is_superuser or u.is_staff)` na view `excluir_pessoa_fisica` de `cadastros/views.py`.
+- `F-09` (Risco BAIXO): Resolvido! Corrigido `papel='COLABORADOR'` para `papel='ANALISTA'` em `cadastros/tests.py:883`.
+- **Novo Teste RBAC:** Adicionado `test_rbac_exclusao_usuario_comum_bloqueado` em `cadastros/tests.py`.
+- **Validação de Encerramento:** 
+  * `cadastros`: **38/38 testes OK (100% verde)**.
+  * **Total Global ARGUS:** **108/108 testes automatizados OK (0 regressões)**.
+  * Implementador: GitHub Copilot | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
 
 ---
 
