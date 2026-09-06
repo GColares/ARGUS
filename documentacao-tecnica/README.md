@@ -18,6 +18,7 @@ Esta pasta contém os artefatos formais exigidos para auditoria, governança, cr
 | [03_ARQUITETURA_E_UML.md](03_ARQUITETURA_E_UML.md) | **Arquitetura de Software & Diagramas UML** | Diagrama de Classes, Diagramas de Máquinas de Estados (Ciclo PDI e Parcela) e Diagramas de Sequência (Atesto SIAPE e Liquidação FAEPI). |
 | [04_MATRIZ_RBAC_E_GOVERNANCA.md](04_MATRIZ_RBAC_E_GOVERNANCA.md) | **Matriz RBAC & Governança Institucional** | Perfis de acesso, matriz RACI de operações críticas e regras de Segregação de Funções (SoD). |
 | [05_DESIGN_SYSTEM_ARGUS.md](05_DESIGN_SYSTEM_ARGUS.md) | **Design System Canônico do ERP ARGUS** | Tokens de cores, tabela semântica de status, componentes de KPI, tabelas, formulários e regras de UI. |
+| [06_PLANO_MESTRE_DESENVOLVIMENTO.md](06_PLANO_MESTRE_DESENVOLVIMENTO.md) | **Plano Mestre de Desenvolvimento (Roadmap)** | Fases de engenharia, funções por módulo Django, regras normativas (EMBRAPII/SUFRAMA/TCU) e protocolo SoD do Squad. |
 
 ---
 
