@@ -10,6 +10,7 @@ Esta pasta contém os artefatos formais exigidos para auditoria, governança, cr
 
 ## 📚 Estrutura dos Artefatos Técnicos
 
+### 1. Documentos Oficiais de Engenharia de Software
 | Documento | Descrição | Conteúdo Principal |
 |---|---|---|
 | [01_ESPECIFICACAO_REQUISITOS.md](01_ESPECIFICACAO_REQUISITOS.md) | **SRS (Software Requirements Specification)** | Requisitos Funcionais (RF), Não-Funcionais (RNF), Regras de Negócio Legais (RN) e Matriz de Rastreabilidade. |
@@ -19,5 +20,16 @@ Esta pasta contém os artefatos formais exigidos para auditoria, governança, cr
 
 ---
 
+### 2. Subpastas de Suporte e Governança
+
+* **[`der_diagramas/`](der_diagramas/)**: Diagramas de Entidade-Relacionamento (DER) visuais exportados nos formatos SVG, PNG, PDF e HTML interativo.
+* **[`governanca_squad_ia/`](governanca_squad_ia/)**: Governança operacional do Squad de Inteligência Artificial:
+  - [`PROTOCOLO_COLABORACAO_IA.md`](governanca_squad_ia/PROTOCOLO_COLABORACAO_IA.md): Protocolo mestre de convivência, regras de ouro, precedência e divisão de papéis.
+  - [`PROPOSTA_ESTRATEGIA_EQUIPE_IA.md`](governanca_squad_ia/PROPOSTA_ESTRATEGIA_EQUIPE_IA.md): Estratégia de integração contínua do squad.
+  - [`manuais_agentes/`](governanca_squad_ia/manuais_agentes/): Manuais individuais de cada IA do time (`GEMINI.md`, `COPILOT.md`, `KIRO.md`, `BOB.md`, `DEVIN.md`).
+
+---
+
 ## 🛠️ Como Visualizar os Diagramas
 Todos os diagramas deste repositório foram construídos na sintaxe nativa **Mermaid**. Eles são renderizados automaticamente no GitHub, GitLab, VS Code (com extensão Markdown Preview Mermaid Support) ou diretamente em ferramentas online como [mermaid.live](https://mermaid.live).
+

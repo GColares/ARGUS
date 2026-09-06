@@ -1,6 +1,23 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Reorganização Arquitetural: Consolidação da Documentação Técnica e Limpeza da Raiz
+
+### 1. Entregas e Reestruturação (Antigravity-Gemini):
+- **Criação das Subpastas em `documentacao-tecnica/`:**
+  - `der_diagramas/`: Abrigando os artefatos visuais do DER (`der_projetopdi` em HTML, PDF, PNG e SVG).
+  - `governanca_squad_ia/`: Abrigando `PROTOCOLO_COLABORACAO_IA.md`, `PROPOSTA_ESTRATEGIA_EQUIPE_IA.md` e histórico de handoffs.
+  - `governanca_squad_ia/manuais_agentes/`: Abrigando os manuais específicos de cada membro (`GEMINI.md`, `COPILOT.md`, `KIRO.md`, `BOB.md`, `DEVIN.md`).
+- **Limpeza da Raiz do Repositório (`scripts/legados/`):**
+  - Migração de 15 scripts pontuais antigos para `scripts/legados/` e do arquivo `db_backup_*.sqlite3` para `backups/`.
+  - Raiz do projeto 100% limpa, contendo apenas os arquivos de configuração institucional (`.env.example`, `manage.py`, `requirements.txt`, `diario_de_bordo.md`, Dockerfile e scripts de execução).
+- **Integração com Claude.ai (GitHub Repository Sync):**
+  - Estrutura pronta para mapeamento cirúrgico de contexto nas ferramentas de IA.
+- **Validação de Qualidade:** `manage.py check` com 0 erros.
+
+---
+
 ## [2026-09-05] Estreia e Homologação Oficial: Claude 3.5 Sonnet — Visualização de Pessoa Física (Party-Role e LGPD)
+
 
 ### 1. Entregas Homologadas (Implementação Claude 3.5 Sonnet / Integração & Auditoria Antigravity-Gemini):
 - **Template Tag `mask_cpf` (`cadastros/templatetags/cadastros_extras.py`):**
