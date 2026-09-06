@@ -1,17 +1,21 @@
 # Diário de Bordo — ARGUS
 
-## [2026-09-06] Homologação Sprint Design System — Fatia 2.1: Harmonização de listar_projetos.html (GitHub Copilot)
+## [2026-09-06] Homologação Sprint Design System — Fatias 2.1 a 2.4: Conclusão das Telas de Listagem (GitHub Copilot)
 
-### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
-- **Arquivo Modificado:**
-  * [`cadastros/templates/cadastros/listar_projetos.html`](cadastros/templates/cadastros/listar_projetos.html)
+### 1. Entregas Realizadas pelo GitHub Copilot (Handoffs Cirúrgicos / SoD):
+- **Arquivos Modificados:**
+  * [`cadastros/templates/cadastros/listar_projetos.html`](cadastros/templates/cadastros/listar_projetos.html) (Fatia 2.1)
+  * [`cadastros/templates/cadastros/termo_parceria_list.html`](cadastros/templates/cadastros/termo_parceria_list.html) (Fatia 2.2)
+  * [`cadastros/templates/cadastros/programa_list.html`](cadastros/templates/cadastros/programa_list.html) (Fatia 2.3)
+  * [`cadastros/templates/cadastros/listar_fornecedores_global.html`](cadastros/templates/cadastros/listar_fornecedores_global.html) (Fatia 2.4)
+  * [`cadastros/templates/cadastros/listar_pessoas_juridicas.html`](cadastros/templates/cadastros/listar_pessoas_juridicas.html) (Fatia 2.4)
 - **Ajustes de UI/UX e Design System Canônico:**
-  1. *Navegação & Breadcrumbs:* Adicionado breadcrumb `Cadastros > Projetos PDI` e link de retorno dinâmico para `cadastros:home_cadastros`.
-  2. *Cabeçalho Executivo:* Título normalizado para `<h4>` com ícone `text-info` e badge de contagem de projetos registrados.
-  3. *Cards de KPI Canônicos:* Inclusão de 4 cards `.card-kpi-argus` (Total Geral, Em Execução, Em Proposta/Análise e Encerrados/Prestação de Contas) com contagem limpa via `regroup` no template, preservando zero impacto no backend.
-  4. *Tabela Canônica:* Adicionada a classe canônica `.thead-argus`.
-  5. *Conformidade DataTables:* Removido terminantemente o bloco `{% empty %}` com `colspan="5"`, prevenindo quebra de contagem de colunas do plugin.
-  6. *Ações:* Botões compactos com tooltips e aria-labels acessíveis.
+  1. *Navegação & Breadcrumbs:* Padronizados em todas as 5 telas com links dinâmicos de retorno.
+  2. *Escala Tipográfica Executiva:* Todos os títulos normalizados para `<h4>` com ícones semânticos e badges de contagem.
+  3. *Cards de KPI Canônicos:* Inclusão dos componentes `.card-kpi-argus` no topo de todas as listagens, com contagens limpas via `regroup` no template (zero impacto no backend).
+  4. *Tabelas Canônicas:* Aplicação da classe `.thead-argus` em todas as tabelas e abas de visualização.
+  5. *Conformidade com DataTables:* Expurgo total de blocos `{% empty %}` com `colspan` onde há inicialização de plugins de tabela.
+  6. *Badges & Ações:* Padronização para `.badge-status-success`, `.badge-status-warning`, `.badge-status-danger` e botões de ação consistentes (`btn-outline-info`, `btn-outline-warning`, `btn-outline-danger`).
 
 ### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
 - `manage.py check`: 0 erros.

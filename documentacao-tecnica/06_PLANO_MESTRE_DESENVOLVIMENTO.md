@@ -82,11 +82,11 @@ flowchart LR
 **Foco:** Aplicar rigorosamente o [Design System Canônico (05_DESIGN_SYSTEM_ARGUS.md)](file:///C:/Projetos/ARGUS/documentacao-tecnica/05_DESIGN_SYSTEM_ARGUS.md) nos 48 templates de `cadastros` e nos templates de apoio.
 
 #### Módulo: `cadastros`
-1. **Harmonização de Telas de Listagem (Padrão Almoxarifado):**
-   - **Templates Alvo:**
-     * `listar_projetos_pdi.html`, `listar_termos_parceria.html`, `listar_programas.html`.
-     * `listar_pessoas_juridicas.html`, `listar_fornecedores.html`.
-   - **Critérios de Aceite:**
+1. **Harmonização de Telas de Listagem (Padrão Almoxarifado):** `[CONCLUÍDO & HOMOLOGADO]`
+   - **Templates Entregues:**
+     * `listar_projetos.html`, `termo_parceria_list.html`, `programa_list.html`.
+     * `listar_pessoas_juridicas.html`, `listar_fornecedores_global.html`.
+   - **Critérios de Aceite Validados (108/108 testes OK):**
      * Inclusão de Breadcrumbs e Link Voltar dinâmico.
      * KPIs canônicos com `.card-kpi-argus` (eliminar scripts `onmouseover` remanescentes).
      * Matriz de badges canônicos: `PENDENTE` em âmbar (`.badge-status-warning`), `ATIVO` em verde (`.badge-status-success`), `CANCELADO` em vermelho.
