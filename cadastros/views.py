@@ -901,10 +901,17 @@ def excluir_pessoa_fisica(request, id):
                 usuario.save()
                 pessoa.user = None
 
-            # Inativa perfil de servidor se houver
-            if hasattr(pessoa, 'perfil_servidor') and pessoa.perfil_servidor:
-                pessoa.perfil_servidor.ativo = False
-                pessoa.perfil_servidor.save()
+            # Anonimização de dados civis complementares (LGPD / RNF-02)
+            pessoa.estado_civil = 'Outro'
+            pessoa.nacionalidade = 'Não Informado'
+
+            # Inativa todos os papéis e perfis vinculados
+            for perfil_attr in ['perfil_servidor', 'perfil_aluno', 'perfil_colaborador_externo', 'perfil_terceirizado']:
+                if hasattr(pessoa, perfil_attr):
+                    perfil = getattr(pessoa, perfil_attr)
+                    if perfil and hasattr(perfil, 'ativo'):
+                        perfil.ativo = False
+                        perfil.save()
 
             pessoa.save()
             messages.warning(

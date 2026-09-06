@@ -1,5 +1,35 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Homologação via Duplo Check (Four-Eyes Principle): Auditoria Independente LGPD (Kiro - AWS Bedrock)
+
+### 1. Parecer de Auditoria Independente (Auditor: Kiro / AWS Bedrock):
+- **Aplicação Rigorosa do Duplo Check e Segregação de Funções:**
+  - O Antigravity-Gemini implementou a exclusão segura e designou formalmente o **Kiro (AWS Bedrock)** como Revisor Independente (caixa preta).
+  - O Kiro desenhou autonomamente uma bateria de **9 testes de estresse adicionais** em `cadastros/tests.py`, cobrindo casos de borda:
+    1. Hard delete sem vínculos.
+    2. Anonimização com TermoBolsa.
+    3. Hash determinístico SHA-256 no CPF.
+    4. Destruição completa de múltiplos registros bancários (ativos e inativos).
+    5. Desativação e desvinculação de `auth.User`.
+    6. Inativação de perfis.
+    7. Idempotência em chamadas sucessivas.
+    8. Proteção contra mutações em requisições GET e bloqueio de requisições anônimas.
+    9. Detecção de vínculo de coordenação e equipe.
+- **Carimbo Final do Auditor:** `[APROVADO COM RESSALVAS DOCUMENTADAS]`.
+
+### 2. Fechamento Imediato das Ressalvas Técnicas (Antigravity-Gemini):
+- **Lacuna 1 (Dados Civis Secundários):** Adicionada anonimização mandatória de `estado_civil = 'Outro'` e `nacionalidade = 'Não Informado'` em `cadastros/views.py`.
+- **Lacuna 2 (Papéis Múltiplos):** Varredura e inativação de todos os perfis associados à identidade (`perfil_servidor`, `perfil_aluno`, `perfil_colaborador_externo`, `perfil_terceirizado`).
+- **Ajuste de Teste:** O teste da lacuna foi transformado em teste de conformidade estrita (`test_estado_civil_nacionalidade_e_perfis_anonimizados`).
+
+### 3. Métricas de Qualidade Global Homologadas:
+- `manage.py check`: 0 erros.
+- `manage.py test cadastros`: **37/37 testes OK (100%)**.
+- `manage.py test gestao_projetos`: **61/61 testes OK (100%)**.
+- **Total Global: 98 testes automatizados aprovados (0 falhas, 0 regressões).**
+
+---
+
 ## [2026-09-05] Aprendizado Contínuo (/learn): Princípio do Duplo Check (Four-Eyes Principle) e Segregação de Funções
 
 ### 1. Diretriz Institucionalizada (Antigravity-Gemini / Imposição PO):

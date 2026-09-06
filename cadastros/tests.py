@@ -662,4 +662,356 @@ class PessoaFisicaDetailViewTestCase(TestCase):
         self.assertIsNone(self.pf.telefone)
         self.assertEqual(self.pf.dados_bancarios.count(), 0)
         self.assertFalse(self.pf.perfil_servidor.ativo)
-
+
+
+
+
+# ==============================================================================
+# AUDITORIA INDEPENDENTE (Four-Eyes / SoD) — RNF-02 LGPD Crypto-Shredding
+# Revisor Técnico: Kiro (AWS Bedrock) — Squad ARGUS
+# ==============================================================================
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class AuditoriaCryptoShreddingLGPDTestCase(TestCase):
+    """
+    Bateria de estresse e casos de borda para excluir_pessoa_fisica.
+
+    Cenários auditados:
+    (a) GET não mutaciona o banco — proteção POST-only implícita.
+    (b) Idempotência: segunda chamada em registro já anonimizado não corrompe dados.
+    (c) Vínculo via coordenador de projeto (sem TermoBolsa) aciona anonimização.
+    (d) Vínculo via MembroEquipe (pessoa.user) aciona anonimização.
+    (e) Conta de usuário é desativada e desvinculada na anonimização.
+    (f) Múltiplos dados bancários são todos destruídos.
+    (g) Acesso não autenticado é bloqueado (redirect para login).
+    (h) estado_civil e nacionalidade permanecem (lacuna de cobertura — documentada).
+    (i) CPF anonimizado preserva unicidade de banco (hash determinístico).
+    """
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from cadastros.models import PessoaFisica, PerfilServidor, DadoBancario, EmpresaParceira
+
+        self.superuser = User.objects.create_superuser(
+            username='auditor_lgpd',
+            password='senha_auditoria',
+        )
+        self.client.login(username='auditor_lgpd', password='senha_auditoria')
+
+        self.empresa = EmpresaParceira.objects.create(
+            nome='Empresa Auditoria LGPD',
+            cnpj='22.333.444/0001-55',
+            natureza_juridica='LTDA',
+            representante_legal='Rep Auditoria',
+            cargo_representante='Diretor',
+        )
+
+        # Pessoa com todos os campos PII preenchidos
+        self.pf = PessoaFisica.objects.create(
+            nome='Ana Auditoria LGPD',
+            cpf='010.203.040-50',
+            rg='9876543 SSP/AM',
+            orgao_emissor_rg='SSP/AM',
+            data_nascimento='1990-05-15',
+            telefone='(92) 98888-7777',
+            email='ana.lgpd@example.com',
+            endereco='Rua da Privacidade, 42',
+            cep='69000-000',
+            estado_civil='Casado',
+            nacionalidade='Brasileiro',
+        )
+        PerfilServidor.objects.create(
+            pessoa=self.pf,
+            siape='9999991',
+            cargo='Pesquisador',
+            lotacao='Polo de Inovação',
+            ativo=True,
+        )
+        # Múltiplos dados bancários
+        from cadastros.models import DadoBancario
+        DadoBancario.objects.create(
+            pessoa=self.pf, finalidade='PAGAMENTO_BOLSA',
+            banco_codigo='001', agencia='0001', conta='11111-1', ativo=True,
+        )
+        DadoBancario.objects.create(
+            pessoa=self.pf, finalidade='HONORARIOS',
+            banco_codigo='237', agencia='0002', conta='22222-2', ativo=False,
+        )
+
+    def _url(self, pessoa_id=None):
+        from django.urls import reverse
+        return reverse('cadastros:excluir_pessoa_fisica',
+                       kwargs={'id': pessoa_id or self.pf.id})
+
+    def _cria_projeto_com_bolsa(self, pessoa, cpf_empresa_suffix='01'):
+        """Helper: cria cadeia mínima ProjetoPDI → CotaBolsaPT → TermoBolsa."""
+        from cadastros.models import ProjetoPDI, CotaBolsaPT, TermoBolsa
+        from datetime import date
+        from decimal import Decimal
+
+        proj = ProjetoPDI.objects.create(
+            nome=f'Projeto Audit {cpf_empresa_suffix}',
+            fase='EXECUCAO',
+            concedente=self.empresa,
+        )
+        cota = CotaBolsaPT.objects.create(
+            projeto=proj,
+            perfil_funcao='Bolsista Audit',
+            quantidade_vagas=1,
+            parcelas_previstas=3,
+            valor_global_previsto=Decimal('3000.00'),
+        )
+        TermoBolsa.objects.create(
+            cota_pt=cota,
+            pessoa=pessoa,
+            numero_termo=f'TB-AUDIT-{cpf_empresa_suffix}',
+            vigencia_inicio=date(2026, 1, 1),
+            vigencia_fim=date(2026, 3, 31),
+            quantidade_parcelas=3,
+            valor_parcela=Decimal('1000.00'),
+        )
+        return proj
+
+    # ------------------------------------------------------------------
+    # (a) GET não muta o banco
+    # ------------------------------------------------------------------
+    def test_get_nao_muta_banco(self):
+        """GET em excluir_pessoa_fisica deve renderizar confirmação sem alterar dados."""
+        self._cria_projeto_com_bolsa(self.pf, '00')
+        nome_original = self.pf.nome
+        cpf_original = self.pf.cpf
+
+        response = self.client.get(self._url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'cadastros/confirmar_exclusao_pf.html')
+
+        self.pf.refresh_from_db()
+        self.assertEqual(self.pf.nome, nome_original,
+                         "GET não deve alterar o nome da pessoa.")
+        self.assertEqual(self.pf.cpf, cpf_original,
+                         "GET não deve alterar o CPF da pessoa.")
+
+    # ------------------------------------------------------------------
+    # (b) Idempotência: segunda chamada não corrompe dados
+    # ------------------------------------------------------------------
+    def test_anonimizacao_e_idempotente(self):
+        """Segunda chamada POST em pessoa já anonimizada deve ser inofensiva."""
+        self._cria_projeto_com_bolsa(self.pf, '02')
+
+        # 1ª anonimização
+        self.client.post(self._url())
+        self.pf.refresh_from_db()
+        cpf_apos_primeira = self.pf.cpf
+        self.assertTrue(cpf_apos_primeira.startswith('ANON-'))
+
+        # 2ª chamada — pessoa já anonimizada, sem TermoBolsa PROTEGIDO ativo
+        # mas o registro ainda existe; a view não deve lançar exceção
+        response = self.client.post(self._url())
+        self.assertIn(response.status_code, [200, 302],
+                      "Segunda chamada não deve gerar erro HTTP.")
+
+        self.pf.refresh_from_db()
+        # CPF não deve ter sido re-hasheado para um valor diferente do já anonimizado
+        # (o hash de "ANON-XXXX" seria diferente do hash do CPF real)
+        self.assertTrue(self.pf.cpf.startswith('ANON-'),
+                        "CPF deve continuar anonimizado após segunda chamada.")
+
+    # ------------------------------------------------------------------
+    # (c) Vínculo como coordenador de projeto dispara anonimização
+    # ------------------------------------------------------------------
+    def test_coordenador_de_projeto_aciona_anonimizacao(self):
+        """Pessoa coordenadora de projeto (sem TermoBolsa) deve ser anonimizada, não deletada."""
+        from cadastros.models import PessoaFisica, ProjetoPDI
+
+        pf_coord = PessoaFisica.objects.create(
+            nome='Coordenador Auditoria',
+            cpf='060.707.080-90',
+            email='coord@example.com',
+        )
+        ProjetoPDI.objects.create(
+            nome='Projeto Coord Audit',
+            fase='EXECUCAO',
+            concedente=self.empresa,
+            coordenador=pf_coord,
+        )
+
+        url = self._url(pf_coord.id)
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+
+        # Deve existir (não foi deletada)
+        self.assertTrue(PessoaFisica.objects.filter(id=pf_coord.id).exists(),
+                        "Coordenador de projeto não deve ser deletado fisicamente.")
+
+        pf_coord.refresh_from_db()
+        self.assertTrue(pf_coord.nome.startswith('Cidadão Anonimizado LGPD #'),
+                        "Coordenador de projeto deve ter nome anonimizado.")
+        self.assertTrue(pf_coord.cpf.startswith('ANON-'),
+                        "Coordenador de projeto deve ter CPF anonimizado.")
+
+    # ------------------------------------------------------------------
+    # (d) Vínculo via MembroEquipe (pessoa.user) aciona anonimização
+    # ------------------------------------------------------------------
+    def test_membro_equipe_via_user_aciona_anonimizacao(self):
+        """Pessoa com User vinculado a MembroEquipe deve ser anonimizada."""
+        from django.contrib.auth.models import User
+        from cadastros.models import PessoaFisica, ProjetoPDI, MembroEquipe
+
+        user_membro = User.objects.create_user(
+            username='membro_audit_lgpd',
+            password='senha123',
+        )
+        pf_membro = PessoaFisica.objects.create(
+            nome='Membro Equipe Auditoria',
+            cpf='120.340.560-78',
+            user=user_membro,
+        )
+        proj = ProjetoPDI.objects.create(
+            nome='Projeto Membro Audit',
+            fase='EXECUCAO',
+            concedente=self.empresa,
+        )
+        MembroEquipe.objects.create(
+            projeto=proj,
+            usuario=user_membro,
+            papel='COLABORADOR',
+        )
+
+        url = self._url(pf_membro.id)
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(PessoaFisica.objects.filter(id=pf_membro.id).exists(),
+                        "Membro de equipe não deve ser deletado fisicamente.")
+        pf_membro.refresh_from_db()
+        self.assertTrue(pf_membro.cpf.startswith('ANON-'),
+                        "Membro de equipe deve ter CPF anonimizado.")
+
+    # ------------------------------------------------------------------
+    # (e) Conta de usuário é desativada e desvinculada
+    # ------------------------------------------------------------------
+    def test_user_desativado_e_desvinculado_na_anonimizacao(self):
+        """Após anonimização, o User vinculado deve ser desativado e desvinculado."""
+        from django.contrib.auth.models import User
+        from cadastros.models import PessoaFisica
+
+        user_vinculado = User.objects.create_user(
+            username='user_anon_test',
+            password='senha123',
+            is_active=True,
+        )
+        pf_com_user = PessoaFisica.objects.create(
+            nome='Pessoa Com User',
+            cpf='001.002.003-04',
+            email='comuser@example.com',
+            user=user_vinculado,
+        )
+        # Cria bolsa para forçar anonimização
+        self._cria_projeto_com_bolsa(pf_com_user, '05')
+
+        url = self._url(pf_com_user.id)
+        self.client.post(url)
+
+        pf_com_user.refresh_from_db()
+        user_vinculado.refresh_from_db()
+
+        self.assertIsNone(pf_com_user.user,
+                          "user deve ser desvinculado após anonimização.")
+        self.assertFalse(user_vinculado.is_active,
+                         "User vinculado deve ser desativado após anonimização.")
+
+    # ------------------------------------------------------------------
+    # (f) Múltiplos dados bancários são TODOS destruídos
+    # ------------------------------------------------------------------
+    def test_multiplos_dados_bancarios_destruidos(self):
+        """Todos os DadoBancario (ativos e inativos) são deletados na anonimização."""
+        self._cria_projeto_com_bolsa(self.pf, '06')
+
+        # Confirma que há 2 dados bancários antes
+        self.assertEqual(self.pf.dados_bancarios.count(), 2)
+
+        self.client.post(self._url())
+        self.pf.refresh_from_db()
+
+        self.assertEqual(self.pf.dados_bancarios.count(), 0,
+                         "Todos os dados bancários (ativos e inativos) devem ser destruídos.")
+
+    # ------------------------------------------------------------------
+    # (g) Acesso não autenticado é bloqueado (redirect para login)
+    # ------------------------------------------------------------------
+    def test_acesso_nao_autenticado_bloqueado(self):
+        """Requisição sem login deve ser redirecionada para a tela de login."""
+        from django.test import Client as AnonClient
+        client_anonimo = AnonClient()
+
+        response = client_anonimo.get(self._url())
+        self.assertEqual(response.status_code, 302,
+                         "GET sem autenticação deve redirecionar.")
+        self.assertIn('/login', response.url,
+                      "Redirecionamento deve apontar para a URL de login.")
+
+        response_post = client_anonimo.post(self._url())
+        self.assertEqual(response_post.status_code, 302,
+                         "POST sem autenticação deve redirecionar.")
+        # Não deve ter deletado nem anonimizado nada
+        self.pf.refresh_from_db()
+        self.assertFalse(self.pf.cpf.startswith('ANON-'),
+                         "POST sem autenticação não deve anonimizar dados.")
+
+    # ------------------------------------------------------------------
+    # (h) Anonimização de dados civis (estado_civil e nacionalidade) e perfis
+    # ------------------------------------------------------------------
+    def test_estado_civil_nacionalidade_e_perfis_anonimizados(self):
+        """
+        Garante conformidade estrita com a LGPD (RNF-02): estado_civil e nacionalidade
+        são ofuscados e perfis associados (aluno, terceiro, etc) são inativados.
+        """
+        from cadastros.models import PerfilAluno
+        PerfilAluno.objects.create(
+            pessoa=self.pf,
+            matricula='2026AUDIT999',
+            nivel='Graduacao',
+            curso='Sistemas de Informacao'
+        )
+
+        self._cria_projeto_com_bolsa(self.pf, '08')
+        self.client.post(self._url())
+        self.pf.refresh_from_db()
+
+        self.assertTrue(self.pf.cpf.startswith('ANON-'))
+        self.assertEqual(self.pf.estado_civil, 'Outro')
+        self.assertEqual(self.pf.nacionalidade, 'Não Informado')
+        self.assertFalse(self.pf.perfil_servidor.ativo)
+        self.assertFalse(self.pf.perfil_aluno.ativo)
+
+    # ------------------------------------------------------------------
+    # (i) CPF anonimizado preserva unicidade (hash determinístico)
+    # ------------------------------------------------------------------
+    def test_cpf_anonimizado_e_deterministico_e_unico(self):
+        """
+        O hash do CPF deve ser determinístico (mesmo input → mesmo output)
+        e não deve colidir com CPFs reais ou outros hashes em situações normais.
+        """
+        import hashlib
+        from cadastros.models import PessoaFisica
+
+        cpf_original = self.pf.cpf
+        cpf_hash_esperado = f"ANON-{hashlib.sha256(cpf_original.encode()).hexdigest()[:8].upper()}"
+
+        self._cria_projeto_com_bolsa(self.pf, '09')
+        self.client.post(self._url())
+        self.pf.refresh_from_db()
+
+        self.assertEqual(self.pf.cpf, cpf_hash_esperado,
+                         "Hash do CPF deve ser determinístico: mesmo CPF → mesmo ANON-XXXXXXXX.")
+
+        # Unicidade: nenhum outro registro deve ter o mesmo CPF anonimizado
+        duplicatas = PessoaFisica.objects.filter(cpf=cpf_hash_esperado).count()
+        self.assertEqual(duplicatas, 1,
+                         "Deve existir exatamente 1 registro com o hash gerado.")
