@@ -858,11 +858,21 @@ def editar_pessoa_fisica(request, id):
     messages.info(request, "Interface de edição de Pessoa Física em desenvolvimento.")
     return redirect('cadastros:listar_pessoas_fisicas')
 
+from django.db import transaction
+
 @login_required
+@transaction.atomic
 def excluir_pessoa_fisica(request, id):
     import hashlib
     from .models import MembroEquipe
-    pessoa = get_object_or_404(PessoaFisica, id=id)
+
+    # Bloqueio pessimista para prevenir race condition e garantir atomicidade completa
+    pessoa = get_object_or_404(PessoaFisica.objects.select_for_update(), id=id)
+
+    # Idempotência: se já se encontra anonimizada, não reprocessa
+    if pessoa.cpf.startswith('ANON-'):
+        messages.info(request, f"O registro de '{pessoa.nome}' já se encontra anonimizado conforme a LGPD.")
+        return redirect('cadastros:listar_pessoas_fisicas')
 
     # Verifica se a pessoa possui histórico institucional que impeça o delete físico
     tem_bolsas = pessoa.termos_bolsa.exists()
@@ -894,10 +904,15 @@ def excluir_pessoa_fisica(request, id):
             pessoa.endereco = None
             pessoa.cep = None
 
-            # Desativa e desvincula conta de usuário se existir
+            # Desativa e expurga PII residual da conta de usuário auth.User
             if pessoa.user:
                 usuario = pessoa.user
                 usuario.is_active = False
+                usuario.first_name = ''
+                usuario.last_name = ''
+                usuario.email = ''
+                hash_user = hashlib.sha256(usuario.username.encode()).hexdigest()[:8]
+                usuario.username = f"anon_{usuario.id}_{hash_user}"
                 usuario.save()
                 pessoa.user = None
 
@@ -905,13 +920,34 @@ def excluir_pessoa_fisica(request, id):
             pessoa.estado_civil = 'Outro'
             pessoa.nacionalidade = 'Não Informado'
 
-            # Inativa todos os papéis e perfis vinculados
-            for perfil_attr in ['perfil_servidor', 'perfil_aluno', 'perfil_colaborador_externo', 'perfil_terceirizado']:
-                if hasattr(pessoa, perfil_attr):
-                    perfil = getattr(pessoa, perfil_attr)
-                    if perfil and hasattr(perfil, 'ativo'):
-                        perfil.ativo = False
-                        perfil.save()
+            # Inativa todos os papéis e expurga identificadores residuais em perfis vinculados
+            if hasattr(pessoa, 'perfil_servidor') and pessoa.perfil_servidor:
+                perfil = pessoa.perfil_servidor
+                perfil.ativo = False
+                if not perfil.siape.startswith('ANON-'):
+                    perfil.siape = f"ANON-{hashlib.sha256(perfil.siape.encode()).hexdigest()[:8].upper()}"
+                perfil.save()
+
+            if hasattr(pessoa, 'perfil_aluno') and pessoa.perfil_aluno:
+                perfil = pessoa.perfil_aluno
+                perfil.ativo = False
+                if not perfil.matricula.startswith('ANON-'):
+                    perfil.matricula = f"ANON-{hashlib.sha256(perfil.matricula.encode()).hexdigest()[:8].upper()}"
+                perfil.save()
+
+            if hasattr(pessoa, 'perfil_colaborador_externo') and pessoa.perfil_colaborador_externo:
+                perfil = pessoa.perfil_colaborador_externo
+                perfil.ativo = False
+                perfil.instituicao_origem = None
+                perfil.expertise = None
+                perfil.save()
+
+            if hasattr(pessoa, 'perfil_terceirizado') and pessoa.perfil_terceirizado:
+                perfil = pessoa.perfil_terceirizado
+                perfil.ativo = False
+                perfil.empresa_contratada = 'Não Informada'
+                perfil.funcao = 'Não Informada'
+                perfil.save()
 
             pessoa.save()
             messages.warning(

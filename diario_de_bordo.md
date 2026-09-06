@@ -1,5 +1,28 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Duplo Check de Engenharia de Produção: 2ª Auditoria Independente LGPD (GitHub Copilot)
+
+### 1. Parecer de Engenharia de Produção (Auditor: GitHub Copilot):
+- **Diagnóstico Crítico de Produção:**
+  1. *Falta de Atomicidade e Bloqueio de Concorrência:* A view executava múltiplas mutações em cascata sem transação atômica e sem lock de linha (`select_for_update`).
+  2. *Risco de Race Condition & Idempotência Tardía:* Possibilidade de requests concorrentes alterarem o mesmo registro simultaneamente.
+  3. *Vazamento de PII Residual:* A desativação de `auth.User` mantinha `first_name`, `last_name`, `email` e o `username` civil; os perfis (`PerfilServidor`, `PerfilAluno`) retinham `siape` e `matricula` reais mesmo inativados.
+
+### 2. Blindagem e Fechamento Integral (Antigravity-Gemini):
+- **Atomicidade e Lock de Concorrência:** Adicionado decorator `@transaction.atomic` e bloqueio pessimista `PessoaFisica.objects.select_for_update().get(id=id)`.
+- **Tratamento de Idempotência Antecipado:** Detecção imediata de registros já anonimizados (`cpf.startswith('ANON-')`), retornando redirect informativo com código 302 sem mutações ou reprocessamento.
+- **Expurgo Completo de PII no `auth.User`:** Remoção de `first_name`, `last_name`, `email` e ofuscação irreversível do `username` (`anon_<id>_<hash>`), liberando o login civil.
+- **Ofuscação Irreversível nos Perfis:** Hashes determinísticos de unicidade em `siape` (`ANON-<hash>`) e `matricula` (`ANON-<hash>`), além de limpeza de instituição e função em colaboradores externos e terceirizados.
+- **Cobertura de Testes Enriquecida:** Novos asserts em `cadastros/tests.py` validando o expurgo no `auth.User` e a ofuscação em `PerfilServidor` e `PerfilAluno`.
+
+### 3. Métricas Globais de Qualidade:
+- `manage.py check`: 0 erros.
+- `cadastros`: **37/37 testes OK (100%)**.
+- `gestao_projetos`: **61/61 testes OK (100%)**.
+- **Total Global: 98 testes automatizados aprovados (0 falhas, 0 regressões).**
+
+---
+
 ## [2026-09-05] Homologação via Duplo Check (Four-Eyes Principle): Auditoria Independente LGPD (Kiro - AWS Bedrock)
 
 ### 1. Parecer de Auditoria Independente (Auditor: Kiro / AWS Bedrock):

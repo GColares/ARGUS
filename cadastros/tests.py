@@ -925,6 +925,10 @@ class AuditoriaCryptoShreddingLGPDTestCase(TestCase):
                           "user deve ser desvinculado após anonimização.")
         self.assertFalse(user_vinculado.is_active,
                          "User vinculado deve ser desativado após anonimização.")
+        self.assertEqual(user_vinculado.email, '',
+                         "E-mail do User deve ser expurgado na anonimização.")
+        self.assertTrue(user_vinculado.username.startswith('anon_'),
+                        "Username do User deve ser anonimizado para liberar login civil.")
 
     # ------------------------------------------------------------------
     # (f) Múltiplos dados bancários são TODOS destruídos
@@ -989,6 +993,10 @@ class AuditoriaCryptoShreddingLGPDTestCase(TestCase):
         self.assertEqual(self.pf.nacionalidade, 'Não Informado')
         self.assertFalse(self.pf.perfil_servidor.ativo)
         self.assertFalse(self.pf.perfil_aluno.ativo)
+        self.assertTrue(self.pf.perfil_servidor.siape.startswith('ANON-'),
+                        "SIAPE do servidor deve ser ofuscado irreversivelmente.")
+        self.assertTrue(self.pf.perfil_aluno.matricula.startswith('ANON-'),
+                        "Matrícula do aluno deve ser ofuscada irreversivelmente.")
 
     # ------------------------------------------------------------------
     # (i) CPF anonimizado preserva unicidade (hash determinístico)
