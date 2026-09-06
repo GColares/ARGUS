@@ -554,3 +554,54 @@ class ParcelaTestCase(TestCase):
         self.assertEqual(parcela.status, "PAGO")
         self.assertEqual(parcela.conta_pagamento, conta)
         self.assertEqual(parcela.conta_pagamento_id, conta.pk)
+
+
+from django.test import override_settings
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class PessoaFisicaDetailViewTestCase(TestCase):
+    """Testes da visualização de detalhes de Pessoa Física (Party-Role e LGPD)."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from cadastros.models import PessoaFisica, PerfilServidor, DadoBancario
+        self.user = User.objects.create_user(username='admin_pf', password='password123', is_superuser=True)
+        self.client.login(username='admin_pf', password='password123')
+
+        self.pf = PessoaFisica.objects.create(
+            nome="Servidor e Bolsista Teste",
+            cpf="999.888.777-66",
+            rg="1234567 SSP/AM",
+            email="servidor@ifam.edu.br",
+            telefone="(92) 99999-8888",
+            endereco="Av. 7 de Setembro, 1975, Centro"
+        )
+        self.perfil = PerfilServidor.objects.create(
+            pessoa=self.pf,
+            siape="1987654",
+            cargo="Professor EBTT",
+            lotacao="Polo de Inovação",
+            interno=True
+        )
+        self.dado_bancario = DadoBancario.objects.create(
+            pessoa=self.pf,
+            finalidade="PAGAMENTO_BOLSA",
+            banco_codigo="001",
+            agencia="0001",
+            conta="123456-7",
+            chave_pix="servidor@ifam.edu.br"
+        )
+
+    def test_visualizar_pessoa_fisica_sucesso(self):
+        from django.urls import reverse
+        url = reverse('cadastros:visualizar_pessoa_fisica', kwargs={'pk': self.pf.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Servidor e Bolsista Teste")
+        self.assertContains(response, "1987654")
+        self.assertContains(response, "123456-7")

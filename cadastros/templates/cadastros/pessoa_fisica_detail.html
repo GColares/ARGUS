@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load cadastros_extras %}
+
+{% block title %}Detalhes de {{ pf.nome }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:listar_pessoas_fisicas' %}" class="text-decoration-none">Pessoas Físicas</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Detalhes</li>
+        </ol>
+    </nav>
+
+    <!-- Link Voltar dinâmico -->
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <!-- Header: Nome, CPF e Ações -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-user text-success me-2"></i>{{ pf.nome }}</h2>
+            <div class="mt-1 d-flex align-items-center gap-2">
+                <span class="text-muted small">
+                    <strong>CPF:</strong>
+                    {% if pode_ver_dados_bancarios %}
+                        {{ pf.cpf }}
+                    {% else %}
+                        {{ pf.cpf|mask_cpf }}
+                    {% endif %}
+                </span>
+                {% if perfil_servidor %}
+                    <span class="badge bg-primary">Servidor</span>
+                    {% if perfil_servidor.interno %}
+                        <span class="badge bg-success">SIAPE Efetivo (IFAM)</span>
+                    {% endif %}
+                {% endif %}
+                {% if termos_bolsa %}
+                    <span class="badge bg-info text-dark">Bolsista</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'cadastros:editar_pessoa_fisica' pf.id %}" class="btn btn-warning fw-bold shadow-sm">
+                <i class="fas fa-edit me-1"></i> Editar
+            </a>
+            <a href="{% url 'cadastros:excluir_pessoa_fisica' pf.id %}" class="btn btn-outline-danger fw-bold">
+                <i class="fas fa-trash me-1"></i> Excluir
+            </a>
+        </div>
+    </div>
+
+    <!-- Row 1: Dados Civis e Papel Funcional -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-id-card me-2"></i>Dados Civis</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">Nome</dt><dd class="col-sm-8 fw-bold">{{ pf.nome }}</dd>
+                        <dt class="col-sm-4 text-muted">CPF</dt>
+                        <dd class="col-sm-8">
+                            {% if pode_ver_dados_bancarios %}{{ pf.cpf }}{% else %}{{ pf.cpf|mask_cpf }}{% endif %}
+                        </dd>
+                        <dt class="col-sm-4 text-muted">RG</dt><dd class="col-sm-8">{{ pf.rg|default:"—" }}</dd>
+                        <dt class="col-sm-4 text-muted">E-mail</dt><dd class="col-sm-8">{{ pf.email|default:"—" }}</dd>
+                        <dt class="col-sm-4 text-muted">Telefone</dt><dd class="col-sm-8">{{ pf.telefone|default:"—" }}</dd>
+                        <dt class="col-sm-4 text-muted">Endereço</dt><dd class="col-sm-8">{{ pf.endereco|default:"—" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            {% if perfil_servidor %}
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-user-shield me-2"></i>Papel Funcional — Servidor Público</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">Matrícula SIAPE</dt><dd class="col-sm-8 fw-bold">{{ perfil_servidor.siape }}</dd>
+                        <dt class="col-sm-4 text-muted">Cargo</dt><dd class="col-sm-8">{{ perfil_servidor.cargo|default:"—" }}</dd>
+                        <dt class="col-sm-4 text-muted">Lotação</dt><dd class="col-sm-8">{{ perfil_servidor.lotacao|default:"—" }}</dd>
+                        <dt class="col-sm-4 text-muted">Vínculo</dt>
+                        <dd class="col-sm-8">
+                            {% if perfil_servidor.interno %}
+                                <span class="badge bg-success">Quadro Efetivo IFAM</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Externo</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+            {% else %}
+            <div class="card border-0 shadow-sm h-100 bg-light">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center text-muted py-5">
+                    <i class="fas fa-user-tie fs-1 mb-3 opacity-25"></i>
+                    <h6 class="fw-bold">Sem Perfil de Servidor</h6>
+                    <p class="small mb-0">Esta pessoa física não possui matrícula SIAPE vinculada.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Row 2: Termos de Bolsa -->
+    {% if termos_bolsa %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-info text-dark py-3">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-graduation-cap me-2"></i>Termos de Concessão de Bolsa (Papel Bolsista)</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">Nº do Termo</th>
+                            <th class="text-center">Projeto</th>
+                            <th class="text-center">Modalidade</th>
+                            <th class="text-center">Vigência</th>
+                            <th class="text-center">Valor Parcela</th>
+                            <th class="text-center">Situação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for termo in termos_bolsa %}
+                        <tr>
+                            <td class="text-center fw-bold">{{ termo.numero_termo }}</td>
+                            <td class="text-center">{{ termo.cota_pt.projeto.nome|default:"—" }}</td>
+                            <td class="text-center"><span class="badge bg-light text-dark border">{{ termo.modalidade_bolsa }}</span></td>
+                            <td class="text-center">{{ termo.vigencia_inicio|date:"d/m/Y" }} a {{ termo.vigencia_fim|date:"d/m/Y" }}</td>
+                            <td class="text-center fw-bold text-success">R$ {{ termo.valor_parcela|floatformat:2 }}</td>
+                            <td class="text-center">
+                                {% if termo.ativo %}
+                                    <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Encerrado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Row 3: Dados Bancários (LGPD / RNF-02) -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-warning text-dark py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-lock me-2"></i>Dados Bancários para Pagamento (Segregação LGPD)</h5>
+            {% if not pode_ver_dados_bancarios %}
+                <span class="badge bg-secondary">Acesso Restrito</span>
+            {% endif %}
+        </div>
+        <div class="card-body p-0">
+            {% if pode_ver_dados_bancarios %}
+                {% if dados_bancarios %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Finalidade</th>
+                                <th class="text-center">Código Banco</th>
+                                <th class="text-center">Agência</th>
+                                <th class="text-center">Conta</th>
+                                <th class="text-center">Chave PIX</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dado in dados_bancarios %}
+                            <tr>
+                                <td class="text-center">{{ dado.get_finalidade_display }}</td>
+                                <td class="text-center fw-bold">{{ dado.banco_codigo }}</td>
+                                <td class="text-center">{{ dado.agencia }}</td>
+                                <td class="text-center">{{ dado.conta }}</td>
+                                <td class="text-center">{{ dado.chave_pix|default:"—" }}</td>
+                                <td class="text-center">
+                                    {% if dado.ativo %}<span class="badge bg-success">Ativo</span>{% else %}<span class="badge bg-secondary">Inativo</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted p-4 mb-0 text-center">Nenhum dado bancário ativo cadastrado.</p>
+                {% endif %}
+            {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="fas fa-user-lock fs-2 mb-2 opacity-50"></i>
+                    <p class="mb-0">A visualização dos dados bancários sensíveis é restrita a perfis da Gestão Financeira e Administradores (RNF-02 LGPD).</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

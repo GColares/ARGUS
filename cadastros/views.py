@@ -68,6 +68,59 @@ class PessoaJuridicaDetailView(LoginRequiredMixin, DetailView):
         ).distinct()
         return context
 
+class PessoaFisicaDetailView(LoginRequiredMixin, DetailView):
+    """
+    Visualização de detalhe da Pessoa Física (Party-Role Pattern).
+    Consolida os papéis dinâmicos (Servidor, Bolsista, Aluno) e os
+    dados restritos (bancários) sob governança LGPD (RNF-02).
+    """
+    from .models import PessoaFisica
+    model = PessoaFisica
+    template_name = 'cadastros/pessoa_fisica_detail.html'
+    context_object_name = 'pf'
+
+    def get_queryset(self):
+        from .models import PessoaFisica
+        return PessoaFisica.objects.select_related('perfil_servidor', 'user')
+
+    def get_context_data(self, **kwargs):
+        from .models import MembroEquipe
+        context = super().get_context_data(**kwargs)
+        pessoa = self.object
+        user = self.request.user
+
+        # Papel funcional (Servidor)
+        context['perfil_servidor'] = getattr(pessoa, 'perfil_servidor', None)
+
+        # Papel de Bolsista — Termos de Bolsa vinculados
+        context['termos_bolsa'] = (
+            pessoa.termos_bolsa
+            .select_related('cota_pt__projeto')
+            .order_by('-vigencia_inicio')
+        )
+
+        # Dados bancários ativos (visibilidade restrita — RNF-02)
+        context['dados_bancarios'] = pessoa.dados_bancarios.filter(ativo=True)
+
+        # Projetos em que a pessoa atua como membro de equipe
+        if pessoa.user:
+            context['projetos_como_membro'] = MembroEquipe.objects.filter(
+                usuario=pessoa.user
+            ).select_related('projeto')
+        else:
+            context['projetos_como_membro'] = []
+
+        # Governança LGPD/RNF-02: dado bancário visível para superuser ou admin
+        context['pode_ver_dados_bancarios'] = (
+            user.is_superuser
+            or user.groups.filter(
+                name__in=['Administrador do Sistema', 'Coordenador Admin-Financeiro', 'GESTOR']
+            ).exists()
+        )
+
+        return context
+
+
 @login_required
 def listar_processos_global(request):
     processos = Processo.objects.select_related('projeto').all().order_by('-id')

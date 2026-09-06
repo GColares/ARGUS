@@ -36,6 +36,7 @@ urlpatterns = [
 
     path('projetos/', views.listar_projetos, name='listar_projetos'),
     path('pessoas-fisicas/', views.listar_pessoas_fisicas, name='listar_pessoas_fisicas'),
+    path('pessoas-fisicas/<int:pk>/visualizar/', views.PessoaFisicaDetailView.as_view(), name='visualizar_pessoa_fisica'),
     path('pessoas-fisicas/nova/', views.cadastrar_pessoa_fisica, name='cadastrar_pessoa_fisica'),
     path('pessoas-fisicas/<int:id>/editar/', views.editar_pessoa_fisica, name='editar_pessoa_fisica'),
     path('pessoas-fisicas/<int:id>/excluir/', views.excluir_pessoa_fisica, name='excluir_pessoa_fisica'),

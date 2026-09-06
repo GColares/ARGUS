@@ -1,6 +1,29 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Estreia e Homologação Oficial: Claude 3.5 Sonnet — Visualização de Pessoa Física (Party-Role e LGPD)
+
+### 1. Entregas Homologadas (Implementação Claude 3.5 Sonnet / Integração & Auditoria Antigravity-Gemini):
+- **Template Tag `mask_cpf` (`cadastros/templatetags/cadastros_extras.py`):**
+  - Implementação de filtro de minimização de dados LGPD (RNF-02), preservando apenas os 3 primeiros e 2 últimos dígitos para usuários não-autorizados (`999.***.***-66`).
+- **View `PessoaFisicaDetailView` (`cadastros/views.py`):**
+  - `DetailView` com `LoginRequiredMixin` e `select_related` de performance em `perfil_servidor` e `user`.
+  - Consolidação do padrão Party-Role: injeção de Perfil de Servidor (SIAPE efetivo), Termos de Concessão de Bolsa vinculados e atuação em equipes de projetos.
+  - Segregação de segurança bancária LGPD: dados bancários sensíveis restritos a administradores e gestores financeiros.
+- **Rota em `cadastros/urls.py`:** `pessoas-fisicas/<int:pk>/visualizar/` (`name='visualizar_pessoa_fisica'`).
+- **Template `pessoa_fisica_detail.html`:** Padrão Almoxarifado oficial, cards informativos com badges de vínculo (Servidor IFAM Efetivo, Bolsista Ativo) e tabelas com cabeçalhos centralizados.
+- **Botão na Listagem Mestra:** Inclusão do botão de visualização com ícone de olho (`fa-eye`) em `listar_pessoas_fisicas.html`.
+- **Suíte de Testes `PessoaFisicaDetailViewTestCase` (`cadastros/tests.py`):** Teste de integração validando renderização de perfil servidor, termos e segregação de dados.
+
+### 2. Auditoria e Qualidade Técnica:
+- `python manage.py check`: 0 erros (0 silenciados).
+- `python manage.py test cadastros`: **26/26 testes OK (100%) em 0.72s**.
+- `python manage.py test gestao_projetos`: **61/61 testes OK (100%) em 24.0s**.
+- Zero regressões detectadas no ecossistema do ARGUS (**87/87 testes globais aprovados**).
+
+---
+
 ## [2026-09-05] Homologação Oficial: Passo 9 da Execução Financeira (Extrato Financeiro e Conciliação Bancária por Projeto)
+
 
 ### 1. Entregas Homologadas (Implementação Kiro / Auditoria Antigravity-Gemini):
 - **View `extrato_financeiro_projeto` (`gestao_projetos/views.py`):**

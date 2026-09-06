@@ -49,6 +49,9 @@
                         <td class="ps-4 fw-bold">{{ pessoa.nome }}</td>
                         <td>{{ pessoa.cpf }}</td>
                         <td class="text-center">
+                            <a href="{% url 'cadastros:visualizar_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-primary" title="Visualizar">
+                                <i class="fas fa-eye"></i>
+                            </a>
                             <a href="{% url 'cadastros:editar_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-warning" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
