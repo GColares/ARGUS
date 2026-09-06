@@ -1,5 +1,25 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Sprint Design System — Fatia 2.5: Padronização de Formulários (GitHub Copilot)
+
+### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`cadastros/templates/cadastros/termo_parceria_form.html`](cadastros/templates/cadastros/termo_parceria_form.html)
+  * [`cadastros/templates/cadastros/programa_form.html`](cadastros/templates/cadastros/programa_form.html)
+  * [`cadastros/templates/cadastros/form_pessoa_juridica.html`](cadastros/templates/cadastros/form_pessoa_juridica.html)
+- **Ajustes de UI/UX e Design System Canônico:**
+  1. *Navegação & Breadcrumbs:* Adicionados em `form_pessoa_juridica.html` com trilha `Cadastros > Pessoas Jurídicas > Novo/Editar`.
+  2. *Escala Tipográfica Executiva:* Títulos de formulários normalizados para `<h4>` com ícones semânticos.
+  3. *Botões de Ação Padronizados:* Inclusão de botões "Cancelar" explícitos (`btn-outline-secondary`) e botões de submissão semânticos (`btn-primary` e `btn-success`), eliminando o uso indevido de `btn-danger` para ações de salvar.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test cadastros`: **38/38 testes OK (100%)**.
+- **Total Global ARGUS: 108/108 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: GitHub Copilot | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Homologação Sprint Design System — Fatias 2.1 a 2.4: Conclusão das Telas de Listagem (GitHub Copilot)
 
 ### 1. Entregas Realizadas pelo GitHub Copilot (Handoffs Cirúrgicos / SoD):

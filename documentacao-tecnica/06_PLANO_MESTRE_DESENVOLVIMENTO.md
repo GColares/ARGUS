@@ -91,11 +91,12 @@ flowchart LR
      * KPIs canônicos com `.card-kpi-argus` (eliminar scripts `onmouseover` remanescentes).
      * Matriz de badges canônicos: `PENDENTE` em âmbar (`.badge-status-warning`), `ATIVO` em verde (`.badge-status-success`), `CANCELADO` em vermelho.
      * Tabelas com classe `.thead-argus` e proibição terminante de `{% empty %}` com `colspan` sob DataTables.
-2. **Padronização de Formulários e Detalhes:**
-   - **Templates Alvo:** `pessoa_juridica_form.html`, `termo_parceria_form.html`, `programa_form.html`.
-   - **Critérios de Aceite:**
+2. **Padronização de Formulários e Detalhes:** `[CONCLUÍDO & HOMOLOGADO]`
+   - **Templates Entregues:** `form_pessoa_juridica.html`, `termo_parceria_form.html`, `programa_form.html`.
+   - **Critérios de Aceite Validados (108/108 testes OK):**
      * Inputs com classes padronizadas do Bootstrap 5 e validações visuais semânticas.
      * Centralização dos estilos em `static/css/style.css` (zero `<style>` inline).
+     * Inclusão de botões Cancelar padronizados e cores semânticas de submissão.
 
 ---
 
