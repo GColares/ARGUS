@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load l10n humanize %}
+
+{% block content %}
+<div class="container px-4 mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'patrimonio:conferir_bens_projeto' projeto.id %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Voltar à Conferência
+            </a>
+            <h4 class="fw-bold m-0 text-dark">
+                <i class="fas fa-file-signature text-primary me-2"></i>Minuta do Termo de Doação
+            </h4>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>Imprimir Minuta
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-5 bg-white">
+        <div class="text-center mb-4 border-bottom pb-3">
+            <h5 class="fw-bold mb-1 text-uppercase">Ministério da Educação</h5>
+            <h6 class="fw-bold mb-1 text-uppercase">Instituto Federal de Educação, Ciência e Tecnologia do Amazonas</h6>
+            <h6 class="text-muted small text-uppercase">Polo de Inovação — Gestão de Projetos de PD&amp;I</h6>
+            <h5 class="fw-bold mt-4 text-primary text-uppercase">TERMO DE DOAÇÃO E TRANSFERÊNCIA DE BENS PERMANENTES Nº _____/{{ ano_atual }}</h5>
+        </div>
+
+        <div class="mb-4 text-justify">
+            <p>
+                Pelo presente instrumento, a <strong>{{ projeto.concedente.nome|default:"Entidade Parceira" }}</strong>,
+                no âmbito da execução do Projeto de Pesquisa, Desenvolvimento e Inovação intitulado
+                <strong>"{{ projeto.nome }}"</strong>, formaliza a doação irrevogável e gratuita dos bens patrimoniais
+                adquiridos e discriminados abaixo, transferindo sua plena propriedade, posse e domínio ao
+                <strong>INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA DO AMAZONAS (IFAM)</strong>,
+                para tombamento definitivo e incorporação patrimonial com registro no SUAP.
+            </p>
+        </div>
+
+        <h6 class="fw-bold text-uppercase border-bottom pb-2 mb-3">Relação de Bens Adquiridos e Doados ({{ total_itens }} itens)</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width: 60px;">Item</th>
+                        <th>Descrição do Bem</th>
+                        <th class="text-center">Patrimônio / Tombamento</th>
+                        <th class="text-center">Ambiente de Alocação</th>
+                        <th class="text-end" style="width: 140px;">Valor (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bem in bens %}
+                    <tr>
+                        <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                        <td>{{ bem.descricao }}</td>
+                        <td class="text-center">{{ bem.patrimonio_ifam|default:bem.patrimonio_doador|default:"A Tombar" }}</td>
+                        <td class="text-center">{{ bem.ambiente.nome|default:"Polo de Inovação" }}</td>
+                        <td class="text-end">R$ {{ bem.valor|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3">Nenhum bem registrado para este projeto.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-light fw-bold">
+                        <td colspan="4" class="text-end text-uppercase">Valor Total da Doação:</td>
+                        <td class="text-end text-primary">R$ {{ valor_total|floatformat:2 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="row mt-5 pt-4 text-center">
+            <div class="col-md-4">
+                <div class="border-top border-dark pt-2">
+                    <strong class="d-block small">{{ projeto.coordenador.nome|default:"Coordenador do Projeto" }}</strong>
+                    <span class="text-muted text-xs">Coordenador do Projeto</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border-top border-dark pt-2">
+                    <strong class="d-block small">{{ projeto.concedente.representante_legal|default:"Representante Legal" }}</strong>
+                    <span class="text-muted text-xs">Doador / Fundação de Apoio</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border-top border-dark pt-2">
+                    <strong class="d-block small">Direção Geral do Polo de Inovação</strong>
+                    <span class="text-muted text-xs">Recebedor / IFAM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

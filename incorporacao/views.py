@@ -8,6 +8,8 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
 from django.db import transaction
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 
 from .models import TermoDoacao, ItemPatrimonial
 from .services import extrair_dados_do_termo, extrair_tudo_com_ia
@@ -18,6 +20,45 @@ def home_incorporacao(request):
     """Lista todos os termos de doação na fila de incorporação."""
     termos = TermoDoacao.objects.all().order_by('-id')
     return render(request, 'incorporacao/home_incorporacao.html', {'termos': termos})
+
+
+@login_required
+def gerar_termo_doacao_projeto(request, projeto_id):
+    """
+    Gera a minuta oficial do termo de doação dos bens vinculados ao projeto.
+    O acesso é restrito ao superusuário ou a membros da equipe do projeto.
+    """
+    from decimal import Decimal
+    from datetime import date
+    from django.db.models import Sum
+    from cadastros.models import MembroEquipe
+    from patrimonio.models import BemPatrimonial
+
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden(
+                "Acesso negado: Você não é membro da equipe deste projeto."
+            )
+
+    bens = BemPatrimonial.objects.filter(projeto=projeto).select_related(
+        'ambiente',
+        'termo_doacao',
+    )
+    total_itens = bens.count()
+    valor_total = bens.aggregate(Sum('valor'))['valor__sum'] or Decimal('0.00')
+    data_emissao = date.today()
+
+    contexto = {
+        'projeto': projeto,
+        'bens': bens,
+        'total_itens': total_itens,
+        'valor_total': valor_total,
+        'data_emissao': data_emissao,
+        'ano_atual': data_emissao.year,
+    }
+    return render(request, 'incorporacao/minuta_termo_doacao.html', contexto)
 
 
 def detalhe_termo(request, pk):

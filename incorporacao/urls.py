@@ -27,5 +27,9 @@ urlpatterns = [
     path('item/editar/<int:pk>/', views.editar_item, name='editar_item'),
     path('item/excluir/<int:pk>/', views.excluir_item, name='excluir_item'),
     path('termo/<int:pk>/extrair-itens/', views.processar_itens_automaticos, name='extrair_itens_automaticos'),
-
+    path(
+        'projeto/<int:projeto_id>/termo-doacao/',
+        views.gerar_termo_doacao_projeto,
+        name='gerar_termo_doacao_projeto',
+    ),
 ]
