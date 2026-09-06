@@ -1,5 +1,26 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Sprint 2 — Fatia 2.1: Expurgo de <style> e Centralização CSS da Central de Serviços (IBM Bob)
+
+### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`static/css/style.css`](static/css/style.css) (+195 linhas adicionadas com separação por blocos CS-1 a CS-8).
+  * [`central_servicos/templates/central_servicos/home_central_servicos.html`](central_servicos/templates/central_servicos/home_central_servicos.html) (-117 linhas removidas).
+- **Ajustes Arquiteturais e de Governança Concluídos:**
+  1. *Eliminação de Dívida Técnica:* Remoção completa do bloco de 116 linhas de `<style>` de dentro do template HTML (conformidade com Content Security Policy - CSP e diretrizes OWASP).
+  2. *Refinamento de Cores Semânticas:* Substituição de cor hexadecimal hardcoded (`#2c3e50`) por token canônico `var(--inova-grafite)`.
+  3. *Eliminação de Estilos Inline:* Criação da classe `.cs-metric-card` e 6 variantes semânticas (`.cs-metric-warning`, `.cs-metric-secondary`, `.cs-metric-info`, `.cs-metric-primary`, `.cs-metric-danger`, `.cs-metric-success`), substituindo 6 estilos inline complexos com gradientes.
+  4. *Hierarquia Tipográfica:* Normalização do título de `<h2>` para `<h4>` conforme a regra de escala do `AGENTS.md`.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test cadastros`: **37/37 testes OK (100%)**.
+- `manage.py test gestao_projetos`: **61/61 testes OK (100%)**.
+- **Total Global: 98 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: IBM Bob | Auditor: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Segurança & Autonomia: Self-Hosting do Font Awesome 7.3.1 Local (0 CDNs Externos)
 
 ### 1. Modernização e Blindagem de Supply Chain (Antigravity-Gemini / Aprovação PO):

@@ -438,3 +438,194 @@ body.theme-dark .navbar-institucional .nav-link.active {
 /* =====================================================
    FIM DO DESIGN SYSTEM CANÔNICO ARGUS — Sprint 1
    ===================================================== */
+
+
+/* =====================================================
+   DESIGN SYSTEM CANÔNICO ARGUS — Sprint 2, Fatia 2.1
+   Módulo: Central de Serviços (home_central_servicos)
+   Origem: migração do bloco <style> inline (116 linhas)
+   Adicionado por: IBM Bob (SDLC Partner)
+   Aprovado por: PO Geziel / Tech Lead: Antigravity-Gemini
+   ===================================================== */
+
+
+/* -----------------------------------------------------
+   CS-1: CONTAINER DO HUB
+   ----------------------------------------------------- */
+.cs-hub-container {
+    padding: 0;
+}
+
+
+/* -----------------------------------------------------
+   CS-2: CARD PRINCIPAL DO HUB (.cs-card)
+   Card glassmorphism das 4 ações principais da CS
+   ----------------------------------------------------- */
+.cs-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    text-decoration: none !important;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.cs-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 1);
+}
+
+/* Barra decorativa gradiente no topo do card */
+.cs-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--bs-primary), var(--bs-info));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cs-card:hover::before {
+    opacity: 1;
+}
+
+
+/* -----------------------------------------------------
+   CS-3: ÍCONE DO CARD (.cs-icon-wrapper)
+   ----------------------------------------------------- */
+.cs-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.1), rgba(var(--bs-info-rgb), 0.1));
+    color: var(--bs-primary);
+    transition: all 0.3s ease;
+}
+
+.cs-card:hover .cs-icon-wrapper {
+    background: var(--bs-primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+
+/* -----------------------------------------------------
+   CS-4: TIPOGRAFIA DOS CARDS (.cs-title, .cs-desc)
+   Refinamento: substituída cor hex #2c3e50 pela variável
+   canônica --inova-grafite (conforme Design System Oficial)
+   ----------------------------------------------------- */
+.cs-title {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--inova-grafite);   /* era: #2c3e50 — corrigido para token canônico */
+}
+
+.cs-desc {
+    color: #6c757d;
+    text-align: center;
+    font-size: 1rem;
+    margin: 0;
+}
+
+
+/* -----------------------------------------------------
+   CS-5: MODAL MANUAL DE CONCEITOS
+   (.modal-content.glass-modal, .modal-header.glass-header)
+   ----------------------------------------------------- */
+.modal-content.glass-modal {
+    border-radius: 1rem;
+    border: none;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header.glass-header {
+    background: linear-gradient(90deg, var(--bs-dark), var(--bs-primary));
+    color: white;
+    border-radius: 1rem 1rem 0 0;
+    border-bottom: none;
+}
+
+
+/* -----------------------------------------------------
+   CS-6: NAV PILLS DO MODAL (.nav-pills.custom-pills)
+   ----------------------------------------------------- */
+.nav-pills.custom-pills .nav-link {
+    border-radius: 0.5rem;
+    color: #495057;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.nav-pills.custom-pills .nav-link.active {
+    background-color: var(--bs-primary);
+    color: white;
+    box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+
+/* -----------------------------------------------------
+   CS-7: CAIXA DE CONCEITO DO MANUAL (.concept-box)
+   ----------------------------------------------------- */
+.concept-box {
+    background: #f8f9fa;
+    border-left: 4px solid var(--bs-primary);
+    padding: 1.5rem;
+    border-radius: 0 0.5rem 0.5rem 0;
+    margin-bottom: 1.5rem;
+}
+
+
+/* -----------------------------------------------------
+   CS-8: CARD DE MÉTRICA DE OS (.cs-metric-card)
+   NOVO — substitui os 6 atributos style="..." inline
+   no banner de métricas do home (os_pendentes, etc.)
+   Variante por status: modificar --cs-metric-color e
+   --cs-metric-bg via classe modificadora ou inline mínimo.
+   Uso: <div class="card cs-metric-card cs-metric-warning">
+   ----------------------------------------------------- */
+.cs-metric-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    height: 100%;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cs-metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+/* Variantes semânticas por status de OS */
+.cs-metric-warning  { background: linear-gradient(135deg, rgba(var(--bs-warning-rgb),  0.15), #ffffff); }
+.cs-metric-secondary{ background: linear-gradient(135deg, rgba(var(--bs-secondary-rgb),0.15), #ffffff); }
+.cs-metric-info     { background: linear-gradient(135deg, rgba(var(--bs-info-rgb),     0.15), #ffffff); }
+.cs-metric-primary  { background: linear-gradient(135deg, rgba(var(--bs-primary-rgb),  0.15), #ffffff); }
+.cs-metric-danger   { background: linear-gradient(135deg, rgba(var(--bs-danger-rgb),   0.15), #ffffff); }
+.cs-metric-success  { background: linear-gradient(135deg, rgba(var(--bs-success-rgb),  0.15), #ffffff); }
+
+/* =====================================================
+   FIM — Sprint 2, Fatia 2.1: Central de Serviços
+   ===================================================== */
