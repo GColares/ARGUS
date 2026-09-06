@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+{% regroup programas by ativo as programas_por_status %}
 <div class="container-fluid px-4 mt-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -11,7 +12,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
         <div>
-            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-sitemap text-primary me-2"></i> Programas (Guarda-Chuva) <span class="badge bg-secondary fs-6 ms-2">{{ programas.count }}</span></h2>
+            <h4 class="fw-bold m-0 text-dark"><i class="fas fa-sitemap text-primary me-2"></i> Programas (Guarda-Chuva) <span class="badge bg-secondary fs-6 ms-2">{{ programas.count }} cadastrados</span></h4>
             <p class="text-muted small mb-0 mt-1">Gerenciamento das linhas de fomento/programas de um Termo.</p>
         </div>
         <div>
@@ -21,38 +22,89 @@
         </div>
     </div>
 
+    <div class="row g-3 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Total de Programas</span>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">{{ programas.count }}</h3>
+                <span class="text-muted text-xs">Linhas de fomento cadastradas</span>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Programas Ativos</span>
+                </div>
+                <h3 class="fw-bold text-success mb-0">
+                    {% for grupo in programas_por_status %}
+                        {% if grupo.grouper %}{{ grupo.list|length }}{% endif %}
+                    {% endfor %}
+                </h3>
+                <span class="text-muted text-xs">Linhas de fomento vigentes</span>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-secondary bg-opacity-10 text-secondary rounded p-2 me-2">
+                        <i class="fas fa-pause-circle"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Programas Inativos</span>
+                </div>
+                <h3 class="fw-bold text-secondary mb-0">
+                    {% for grupo in programas_por_status %}
+                        {% if not grupo.grouper %}{{ grupo.list|length }}{% endif %}
+                    {% endfor %}
+                </h3>
+                <span class="text-muted text-xs">Linhas de fomento encerradas</span>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
-            <table class="table table-hover table-striped mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-center">Nome do Programa</th>
-                        <th class="text-center">Termo de Cooperação Vinculado</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center" style="width: 150px;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in programas %}
-                    <tr>
-                        <td class="fw-bold">{{ p.nome }}</td>
-                        <td>{{ p.termo_cooperacao.numero }}</td>
-                        <td>
-                            {% if p.ativo %}
-                                <span class="badge bg-success">Ativo</span>
-                            {% else %}
-                                <span class="badge bg-danger">Inativo</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <a href="{% url 'cadastros:visualizar_programa' p.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
-                            <a href="{% url 'cadastros:editar_programa' p.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
-                            <a href="{% url 'cadastros:excluir_programa' p.id %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="thead-argus">
+                        <tr>
+                            <th class="text-center">Nome do Programa</th>
+                            <th class="text-center">Termo de Cooperação Vinculado</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center" style="width: 150px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in programas %}
+                        <tr>
+                            <td class="fw-bold">{{ p.nome }}</td>
+                            <td>{{ p.termo_cooperacao.numero }}</td>
+                            <td>
+                                {% if p.ativo %}
+                                    <span class="badge badge-status-success px-2 py-1">Ativo</span>
+                                {% else %}
+                                    <span class="badge badge-status-danger px-2 py-1">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'cadastros:visualizar_programa' p.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
+                                <a href="{% url 'cadastros:editar_programa' p.id %}" class="btn btn-sm btn-outline-warning me-1" title="Editar"><i class="fas fa-edit"></i></a>
+                                <a href="{% url 'cadastros:excluir_programa' p.id %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
