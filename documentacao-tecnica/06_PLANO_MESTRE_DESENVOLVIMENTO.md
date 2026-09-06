@@ -61,7 +61,7 @@ flowchart LR
 **Foco:** Finalizar a esteira financeira de ponta a ponta para auditoria de prestação de contas.
 
 #### Módulo: `gestao_projetos`
-1. **Passo 9 da Execução Financeira (Conciliação & Extrato por Conta de Projeto):**
+1. **Passo 9 da Execução Financeira (Conciliação & Extrato por Conta de Projeto):** `[CONCLUÍDO & HOMOLOGADO]`
    - **Função / View:** `extrato_financeiro_projeto(request, projeto_id)`
    - **Regra de Negócio (RN-02, RN-03):** Segregar os saldos bancários por fonte pagadora:
      * Conta 1: Recursos Empresa Parceira (Custeio + Overhead).
@@ -71,9 +71,10 @@ flowchart LR
      * Cruzamento automático dos débitos com as baixas da view `liquidar_folha_lote()`.
      * Visão consolidada na **Aba 3 (Painel Central Orçamentário)** do Wizard de Projetos.
      * Indicador visual de conciliação (Conciliado vs. Pendente de Conciliação Bancária).
-2. **Emissão Consolidada de Recibos e Comprovantes em Lote:**
-   - **Função / View:** `exportar_recibos_lote_zip(request, folha_id)`
-   - **Entrega Técnica:** Empacotamento em `.zip` dos extratos e recibos individuais gerados em Word/PDF para anexação na prestação de contas da FAEPI perante o IFAM.
+2. **Emissão Consolidada de Recibos e Comprovantes em Lote (.zip):** `[CONCLUÍDO & HOMOLOGADO]`
+   - **Função / View:** `exportar_recibos_lote_zip(request, projeto_id)`
+   - **Entrega Técnica:** Empacotamento in-memory em `.zip` dos recibos individuais em HTML autenticados com hash SHA-256 para anexação na prestação de contas da FAEPI perante o IFAM.
+   - **Homologação:** 100% aprovado pela auditoria independente do **Kiro (AWS Bedrock)** com bateria de 5 invariantes de domínio e suíte `PropertyZipInvariantsTestCase`.
 
 ---
 

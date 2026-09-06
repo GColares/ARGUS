@@ -4,13 +4,12 @@
     {
       "name": "Django System Check on Save",
       "trigger": "PostFileSave",
-      "matcher": "\\.py$",
       "action": {
         "type": "command",
         "command": "powershell -NoProfile -Command \"& .\\.venv\\Scripts\\python.exe manage.py check\""
       },
-      "enabled": true,
-      "timeout": 30
+      "matcher": "\\.py$",
+      "enabled": true
     }
   ]
 }

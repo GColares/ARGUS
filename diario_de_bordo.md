@@ -1,20 +1,51 @@
 # Diário de Bordo — ARGUS
 
-## [2026-09-06] Handoff Cirúrgico: Exportação em Lote de Recibos de Bolsa (ZIP) e Passo 9 (GitHub Copilot)
+## [2026-09-06] Implementação e Handoff de Duplo Check: Exportação em Lote de Recibos (ZIP) - Passo 9 (Antigravity & IBM Bob)
 
-### 1. Escopo Delegado ao Implementador (GitHub Copilot / VS Code):
-- **Objetivo:** Concluir a esteira da Fase 1 (Execução Financeira & Prestação de Contas FAEPI) permitindo a exportação consolidada em lote dos recibos de pagamento de bolsas em arquivo `.zip`, vinculando a ação à tela de extrato financeiro.
-- **Posse Exclusiva de Arquivos nesta Sessão:**
-  * [`gestao_projetos/urls.py`](gestao_projetos/urls.py) (Adicionar rota `exportar_recibos_lote_zip`).
-  * [`gestao_projetos/views.py`](gestao_projetos/views.py) (Implementar a view `exportar_recibos_lote_zip`).
-  * [`gestao_projetos/templates/gestao_projetos/extrato_financeiro_projeto.html`](gestao_projetos/templates/gestao_projetos/extrato_financeiro_projeto.html) (Adicionar botão no cabeçalho).
-  * [`gestao_projetos/tests.py`](gestao_projetos/tests.py) (Criar classe `ExportarRecibosLoteZipTestCase`).
-- **Invariantes e Regras de Negócio Obrigatórias:**
-  1. *Trava de Status:* Apenas parcelas com status `PAGO` entram no `.zip`.
-  2. *RBAC Estrito:* Superusuário ou `MembroEquipe` do projeto. Outros = 403 Forbidden.
-  3. *In-Memory ZIP:* Geração 100% em memória usando `io.BytesIO` e `zipfile.ZipFile(..., zipfile.ZIP_DEFLATED)`.
-  4. *Rastreabilidade de Hash:* Nome do arquivo padronizado: `Recibo_Parcela_{num}_{NomeBolsista}_{HashSHA256[:8]}.html`.
-  5. *Zero Poluição de CSS:* Não adicionar tags `<style>` inline. Utilizar classes do Design System.
+### 1. Contexto e Segregação de Funções (SoD):
+- **Implementador Excepcional:** Antigravity-Gemini (autorizado expressamente pelo PO Geziel).
+- **Revisor Independente / Duplo Check Designado:** IBM Bob.
+- **Formato do Handoff:** Entregue diretamente em tela no chat (pronto para copiar e colar), conforme nova diretriz de governança (`/learn`).
+- **Sugestão de Commit Obrigatória:** Formalizada a regra mandatória de sempre sugerir commits contextuais prontos ao orientar o uso de `salvar.ps1` ou atualização do GitHub.
+
+### 2. Entregas Realizadas no Passo 9:
+- **Arquivos Modificados:**
+  * [`gestao_projetos/urls.py`](gestao_projetos/urls.py): Adicionada a rota `projeto/<int:projeto_id>/recibos/exportar-zip/`.
+  * [`gestao_projetos/views.py`](gestao_projetos/views.py): Implementada a view `exportar_recibos_lote_zip` (RBAC estrito para Superusuário e MembroEquipe, filtro `status='PAGO'`, hash SHA-256 com blindagem documental idêntica ao recibo individual, compactação em memória via `io.BytesIO` e `zipfile`).
+  * [`gestao_projetos/templates/gestao_projetos/extrato_financeiro_projeto.html`](gestao_projetos/templates/gestao_projetos/extrato_financeiro_projeto.html): Adicionado botão "Exportar Recibos (ZIP)" com ícone `fas fa-file-archive` no cabeçalho.
+  * [`gestao_projetos/tests.py`](gestao_projetos/tests.py): Criada a classe `ExportarRecibosLoteZipTestCase` com 3 testes unitários (RBAC, ausência de pagos e geração válida do ZIP).
+- **Validação Local:** `python manage.py check` (0 erros) e `3 tests in 3.585s OK`.
+- **Auditoria Independente & Property-Testing (Kiro - AWS Bedrock):**
+  * Parecer: **[APROVADO 100%]** (Zero invariantes violadas).
+  * 5 Invariantes blindadas: Isolamento Financeiro Cross-Project, Hermeticidade de Status PAGO, Identidade Criptográfica SHA-256 com a view individual, Neutralização de Path Traversal / Zip Slip, e Estresse de Heap com 100 parcelas em lote.
+  * Implementação da suíte `PropertyZipInvariantsTestCase` (+6 testes / 9 cenários de estresse).
+  * **Bateria Completa de `gestao_projetos`: 70/70 testes OK (100% verde em 32.4s).**
+  * **Total Global do ARGUS: 107/107 testes automatizados aprovados (0 regressões).**
+  * Observação de Roadmap futuro: Streaming HTTP para volumes extremos (>500 recibos).
+
+---
+
+## [2026-09-06] Homologação de Auditoria: Anonimização e Exclusão LGPD de Pessoa Física (IBM Bob)
+
+### 1. Parecer Técnico Emitido:
+- **Resultado:** **HOMOLOGADO COM RESSALVAS NÃO-BLOQUEANTES** (Aprovado para Produção).
+- **Rastro SoD:** Auditor Independente: IBM Bob | Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+### 2. Avaliação por Critérios:
+- **Aprovados (9 pontos sólidos):**
+  * `F-01`: Atomicidade + Race Condition (`@transaction.atomic` + `select_for_update()`).
+  * `F-02`: Idempotência (guard clause `ANON-`).
+  * `F-03`: Detecção de histórico em 3 vetores (bolsas, coordenação, equipe).
+  * `F-04`: Crypto-Shredding completo (PII destruídos irreversivelmente).
+  * `F-05`: Integridade referencial preservada (`on_delete=PROTECT`).
+  * `F-06`: Segurança web (CSRF, POST-only, `@login_required`).
+  * `F-07`: Template e UX com `mask_cpf`.
+  * `F-10`: Hash SHA-256 de 8 hex suficiente.
+  * `F-11`: Imports internos sem impacto funcional.
+
+### 3. Backlog de Hardening (Não-bloqueantes para o próximo sprint):
+- `F-08` (Risco MÉDIO): Adicionar `@user_passes_test(lambda u: u.is_superuser or u.is_staff)` à view `excluir_pessoa_fisica`.
+- `F-09` (Risco BAIXO): Corrigir `papel='COLABORADOR'` para `'ANALISTA'` em `cadastros/tests.py:883`.
 
 ---
 

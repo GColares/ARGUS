@@ -69,6 +69,9 @@
             <span class="badge bg-secondary">
                 <i class="fas fa-list me-1"></i>{{ qtd_movimentacoes }} movimentações
             </span>
+            <a href="{% url 'gestao_projetos:exportar_recibos_lote_zip' projeto.id %}" class="btn btn-outline-primary btn-sm" title="Baixar todos os recibos liquidados (PAGO) em lote">
+                <i class="fas fa-file-archive me-1"></i>Exportar Recibos (ZIP)
+            </a>
             <button class="btn btn-outline-secondary btn-sm"
                     data-bs-toggle="collapse"
                     data-bs-target="#gaveta-filtros"

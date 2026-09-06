@@ -124,6 +124,8 @@ deve ser informada antes do trabalho começar.
 O handoff deve conter objetivo, escopo, arquivos modificados, comportamento
 esperado, comandos executados, resultados e próximos passos.
 
+**Regra de Usabilidade dos Handoffs:** O Handoff deve ser sempre entregue em tela no chat pelo Antigravity em um bloco de código markdown completo, no ponto de cópia imediata (*copy & paste*) pelo PO para a IA de destino, sem exigir que o PO tenha de abrir arquivos de artefato para copiar o conteúdo.
+
 
 ## Rotinas operacionais
 
@@ -132,6 +134,8 @@ As rotinas são executadas pelo usuário no terminal, após orientação da IA:
 - `.\scripts\bom_dia.ps1`
 - `.\scripts\salvar.ps1`
 - `.\scripts\ate_amanha.ps1`
+
+Sempre que orientar a execução de `.\scripts\salvar.ps1`, `.\scripts\ate_amanha.ps1` ou qualquer envio ao repositório, a IA deve **obrigatoriamente fornecer uma sugestão de mensagem de commit** contextualizada, semântica e em bloco de texto copíavel, pronta para ser colada pelo usuário no prompt do terminal.
 
 Isso evita que uma IA execute inadvertidamente comandos destrutivos ou
 publique alterações sem revisão. A IA pode inspecionar, explicar e validar os

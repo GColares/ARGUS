@@ -2150,3 +2150,94 @@ def extrato_financeiro_projeto(request, projeto_id):
         'qtd_movimentacoes': parcelas_qs.count(),
     }
     return render(request, 'gestao_projetos/extrato_financeiro_projeto.html', contexto)
+
+
+@login_required
+def exportar_recibos_lote_zip(request, projeto_id):
+    """
+    Passo 9 — Exportação Consolidada de Recibos de Bolsas em Lote (.zip)
+    
+    Regras de negócio:
+    1. RBAC: superusuário ou MembroEquipe do projeto.
+    2. Apenas parcelas com status='PAGO'.
+    3. Gera ZIP em memória contendo o HTML de cada recibo.
+    4. Cada recibo mantém a mesma chave de autenticidade (SHA-256) gerada na view individual.
+    """
+    import io
+    import zipfile
+    import hashlib
+    from datetime import date
+    from django.template.loader import render_to_string
+    from django.http import HttpResponse, HttpResponseForbidden
+    from django.shortcuts import get_object_or_404, redirect
+    from django.contrib import messages
+    from cadastros.models import ProjetoPDI, MembroEquipe, Parcela
+
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+
+    # ── RBAC ──
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden(
+                "Acesso negado: Você não é membro da equipe deste projeto."
+            )
+
+    parcelas_pagas = Parcela.objects.select_related(
+        'termo_bolsa__pessoa__user',
+        'termo_bolsa__cota_pt__projeto__coordenador__user',
+        'conta_pagamento'
+    ).filter(
+        termo_bolsa__cota_pt__projeto=projeto,
+        status='PAGO'
+    ).order_by('data_pagamento', 'id')
+
+    if not parcelas_pagas.exists():
+        messages.warning(request, "Não há recibos liquidados (status PAGO) para este projeto.")
+        from django.urls import reverse as _r
+        return redirect(_r('gestao_projetos:extrato_financeiro_projeto', args=[projeto.id]))
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for parcela in parcelas_pagas:
+            pessoa = parcela.termo_bolsa.pessoa
+            dado_bancario = None
+            if pessoa:
+                dado_bancario = (
+                    pessoa.dados_bancarios.filter(finalidade='PAGAMENTO_BOLSA', ativo=True).first()
+                    or pessoa.dados_bancarios.filter(ativo=True).first()
+                )
+
+            cpf_raw = pessoa.cpf if pessoa else 'sem-cpf'
+            payload = (
+                f"{parcela.id}-"
+                f"{parcela.data_pagamento}-"
+                f"{parcela.valor}-"
+                f"{cpf_raw}"
+            )
+            chave_autenticidade = hashlib.sha256(payload.encode()).hexdigest()[:16].upper()
+
+            contexto = {
+                'parcela': parcela,
+                'termo': parcela.termo_bolsa,
+                'pessoa': pessoa,
+                'projeto': projeto,
+                'cota': parcela.termo_bolsa.cota_pt,
+                'dado_bancario': dado_bancario,
+                'chave_autenticidade': chave_autenticidade,
+                'hash_doc': chave_autenticidade,
+                'data_emissao': date.today(),
+            }
+            html_content = render_to_string('gestao_projetos/recibo_bolsa.html', contexto, request=request)
+            
+            nome_pessoa = pessoa.nome if pessoa else 'Sem_Nome'
+            # Remover caracteres inválidos do nome do arquivo (ex: acentos e espaços)
+            import re
+            nome_limpo = re.sub(r'[^A-Za-z0-9_-]', '', nome_pessoa.replace(' ', '_'))
+            
+            nome_arquivo = f"Recibo_Parcela_{parcela.id}_{nome_limpo}.html"
+            zf.writestr(nome_arquivo, html_content)
+
+    buffer.seek(0)
+    response = HttpResponse(buffer.getvalue(), content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="Recibos_Projeto_{projeto.id}.zip"'
+    return response

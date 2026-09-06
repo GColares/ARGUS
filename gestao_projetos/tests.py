@@ -1789,3 +1789,435 @@ class ExtratoFinanceiroTestCase(TestCase):
                     mov['link_recibo'],
                     f"Parcela {parcela.id} não está PAGO mas tem link_recibo inesperado."
                 )
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class ExportarRecibosLoteZipTestCase(TestCase):
+    """
+    Testes de integração da Exportação Consolidada de Recibos em ZIP (Passo 9).
+    Cobre: RBAC (superusuário vs membro vs negado), filtro de status (PAGO), e retorno do ZIP.
+    """
+
+    def setUp(self):
+        self.client = Client()
+        self.super_user = User.objects.create_superuser('admin_zip', 'admin@zip.com', 'senha123')
+        self.membro_user = User.objects.create_user('membro_zip', 'membro@zip.com', 'senha123')
+        self.leigo_user = User.objects.create_user('leigo_zip', 'leigo@zip.com', 'senha123')
+
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa ZIP", cnpj="99.999.999/0001-99",
+            natureza_juridica="LTDA", representante_legal="Rep", cargo_representante="CEO"
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Export ZIP", fase="EXECUCAO", concedente=self.empresa
+        )
+
+        MembroEquipe.objects.create(projeto=self.projeto, usuario=self.membro_user, papel='GESTOR')
+
+        self.pessoa = PessoaFisica.objects.create(nome="Bolsista ZIP", cpf="999.888.777-66")
+        self.cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto, perfil_funcao="Pesquisador", quantidade_vagas=1,
+            parcelas_previstas=3, valor_global_previsto=Decimal("3000.00")
+        )
+        self.termo = TermoBolsa.objects.create(
+            cota_pt=self.cota, pessoa=self.pessoa, numero_termo="TB-ZIP-1",
+            vigencia_inicio=date.today(), vigencia_fim=date.today(),
+            quantidade_parcelas=3, valor_parcela=Decimal("1000.00")
+        )
+        self.url = reverse('gestao_projetos:exportar_recibos_lote_zip', args=[self.projeto.id])
+
+    def test_rbac_acesso_leigo_negado(self):
+        """Usuário não membro da equipe deve receber 403 Forbidden."""
+        self.client.login(username='leigo_zip', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_aviso_quando_nao_ha_pagos(self):
+        """Se não houver parcelas PAGO, redireciona com mensagem de warning."""
+        self.client.login(username='membro_zip', password='senha123')
+        # Por padrão a parcela 1 é PENDENTE
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        # Redireciona para o extrato financeiro
+        self.assertTrue(response.url.startswith(reverse('gestao_projetos:extrato_financeiro_projeto', args=[self.projeto.id])))
+
+    def test_geracao_zip_sucesso(self):
+        """Se houver parcelas PAGO, deve retornar um arquivo ZIP válido."""
+        # Coloca a parcela 1 como PAGO
+        parcela = self.termo.parcelas.first()
+        parcela.status = 'PAGO'
+        parcela.data_pagamento = date.today()
+        parcela.save()
+
+        self.client.login(username='admin_zip', password='senha123')
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/zip')
+        self.assertTrue(response['Content-Disposition'].startswith('attachment; filename="Recibos_Projeto_'))
+        
+        # Validar conteúdo do ZIP
+        import io, zipfile
+        buffer = io.BytesIO(response.content)
+        with zipfile.ZipFile(buffer, 'r') as zf:
+            files = zf.namelist()
+            self.assertEqual(len(files), 1)
+            self.assertTrue(files[0].endswith('.html'))
+            self.assertTrue("Bolsista_ZIP" in files[0] or "BolsistaZIP" in files[0])
+            html_content = zf.read(files[0]).decode('utf-8')
+            self.assertIn("999.888.777-66", html_content)
+
+
+# =====================================================================
+# AUDITORIA INDEPENDENTE (Four-Eyes / SoD) — Kiro (AWS Bedrock)
+# Suíte: PropertyZipInvariantsTestCase
+# Cobre as 5 Invariantes formais do Passo 9 (Exportação de Recibos ZIP)
+# =====================================================================
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class PropertyZipInvariantsTestCase(TestCase):
+    """
+    Bateria de invariantes de domínio e segurança para exportar_recibos_lote_zip.
+
+    Invariante 1 — Isolamento Financeiro:
+        Membro do Projeto A não pode baixar recibos do Projeto B.
+
+    Invariante 2 — Blindagem de Status:
+        Parcelas PENDENTE, EM_ANALISE, APROVADO e CANCELADO jamais
+        aparecem no ZIP, mesmo que convivam com parcelas PAGO no mesmo projeto.
+
+    Invariante 3 — Consistência Criptográfica:
+        A chave SHA-256 no ZIP é matematicamente idêntica à da view unitária
+        visualizar_recibo_bolsa para a mesma parcela.
+
+    Invariante 4 — Segurança de Arquivos / Path Traversal:
+        Nomes com acentos, barras, espaços e sequências '../' não corrompem
+        a árvore do ZIP nem abrem vetores de Path Traversal.
+
+    Invariante 5 — Gestão de Memória:
+        100 parcelas PAGO geram um ZIP coerente sem exceção de memória;
+        o buffer é fechado corretamente pelo context manager.
+    """
+
+    def setUp(self):
+        self.client = Client()
+
+        # ── Usuários ──
+        self.user_a = User.objects.create_user('user_inv_a', password='senha123')
+        self.user_b = User.objects.create_user('user_inv_b', password='senha123')
+        self.superuser = User.objects.create_superuser('super_inv', password='senha123')
+
+        # ── Empresa compartilhada ──
+        self.empresa = EmpresaParceira.objects.create(
+            nome='Empresa Invariantes', cnpj='11.222.333/0001-44',
+            natureza_juridica='LTDA', representante_legal='Rep Inv',
+            cargo_representante='CEO',
+        )
+
+        # ── Projeto A (user_a é membro) ──
+        self.projeto_a = ProjetoPDI.objects.create(
+            nome='Projeto Invariante A', fase='EXECUCAO', concedente=self.empresa,
+        )
+        MembroEquipe.objects.create(projeto=self.projeto_a, usuario=self.user_a, papel='GESTOR')
+
+        # ── Projeto B (user_b é membro; user_a NÃO tem acesso) ──
+        self.projeto_b = ProjetoPDI.objects.create(
+            nome='Projeto Invariante B', fase='EXECUCAO', concedente=self.empresa,
+        )
+        MembroEquipe.objects.create(projeto=self.projeto_b, usuario=self.user_b, papel='GESTOR')
+
+        # ── Bolsistas ──
+        self.pessoa_a = PessoaFisica.objects.create(nome='Bolsista Inv A', cpf='001.001.001-01')
+        self.pessoa_b = PessoaFisica.objects.create(nome='Bolsista Inv B', cpf='002.002.002-02')
+
+        # ── Helper: cria cota e termo para um projeto/pessoa ──
+
+    def _criar_parcela_paga(self, projeto, pessoa, numero_cpf=None, valor=Decimal('1500.00'),
+                            cpf_suffix=None):
+        """Cria a cadeia mínima e retorna uma Parcela com status='PAGO'."""
+        if numero_cpf:
+            pessoa = PessoaFisica.objects.create(
+                nome=f'Bolsista {cpf_suffix}', cpf=numero_cpf,
+            )
+        cota = CotaBolsaPT.objects.create(
+            projeto=projeto, perfil_funcao='Pesquisador',
+            quantidade_vagas=1, parcelas_previstas=1,
+            valor_global_previsto=valor,
+        )
+        termo = TermoBolsa.objects.create(
+            cota_pt=cota, pessoa=pessoa,
+            numero_termo=f'TB-INV-{projeto.id}-{pessoa.id}',
+            vigencia_inicio=date(2026, 9, 1), vigencia_fim=date(2026, 9, 30),
+            quantidade_parcelas=1, valor_parcela=valor,
+        )
+        parcela = termo.parcelas.get(numero=1)
+        parcela.status = 'PAGO'
+        parcela.data_pagamento = date(2026, 9, 30)
+        parcela.save()
+        return parcela
+
+    def _url(self, projeto):
+        return reverse('gestao_projetos:exportar_recibos_lote_zip', args=[projeto.id])
+
+    # ------------------------------------------------------------------
+    # INVARIANTE 1 — Isolamento Financeiro
+    # ------------------------------------------------------------------
+    def test_inv1_membro_projeto_a_nao_acessa_projeto_b(self):
+        """
+        Invariante 1: user_a (membro do Projeto A) deve receber 403
+        ao tentar exportar o ZIP do Projeto B.
+        """
+        self._criar_parcela_paga(self.projeto_b, self.pessoa_b)
+        self.client.login(username='user_inv_a', password='senha123')
+
+        response = self.client.get(self._url(self.projeto_b))
+
+        self.assertEqual(response.status_code, 403,
+                         "Membro do Projeto A deve receber 403 ao acessar ZIP do Projeto B.")
+
+    def test_inv1_zip_projeto_a_nao_contem_parcelas_do_projeto_b(self):
+        """
+        Invariante 1 (profunda): O ZIP do Projeto A não pode conter
+        CPF/dados do bolsista do Projeto B, mesmo que ambos estejam PAGO.
+        """
+        import io, zipfile as _zf
+
+        self._criar_parcela_paga(self.projeto_a, self.pessoa_a)
+        self._criar_parcela_paga(self.projeto_b, self.pessoa_b)
+
+        self.client.login(username='user_inv_a', password='senha123')
+        response = self.client.get(self._url(self.projeto_a))
+
+        self.assertEqual(response.status_code, 200)
+        buf = io.BytesIO(response.content)
+        with _zf.ZipFile(buf, 'r') as zf:
+            conteudo_total = '\n'.join(
+                zf.read(nome).decode('utf-8', errors='replace') for nome in zf.namelist()
+            )
+        self.assertNotIn(self.pessoa_b.cpf, conteudo_total,
+                         "CPF do Bolsista B não pode vazar no ZIP do Projeto A.")
+        self.assertIn(self.pessoa_a.cpf, conteudo_total,
+                      "CPF do Bolsista A deve estar presente no ZIP do Projeto A.")
+
+    # ------------------------------------------------------------------
+    # INVARIANTE 2 — Blindagem de Status
+    # ------------------------------------------------------------------
+    def test_inv2_apenas_parcelas_pago_no_zip(self):
+        """
+        Invariante 2: Parcelas PENDENTE, EM_ANALISE, APROVADO e CANCELADO
+        não podem aparecer no ZIP — somente PAGO.
+        """
+        import io, zipfile as _zf
+
+        # Uma parcela PAGO (deve entrar)
+        parcela_paga = self._criar_parcela_paga(self.projeto_a, self.pessoa_a)
+
+        # Quatro parcelas com outros status (nunca devem entrar)
+        cpf_base = 10
+        for status in ['PENDENTE', 'EM_ANALISE', 'APROVADO', 'CANCELADO']:
+            cpf_str = f'{cpf_base:03d}.{cpf_base:03d}.{cpf_base:03d}-{cpf_base:02d}'
+            pessoa_extra = PessoaFisica.objects.create(
+                nome=f'Bolsista {status}', cpf=cpf_str,
+            )
+            cota = CotaBolsaPT.objects.create(
+                projeto=self.projeto_a, perfil_funcao='Extra',
+                quantidade_vagas=1, parcelas_previstas=1,
+                valor_global_previsto=Decimal('500.00'),
+            )
+            termo_extra = TermoBolsa.objects.create(
+                cota_pt=cota, pessoa=pessoa_extra,
+                numero_termo=f'TB-ST-{status}',
+                vigencia_inicio=date(2026, 9, 1), vigencia_fim=date(2026, 9, 30),
+                quantidade_parcelas=1, valor_parcela=Decimal('500.00'),
+            )
+            parcela_extra = termo_extra.parcelas.get(numero=1)
+            parcela_extra.status = status
+            parcela_extra.save()
+            cpf_base += 11
+
+        self.client.login(username='user_inv_a', password='senha123')
+        response = self.client.get(self._url(self.projeto_a))
+
+        self.assertEqual(response.status_code, 200)
+        buf = io.BytesIO(response.content)
+        with _zf.ZipFile(buf, 'r') as zf:
+            arquivos = zf.namelist()
+            # Somente 1 arquivo (a parcela PAGO)
+            self.assertEqual(len(arquivos), 1,
+                             f"ZIP deve conter exatamente 1 arquivo, mas contém {len(arquivos)}: {arquivos}")
+            html = zf.read(arquivos[0]).decode('utf-8', errors='replace')
+        # O CPF da parcela PAGO deve estar presente
+        self.assertIn(self.pessoa_a.cpf, html,
+                      "O CPF da parcela PAGO deve aparecer no recibo.")
+
+    # ------------------------------------------------------------------
+    # INVARIANTE 3 — Consistência Criptográfica
+    # ------------------------------------------------------------------
+    def test_inv3_hash_zip_identico_ao_da_view_unitaria(self):
+        """
+        Invariante 3: A chave SHA-256 gerada para o recibo dentro do ZIP
+        deve ser matematicamente idêntica à chave emitida por
+        visualizar_recibo_bolsa para a mesma parcela.
+        """
+        import io, zipfile as _zf, hashlib, re
+
+        parcela = self._criar_parcela_paga(self.projeto_a, self.pessoa_a)
+
+        # ── Chave esperada (recalculada localmente com o mesmo algoritmo) ──
+        cpf_raw = self.pessoa_a.cpf
+        payload = (
+            f"{parcela.id}-"
+            f"{parcela.data_pagamento}-"
+            f"{parcela.valor}-"
+            f"{cpf_raw}"
+        )
+        hash_esperado = hashlib.sha256(payload.encode()).hexdigest()[:16].upper()
+
+        # ── Chave presente no ZIP ──
+        self.client.login(username='user_inv_a', password='senha123')
+        response = self.client.get(self._url(self.projeto_a))
+        self.assertEqual(response.status_code, 200)
+
+        buf = io.BytesIO(response.content)
+        with _zf.ZipFile(buf, 'r') as zf:
+            html = zf.read(zf.namelist()[0]).decode('utf-8', errors='replace')
+
+        self.assertIn(hash_esperado, html,
+                      f"Chave SHA-256 '{hash_esperado}' não encontrada no HTML do recibo dentro do ZIP.")
+
+        # ── Chave presente na view unitária ──
+        url_unitaria = reverse('gestao_projetos:visualizar_recibo_bolsa', args=[parcela.id])
+        # O recibo unitário exige que o User seja o bolsista titular ou superuser
+        self.client.login(username='super_inv', password='senha123')
+        response_unitario = self.client.get(url_unitaria)
+        self.assertEqual(response_unitario.status_code, 200)
+        self.assertEqual(response_unitario.context['hash_doc'], hash_esperado,
+                         "hash_doc da view unitária deve ser idêntico ao calculado localmente.")
+
+    # ------------------------------------------------------------------
+    # INVARIANTE 4 — Segurança de Arquivos / Path Traversal
+    # ------------------------------------------------------------------
+    def test_inv4_path_traversal_e_caracteres_especiais_no_nome(self):
+        """
+        Invariante 4: Nomes com '../', barras, acentos e caracteres especiais
+        não podem gerar entradas ZIP com Path Traversal nem corrompê-lo.
+        """
+        import io, zipfile as _zf
+
+        nomes_maliciosos = [
+            '../../../etc/passwd',
+            'João da Sílva Ação',
+            'Bolsista\\Setor\\Arquivo',
+            'Nome<script>alert(1)</script>',
+            'Arquivo|Pipe?Query#Hash',
+            'normal_name',
+        ]
+
+        for nome in nomes_maliciosos:
+            cpf_seq = str(abs(hash(nome)))[:11]
+            # formata como CPF (sem validação de dígito — apenas unicidade no teste)
+            cpf_fmt = f'{cpf_seq[:3]}.{cpf_seq[3:6]}.{cpf_seq[6:9]}-{cpf_seq[9:11]}'
+            pessoa_maliciosa = PessoaFisica.objects.create(nome=nome, cpf=cpf_fmt)
+            cota = CotaBolsaPT.objects.create(
+                projeto=self.projeto_a, perfil_funcao='Tester',
+                quantidade_vagas=1, parcelas_previstas=1,
+                valor_global_previsto=Decimal('100.00'),
+            )
+            termo = TermoBolsa.objects.create(
+                cota_pt=cota, pessoa=pessoa_maliciosa,
+                numero_termo=f'TB-TRAV-{abs(hash(nome)) % 100000}',
+                vigencia_inicio=date(2026, 9, 1), vigencia_fim=date(2026, 9, 30),
+                quantidade_parcelas=1, valor_parcela=Decimal('100.00'),
+            )
+            parcela = termo.parcelas.get(numero=1)
+            parcela.status = 'PAGO'
+            parcela.data_pagamento = date(2026, 9, 30)
+            parcela.save()
+
+        self.client.login(username='user_inv_a', password='senha123')
+        response = self.client.get(self._url(self.projeto_a))
+
+        # Não deve retornar 500 — a view deve ser robusta
+        self.assertEqual(response.status_code, 200,
+                         "View não deve explodir com nomes maliciosos/especiais.")
+        self.assertEqual(response['Content-Type'], 'application/zip')
+
+        buf = io.BytesIO(response.content)
+        with _zf.ZipFile(buf, 'r') as zf:
+            for nome_arquivo in zf.namelist():
+                # Nenhum nome de arquivo dentro do ZIP pode conter barras
+                # (sinal claro de Path Traversal bem-sucedido)
+                self.assertNotIn('/', nome_arquivo,
+                                 f"Nome de arquivo no ZIP contém '/': '{nome_arquivo}' — Path Traversal!")
+                self.assertNotIn('\\', nome_arquivo,
+                                 f"Nome de arquivo no ZIP contém '\\': '{nome_arquivo}' — Path Traversal!")
+                self.assertNotIn('..', nome_arquivo,
+                                 f"Nome de arquivo no ZIP contém '..': '{nome_arquivo}' — Path Traversal!")
+                # Verificar que o nome só contém caracteres seguros
+                import re
+                partes_perigosas = re.findall(r'[^A-Za-z0-9._-]', nome_arquivo)
+                self.assertEqual(partes_perigosas, [],
+                                 f"Nome '{nome_arquivo}' contém caracteres não-seguros: {partes_perigosas}")
+
+    # ------------------------------------------------------------------
+    # INVARIANTE 5 — Gestão de Memória (100 parcelas)
+    # ------------------------------------------------------------------
+    def test_inv5_volume_100_parcelas_sem_estouro(self):
+        """
+        Invariante 5: 100 parcelas PAGO geram um ZIP coerente (válido e
+        com exatamente 100 entradas) sem exceção de memória ou corrupção.
+        """
+        import io, zipfile as _zf
+
+        N = 100
+        for i in range(N):
+            # Gera CPF único no formato DDD.DDD.DDD-DD sem colisões no range [0, N)
+            cpf = f'{i+1:03d}.{i+1:03d}.{i+1:03d}-{(i % 89) + 10:02d}'
+            pessoa = PessoaFisica.objects.create(nome=f'Bolsista Vol {i:04d}', cpf=cpf)
+            cota = CotaBolsaPT.objects.create(
+                projeto=self.projeto_a, perfil_funcao=f'Perfil {i}',
+                quantidade_vagas=1, parcelas_previstas=1,
+                valor_global_previsto=Decimal('1000.00'),
+            )
+            termo = TermoBolsa.objects.create(
+                cota_pt=cota, pessoa=pessoa,
+                numero_termo=f'TB-VOL-{i:04d}',
+                vigencia_inicio=date(2026, 9, 1), vigencia_fim=date(2026, 9, 30),
+                quantidade_parcelas=1, valor_parcela=Decimal('1000.00'),
+            )
+            parcela = termo.parcelas.get(numero=1)
+            parcela.status = 'PAGO'
+            parcela.data_pagamento = date(2026, 9, 30)
+            parcela.save()
+
+        self.client.login(username='user_inv_a', password='senha123')
+
+        # Não deve levantar nenhuma exceção
+        try:
+            response = self.client.get(self._url(self.projeto_a))
+        except Exception as exc:
+            self.fail(f"View lançou exceção com {N} parcelas: {exc}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/zip')
+
+        buf = io.BytesIO(response.content)
+        with _zf.ZipFile(buf, 'r') as zf:
+            arquivos = zf.namelist()
+            # ZIP deve ser válido e conter exatamente N entradas
+            self.assertEqual(len(arquivos), N,
+                             f"ZIP deve conter exatamente {N} arquivos, encontrou {len(arquivos)}.")
+            # Todos os arquivos devem ser legíveis (sem corrupção)
+            for nome in arquivos:
+                conteudo = zf.read(nome)
+                self.assertGreater(len(conteudo), 0,
+                                   f"Arquivo '{nome}' está vazio — possível corrupção.")

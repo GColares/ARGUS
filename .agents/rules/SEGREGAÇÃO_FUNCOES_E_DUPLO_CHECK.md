@@ -29,3 +29,9 @@ Se houver uma complexidade técnica ou situacional em que o Antigravity-Gemini s
 Todo registro no `diario_de_bordo.md` deve explicitar a dupla de agentes envolvida:
 - *Implementador:* [Agente A]
 - *Revisor Independente / Duplo Check:* [Agente B]
+
+### 4. Formato Mandatório de Entrega de Handoffs: Em Tela no Chat (Pronto para Copiar e Colar)
+Sempre que o Antigravity-Gemini gerar um **Handoff** — seja para delegação de implementação (Copilot, Devin, Bob, Cursor) ou para homologação/revisão independente (Bob, Kiro, etc.):
+- **É terminantemente obrigatório exibir o texto completo do Handoff DIRETAMENTE NO CHAT**, formatado dentro de um bloco de código markdown copíavel (````markdown ... ````).
+- O conteúdo deve ser **auto-suficiente**, contextualizado e **no ponto exato de copiar para colar** na interface da IA parceira, sem exigir que o PO abra arquivos locais ou links de artefatos para extrair o prompt.
+- A gravação do artefato `.md` ou registro no `diario_de_bordo.md` continua ocorrendo para histórico/persistência, mas a entrega primária ao PO é na tela do chat.
