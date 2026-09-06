@@ -5,6 +5,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse  # <--- A MÁGICA DAS URLs DINÂMICAS FOI ADICIONADA AQUI
 from django.db.models import Sum
 from django.contrib import messages 
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 from .models import VerificacaoTermo, BemPatrimonial, ItemVerificacao, FiltroImportacao
 from cadastros.models import ProjetoPDI
 from incorporacao.models import TermoDoacao
@@ -457,6 +459,46 @@ def relatorio_geral(request):
         'total_equipamentos': bens.count(),
         'valor_total': bens.aggregate(Sum('valor'))['valor__sum'] or 0,
     })
+
+
+@login_required
+def conferir_bens_projeto(request, projeto_id):
+    """
+    Exibe a conferência física e a rastreabilidade patrimonial dos bens do projeto.
+    O acesso é restrito ao superusuário ou a membros da equipe do projeto.
+    """
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+
+    from cadastros.models import MembroEquipe
+
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden(
+                "Acesso negado: Você não é membro da equipe deste projeto."
+            )
+
+    bens = BemPatrimonial.objects.filter(projeto=projeto).select_related(
+        'ambiente',
+        'termo_doacao',
+    )
+
+    total_itens = bens.count()
+    valor_total = bens.aggregate(Sum('valor'))['valor__sum'] or Decimal('0.00')
+    tombados_ifam = bens.filter(
+        patrimonio_ifam__isnull=False,
+    ).exclude(patrimonio_ifam='').count()
+    pendentes_tombamento = total_itens - tombados_ifam
+
+    contexto = {
+        'projeto': projeto,
+        'bens': bens,
+        'total_itens': total_itens,
+        'valor_total': valor_total,
+        'tombados_ifam': tombados_ifam,
+        'pendentes_tombamento': pendentes_tombamento,
+    }
+    return render(request, 'patrimonio/conferir_bens_projeto.html', contexto)
+
 
 def exportar_pdf_conferencia(request, verificacao_id):
     verificacao = get_object_or_404(VerificacaoTermo, id=verificacao_id)

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Conferência de Bens - {{ projeto.nome }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'patrimonio:home_patrimonio' %}" class="text-decoration-none text-primary">Patrimônio</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'cadastros:visualizar_projeto' projeto.id %}" class="text-decoration-none">{{ projeto.nome }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Conferência de Bens</li>
+        </ol>
+    </nav>
+
+    <a href="{% url 'cadastros:visualizar_projeto' projeto.id %}" class="text-decoration-none text-muted small fw-bold mb-3 d-inline-block">
+        <i class="fas fa-arrow-left me-1"></i> Voltar ao Projeto
+    </a>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-3">
+                <h4 class="fw-bold m-0 text-dark">
+                    <i class="fas fa-boxes text-primary me-2"></i>Conferência de Bens
+                </h4>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill shadow-sm py-2 px-3">
+                    {{ total_itens }} bens registrados
+                </span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">{{ projeto.nome }}</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Total de Bens</span>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">{{ total_itens }}</h3>
+                <span class="text-muted text-xs">Bens vinculados ao projeto</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Valor Imobilizado</span>
+                </div>
+                <h3 class="fw-bold text-success mb-0">R$ {{ valor_total|floatformat:2 }}</h3>
+                <span class="text-muted text-xs">Valor total dos bens</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-info bg-opacity-10 text-info rounded p-2 me-2">
+                        <i class="fas fa-stamp"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Tombados no IFAM</span>
+                </div>
+                <h3 class="fw-bold text-info mb-0">{{ tombados_ifam }}</h3>
+                <span class="text-muted text-xs">Bens com patrimônio IFAM</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded p-2 me-2">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Pendentes de Tombamento</span>
+                </div>
+                <h3 class="fw-bold text-warning mb-0">{{ pendentes_tombamento }}</h3>
+                <span class="text-muted text-xs">Aguardando registro IFAM</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="card-title mb-0 fw-bold text-dark">
+                <i class="fas fa-list text-primary me-2"></i>Bens Patrimoniais do Projeto
+            </h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="thead-argus">
+                    <tr>
+                        <th class="text-center">Patrimônio IFAM / Doador</th>
+                        <th class="text-center">Descrição do Bem</th>
+                        <th class="text-center">Valor (R$)</th>
+                        <th class="text-center">Localização / Ambiente</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bem in bens %}
+                    <tr>
+                        <td class="text-center fw-bold">
+                            {{ bem.patrimonio_ifam|default:bem.patrimonio_doador|default:"-" }}
+                        </td>
+                        <td>{{ bem.descricao }}</td>
+                        <td class="text-end">R$ {{ bem.valor|floatformat:2 }}</td>
+                        <td class="text-center">{{ bem.ambiente|default:"-" }}</td>
+                        <td class="text-center">{{ bem.get_estado_conservacao_display }}</td>
+                        <td class="text-center">
+                            <a href="#" class="btn btn-sm btn-outline-info" title="Visualizar bem" aria-label="Visualizar {{ bem.descricao }}">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
