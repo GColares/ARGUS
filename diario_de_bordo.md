@@ -1,5 +1,25 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Fase 3 — Passo 3.2: Minuta do Termo de Doação por Projeto e Encerramento da Fase 3 (GitHub Copilot)
+
+### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`incorporacao/urls.py`](incorporacao/urls.py) (Adicionada a rota `projeto/<int:projeto_id>/termo-doacao/`).
+  * [`incorporacao/views.py`](incorporacao/views.py) (Criação da view `gerar_termo_doacao_projeto` com consolidação de bens e RBAC de equipe).
+  * [`incorporacao/templates/incorporacao/minuta_termo_doacao.html`](incorporacao/templates/incorporacao/minuta_termo_doacao.html) (Template com cabeçalho oficial do Ministério da Educação/IFAM, relação de bens, cláusulas de doação e campos de assinatura).
+  * [`incorporacao/tests.py`](incorporacao/tests.py) (Criação da suíte `MinutaTermoDoacaoProjetoTestCase` com 2 testes cobrindo RBAC e renderização).
+- **Ajustes de Negócio e Governança:**
+  1. *Fluxo de Encerramento de Projeto:* Emissão da minuta jurídica oficial de doação dos equipamentos para incorporação e tombamento no SUAP pelo IFAM.
+  2. *Conclusão da Fase 3:* Todos os objetivos da Fase 3 (Ciclo Completo de Patrimônio e Incorporação) foram 100% cumpridos.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test incorporacao`: **2/2 testes OK (100%)**.
+- **Total Global ARGUS: 112/112 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: GitHub Copilot | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Homologação Fase 3 — Passo 3.1: Conferência de Bens por Projeto e Ativação de Rotas (GitHub Copilot)
 
 ### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):

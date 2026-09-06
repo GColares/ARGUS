@@ -114,10 +114,15 @@ flowchart LR
      * Suíte de testes automatizados `ConferenciaBensProjetoTestCase` em `patrimonio/tests.py`.
 
 #### Módulo: `incorporacao`
-1. **Processamento de Termos de Doação (Fim de Projeto):**
+1. **Processamento de Termos de Doação (Fim de Projeto):** `[CONCLUÍDO & HOMOLOGADO]`
    - **Modelos:** `TermoDoacao`, `ItemPatrimonial`.
    - **Função / View:** `gerar_termo_doacao_projeto(request, projeto_id)`
    - **Fluxo Normativo:** Ao transicionar o projeto de `PRESTACAO_CONTAS` para `ENCERRADO`, gerar a minuta oficial de doação dos equipamentos para incorporação pelo setor de Patrimônio do IFAM com registro no SUAP.
+   - **Entrega Técnica (112/112 testes OK):**
+     * Criação da rota `projeto/<int:projeto_id>/termo-doacao/` em `incorporacao/urls.py`.
+     * View com RBAC de equipe e consolidação de bens elegíveis a doação.
+     * Template `minuta_termo_doacao.html` com cabeçalho oficial IFAM/MEC, cláusulas legais e assinaturas.
+     * Suíte de testes automatizados `MinutaTermoDoacaoProjetoTestCase` em `incorporacao/tests.py`.
 
 ---
 
