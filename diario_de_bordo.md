@@ -1,5 +1,23 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Handoff Cirúrgico: Exportação em Lote de Recibos de Bolsa (ZIP) e Passo 9 (GitHub Copilot)
+
+### 1. Escopo Delegado ao Implementador (GitHub Copilot / VS Code):
+- **Objetivo:** Concluir a esteira da Fase 1 (Execução Financeira & Prestação de Contas FAEPI) permitindo a exportação consolidada em lote dos recibos de pagamento de bolsas em arquivo `.zip`, vinculando a ação à tela de extrato financeiro.
+- **Posse Exclusiva de Arquivos nesta Sessão:**
+  * [`gestao_projetos/urls.py`](gestao_projetos/urls.py) (Adicionar rota `exportar_recibos_lote_zip`).
+  * [`gestao_projetos/views.py`](gestao_projetos/views.py) (Implementar a view `exportar_recibos_lote_zip`).
+  * [`gestao_projetos/templates/gestao_projetos/extrato_financeiro_projeto.html`](gestao_projetos/templates/gestao_projetos/extrato_financeiro_projeto.html) (Adicionar botão no cabeçalho).
+  * [`gestao_projetos/tests.py`](gestao_projetos/tests.py) (Criar classe `ExportarRecibosLoteZipTestCase`).
+- **Invariantes e Regras de Negócio Obrigatórias:**
+  1. *Trava de Status:* Apenas parcelas com status `PAGO` entram no `.zip`.
+  2. *RBAC Estrito:* Superusuário ou `MembroEquipe` do projeto. Outros = 403 Forbidden.
+  3. *In-Memory ZIP:* Geração 100% em memória usando `io.BytesIO` e `zipfile.ZipFile(..., zipfile.ZIP_DEFLATED)`.
+  4. *Rastreabilidade de Hash:* Nome do arquivo padronizado: `Recibo_Parcela_{num}_{NomeBolsista}_{HashSHA256[:8]}.html`.
+  5. *Zero Poluição de CSS:* Não adicionar tags `<style>` inline. Utilizar classes do Design System.
+
+---
+
 ## [2026-09-06] Homologação Sprint 2 — Fatia 2.2: Padronização de Badges Semânticos e KPIs no Almoxarifado (IBM Bob)
 
 ### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
