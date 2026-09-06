@@ -23,22 +23,28 @@ parar e solicitar uma decisão ao usuário.
 
 ---
 
-## Rotina Obrigatória de Inicialização (Para TODAS as IAs)
+## Rotina Obrigatória de Inicialização (Para TODAS as IAs e Parceiros)
 
-Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Copilot ou Devin**) deve obrigatoriamente executar estes passos antes de sugerir ou alterar qualquer linha de código:
+Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Claude 3.5 Sonnet, Cursor, Copilot, Kiro, Bob ou Devin**) ou qualquer membro que iniciar trabalhos em uma **nova estação/máquina (Escritório ↔ Casa)** deve obrigatoriamente executar estes passos antes de sugerir ou alterar qualquer linha de código:
 
 1. **Ler o seu manual tático específico:**
-   * Gemini $\rightarrow$ `GEMINI.md`
-   * Copilot $\rightarrow$ `COPILOT.md` (ou `.github/copilot-instructions.md`)
-   * Devin $\rightarrow$ `DEVIN.md`
-2. **Ler este protocolo:** `PROTOCOLO_COLABORACAO_IA.md` (para relembrar quem é você e quem são os outros no Squad).
-3. **Ler o topo de `diario_de_bordo.md`:** Entender o status atual, o que foi feito na última sessão e o que está pendente/em andamento.
-4. **Executar `git status`:**
-   * Confirmar que está na raiz `C:\ARGUS`.
+   * Gemini $\rightarrow$ `documentacao-tecnica/governanca_squad_ia/manuais_agentes/GEMINI.md`
+   * Copilot $\rightarrow$ `documentacao-tecnica/governanca_squad_ia/manuais_agentes/COPILOT.md` (ou `.github/copilot-instructions.md`)
+   * Devin $\rightarrow$ `documentacao-tecnica/governanca_squad_ia/manuais_agentes/DEVIN.md`
+   * Kiro $\rightarrow$ `documentacao-tecnica/governanca_squad_ia/manuais_agentes/KIRO.md`
+   * Bob $\rightarrow$ `documentacao-tecnica/governanca_squad_ia/manuais_agentes/BOB.md`
+2. **Ler este protocolo:** `documentacao-tecnica/governanca_squad_ia/PROTOCOLO_COLABORACAO_IA.md` (para relembrar quem é você e quem são os outros no Squad).
+3. **Ler as regras de arquitetura e UI:** `.agents/AGENTS.md` (Padrão Almoxarifado, Glassmorphism, DataTables sem `{% empty %}`).
+4. **Ler o topo de `diario_de_bordo.md`:** Entender o status atual, o que foi feito na última sessão e o que está homologado (atualmente 87/87 testes OK).
+5. **Executar `git status`:**
+   * Confirmar que está na raiz do projeto (`C:\ARGUS` ou `C:\Projetos\ARGUS`).
    * Se houver arquivos modificados por outra IA, **NÃO sobrescrever nem apagar**. Perguntar ao usuário antes de tocar.
-5. **Checar a posse de arquivos (Regra de Ouro):**
+6. **Checar a posse de arquivos (Regra de Ouro):**
    * Verificar se o arquivo no qual você vai trabalhar foi liberado no Handoff.
    * **Uma IA por arquivo por sessão**. Nunca edite um arquivo que outra IA já estiver editando.
+7. **Confirmação Formal de Papel:**
+   - O membro deve emitir ao Product Owner sua confirmação de leitura e entendimento do escopo antes de iniciar qualquer alteração.
+
 
 ---
 

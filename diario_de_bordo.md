@@ -1,6 +1,18 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Aprendizado Contínuo (/learn): Institucionalização da Regra de Onboarding de Parceiros e Novas Estações
+
+### 1. Diretriz Institucionalizada (Antigravity-Gemini / Aprovação PO):
+- **Criação da Regra `.agents/rules/ONBOARDING_PARCEIROS_SQUAD.md`:**
+  - Torna mandatória a execução da rotina de onboarding e alinhamento de papéis para qualquer novo agente de IA adicionado ao Squad (Claude, Cursor, Copilot, Kiro, Bob, Devin) ou na migração entre estações de trabalho físicas (Escritório `IFAM` ↔ Casa `INOVA`).
+- **Atualização do `PROTOCOLO_COLABORACAO_IA.md`:**
+  - Inclusão dos novos membros e exigência de declaração formal de entendimento das regras de governança e posse de arquivos antes de qualquer alteração de código.
+- **Validação de Qualidade:** `manage.py check` com 0 erros.
+
+---
+
 ## [2026-09-05] Reorganização Arquitetural: Consolidação da Documentação Técnica e Limpeza da Raiz
+
 
 ### 1. Entregas e Reestruturação (Antigravity-Gemini):
 - **Criação das Subpastas em `documentacao-tecnica/`:**
