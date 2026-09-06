@@ -604,4 +604,62 @@ class PessoaFisicaDetailViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Servidor e Bolsista Teste")
         self.assertContains(response, "1987654")
-        self.assertContains(response, "123456-7")
+        self.assertContains(response, "123456-7")
+
+    def test_excluir_pessoa_fisica_sem_historico_delete_fisico(self):
+        """Pessoa sem bolsas nem projetos sofre exclusão física direta."""
+        from cadastros.models import PessoaFisica
+        from django.urls import reverse
+
+        pf_sem_vinculo = PessoaFisica.objects.create(
+            nome="Cidadão Sem Vínculo",
+            cpf="111.444.777-99"
+        )
+        url = reverse('cadastros:excluir_pessoa_fisica', kwargs={'id': pf_sem_vinculo.id})
+        response = self.client.post(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(PessoaFisica.objects.filter(id=pf_sem_vinculo.id).exists())
+
+    def test_excluir_pessoa_fisica_com_historico_anonimizacao_lgpd(self):
+        """Pessoa com termo de bolsa tem delete físico bloqueado e sofre anonimização (Crypto-Shredding)."""
+        from cadastros.models import PessoaFisica, TermoBolsa, CotaBolsaPT, ProjetoPDI, EmpresaParceira
+        from django.urls import reverse
+        from datetime import date
+        from decimal import Decimal
+
+        empresa = EmpresaParceira.objects.create(
+            nome="Empresa Teste Anon",
+            cnpj="99.000.111/0001-22"
+        )
+        proj = ProjetoPDI.objects.create(nome="Projeto Teste Anon", fase="EXECUCAO", concedente=empresa)
+        cota = CotaBolsaPT.objects.create(
+            projeto=proj,
+            perfil_funcao="Bolsista Pesquisador",
+            quantidade_vagas=1,
+            parcelas_previstas=6,
+            valor_global_previsto=Decimal("6000.00")
+        )
+        termo = TermoBolsa.objects.create(
+            cota_pt=cota,
+            pessoa=self.pf,
+            numero_termo="TB-ANON-001",
+            vigencia_inicio=date(2026, 1, 1),
+            vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6,
+            valor_parcela=Decimal("1000.00")
+        )
+
+        url = reverse('cadastros:excluir_pessoa_fisica', kwargs={'id': self.pf.id})
+        response = self.client.post(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # Registro permanece existindo para fins de prestação de contas
+        self.pf.refresh_from_db()
+        self.assertTrue(self.pf.nome.startswith("Cidadão Anonimizado LGPD #"))
+        self.assertTrue(self.pf.cpf.startswith("ANON-"))
+        self.assertIsNone(self.pf.rg)
+        self.assertIsNone(self.pf.email)
+        self.assertIsNone(self.pf.telefone)
+        self.assertEqual(self.pf.dados_bancarios.count(), 0)
+        self.assertFalse(self.pf.perfil_servidor.ativo)
+

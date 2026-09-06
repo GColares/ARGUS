@@ -858,13 +858,67 @@ def editar_pessoa_fisica(request, id):
     messages.info(request, "Interface de edição de Pessoa Física em desenvolvimento.")
     return redirect('cadastros:listar_pessoas_fisicas')
 
+@login_required
 def excluir_pessoa_fisica(request, id):
+    import hashlib
+    from .models import MembroEquipe
     pessoa = get_object_or_404(PessoaFisica, id=id)
+
+    # Verifica se a pessoa possui histórico institucional que impeça o delete físico
+    tem_bolsas = pessoa.termos_bolsa.exists()
+    tem_projetos = hasattr(pessoa, 'projetos_coordenados') and pessoa.projetos_coordenados.exists()
+    tem_equipe = pessoa.user and MembroEquipe.objects.filter(usuario=pessoa.user).exists()
+    tem_historico = tem_bolsas or tem_projetos or tem_equipe
+
     if request.method == 'POST':
-        pessoa.delete()
-        messages.success(request, 'Pessoa Física excluída com sucesso!')
+        if not tem_historico:
+            # Cenário 1: Sem histórico - exclusão física direta permitida
+            nome_removido = pessoa.nome
+            pessoa.delete()
+            messages.success(request, f"Pessoa Física '{nome_removido}' excluída com sucesso!")
+        else:
+            # Cenário 2: Com histórico - Anonimização Irreversível (Crypto-Shredding LGPD / RNF-02)
+            # Destrói dados bancários sensíveis
+            pessoa.dados_bancarios.all().delete()
+
+            # Gera hash de CPF irreversível para preservar unicidade e liberar o CPF real
+            cpf_anon = f"ANON-{hashlib.sha256(pessoa.cpf.encode()).hexdigest()[:8].upper()}"
+
+            pessoa.nome = f"Cidadão Anonimizado LGPD #{pessoa.id}"
+            pessoa.cpf = cpf_anon
+            pessoa.rg = None
+            pessoa.orgao_emissor_rg = None
+            pessoa.data_nascimento = None
+            pessoa.telefone = None
+            pessoa.email = None
+            pessoa.endereco = None
+            pessoa.cep = None
+
+            # Desativa e desvincula conta de usuário se existir
+            if pessoa.user:
+                usuario = pessoa.user
+                usuario.is_active = False
+                usuario.save()
+                pessoa.user = None
+
+            # Inativa perfil de servidor se houver
+            if hasattr(pessoa, 'perfil_servidor') and pessoa.perfil_servidor:
+                pessoa.perfil_servidor.ativo = False
+                pessoa.perfil_servidor.save()
+
+            pessoa.save()
+            messages.warning(
+                request,
+                f"O registro possuía histórico institucional/financeiro e foi anonimizado com sucesso conforme a LGPD (RNF-02), preservando a prestação de contas."
+            )
+
         return redirect('cadastros:listar_pessoas_fisicas')
-    return render(request, 'cadastros/confirmar_exclusao_pf.html', {'pessoa': pessoa})
+
+    return render(request, 'cadastros/confirmar_exclusao_pf.html', {
+        'pessoa': pessoa,
+        'tem_historico': tem_historico,
+    })
+
 
 
 # ==============================================================================
