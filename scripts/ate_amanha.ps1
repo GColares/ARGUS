@@ -62,6 +62,15 @@ Invoke-CheckedCommand "Exportando dependências..." {
     .\.venv\Scripts\python.exe -m pip freeze > requirements.txt
 }
 
+# Exporta a memória viva do Antigravity para transplante transparente entre máquinas
+if (Test-Path 'scripts/exportar_mente.ps1') {
+    try {
+        & .\scripts\exportar_mente.ps1
+    } catch {
+        Write-Host "Aviso ao exportar memória do Antigravity: $_" -ForegroundColor DarkYellow
+    }
+}
+
 git status
 git add .
 if (-not (git diff --cached --quiet)) {
