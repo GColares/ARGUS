@@ -109,17 +109,21 @@ O usuário pode alterar essa divisão para uma tarefa específica. A atribuiçã
 deve ser informada antes do trabalho começar.
 
 
-## Regras de sincronização
+## Regras de sincronização e Duplo Check (Four-Eyes Principle)
 
 1. Uma IA por arquivo por vez.
 2. Sempre executar `git status` antes de editar.
 3. Nunca apagar ou sobrescrever alterações de outra IA sem revisão e autorização.
-4. Antes de concluir, revisar o diff e validar o comportamento.
-5. Registrar no `diario_de_bordo.md` alterações relevantes, arquivos, testes,
-   riscos e pendências.
+4. **O Princípio do Duplo Check (Four-Eyes Principle):**
+   - Nenhuma entrega de funcionalidade de negócio crítica entra em produção validada por apenas uma IA isoladamente.
+   - Sempre há uma dupla de agentes: um **Implementador** e um **Revisor Independente**.
+   - Se o Arquiteto (Antigravity-Gemini) for excepcionalmente o implementador por complexidade técnica, ele **não pode auto-atestar seu trabalho**: deve nomear um parceiro do Squad (Cursor, Kiro, Bob, Copilot) como Revisor Independente, fornecendo diretrizes gerais e fronteiras de risco para que o revisor defina autonomamente as operações elementares de teste e estresse.
+5. Antes de concluir, revisar o diff e validar o comportamento.
+6. Registrar no `diario_de_bordo.md` explicitando a dupla de agentes (Implementador e Revisor/Duplo Check), alterações, testes e riscos.
 
 O handoff deve conter objetivo, escopo, arquivos modificados, comportamento
 esperado, comandos executados, resultados e próximos passos.
+
 
 ## Rotinas operacionais
 

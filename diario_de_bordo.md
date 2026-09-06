@@ -1,6 +1,20 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Aprendizado Contínuo (/learn): Princípio do Duplo Check (Four-Eyes Principle) e Segregação de Funções
+
+### 1. Diretriz Institucionalizada (Antigravity-Gemini / Imposição PO):
+- **Criação da Regra `.agents/rules/SEGREGAÇÃO_FUNCOES_E_DUPLO_CHECK.md`:**
+  - O Antigravity prioriza sempre a delegação de tarefas via Handoff ao Squad implementador (Cursor, Kiro, Bob, Copilot, Claude).
+  - **Exceção de Implementação Direta:** Se o Antigravity implementar diretamente por ser a melhor entidade técnica, **fica proibido de se auto-homologar**. Deve obrigatoriamente designar um Revisor Independente (Peer Reviewer) no Squad.
+  - **Auditoria por Diretrizes Gerais:** O Antigravity fornece ao revisor diretrizes gerais de negócio e fronteiras de risco (caixa preta). A IA revisora possui autonomia para definir as operações elementares de teste e estresse e emitir o parecer final.
+- **Atualização do `PROTOCOLO_COLABORACAO_IA.md`:**
+  - Inclusão do capítulo oficial do Princípio do Duplo Check (*Four-Eyes Principle*).
+- **Validação de Qualidade:** `manage.py check` com 0 erros.
+
+---
+
 ## [2026-09-05] Homologação Oficial: Exclusão Segura com Anonimização LGPD (Crypto-Shredding — RNF-02)
+
 
 ### 1. Entregas Homologadas (Implementação & Auditoria Antigravity-Gemini):
 - **View `excluir_pessoa_fisica` (`cadastros/views.py`):**
