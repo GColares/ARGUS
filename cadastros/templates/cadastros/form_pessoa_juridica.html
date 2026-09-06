@@ -2,6 +2,14 @@
 
 {% block content %}
 <div class="container-fluid px-4 mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:listar_pessoas_juridicas' %}" class="text-decoration-none">Pessoas Jurídicas</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{% if editando %}Editar{% else %}Novo{% endif %}</li>
+        </ol>
+    </nav>
+
     <div class="mb-3">
         <a href="javascript:history.back()" class="text-decoration-none text-muted fw-bold mb-3 d-inline-block">
             <i class="fas fa-arrow-left me-1"></i> Voltar
