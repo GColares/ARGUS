@@ -110,6 +110,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Card: Extrato Financeiro (Passo 9) -->
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="text-info mb-3">
+                        <i class="fas fa-balance-scale fs-1"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Extrato Financeiro</h5>
+                    <p class="card-text text-muted small">Conciliação bancária por projeto: KPIs de aportes, desembolsos, saldo disponível e movimentações cronológicas com links para recibos.</p>
+                    <a href="{% url 'gestao_projetos:folha_mensal_pagamentos' %}" class="btn btn-outline-info btn-sm">
+                        Selecionar Projeto
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -1,6 +1,28 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Homologação Oficial: Passo 9 da Execução Financeira (Extrato Financeiro e Conciliação Bancária por Projeto)
+
+### 1. Entregas Homologadas (Implementação Kiro / Auditoria Antigravity-Gemini):
+- **View `extrato_financeiro_projeto` (`gestao_projetos/views.py`):**
+  - Implementação completa com verificação RBAC estrita (`MembroEquipe` do projeto ou `superuser`).
+  - Apuração em tempo real dos 4 KPIs vitais: Total de Aportes do Plano de Trabalho ativo (Empresa, EMBRAPII, SEBRAE, Contrapartida), Total de Desembolsos em bolsas liquidadas (`status = 'PAGO'`), Saldo Comprometido (bolsas pendentes/em análise/aprovadas) e Saldo Contábil Disponível.
+  - Filtros dinâmicos opcionais por `ContaBancaria` e intervalo de datas.
+  - Composição do fluxo cronológico de entradas e saídas com cálculo de Saldo Progressivo e links diretos para os Recibos SHA-256 (Passo 8) ou comprovantes bancários.
+- **Rota em `gestao_projetos/urls.py`:** `projeto/<int:projeto_id>/extrato-financeiro/` (`name='extrato_financeiro_projeto'`).
+- **Template `extrato_financeiro_projeto.html`:** Padrão Almoxarifado oficial, cards de KPIs com efeito Glassmorphism, gaveta de filtros colapsável, tabela DataTables com cabeçalhos centralizados (`text-center`) e botão de impressão A4.
+- **Atalhos Operacionais:** Inclusão de cards e botões contextuais em `home_gestao_projetos.html` e `folha_pagamento_mensal.html`.
+- **Suíte de Testes `ExtratoFinanceiroTestCase` (`gestao_projetos/tests.py`):** 6 novos testes de integração cobrindo RBAC positivo/negativo, precisão de KPIs, conciliação por conta e rastreabilidade dos recibos.
+
+### 2. Auditoria e Qualidade Técnica:
+- `python manage.py check`: 0 erros (0 silenciados).
+- `python manage.py test gestao_projetos`: **61/61 testes OK (100%) em 24.0s**.
+- `python manage.py test cadastros`: **25/25 testes OK (100%) em 0.25s**.
+- Zero regressões detectadas no ecossistema de testes do ARGUS (**86/86 testes globais aprovados**).
+
+---
+
 ## [2026-09-04] Homologação das Entregas do Squad: Cadastros, Execução Financeira (Passo 7) e Documentação Técnica
+
 
 ### 1. Entregas Homologadas:
 - **GitHub Copilot (Assumindo Frente Unificada de Implementação):**

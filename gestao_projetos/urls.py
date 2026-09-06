@@ -55,4 +55,7 @@ urlpatterns = [
 
     # Recibo Individual de Pagamento de Bolsa (Passo 8)
     path('parcela/<int:parcela_id>/recibo/', views.visualizar_recibo_bolsa, name='visualizar_recibo_bolsa'),
+
+    # Extrato Financeiro e Conciliação Bancária por Projeto (Passo 9)
+    path('projeto/<int:projeto_id>/extrato-financeiro/', views.extrato_financeiro_projeto, name='extrato_financeiro_projeto'),
 ]

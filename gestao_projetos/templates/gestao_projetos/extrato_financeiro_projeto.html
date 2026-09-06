@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* ── Glassmorphism KPI cards ── */
+    .kpi-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.12);
+        border-radius: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+    }
+    .kpi-icon-wrap {
+        width: 52px;
+        height: 52px;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+    /* ── Tabela de extrato ── */
+    .extrato-table th { white-space: nowrap; }
+    .saldo-positivo { color: var(--bs-success); font-weight: 600; }
+    .saldo-negativo { color: var(--bs-danger);  font-weight: 600; }
+    .linha-credito td  { background: rgba(var(--bs-success-rgb), 0.04); }
+    .linha-debito td   { background: rgba(var(--bs-danger-rgb),  0.03); }
+    .linha-comprom td  { background: rgba(var(--bs-warning-rgb), 0.04); }
+    /* ── Filtros colapsáveis ── */
+    .filtros-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(6px);
+        border-radius: 0.75rem;
+    }
+</style>
+
+<div class="container-fluid px-4 mt-4">
+
+    {# ── Breadcrumb ── #}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1 small">
+            <li class="breadcrumb-item">
+                <a href="{% url 'gestao_projetos:home_gestao_projetos' %}">Gestão de Projetos</a>
+            </li>
+            <li class="breadcrumb-item active">Extrato Financeiro</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    {# ── Cabeçalho ── #}
+    <div class="d-flex flex-wrap justify-content-between align-items-start mb-4 border-bottom pb-3 gap-2">
+        <div>
+            <h4 class="fw-bold mb-0 text-info">
+                <i class="fas fa-balance-scale me-2"></i>Extrato Financeiro
+            </h4>
+            <p class="text-muted small mb-0 mt-1">
+                Conciliação bancária e movimentações de bolsas do projeto
+                <strong>{{ projeto.nome }}</strong>.
+            </p>
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <span class="badge bg-secondary">
+                <i class="fas fa-list me-1"></i>{{ qtd_movimentacoes }} movimentações
+            </span>
+            <button class="btn btn-outline-secondary btn-sm"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#gaveta-filtros"
+                    aria-expanded="{% if conta_filtrada or data_inicio_filtro or data_fim_filtro %}true{% else %}false{% endif %}">
+                <i class="fas fa-filter me-1"></i>Filtros
+            </button>
+        </div>
+    </div>
+
+    {# ── Gaveta de Filtros ── #}
+    <div class="collapse {% if conta_filtrada or data_inicio_filtro or data_fim_filtro %}show{% endif %} mb-4"
+         id="gaveta-filtros">
+        <div class="card shadow-sm filtros-card border-0">
+            <div class="card-body py-3">
+                <h6 class="fw-bold text-uppercase small text-muted mb-3">
+                    <i class="fas fa-sliders-h me-1"></i>Filtros Avançados
+                </h6>
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="conta_id" class="form-label fw-semibold small mb-1">Conta Bancária</label>
+                        <select name="conta_id" id="conta_id" class="form-select form-select-sm">
+                            <option value="">— Todas as contas —</option>
+                            {% for conta in contas_projeto %}
+                                <option value="{{ conta.id }}"
+                                    {% if conta_filtrada and conta.id == conta_filtrada.id %}selected{% endif %}>
+                                    {{ conta }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="data_inicio" class="form-label fw-semibold small mb-1">Data Início</label>
+                        <input type="date" name="data_inicio" id="data_inicio" class="form-control form-control-sm"
+                               value="{{ data_inicio_filtro|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="data_fim" class="form-label fw-semibold small mb-1">Data Fim</label>
+                        <input type="date" name="data_fim" id="data_fim" class="form-control form-control-sm"
+                               value="{{ data_fim_filtro|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-search me-1"></i>Filtrar
+                        </button>
+                        <a href="{% url 'gestao_projetos:extrato_financeiro_projeto' projeto.id %}"
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# ── Cards de KPIs ── #}
+    <div class="row g-3 mb-4">
+
+        {# KPI 1: Total de Aportes #}
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card kpi-card shadow-sm border-0 h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="kpi-icon-wrap" style="background: rgba(var(--bs-success-rgb), 0.12);">
+                            <i class="fas fa-arrow-circle-down text-success"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0 fw-semibold text-uppercase"
+                               style="font-size:.72rem; letter-spacing:.04em;">Total de Aportes</p>
+                            <h5 class="fw-bold mb-0 text-success">
+                                R$ {{ total_aportes|floatformat:2 }}
+                            </h5>
+                        </div>
+                    </div>
+                    <hr class="my-2">
+                    <div class="row g-1 small text-muted">
+                        <div class="col-6">
+                            <i class="fas fa-building me-1" style="font-size:.7rem;"></i>
+                            Empresa: R$ {{ aportes_detalhe.empresa|floatformat:2 }}
+                        </div>
+                        <div class="col-6">
+                            <i class="fas fa-university me-1" style="font-size:.7rem;"></i>
+                            EMBRAPII: R$ {{ aportes_detalhe.embrapii|floatformat:2 }}
+                        </div>
+                        <div class="col-6">
+                            <i class="fas fa-handshake me-1" style="font-size:.7rem;"></i>
+                            SEBRAE: R$ {{ aportes_detalhe.sebrae|floatformat:2 }}
+                        </div>
+                        <div class="col-6">
+                            <i class="fas fa-balance-scale me-1" style="font-size:.7rem;"></i>
+                            Contrapartida: R$ {{ aportes_detalhe.contrapartida|floatformat:2 }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# KPI 2: Total de Desembolsos #}
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card kpi-card shadow-sm border-0 h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="kpi-icon-wrap" style="background: rgba(var(--bs-danger-rgb), 0.12);">
+                            <i class="fas fa-arrow-circle-up text-danger"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0 fw-semibold text-uppercase"
+                               style="font-size:.72rem; letter-spacing:.04em;">Total Desembolsado</p>
+                            <h5 class="fw-bold mb-0 text-danger">
+                                R$ {{ total_desembolsos|floatformat:2 }}
+                            </h5>
+                        </div>
+                    </div>
+                    <p class="text-muted small mt-3 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Parcelas com status <strong>PAGO</strong> liquidadas.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {# KPI 3: Saldo Comprometido #}
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card kpi-card shadow-sm border-0 h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="kpi-icon-wrap" style="background: rgba(var(--bs-warning-rgb), 0.15);">
+                            <i class="fas fa-lock text-warning"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0 fw-semibold text-uppercase"
+                               style="font-size:.72rem; letter-spacing:.04em;">Saldo Comprometido</p>
+                            <h5 class="fw-bold mb-0 text-warning">
+                                R$ {{ saldo_comprometido|floatformat:2 }}
+                            </h5>
+                        </div>
+                    </div>
+                    <p class="text-muted small mt-3 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Parcelas Pendente, Em Análise e Aprovadas.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {# KPI 4: Saldo Disponível #}
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card kpi-card shadow-sm border-0 h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="kpi-icon-wrap"
+                             style="background: rgba(var(--bs-{% if saldo_disponivel >= 0 %}info{% else %}danger{% endif %}-rgb), 0.12);">
+                            <i class="fas fa-wallet text-{% if saldo_disponivel >= 0 %}info{% else %}danger{% endif %}"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0 fw-semibold text-uppercase"
+                               style="font-size:.72rem; letter-spacing:.04em;">Saldo Disponível</p>
+                            <h5 class="fw-bold mb-0 text-{% if saldo_disponivel >= 0 %}info{% else %}danger{% endif %}">
+                                R$ {{ saldo_disponivel|floatformat:2 }}
+                            </h5>
+                        </div>
+                    </div>
+                    <p class="text-muted small mt-3 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Aportes − Desembolsos − Comprometido.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Tabela de Movimentações ── #}
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+            <h6 class="fw-bold text-uppercase small text-muted mb-0">
+                <i class="fas fa-stream me-2 text-info"></i>Movimentações com Saldo Progressivo
+            </h6>
+            {% if conta_filtrada %}
+                <span class="badge bg-info text-white small">
+                    <i class="fas fa-filter me-1"></i>Conta: {{ conta_filtrada }}
+                </span>
+            {% endif %}
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0 extrato-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center ps-3" style="width:110px;">Data</th>
+                            <th class="text-center">Descrição / Beneficiário</th>
+                            <th class="text-center">Conta</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center" style="width:130px;">Débito (R$)</th>
+                            <th class="text-center" style="width:130px;">Crédito (R$)</th>
+                            <th class="text-center" style="width:140px;">Saldo (R$)</th>
+                            <th class="text-center" style="width:70px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in movimentacoes %}
+                            <tr class="{% if mov.tipo == 'CREDITO' %}linha-credito{% elif mov.tipo == 'DEBITO' %}linha-debito{% else %}linha-comprom{% endif %}">
+                                {# Data #}
+                                <td class="text-center small ps-3">
+                                    {% if mov.data %}
+                                        {{ mov.data|date:"d/m/Y" }}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                {# Descrição / Beneficiário #}
+                                <td class="small">
+                                    <span class="fw-semibold d-block">{{ mov.descricao }}</span>
+                                    <span class="text-muted" style="font-size:.78rem;">
+                                        <i class="fas fa-user me-1"></i>{{ mov.beneficiario }}
+                                    </span>
+                                </td>
+                                {# Conta #}
+                                <td class="text-center small text-muted">{{ mov.conta }}</td>
+                                {# Status #}
+                                <td class="text-center">
+                                    <span class="badge bg-{{ mov.status_badge }} small">
+                                        {{ mov.status_label }}
+                                    </span>
+                                </td>
+                                {# Débito #}
+                                <td class="text-center small">
+                                    {% if mov.valor_debito is not None %}
+                                        <span class="saldo-negativo">
+                                            − R$ {{ mov.valor_debito|floatformat:2 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                {# Crédito #}
+                                <td class="text-center small">
+                                    {% if mov.valor_credito is not None %}
+                                        <span class="saldo-positivo">
+                                            + R$ {{ mov.valor_credito|floatformat:2 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                {# Saldo progressivo #}
+                                <td class="text-center small fw-bold">
+                                    {% if mov.saldo is not None %}
+                                        <span class="{% if mov.saldo >= 0 %}saldo-positivo{% else %}saldo-negativo{% endif %}">
+                                            R$ {{ mov.saldo|floatformat:2 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted fst-italic" style="font-size:.75rem;">comprometido</span>
+                                    {% endif %}
+                                </td>
+                                {# Ações #}
+                                <td class="text-center">
+                                    {% if mov.link_recibo %}
+                                        <a href="{{ mov.link_recibo }}"
+                                           class="btn btn-outline-success btn-sm"
+                                           title="Ver Recibo"
+                                           target="_blank">
+                                            <i class="fas fa-receipt"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    {# Rodapé de totais #}
+                    <tfoot class="table-light border-top fw-bold">
+                        <tr>
+                            <td colspan="4" class="text-end pe-3 small text-uppercase text-muted">Totais</td>
+                            <td class="text-center small text-danger">
+                                R$ {{ total_desembolsos|floatformat:2 }}
+                            </td>
+                            <td class="text-center small text-success">
+                                R$ {{ total_aportes|floatformat:2 }}
+                            </td>
+                            <td class="text-center small {% if saldo_disponivel >= 0 %}text-info{% else %}text-danger{% endif %}">
+                                R$ {{ saldo_disponivel|floatformat:2 }}
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# ── Rodapé informativo ── #}
+    <p class="text-muted small mt-3 mb-5">
+        <i class="fas fa-info-circle me-1"></i>
+        O saldo progressivo é calculado sobre as parcelas <strong>PAGO</strong>.
+        Parcelas comprometidas (Pendente, Em Análise, Aprovado) reservam recursos
+        mas não debitam o saldo até a liquidação efetiva.
+    </p>
+
+</div>
+{% endblock %}

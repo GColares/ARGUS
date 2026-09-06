@@ -1488,3 +1488,304 @@ class LiquidacaoFolhaLoteTestCase(TestCase):
                             "Parcela A não deve ter sido baixada.")
         self.assertNotEqual(self.parcela_b.status, 'PAGO',
                             "Parcela B NÃO deve ser baixada por atomicidade — fail-fast abortou o lote.")
+
+
+# =====================================================================
+# EXTRATO FINANCEIRO E CONCILIAÇÃO BANCÁRIA (Passo 9)
+# =====================================================================
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class ExtratoFinanceiroTestCase(TestCase):
+    """
+    Suíte de testes de integração do Passo 9 — Extrato Financeiro e
+    Conciliação Bancária por Projeto.
+
+    Cobre:
+    a) KPIs corretos: aportes, desembolsos, comprometido e saldo disponível.
+    b) Acesso permitido ao membro da equipe (RBAC positivo).
+    c) Acesso negado a usuário sem vínculo ao projeto (RBAC negativo — 403).
+    d) Filtro por conta bancária reduz as movimentações exibidas.
+    e) Saldo disponível negativo quando desembolsos + comprometido excedem aportes.
+    f) Link de recibo presente apenas para parcelas PAGO.
+    """
+
+    def setUp(self):
+        # ── Usuários ──
+        self.user_gestor = User.objects.create_user(
+            username='gestor_extrato_p9',
+            password='senha123',
+        )
+        self.user_intruso = User.objects.create_user(
+            username='intruso_extrato_p9',
+            password='senha123',
+        )
+
+        # ── Estrutura do projeto ──
+        self.empresa = EmpresaParceira.objects.create(
+            nome='Empresa Extrato P9 LTDA',
+            cnpj='11.222.333/0001-44',
+            natureza_juridica='LTDA',
+            representante_legal='Rep Extrato',
+            cargo_representante='Diretor',
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome='Projeto Extrato Passo 9',
+            fase='EXECUCAO',
+            concedente=self.empresa,
+        )
+
+        # ── RBAC: gestor é membro da equipe ──
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=self.user_gestor,
+            papel='GESTOR',
+        )
+
+        # ── Plano de trabalho ativo com aportes ──
+        from cadastros.models import PlanoDeTrabalho
+        self.plano = PlanoDeTrabalho.objects.create(
+            projeto=self.projeto,
+            versao=1,
+            ativo=True,
+            aporte_empresa=Decimal('5000.00'),
+            aporte_embrapii=Decimal('3000.00'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('2000.00'),
+        )
+        # valor_global calculado automaticamente no save() = 10000.00
+
+        # ── Duas contas bancárias distintas ──
+        self.conta_a = ContaBancaria.objects.create(
+            projeto=self.projeto,
+            conta='11111',
+            dv='1',
+        )
+        self.conta_b = ContaBancaria.objects.create(
+            projeto=self.projeto,
+            conta='22222',
+            dv='2',
+        )
+
+        # ── Bolsistas e termos ──
+        self.pessoa_a = PessoaFisica.objects.create(
+            nome='Bolsista A',
+            cpf='010.020.030-40',
+        )
+        self.pessoa_b = PessoaFisica.objects.create(
+            nome='Bolsista B',
+            cpf='050.060.070-80',
+        )
+        DadoBancario.objects.create(
+            pessoa=self.pessoa_a, finalidade='PAGAMENTO_BOLSA',
+            banco_codigo='001', agencia='0001', conta='11111-1', ativo=True,
+        )
+        DadoBancario.objects.create(
+            pessoa=self.pessoa_b, finalidade='PAGAMENTO_BOLSA',
+            banco_codigo='001', agencia='0002', conta='22222-2', ativo=True,
+        )
+
+        self.cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao='Pesquisador P9',
+            quantidade_vagas=2,
+            parcelas_previstas=2,
+            valor_global_previsto=Decimal('4000.00'),
+        )
+
+        # Termo A — parcela PAGO via conta_a
+        self.termo_a = TermoBolsa.objects.create(
+            cota_pt=self.cota,
+            pessoa=self.pessoa_a,
+            numero_termo='TB-P9-001',
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 10, 31),
+            quantidade_parcelas=2,
+            valor_parcela=Decimal('1500.00'),
+        )
+        self.parcela_a1 = self.termo_a.parcelas.get(numero=1)
+        self.parcela_a1.status = 'PAGO'
+        self.parcela_a1.data_pagamento = date(2026, 9, 30)
+        self.parcela_a1.conta_pagamento = self.conta_a
+        self.parcela_a1.save()
+
+        # Parcela 2 permanece PENDENTE
+        self.parcela_a2 = self.termo_a.parcelas.get(numero=2)
+
+        # Termo B — parcela APROVADO via conta_b
+        self.termo_b = TermoBolsa.objects.create(
+            cota_pt=self.cota,
+            pessoa=self.pessoa_b,
+            numero_termo='TB-P9-002',
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 10, 31),
+            quantidade_parcelas=2,
+            valor_parcela=Decimal('1000.00'),
+        )
+        self.parcela_b1 = self.termo_b.parcelas.get(numero=1)
+        self.parcela_b1.status = 'APROVADO'
+        self.parcela_b1.conta_pagamento = self.conta_b
+        self.parcela_b1.save()
+
+        self.client = Client()
+        self.url = reverse(
+            'gestao_projetos:extrato_financeiro_projeto',
+            args=[self.projeto.id],
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste a) KPIs: aportes, desembolsos, comprometido e saldo           #
+    # ------------------------------------------------------------------ #
+    def test_kpis_calculados_corretamente(self):
+        """KPIs do extrato devem refletir os aportes e o status das parcelas."""
+        self.client.login(username='gestor_extrato_p9', password='senha123')
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+
+        # Total de Aportes = 5000 + 3000 + 0 + 2000 = 10000
+        self.assertEqual(response.context['total_aportes'], Decimal('10000.00'))
+
+        # Total Desembolsado = parcela_a1 (PAGO) = 1500
+        self.assertEqual(response.context['total_desembolsos'], Decimal('1500.00'))
+
+        # Saldo Comprometido = parcela_a2 (PENDENTE, 1500)
+        #                    + parcela_b1 (APROVADO, 1000)
+        #                    + parcela_b2 (PENDENTE, 1000) = 3500
+        self.assertEqual(response.context['saldo_comprometido'], Decimal('3500.00'))
+
+        # Saldo Disponível = 10000 - 1500 - 3500 = 5000
+        self.assertEqual(response.context['saldo_disponivel'], Decimal('5000.00'))
+
+    # ------------------------------------------------------------------ #
+    # Teste b) RBAC positivo — membro da equipe acessa normalmente        #
+    # ------------------------------------------------------------------ #
+    def test_membro_equipe_acessa_extrato(self):
+        """Membro da equipe acessa o extrato e recebe HTTP 200."""
+        self.client.login(username='gestor_extrato_p9', password='senha123')
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'gestao_projetos/extrato_financeiro_projeto.html')
+        self.assertEqual(response.context['projeto'].id, self.projeto.id)
+
+    # ------------------------------------------------------------------ #
+    # Teste c) RBAC negativo — usuário sem vínculo recebe 403             #
+    # ------------------------------------------------------------------ #
+    def test_usuario_sem_vinculo_recebe_403(self):
+        """Usuário que não é membro da equipe deve receber HTTP 403."""
+        self.client.login(username='intruso_extrato_p9', password='senha123')
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 403)
+
+    # ------------------------------------------------------------------ #
+    # Teste d) Filtro por conta reduz movimentações                       #
+    # ------------------------------------------------------------------ #
+    def test_filtro_conta_bancaria_reduz_movimentacoes(self):
+        """Filtrar por conta_a exclui as parcelas vinculadas à conta_b."""
+        self.client.login(username='gestor_extrato_p9', password='senha123')
+
+        response = self.client.get(self.url, {'conta_id': self.conta_a.id})
+
+        self.assertEqual(response.status_code, 200)
+
+        # Sem filtro há 4 parcelas + 1 linha de abertura; com filtro deve haver menos
+        movimentacoes = response.context['movimentacoes']
+        # Apenas parcelas vinculadas à conta_a devem aparecer
+        parcelas_exibidas = [
+            m['parcela'] for m in movimentacoes if m['parcela'] is not None
+        ]
+        for parcela in parcelas_exibidas:
+            self.assertEqual(
+                parcela.conta_pagamento_id, self.conta_a.id,
+                "Somente parcelas da conta_a devem aparecer após filtro."
+            )
+
+    # ------------------------------------------------------------------ #
+    # Teste e) Saldo disponível negativo quando comprometido > disponível  #
+    # ------------------------------------------------------------------ #
+    def test_saldo_disponivel_negativo_quando_excede_aportes(self):
+        """Projeto sem plano de trabalho tem aportes = 0 → saldo negativo."""
+        # Cria projeto sem plano ativo
+        empresa2 = EmpresaParceira.objects.create(
+            nome='Empresa SaldoNeg P9',
+            cnpj='99.888.777/0001-11',
+            natureza_juridica='LTDA',
+            representante_legal='Rep Neg',
+            cargo_representante='Sócio',
+        )
+        projeto_sem_plano = ProjetoPDI.objects.create(
+            nome='Projeto Sem Plano P9',
+            fase='EXECUCAO',
+            concedente=empresa2,
+        )
+        MembroEquipe.objects.create(
+            projeto=projeto_sem_plano,
+            usuario=self.user_gestor,
+            papel='GESTOR',
+        )
+        cota2 = CotaBolsaPT.objects.create(
+            projeto=projeto_sem_plano,
+            perfil_funcao='Pesquisador',
+            quantidade_vagas=1,
+            parcelas_previstas=1,
+            valor_global_previsto=Decimal('2000.00'),
+        )
+        TermoBolsa.objects.create(
+            cota_pt=cota2,
+            pessoa=self.pessoa_a,
+            numero_termo='TB-P9-NEG-001',
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 9, 30),
+            quantidade_parcelas=1,
+            valor_parcela=Decimal('2000.00'),
+        )
+
+        url_neg = reverse(
+            'gestao_projetos:extrato_financeiro_projeto',
+            args=[projeto_sem_plano.id],
+        )
+        self.client.login(username='gestor_extrato_p9', password='senha123')
+        response = self.client.get(url_neg)
+
+        self.assertEqual(response.status_code, 200)
+        # Aportes = 0, comprometido = 2000 → saldo disponível = -2000
+        self.assertEqual(response.context['total_aportes'], Decimal('0.00'))
+        self.assertLess(
+            response.context['saldo_disponivel'],
+            Decimal('0.00'),
+            "Saldo disponível deve ser negativo quando comprometido > aportes."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Teste f) Link de recibo presente apenas para parcelas PAGO          #
+    # ------------------------------------------------------------------ #
+    def test_link_recibo_apenas_para_parcelas_pagas(self):
+        """Movimentações com status PAGO devem ter link_recibo; demais devem ser None."""
+        self.client.login(username='gestor_extrato_p9', password='senha123')
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        movimentacoes = response.context['movimentacoes']
+
+        for mov in movimentacoes:
+            parcela = mov.get('parcela')
+            if parcela is not None and parcela.status == 'PAGO':
+                self.assertIsNotNone(
+                    mov['link_recibo'],
+                    f"Parcela {parcela.id} está PAGO mas não tem link_recibo."
+                )
+            elif parcela is not None:
+                self.assertIsNone(
+                    mov['link_recibo'],
+                    f"Parcela {parcela.id} não está PAGO mas tem link_recibo inesperado."
+                )

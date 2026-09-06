@@ -1933,3 +1933,220 @@ def visualizar_recibo_bolsa(request, parcela_id):
         'data_emissao': date.today(),
     }
     return render(request, 'gestao_projetos/recibo_bolsa.html', contexto)
+
+
+# =====================================================================
+# EXTRATO FINANCEIRO E CONCILIAÇÃO BANCÁRIA POR PROJETO (Passo 9)
+# =====================================================================
+
+@login_required
+def extrato_financeiro_projeto(request, projeto_id):
+    """
+    Passo 9 — Extrato Financeiro e Conciliação Bancária por Projeto.
+
+    Regras de negócio:
+    1. RBAC: superusuário ou MembroEquipe do projeto.
+    2. KPIs calculados:
+       - Total de Aportes: soma dos aportes do PlanoDeTrabalho ativo.
+       - Total de Desembolsos: soma de parcelas com status='PAGO'.
+       - Saldo Disponível: Aportes - Desembolsos - Comprometido.
+       - Saldo Comprometido: parcelas PENDENTE + EM_ANALISE + APROVADO.
+    3. Filtros opcionais por conta bancária e intervalo de datas.
+    4. Lista cronológica de movimentações com saldo progressivo,
+       incluindo links para recibos (Passo 8) das parcelas pagas.
+    """
+    from decimal import Decimal
+    from datetime import datetime
+    from django.db.models import Sum, Q
+    from cadastros.models import (
+        Parcela, ContaBancaria, ProjetoPDI, MembroEquipe, PlanoDeTrabalho,
+    )
+
+    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
+
+    # ── RBAC ──
+    if not request.user.is_superuser:
+        if not MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+            return HttpResponseForbidden(
+                "Acesso negado: Você não é membro da equipe deste projeto."
+            )
+
+    # ── Plano de trabalho ativo e aportes ──
+    plano_ativo = projeto.planos_trabalho.filter(ativo=True).first()
+
+    if plano_ativo:
+        total_aportes = (
+            (plano_ativo.aporte_empresa or Decimal('0.00'))
+            + (plano_ativo.aporte_embrapii or Decimal('0.00'))
+            + (plano_ativo.aporte_sebrae or Decimal('0.00'))
+            + (plano_ativo.aporte_contrapartida or Decimal('0.00'))
+        )
+        aportes_detalhe = {
+            'empresa': plano_ativo.aporte_empresa or Decimal('0.00'),
+            'embrapii': plano_ativo.aporte_embrapii or Decimal('0.00'),
+            'sebrae': plano_ativo.aporte_sebrae or Decimal('0.00'),
+            'contrapartida': plano_ativo.aporte_contrapartida or Decimal('0.00'),
+        }
+    else:
+        total_aportes = Decimal('0.00')
+        aportes_detalhe = {
+            'empresa': Decimal('0.00'),
+            'embrapii': Decimal('0.00'),
+            'sebrae': Decimal('0.00'),
+            'contrapartida': Decimal('0.00'),
+        }
+
+    # ── Contas bancárias do projeto para o filtro ──
+    contas_projeto = ContaBancaria.objects.filter(projeto=projeto)
+
+    # ── Leitura dos filtros GET ──
+    conta_id_filtro = request.GET.get('conta_id', '').strip()
+    data_inicio_str = request.GET.get('data_inicio', '').strip()
+    data_fim_str = request.GET.get('data_fim', '').strip()
+
+    conta_filtrada = None
+    if conta_id_filtro:
+        conta_filtrada = contas_projeto.filter(id=conta_id_filtro).first()
+
+    data_inicio_filtro = None
+    data_fim_filtro = None
+    try:
+        if data_inicio_str:
+            data_inicio_filtro = datetime.strptime(data_inicio_str, '%Y-%m-%d').date()
+        if data_fim_str:
+            data_fim_filtro = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
+    except ValueError:
+        messages.warning(request, "Intervalo de datas inválido. Filtro de data ignorado.")
+
+    # ── QuerySet base de parcelas do projeto ──
+    parcelas_qs = Parcela.objects.filter(
+        termo_bolsa__cota_pt__projeto=projeto,
+    ).select_related(
+        'termo_bolsa__pessoa',
+        'conta_pagamento__fonte_recurso',
+    ).order_by('data_pagamento', 'mes_competencia', 'id')
+
+    # Aplica filtro de conta
+    if conta_filtrada:
+        parcelas_qs = parcelas_qs.filter(conta_pagamento=conta_filtrada)
+
+    # Aplica filtro de data (sobre data_pagamento para pagas; mes_competencia para demais)
+    if data_inicio_filtro:
+        parcelas_qs = parcelas_qs.filter(
+            Q(data_pagamento__gte=data_inicio_filtro)
+            | Q(data_pagamento__isnull=True, mes_competencia__gte=data_inicio_filtro)
+        )
+    if data_fim_filtro:
+        parcelas_qs = parcelas_qs.filter(
+            Q(data_pagamento__lte=data_fim_filtro)
+            | Q(data_pagamento__isnull=True, mes_competencia__lte=data_fim_filtro)
+        )
+
+    # ── KPIs globais (sem filtro de datas, para não distorcer saldo total) ──
+    todas_parcelas = Parcela.objects.filter(
+        termo_bolsa__cota_pt__projeto=projeto,
+    )
+    total_desembolsos = (
+        todas_parcelas.filter(status='PAGO')
+        .aggregate(t=Sum('valor'))['t'] or Decimal('0.00')
+    )
+    saldo_comprometido = (
+        todas_parcelas.filter(status__in=['PENDENTE', 'EM_ANALISE', 'APROVADO'])
+        .aggregate(t=Sum('valor'))['t'] or Decimal('0.00')
+    )
+    saldo_disponivel = total_aportes - total_desembolsos - saldo_comprometido
+
+    # ── Monta a lista de movimentações com saldo progressivo ──
+    # A linha de abertura representa o aporte total (crédito inicial)
+    saldo_corrente = total_aportes
+    movimentacoes = []
+
+    # Linha sintética de abertura: crédito dos aportes
+    movimentacoes.append({
+        'tipo': 'CREDITO',
+        'data': None,
+        'descricao': 'Crédito de Aportes — Plano de Trabalho',
+        'beneficiario': '—',
+        'conta': '—',
+        'valor_credito': total_aportes,
+        'valor_debito': None,
+        'saldo': saldo_corrente,
+        'parcela': None,
+        'status_badge': 'success',
+        'status_label': 'APORTE',
+        'link_recibo': None,
+    })
+
+    # Parcelas como linhas de débito
+    for parcela in parcelas_qs:
+        valor = parcela.valor or Decimal('0.00')
+        pessoa = parcela.termo_bolsa.pessoa if parcela.termo_bolsa else None
+        beneficiario = pessoa.nome if pessoa else '—'
+        conta_str = str(parcela.conta_pagamento) if parcela.conta_pagamento else '—'
+
+        # Apenas parcelas PAGAS debitam o saldo progressivo
+        if parcela.status == 'PAGO':
+            saldo_corrente -= valor
+            valor_debito = valor
+            valor_credito = None
+        else:
+            valor_debito = None
+            valor_credito = None
+
+        # Badge de status
+        badge_map = {
+            'PAGO': ('success', 'PAGO'),
+            'APROVADO': ('primary', 'APROVADO'),
+            'EM_ANALISE': ('warning', 'EM ANÁLISE'),
+            'PENDENTE': ('secondary', 'PENDENTE'),
+            'CANCELADO': ('danger', 'CANCELADO'),
+        }
+        status_badge, status_label = badge_map.get(parcela.status, ('secondary', parcela.status))
+
+        # Link para recibo apenas se PAGO (Passo 8)
+        link_recibo = None
+        if parcela.status == 'PAGO':
+            from django.urls import reverse as _rev
+            link_recibo = _rev('gestao_projetos:visualizar_recibo_bolsa', args=[parcela.id])
+
+        data_ref = parcela.data_pagamento or parcela.mes_competencia
+        descricao = (
+            f"Parcela {parcela.numero} — {parcela.get_status_display()}"
+            if not parcela.termo_bolsa
+            else f"Parcela {parcela.numero}/{parcela.termo_bolsa.quantidade_parcelas} "
+                 f"— {parcela.termo_bolsa.numero_termo}"
+        )
+
+        movimentacoes.append({
+            'tipo': 'DEBITO' if parcela.status == 'PAGO' else 'COMPROMETIDO',
+            'data': data_ref,
+            'descricao': descricao,
+            'beneficiario': beneficiario,
+            'conta': conta_str,
+            'valor_credito': valor_credito,
+            'valor_debito': valor_debito,
+            'saldo': saldo_corrente if parcela.status == 'PAGO' else None,
+            'parcela': parcela,
+            'status_badge': status_badge,
+            'status_label': status_label,
+            'link_recibo': link_recibo,
+        })
+
+    contexto = {
+        'projeto': projeto,
+        'plano_ativo': plano_ativo,
+        'contas_projeto': contas_projeto,
+        'conta_filtrada': conta_filtrada,
+        'data_inicio_filtro': data_inicio_filtro,
+        'data_fim_filtro': data_fim_filtro,
+        # KPIs
+        'total_aportes': total_aportes,
+        'aportes_detalhe': aportes_detalhe,
+        'total_desembolsos': total_desembolsos,
+        'saldo_comprometido': saldo_comprometido,
+        'saldo_disponivel': saldo_disponivel,
+        # Tabela de movimentações
+        'movimentacoes': movimentacoes,
+        'qtd_movimentacoes': parcelas_qs.count(),
+    }
+    return render(request, 'gestao_projetos/extrato_financeiro_projeto.html', contexto)
