@@ -146,7 +146,7 @@
 
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" style="min-width: 1300px;">
-                <thead class="bg-light text-muted small text-uppercase border-bottom border-2 text-center">
+                <thead class="thead-argus">
                     <tr>
                         <th style="width: 40px;" class="border-0 text-center"></th>
                         
@@ -226,11 +226,11 @@
 
                         <td class="text-center align-middle">
                             {% if nota.termo_recebimento_assinado %}
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 shadow-sm" title="RME Arquivado">
+                                <span class="badge badge-status-success" title="RME Arquivado">
                                     <i class="fas fa-award me-1"></i>Recebido
                                 </span>
                             {% else %}
-                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 shadow-sm" title="Aguardando RME">
+                                <span class="badge badge-status-warning" title="Aguardando RME">
                                     <i class="fas fa-clock me-1"></i>Pendente
                                 </span>
                             {% endif %}

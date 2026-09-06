@@ -1,5 +1,27 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Sprint 2 — Fatia 2.2: Padronização de Badges Semânticos e KPIs no Almoxarifado (IBM Bob)
+
+### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`almoxarifado/templates/almoxarifado/home_almoxarifado.html`](almoxarifado/templates/almoxarifado/home_almoxarifado.html)
+  * [`almoxarifado/templates/almoxarifado/lista_notas.html`](almoxarifado/templates/almoxarifado/lista_notas.html)
+- **Ajustes Arquiteturais e de Governança Concluídos:**
+  1. *Resolução da Inconsistência Crítica #2:* O status `PENDENTE` em `lista_notas.html` foi migrado da classe `bg-danger` (vermelho) para a classe semântica canônica `.badge-status-warning` (âmbar), unificando a semântica de pendências com a Central de Serviços e com o Design System.
+  2. *Status de Sucesso Padronizado:* O status `RECEBIDO` foi migrado para `.badge-status-success`.
+  3. *Eliminação de JavaScript Inline:* Remoção total de `onmouseover/onmouseout` e `style="transition..."` nos cards de KPI do Almoxarifado, adotando o componente canônico `.card-kpi-argus` (com hover gerenciado 100% no CSS).
+  4. *Cabeçalho Canônico de Tabelas:* Aplicação de `.thead-argus` na tabela de notas fiscais.
+  5. *Hierarquia Tipográfica:* Normalização do título de `<h2>` para `<h4>` conforme a escala executiva do ARGUS.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test cadastros`: **37/37 testes OK (100%)**.
+- `manage.py test gestao_projetos`: **61/61 testes OK (100%)**.
+- **Total Global: 98 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: IBM Bob | Auditor: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Homologação Sprint 2 — Fatia 2.1: Expurgo de <style> e Centralização CSS da Central de Serviços (IBM Bob)
 
 ### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
