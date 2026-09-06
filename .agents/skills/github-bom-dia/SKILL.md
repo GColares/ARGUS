@@ -24,5 +24,7 @@ Siga os passos rigorosamente nesta ordem:
    `ARGUS_DB_USER`, `ARGUS_DB_NAME` e `ARGUS_DB_PASSWORD`.
 6. O script valida o código de saída de cada etapa e executa `showmigrations`
    após uma restauração.
-7. A IA não deve executar a rotina nem declarar sucesso sem confirmação do
+7. Se um pacote `mente_gemini_argus.zip` recente estiver na pasta Downloads, o script
+   oferecerá a restauração da memória viva do Antigravity para sincronizar os chats entre estações.
+8. A IA não deve executar a rotina nem declarar sucesso sem confirmação do
    terminal do usuário.

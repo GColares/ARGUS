@@ -27,9 +27,10 @@ Siga os passos rigorosamente nesta ordem:
    - Gere PRIMEIRO o backup SQL e depois o JSON usando as variáveis de ambiente
      `ARGUS_DB_USER`, `ARGUS_DB_NAME` e `ARGUS_DB_PASSWORD`; nunca use senhas
      fixas em comandos ou arquivos versionados.
-3. **Salvar Pacotes (Requirements):**
-   - Execute a exportação das dependências para garantir que qualquer pacote novo seja salvo:
+3. **Salvar Pacotes (Requirements) e Memória Viva:**
+   - Execute a exportação das dependências:
      `.\.venv\Scripts\python.exe -m pip freeze > requirements.txt`
+   - O script `ate_amanha.ps1` aciona automaticamente o `exportar_mente.ps1` para gerar o pacote `mente_gemini_argus.zip` consolidado em Downloads.
 4. **Verificar o Status e Adicionar:**
    - Execute `git status` e depois `git add .` para colocar tudo em stage,
      revisando o conteúdo antes do commit.

@@ -40,6 +40,20 @@ if (Test-Path 'backups/media_seed.zip') {
     }
 }
 
+# Verificação e oferta de restauração da mente viva do Antigravity
+$menteZip = "$env:USERPROFILE\Downloads\mente_gemini_argus.zip"
+if (Test-Path $menteZip) {
+    $menteItem = Get-Item $menteZip
+    Write-Host "`nPacote de mente viva do Antigravity detectado em Downloads!" -ForegroundColor Cyan
+    Write-Host "Arquivo: mente_gemini_argus.zip ($([math]::Round($menteItem.Length / 1MB, 1)) MB - Modificado em: $($menteItem.LastWriteTime))" -ForegroundColor Gray
+    $respMente = Read-Host "Deseja importar a memória viva do Antigravity agora? (S/N)"
+    if ($respMente -match '^[sS]$') {
+        if (Test-Path 'scripts/importar_mente.ps1') {
+            & .\scripts\importar_mente.ps1
+        }
+    }
+}
+
 $backupFiles = @(Get-BackupFiles)
 if ($backupFiles.Count -eq 0) {
     Write-Host "Nenhum backup versionado foi encontrado; restauração indisponível." -ForegroundColor DarkYellow
