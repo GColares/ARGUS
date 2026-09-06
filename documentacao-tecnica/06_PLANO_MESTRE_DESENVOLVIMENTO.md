@@ -130,10 +130,15 @@ flowchart LR
 **Foco:** Geração de relatórios gerenciais consolidados para os órgãos reguladores e diretoria.
 
 #### Módulo Transversal: `gestao_projetos` & `central_servicos`
-1. **Painel de Indicadores Oficiais EMBRAPII:**
+1. **Painel de Indicadores Oficiais EMBRAPII (Etapa 4.1):** `[CONCLUÍDO & HOMOLOGADO]`
    - Taxa de alavancagem de recursos privados (Aporte Empresa / Aporte Total).
-   - Indicador de TRL alcançado por Macroentrega (TRL 3 a 6).
-   - Percentual de Overhead retido e creditado no Fundo de Reserva.
+   - Indicador normativo de maturidade tecnológica (Escala EMBRAPII TRL 3 a 6).
+   - Percentual de Overhead retido e creditado no Fundo de Reserva (`categoria='SUPORTE'`).
+   - **Entrega Técnica (118/118 testes OK):**
+     * Criação da rota `indicadores-embrapii/` em `gestao_projetos/urls.py`.
+     * View executiva `painel_indicadores_embrapii` com RBAC canônico (`COORDENADOR`, `GESTOR`, `ANALISTA`), prevenção de dupla contagem e proteção contra divisão por zero.
+     * Template `painel_indicadores_embrapii.html` no Padrão Almoxarifado com 4 KPIs canônicos, composição orçamentária e tabela analítica DataTables-safe.
+     * Suíte de 6 testes automatizados `PainelIndicadoresEmbrapiiTestCase` em `gestao_projetos/tests.py`.
 2. **Trilha de Auditoria com Simple History:**
    - Interface de visualização para auditores do TCU/CGU: delta de modificações em planos de trabalho, cotas de bolsas e movimentações orçamentárias.
 

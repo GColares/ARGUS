@@ -2221,3 +2221,120 @@ class PropertyZipInvariantsTestCase(TestCase):
                 conteudo = zf.read(nome)
                 self.assertGreater(len(conteudo), 0,
                                    f"Arquivo '{nome}' está vazio — possível corrupção.")
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class PainelIndicadoresEmbrapiiTestCase(TestCase):
+    """
+    Testes de integração para o Painel de Indicadores Oficiais EMBRAPII (Fase 4 — Etapa 4.1).
+    Cobre: RBAC canônico, alavancagem, Fundo de Reserva, carteira vazia e prevenção de dupla contagem.
+    """
+
+    def setUp(self):
+        from cadastros.models import PlanoDeTrabalho, Macroentrega, RubricaOrcamentariaPT
+
+        self.gestor = User.objects.create_user(username='gestor_bi', password='senha123')
+        self.usuario_comum = User.objects.create_user(username='usuario_sem_acesso', password='senha123')
+        self.superuser = User.objects.create_superuser(username='admin_bi', password='senha123', email='admin@ifam.edu.br')
+
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Parceira BI SA",
+            cnpj="12.345.678/0001-99",
+            natureza_juridica="SA",
+            representante_legal="Diretor Inovação",
+            cargo_representante="Diretor"
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Piloto TRL EMBRAPII",
+            projeto="P-TRL-01",
+            fase="EXECUCAO",
+            concedente=self.empresa
+        )
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=self.gestor,
+            papel='GESTOR'
+        )
+
+        self.plano = PlanoDeTrabalho.objects.create(
+            projeto=self.projeto,
+            versao=1,
+            ativo=True,
+            aporte_empresa=Decimal('50000.00'),
+            aporte_embrapii=Decimal('40000.00'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('10000.00')
+        )
+        RubricaOrcamentariaPT.objects.create(
+            plano_trabalho=self.plano,
+            categoria='SUPORTE',
+            descricao='Overhead Fundo de Reserva',
+            valor_previsto=Decimal('10000.00'),
+            fonte_recurso='EMPRESA'
+        )
+        Macroentrega.objects.create(
+            plano_trabalho=self.plano,
+            numero=1,
+            nome="Macroentrega Prova de Conceito"
+        )
+
+        self.url = reverse('gestao_projetos:painel_indicadores_embrapii')
+
+    def test_acesso_anonimo_redireciona_login(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+
+    def test_acesso_usuario_sem_perfil_negado(self):
+        self.client.login(username='usuario_sem_acesso', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_acesso_gestor_sucesso_metricas(self):
+        self.client.login(username='gestor_bi', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'gestao_projetos/painel_indicadores_embrapii.html')
+        self.assertAlmostEqual(float(response.context['alavancagem_global']), 50.0, places=1)
+        self.assertEqual(response.context['total_fundo_reserva'], Decimal('10000.00'))
+        self.assertEqual(response.context['total_macros_global'], 1)
+
+    def test_acesso_superuser_sucesso(self):
+        self.client.login(username='admin_bi', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_carteira_sem_planos_vigentes_divisao_por_zero(self):
+        from cadastros.models import PlanoDeTrabalho
+        PlanoDeTrabalho.objects.all().delete()
+        self.client.login(username='gestor_bi', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['alavancagem_global'], Decimal('0.00'))
+        self.assertEqual(response.context['total_global'], Decimal('0.00'))
+
+    def test_prevencao_dupla_contagem_multiplas_versoes(self):
+        from cadastros.models import PlanoDeTrabalho
+        # Cria uma versão 2 e desativa v1
+        self.plano.ativo = False
+        self.plano.save()
+        PlanoDeTrabalho.objects.create(
+            projeto=self.projeto,
+            versao=2,
+            ativo=True,
+            aporte_empresa=Decimal('60000.00'),
+            aporte_embrapii=Decimal('40000.00'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('0.00')
+        )
+        self.client.login(username='gestor_bi', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        # Deve considerar unicamente o plano v2 (R$ 60k de empresa e R$ 100k global)
+        self.assertEqual(response.context['total_empresa'], Decimal('60000.00'))
+        self.assertEqual(response.context['total_global'], Decimal('100000.00'))
+        self.assertAlmostEqual(float(response.context['alavancagem_global']), 60.0, places=1)

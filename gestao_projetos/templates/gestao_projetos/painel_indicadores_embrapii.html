@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Indicadores Oficiais EMBRAPII — ARGUS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-bar-orcamento { height: 1.5rem; }
+    .progress-bar-trl { height: 0.65rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Breadcrumb e Título Executivo -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item">
+                <a href="{% url 'gestao_projetos:home_gestao_projetos' %}">Gestão de Projetos</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Indicadores Oficiais EMBRAPII</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1 text-dark fw-bold">
+                <i class="fas fa-chart-line text-primary me-2"></i>Painel de Indicadores Oficiais EMBRAPII
+            </h4>
+            <p class="text-muted small mb-0">Consolidação estratégica de alavancagem de recursos privados, aportes e Fundo de Reserva.</p>
+        </div>
+        <div>
+            <a href="{% url 'gestao_projetos:home_gestao_projetos' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Grade Executiva de KPIs Canônicos -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-start border-primary border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">Alavancagem Privada</div>
+                            <div class="h3 mb-0 fw-bold text-gray-800">{{ alavancagem_global|floatformat:1 }}%</div>
+                            <small class="text-muted">Captação Privada / Global</small>
+                        </div>
+                        <div class="text-primary opacity-50">
+                            <i class="fas fa-hand-holding-dollar fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-start border-success border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">Recursos Privados</div>
+                            <div class="h4 mb-0 fw-bold text-gray-800">R$ {{ total_empresa|floatformat:2 }}</div>
+                            <small class="text-muted">Total Aportado por Empresas</small>
+                        </div>
+                        <div class="text-success opacity-50">
+                            <i class="fas fa-building fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-start border-warning border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">Fundo de Reserva</div>
+                            <div class="h4 mb-0 fw-bold text-gray-800">R$ {{ total_fundo_reserva|floatformat:2 }}</div>
+                            <small class="text-muted">Overhead ({{ pct_fundo_reserva_global|floatformat:1 }}% da carteira)</small>
+                        </div>
+                        <div class="text-warning opacity-50">
+                            <i class="fas fa-piggy-bank fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-start border-info border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">Maturidade Tecnológica</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">Escala TRL 3 a 6</div>
+                            <small class="text-muted">{{ total_macros_global }} Macroentregas cadastradas</small>
+                        </div>
+                        <div class="text-info opacity-50">
+                            <i class="fas fa-rocket fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painéis Visuais: Composição Orçamentária e Status Normativo TRL -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="m-0 fw-bold text-dark">
+                        <i class="fas fa-pie-chart text-primary me-2"></i>Composição do Orçamento Global da Carteira
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="progress progress-bar-orcamento mb-3">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ pct_empresa }}%;" title="Empresa: {{ pct_empresa|floatformat:1 }}%">
+                            {% if pct_empresa > 10 %}Empresa {{ pct_empresa|floatformat:0 }}%{% endif %}
+                        </div>
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ pct_embrapii }}%;" title="EMBRAPII: {{ pct_embrapii|floatformat:1 }}%">
+                            {% if pct_embrapii > 10 %}EMBRAPII {{ pct_embrapii|floatformat:0 }}%{% endif %}
+                        </div>
+                        <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: {{ pct_sebrae }}%;" title="SEBRAE: {{ pct_sebrae|floatformat:1 }}%">
+                            {% if pct_sebrae > 10 %}SEBRAE {{ pct_sebrae|floatformat:0 }}%{% endif %}
+                        </div>
+                        <div class="progress-bar bg-secondary" role="progressbar" style="width: {{ pct_contra }}%;" title="Contrapartida: {{ pct_contra|floatformat:1 }}%">
+                            {% if pct_contra > 10 %}ICT {{ pct_contra|floatformat:0 }}%{% endif %}
+                        </div>
+                    </div>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="fas fa-square text-success me-2"></i>Aporte Privado (Empresa):</span>
+                            <strong>R$ {{ total_empresa|floatformat:2 }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="fas fa-square text-primary me-2"></i>Aporte EMBRAPII:</span>
+                            <strong>R$ {{ total_embrapii|floatformat:2 }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="fas fa-square text-warning me-2"></i>Aporte SEBRAE:</span>
+                            <strong>R$ {{ total_sebrae|floatformat:2 }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><i class="fas fa-square text-secondary me-2"></i>Contrapartida ICT (IFAM):</span>
+                            <strong>R$ {{ total_contrapartida|floatformat:2 }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 fw-bold border-top">
+                            <span>Orçamento Global Monitorado:</span>
+                            <span class="text-primary">R$ {{ total_global|floatformat:2 }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="m-0 fw-bold text-dark">
+                        <i class="fas fa-layer-group text-info me-2"></i>Escala de Maturidade Tecnológica (Normativo EMBRAPII)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Enquadramento dos projetos no ciclo de inovação pré-competitiva:</p>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><strong>TRL 3:</strong> Prova de Conceito Analítica e Experimental</span>
+                            <span class="badge bg-info text-dark">Pesquisa Aplicada</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><strong>TRL 4:</strong> Validação de Componentes em Laboratório</span>
+                            <span class="badge bg-primary">Desenvolvimento</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><strong>TRL 5:</strong> Validação em Ambiente Relevante / Simulado</span>
+                            <span class="badge bg-warning text-dark">Escala Piloto</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span><strong>TRL 6:</strong> Demonstração de Protótipo Operacional</span>
+                            <span class="badge bg-success">Homologação</span>
+                        </li>
+                    </ul>
+                    <div class="alert alert-light border mt-3 mb-0 py-2 small text-muted">
+                        <i class="fas fa-info-circle text-primary me-1"></i>
+                        A mensuração individual de TRL por macroentrega será integrada na Etapa 4.2 do Plano Mestre.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela Analítica por Projeto (DataTables Safe — sem cláusula empty) -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0">
+            <h6 class="m-0 fw-bold text-dark">
+                <i class="fas fa-table text-secondary me-2"></i>Detalhamento de Indicadores por Projeto
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="thead-argus">
+                        <tr>
+                            <th class="ps-3">Projeto</th>
+                            <th>Empresa Parceira</th>
+                            <th class="text-end">Valor Global</th>
+                            <th class="text-end">Aporte Empresa</th>
+                            <th class="text-center">Alavancagem</th>
+                            <th class="text-end">Fundo de Reserva</th>
+                            <th class="text-center">Macroentregas</th>
+                            <th class="text-center pe-3">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in projetos_metricas %}
+                        <tr>
+                            <td class="ps-3">
+                                <strong>{{ item.projeto.projeto|default:"S/N" }}</strong>
+                                <div class="small text-muted">{{ item.projeto.nome|truncatechars:40 }}</div>
+                            </td>
+                            <td>{{ item.projeto.concedente.nome|default:"-"|truncatechars:30 }}</td>
+                            <td class="text-end fw-bold">R$ {{ item.v_global|floatformat:2 }}</td>
+                            <td class="text-end text-success fw-bold">R$ {{ item.v_empresa|floatformat:2 }}</td>
+                            <td class="text-center">
+                                <span class="badge {% if item.alavancagem >= 33 %}bg-success{% elif item.alavancagem >= 10 %}bg-primary{% else %}bg-warning text-dark{% endif %}">
+                                    {{ item.alavancagem|floatformat:1 }}%
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                R$ {{ item.overhead|floatformat:2 }}
+                                <div class="small text-muted">({{ item.pct_overhead|floatformat:1 }}%)</div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">{{ item.total_macros }} entregas</span>
+                            </td>
+                            <td class="text-center pe-3">
+                                <a href="{% url 'gestao_projetos:extrato_financeiro_projeto' item.projeto.id %}" class="btn btn-outline-primary btn-sm" title="Extrato Financeiro">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

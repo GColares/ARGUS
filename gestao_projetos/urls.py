@@ -59,4 +59,7 @@ urlpatterns = [
     # Extrato Financeiro e Conciliação Bancária por Projeto (Passo 9)
     path('projeto/<int:projeto_id>/extrato-financeiro/', views.extrato_financeiro_projeto, name='extrato_financeiro_projeto'),
     path('projeto/<int:projeto_id>/recibos/exportar-zip/', views.exportar_recibos_lote_zip, name='exportar_recibos_lote_zip'),
+
+    # Painel de Indicadores Oficiais EMBRAPII (Fase 4 — Etapa 4.1)
+    path('indicadores-embrapii/', views.painel_indicadores_embrapii, name='painel_indicadores_embrapii'),
 ]

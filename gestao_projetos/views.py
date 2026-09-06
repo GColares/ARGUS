@@ -2241,3 +2241,121 @@ def exportar_recibos_lote_zip(request, projeto_id):
     response = HttpResponse(buffer.getvalue(), content_type='application/zip')
     response['Content-Disposition'] = f'attachment; filename="Recibos_Projeto_{projeto.id}.zip"'
     return response
+
+
+# ==============================================================================
+# FASE 4 — ETAPA 4.1: PAINEL DE INDICADORES OFICIAIS EMBRAPII
+# ==============================================================================
+
+@login_required
+def painel_indicadores_embrapii(request):
+    """
+    Dashboard Executivo com Indicadores Oficiais EMBRAPII / SUFRAMA (Etapa 4.1):
+    - Alavancagem de recursos privados (Aporte Empresa / Valor Global)
+    - Composição orçamentária (Empresa, EMBRAPII, SEBRAE, Contrapartida)
+    - Overhead retido para o Fundo de Reserva Institucional (Rubrica SUPORTE)
+    - Prevenção de dupla contagem: 1 plano vigente por projeto ativo.
+    - RBAC: Superusuários, Staff, ou MembroEquipe (COORDENADOR, GESTOR, ANALISTA).
+    """
+    from decimal import Decimal
+    from django.db.models import Sum
+    from django.core.exceptions import PermissionDenied
+    from cadastros.models import PlanoDeTrabalho, RubricaOrcamentariaPT, Macroentrega, ProjetoPDI, MembroEquipe
+
+    # 1. Validação RBAC Canônica
+    is_admin = request.user.is_superuser or request.user.is_staff
+    is_membro_autorizado = MembroEquipe.objects.filter(
+        usuario=request.user,
+        papel__in=['COORDENADOR', 'GESTOR', 'ANALISTA']
+    ).exists()
+
+    if not (is_admin or is_membro_autorizado):
+        raise PermissionDenied("Acesso restrito à coordenação e gestão institucional de projetos.")
+
+    # 2. Seleção de Projetos Elegíveis e Prevenção de Dupla Contagem
+    projetos = ProjetoPDI.objects.filter(
+        fase__in=['EXECUCAO', 'PRESTACAO_CONTAS', 'ENCERRADO']
+    ).select_related('concedente', 'coordenador').order_by('nome')
+
+    total_empresa = Decimal('0.00')
+    total_embrapii = Decimal('0.00')
+    total_sebrae = Decimal('0.00')
+    total_contrapartida = Decimal('0.00')
+    total_global = Decimal('0.00')
+    total_fundo_reserva = Decimal('0.00')
+    total_macros_global = 0
+
+    projetos_metricas = []
+    for proj in projetos:
+        # Seleciona rigorosamente o plano ativo mais recente do projeto
+        plano = proj.planos_trabalho.filter(ativo=True).order_by('-versao').first()
+        if not plano:
+            continue
+
+        v_empresa = plano.aporte_empresa or Decimal('0.00')
+        v_embrapii = plano.aporte_embrapii or Decimal('0.00')
+        v_sebrae = plano.aporte_sebrae or Decimal('0.00')
+        v_contra = plano.aporte_contrapartida or Decimal('0.00')
+        v_global = plano.valor_global or (v_empresa + v_embrapii + v_sebrae + v_contra)
+
+        total_empresa += v_empresa
+        total_embrapii += v_embrapii
+        total_sebrae += v_sebrae
+        total_contrapartida += v_contra
+        total_global += v_global
+
+        alavancagem_proj = (v_empresa / v_global * Decimal('100.0')) if v_global > Decimal('0.00') else Decimal('0.00')
+
+        # Overhead do projeto (Rubrica SUPORTE)
+        overhead_proj = RubricaOrcamentariaPT.objects.filter(
+            plano_trabalho=plano,
+            categoria='SUPORTE'
+        ).aggregate(total=Sum('valor_previsto'))['total'] or Decimal('0.00')
+        total_fundo_reserva += overhead_proj
+
+        pct_overhead_proj = (overhead_proj / v_global * Decimal('100.0')) if v_global > Decimal('0.00') else Decimal('0.00')
+
+        macros_proj_count = Macroentrega.objects.filter(plano_trabalho=plano).count()
+        total_macros_global += macros_proj_count
+
+        projetos_metricas.append({
+            'projeto': proj,
+            'plano': plano,
+            'v_empresa': v_empresa,
+            'v_embrapii': v_embrapii,
+            'v_sebrae': v_sebrae,
+            'v_contrapartida': v_contra,
+            'v_global': v_global,
+            'alavancagem': alavancagem_proj,
+            'overhead': overhead_proj,
+            'pct_overhead': pct_overhead_proj,
+            'total_macros': macros_proj_count,
+        })
+
+    # Taxa Global de Alavancagem e Fundo de Reserva
+    alavancagem_global = (total_empresa / total_global * Decimal('100.0')) if total_global > Decimal('0.00') else Decimal('0.00')
+    pct_fundo_reserva_global = (total_fundo_reserva / total_global * Decimal('100.0')) if total_global > Decimal('0.00') else Decimal('0.00')
+
+    # Percentuais visuais normalizados para barras de progresso Bootstrap
+    pct_empresa = float(total_empresa / total_global * Decimal('100.0')) if total_global > Decimal('0.00') else 0.0
+    pct_embrapii = float(total_embrapii / total_global * Decimal('100.0')) if total_global > Decimal('0.00') else 0.0
+    pct_sebrae = float(total_sebrae / total_global * Decimal('100.0')) if total_global > Decimal('0.00') else 0.0
+    pct_contra = float(total_contrapartida / total_global * Decimal('100.0')) if total_global > Decimal('0.00') else 0.0
+
+    context = {
+        'total_empresa': total_empresa,
+        'total_embrapii': total_embrapii,
+        'total_sebrae': total_sebrae,
+        'total_contrapartida': total_contrapartida,
+        'total_global': total_global,
+        'alavancagem_global': alavancagem_global,
+        'total_fundo_reserva': total_fundo_reserva,
+        'pct_fundo_reserva_global': pct_fundo_reserva_global,
+        'total_macros_global': total_macros_global,
+        'pct_empresa': pct_empresa,
+        'pct_embrapii': pct_embrapii,
+        'pct_sebrae': pct_sebrae,
+        'pct_contra': pct_contra,
+        'projetos_metricas': projetos_metricas,
+    }
+    return render(request, 'gestao_projetos/painel_indicadores_embrapii.html', context)

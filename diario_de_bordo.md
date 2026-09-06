@@ -1,5 +1,28 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Fase 4 — Etapa 4.1: Painel de Indicadores Oficiais EMBRAPII (IBM Bob)
+
+### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`gestao_projetos/urls.py`](gestao_projetos/urls.py) (Adicionada a rota `indicadores-embrapii/`).
+  * [`gestao_projetos/views.py`](gestao_projetos/views.py) (Implementação da view `painel_indicadores_embrapii` com cálculo de alavancagem privada, Fundo de Reserva/Overhead, prevenção de dupla contagem e blindagem contra divisão por zero).
+  * [`gestao_projetos/templates/gestao_projetos/painel_indicadores_embrapii.html`](gestao_projetos/templates/gestao_projetos/painel_indicadores_embrapii.html) (Template no Padrão Almoxarifado com 4 KPIs canônicos, barra visual de composição de aportes e tabela analítica DataTables-safe).
+  * [`gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html`](gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html) (Card executivo de entrada adicionado ao hub central do módulo — R-04).
+  * [`gestao_projetos/tests.py`](gestao_projetos/tests.py) (Criação da suíte `PainelIndicadoresEmbrapiiTestCase` com 6 testes de integração cobrindo RBAC, métricas, carteira vazia e controle de versões).
+- **Ajustes de Negócio e Governança:**
+  1. *Zero Schema Migrations:* Indicadores construídos diretamente sobre os modelos consolidados (`PlanoDeTrabalho`, `RubricaOrcamentariaPT`), sem risco aos dados legados.
+  2. *RBAC Canônico:* Acesso restrito a superusuários, staff e membros com papéis `COORDENADOR`, `GESTOR` e `ANALISTA`.
+  3. *Prevenção de Dupla Contagem:* Cada projeto ativo é computado com base exclusiva em seu plano de trabalho vigente mais recente.
+  4. *Fundo de Reserva:* Agregação da rubrica de Suporte Operacional/Administrativo (`categoria='SUPORTE'`).
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test gestao_projetos.tests.PainelIndicadoresEmbrapiiTestCase`: **6/6 testes OK (100%)**.
+- **Total Global ARGUS: 118/118 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: IBM Bob | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Homologação Fase 3 — Passo 3.2: Minuta do Termo de Doação por Projeto e Encerramento da Fase 3 (GitHub Copilot)
 
 ### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
