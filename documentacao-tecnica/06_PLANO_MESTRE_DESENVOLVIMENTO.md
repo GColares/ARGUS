@@ -104,10 +104,14 @@ flowchart LR
 **Foco:** Assegurar a rastreabilidade dos bens adquiridos com recursos de projetos de PD&I e sua doação legal para o patrimônio público do IFAM.
 
 #### Módulo: `patrimonio`
-1. **Verificação Física e Conferência de Itens:**
+1. **Verificação Física e Conferência de Itens:** `[CONCLUÍDO & HOMOLOGADO]`
    - **Modelos:** `VerificacaoTermo`, `ItemVerificacao`, `BemPatrimonial`.
    - **Função / View:** `conferir_bens_projeto(request, projeto_id)`
-   - **Regra de Negócio (RN-06):** Bloquear a vinculação de bens permanentes a fontes de subvenção estrita EMBRAPII (apenas permitidos com fontes Empresa ou Pró-ICT).
+   - **Entrega Técnica (110/110 testes OK):**
+     * Ativação das rotas da esteira FAEPI e rota por projeto em `patrimonio/urls.py`.
+     * View com RBAC de equipe e cálculo dinâmico de KPIs de tombamento.
+     * Template `conferir_bens_projeto.html` no Padrão Almoxarifado com `.card-kpi-argus` e `.thead-argus`.
+     * Suíte de testes automatizados `ConferenciaBensProjetoTestCase` em `patrimonio/tests.py`.
 
 #### Módulo: `incorporacao`
 1. **Processamento de Termos de Doação (Fim de Projeto):**

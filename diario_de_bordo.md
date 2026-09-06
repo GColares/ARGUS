@@ -1,5 +1,26 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Fase 3 — Passo 3.1: Conferência de Bens por Projeto e Ativação de Rotas (GitHub Copilot)
+
+### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`patrimonio/urls.py`](patrimonio/urls.py) (Ativação das rotas FAEPI e rota por projeto `projeto/<int:projeto_id>/conferir-bens/`).
+  * [`patrimonio/views.py`](patrimonio/views.py) (Criação da view `conferir_bens_projeto` com RBAC de membros e cálculo de KPIs).
+  * [`patrimonio/templates/patrimonio/conferir_bens_projeto.html`](patrimonio/templates/patrimonio/conferir_bens_projeto.html) (Template no Padrão Almoxarifado com 4 KPIs e `.thead-argus`).
+  * [`patrimonio/tests.py`](patrimonio/tests.py) (Criação da suíte `ConferenciaBensProjetoTestCase` com isolamento de staticfiles).
+- **Ajustes de Negócio e Governança:**
+  1. *Ativação de Rotas Órfãs:* A esteira de importação e validação de PDFs FAEPI foi oficialmente exposta nas URLs do app.
+  2. *Rastreabilidade de Bens por Projeto:* Acesso restrito via RBAC a membros da equipe e superusuários.
+  3. *KPIs de Tombamento:* Métricas de Valor Imobilizado, Total de Bens, Bens Tombados no IFAM e Pendências de Tombamento.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test patrimonio`: **2/2 testes OK (100%)**.
+- **Total Global ARGUS: 110/110 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: GitHub Copilot | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Homologação Sprint Design System — Fatia 2.5: Padronização de Formulários (GitHub Copilot)
 
 ### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
