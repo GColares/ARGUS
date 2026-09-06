@@ -19,6 +19,7 @@ Esta regra define os limites intransponíveis de atuação do Antigravity quanto
      - O que exatamente será feito;
      - Quais arquivos, classes ou funções serão impactados;
      - A justificativa arquitetural e o impacto esperado no sistema;
+     - **A indicação expressa de quem testará, verificará e homologará a entrega (ex: IBM Bob, Kiro, Copilot ou Cursor), garantindo o princípio do Duplo Check (Four-Eyes);**
   3. **Solicitar formalmente a autorização do PO;**
   4. **Aguardar a resposta afirmativa do PO antes de executar a modificação.**
 - **Escopo:** Esta trava aplica-se a todo o código-fonte da aplicação. Arquivos de documentação técnica, governança e o diário de bordo continuam sendo mantidos como registros de transparência e alinhamento contínuo.

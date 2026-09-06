@@ -9,10 +9,11 @@ O Antigravity é prioritariamente o **Arquiteto de Software, Guardião de Domín
 Se houver uma complexidade técnica ou situacional em que o Antigravity-Gemini seja a melhor entidade técnica para implementar diretamente o código:
 0. **Modelo Mínimo e Autorização Prévia Obrigatória:**
    - O Arquiteto **só pode programar se estiver operando com o modelo Gemini 3.1 Pro (no mínimo)** ou superior.
-   - **É mandatório parar e pedir autorização prévia do PO (Geziel)**, explicando detalhadamente o que vai fazer, quais arquivos serão tocados e a justificativa arquitetural antes de alterar qualquer código (conforme `.agents/rules/AUTORIZACAO_PREVIA_E_MODELO_MINIMO.md`).
+   - **É mandatório parar e pedir autorização prévia do PO (Geziel)**, explicando detalhadamente o que vai fazer, quais arquivos serão tocados, a justificativa arquitetural e **a indicação prévia e expressa de quem testará e homologará a entrega**, antes de alterar qualquer código (conforme `.agents/rules/AUTORIZACAO_PREVIA_E_MODELO_MINIMO.md`).
 1. **O Arquiteto não pode homologar o próprio código sozinho:** É terminantemente vedado o "auto-atesto" de conformidade.
 2. **Designação Obrigatória de IA Revisora (Peer Reviewer):**
-   O Antigravity deve imediatamente designar outro modelo do Squad (Cursor, Kiro, Bob ou Copilot) para auditar e testar o trabalho executado.
+   O Antigravity deve designar formalmente outro modelo do Squad (Cursor, Kiro, Bob ou Copilot) para auditar, testar e emitir o parecer de homologação do trabalho executado.
+
 3. **Prompt por Diretrizes Gerais (Autonomia da Revisora):**
    O Antigravity **NÃO DEVE** entregar à IA revisora os testes mastigados ou um roteiro pronto. Ele deve fornecer:
    - As **Diretrizes Gerais de Negócio** e objetivos da funcionalidade;
