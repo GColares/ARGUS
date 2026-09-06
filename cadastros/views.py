@@ -10,7 +10,7 @@ from django.db.models import Q
 from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa
 from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 @login_required
 def home_cadastros(request):
@@ -861,6 +861,7 @@ def editar_pessoa_fisica(request, id):
 from django.db import transaction
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser or u.is_staff)
 @transaction.atomic
 def excluir_pessoa_fisica(request, id):
     import hashlib

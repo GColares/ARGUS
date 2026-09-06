@@ -880,7 +880,7 @@ class AuditoriaCryptoShreddingLGPDTestCase(TestCase):
         MembroEquipe.objects.create(
             projeto=proj,
             usuario=user_membro,
-            papel='COLABORADOR',
+            papel='ANALISTA',
         )
 
         url = self._url(pf_membro.id)
@@ -967,6 +967,18 @@ class AuditoriaCryptoShreddingLGPDTestCase(TestCase):
         self.pf.refresh_from_db()
         self.assertFalse(self.pf.cpf.startswith('ANON-'),
                          "POST sem autenticação não deve anonimizar dados.")
+
+    def test_rbac_exclusao_usuario_comum_bloqueado(self):
+        """Usuário sem staff/superuser não tem acesso à rota de exclusão/anonimização."""
+        from django.contrib.auth.models import User
+
+        User.objects.create_user('user_comum_lgpd', password='senha123')
+        self.client.login(username='user_comum_lgpd', password='senha123')
+
+        response = self.client.post(self._url())
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response.url)
 
     # ------------------------------------------------------------------
     # (h) Anonimização de dados civis (estado_civil e nacionalidade) e perfis
