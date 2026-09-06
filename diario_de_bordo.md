@@ -1,5 +1,26 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Sprint Design System — Fatia 2.1: Harmonização de listar_projetos.html (GitHub Copilot)
+
+### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
+- **Arquivo Modificado:**
+  * [`cadastros/templates/cadastros/listar_projetos.html`](cadastros/templates/cadastros/listar_projetos.html)
+- **Ajustes de UI/UX e Design System Canônico:**
+  1. *Navegação & Breadcrumbs:* Adicionado breadcrumb `Cadastros > Projetos PDI` e link de retorno dinâmico para `cadastros:home_cadastros`.
+  2. *Cabeçalho Executivo:* Título normalizado para `<h4>` com ícone `text-info` e badge de contagem de projetos registrados.
+  3. *Cards de KPI Canônicos:* Inclusão de 4 cards `.card-kpi-argus` (Total Geral, Em Execução, Em Proposta/Análise e Encerrados/Prestação de Contas) com contagem limpa via `regroup` no template, preservando zero impacto no backend.
+  4. *Tabela Canônica:* Adicionada a classe canônica `.thead-argus`.
+  5. *Conformidade DataTables:* Removido terminantemente o bloco `{% empty %}` com `colspan="5"`, prevenindo quebra de contagem de colunas do plugin.
+  6. *Ações:* Botões compactos com tooltips e aria-labels acessíveis.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test cadastros`: **38/38 testes OK (100%)**.
+- **Total Global ARGUS: 108/108 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: GitHub Copilot | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Implementação e Handoff de Duplo Check: Exportação em Lote de Recibos (ZIP) - Passo 9 (Antigravity & IBM Bob)
 
 ### 1. Contexto e Segregação de Funções (SoD):
