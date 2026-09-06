@@ -1,5 +1,24 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-05] Homologação Sprint 1: Tokens e Componentes do Design System no CSS Global (IBM Bob)
+
+### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
+- **Arquivo Modificado:** [`static/css/style.css`](static/css/style.css) (+157 linhas adicionadas, 0 linhas legadas alteradas ou removidas).
+- **Componentes e Tokens Implementados:**
+  1. *Tokens de Superfície (`:root`):* `--argus-bg-app`, `--argus-card-bg`, `--argus-card-border`, `--argus-header-bg`.
+  2. *Matriz Canônica de Badges de Status:* Classes semânticas padronizadas (`.badge-status-success`, `.badge-status-warning`, `.badge-status-danger`, `.badge-status-secondary`, `.badge-status-info`). Fim do conflito do badge `PENDENTE`.
+  3. *Componente Canônico de KPI (`.card-kpi-argus`):* Card com bordas sutis, tipografia unificada (`.kpi-label`, `.kpi-value`), container de ícone 48x48 (`.icon-shape`) e efeito `:hover` 100% CSS (eliminando JavaScript inline `onmouseover/onmouseout`).
+  4. *Cabeçalho Canônico de Tabelas (`.thead-argus`):* Fundo Slate 800 (`#1e293b`), bordas Slate 700 e links de ordenação do DataTables legíveis (`#cbd5e1`).
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test cadastros`: **37/37 testes OK (100%)**.
+- `manage.py test gestao_projetos`: **61/61 testes OK (100%)**.
+- **Total Global: 98 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: IBM Bob | Validador/Auditor: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-05] Criação do Design System Canônico do ARGUS (05_DESIGN_SYSTEM_ARGUS.md)
 
 ### 1. Diagnóstico de UI/UX Realizado pelo IBM Bob:

@@ -282,3 +282,159 @@ body.theme-dark .navbar-institucional .nav-link.active {
 .bg-glass-warning { background-color: rgba(var(--bs-warning-rgb), 0.15) !important; color: var(--bs-warning); border-left: 4px solid var(--bs-warning); }
 .bg-glass-secondary { background-color: rgba(var(--bs-secondary-rgb), 0.1) !important; color: var(--bs-secondary); border-left: 4px solid var(--bs-secondary); }
 
+
+/* =====================================================
+   DESIGN SYSTEM CANÔNICO ARGUS — Sprint 1
+   Adicionado por: IBM Bob (SDLC Partner)
+   Aprovado por: PO Geziel / Tech Lead: Antigravity-Gemini
+   Retrocompatibilidade: TOTAL — nenhuma regra existente alterada
+   ===================================================== */
+
+
+/* -----------------------------------------------------
+   1. SUPERFÍCIES E VARIÁVEIS COMPLEMENTARES
+      Tokens de layout e background para o Design System
+   ----------------------------------------------------- */
+:root {
+    /* Superfícies */
+    --argus-bg-app:      #f8fafc;   /* Fundo alternativo da aplicação (mais frio que #fbfcfb) */
+    --argus-card-bg:     #ffffff;   /* Background padrão de cards e painéis */
+    --argus-card-border: #e2e8f0;   /* Borda suave de cards */
+    --argus-header-bg:   #1e293b;   /* Fundo de cabeçalhos de tabela escuros (Slate 800) */
+}
+
+
+/* -----------------------------------------------------
+   2. MATRIZ CANÔNICA DE BADGES DE STATUS
+      Padrão semântico unificado para todos os módulos.
+      Uso: <span class="badge badge-status-success">Ativo</span>
+      Sobrescreve a divergência Almoxarifado vs. Central de Serviços
+      (PENDENTE = warning, não danger — conforme Design System Canônico)
+   ----------------------------------------------------- */
+.badge-status-success,
+.badge-status-warning,
+.badge-status-danger,
+.badge-status-secondary,
+.badge-status-info {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+/* ATIVO / CONCLUÍDO / RECEBIDO */
+.badge-status-success {
+    background-color: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+/* PENDENTE / EM ANÁLISE / AGUARDANDO */
+.badge-status-warning {
+    background-color: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+/* CANCELADO / SUSPENSO / BLOQUEADO */
+.badge-status-danger {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+/* PROGRAMADO / INATIVO / ARQUIVADO */
+.badge-status-secondary {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+/* EM ANDAMENTO / INICIADO / EXECUÇÃO */
+.badge-status-info {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+
+/* -----------------------------------------------------
+   3. COMPONENTE CANÔNICO DE CARD DE KPI (.card-kpi-argus)
+      Unifica as três gerações de KPI (Gen1 simples,
+      Gen2 .kpi-card local, Gen3 .glass-card global).
+      Hover 100% CSS — elimina onmouseover/onmouseout inline.
+   ----------------------------------------------------- */
+.card-kpi-argus {
+    background-color: #ffffff;
+    border: 1px solid var(--argus-card-border);
+    border-radius: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-kpi-argus:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -2px rgba(0, 0, 0, 0.06);
+}
+
+/* Ícone do KPI — container circular/quadrado padronizado */
+.card-kpi-argus .icon-shape {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+/* Rótulo de métrica — tipografia canônica */
+.card-kpi-argus .kpi-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin-bottom: 0.125rem;
+}
+
+/* Valor da métrica */
+.card-kpi-argus .kpi-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+
+/* -----------------------------------------------------
+   4. CABEÇALHO CANÔNICO DE TABELAS (.thead-argus)
+      Padrão escuro Slate 800 para tabelas principais.
+      Uso: <thead class="thead-argus"> ... </thead>
+      Compatível com DataTables (override de table-light).
+   ----------------------------------------------------- */
+.thead-argus,
+.thead-argus tr,
+.thead-argus th {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-color: #334155 !important;  /* Slate 700 — borda suave sobre fundo escuro */
+}
+
+/* Links de ordenação dentro do cabeçalho escuro */
+.thead-argus th a,
+.thead-argus th a:hover {
+    color: #cbd5e1 !important;   /* Slate 300 — legível sobre Slate 800 */
+    text-decoration: none;
+}
+
+/* =====================================================
+   FIM DO DESIGN SYSTEM CANÔNICO ARGUS — Sprint 1
+   ===================================================== */
