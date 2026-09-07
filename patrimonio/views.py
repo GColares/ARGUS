@@ -7,8 +7,13 @@ from django.db.models import Sum
 from django.contrib import messages 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
+from django.core.exceptions import PermissionDenied
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.barcode.qr import QrCodeWidget
+from reportlab.graphics import renderSVG
 from .models import VerificacaoTermo, BemPatrimonial, ItemVerificacao, FiltroImportacao
-from cadastros.models import ProjetoPDI
+from cadastros.models import ProjetoPDI, MembroEquipe
+from central_servicos.models import Ambiente
 from incorporacao.models import TermoDoacao
 from .extratores_faepi import extrair_linhas_brutas_faepi, limpar_lixo_digital, limpar_valor
 from io import BytesIO
@@ -561,3 +566,122 @@ def adicionar_filtro(request):
 def gerenciar_filtros(request):
     filtros = FiltroImportacao.objects.all().order_by('termo')
     return render(request, 'patrimonio/gerenciar_filtros.html', {'filtros': filtros})
+
+
+# ── FUNÇÕES AUXILIARES E VIEWS DE ETIQUETAS PATRIMONIAIS (Fase 5 / Etapa 5.3) ──
+
+def gerar_qr_code_svg(payload: str, tamanho: int = 90) -> str:
+    """
+    Gera QR Code vetorial puro em formato SVG usando o backend nativo do ReportLab.
+    Não requer Cairo, libpng ou extensões C compiladas.
+    Retorna apenas a tag <svg ...>...</svg> para inserção segura no HTML.
+    """
+    widget = QrCodeWidget(payload)
+    widget.barWidth = tamanho
+    widget.barHeight = tamanho
+    drawing = Drawing(tamanho, tamanho)
+    drawing.add(widget)
+    svg_raw = renderSVG.drawToString(drawing)
+    idx_start = svg_raw.find('<svg')
+    if idx_start != -1:
+        return svg_raw[idx_start:]
+    return svg_raw
+
+
+def usuario_pode_gerar_etiqueta_bem(user, bem: BemPatrimonial) -> bool:
+    """
+    Verifica alçada RBAC para emissão da etiqueta de um bem patrimonial:
+    - Superusuário ou Staff;
+    - Servidor Efetivo com SIAPE ativo (Canônico: PessoaFisica + PerfilServidor);
+    - Servidor Efetivo com SIAPE ativo (Legado: PerfilUsuario.vinculo == 'SERVIDOR');
+    - Coordenador do Projeto vinculado ao bem;
+    - Membro ativo da equipe do projeto.
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    # Servidor com SIAPE ativo (Canônico)
+    pf = getattr(user, 'pessoa_fisica', None)
+    if pf and hasattr(pf, 'perfil_servidor') and pf.perfil_servidor.ativo and pf.perfil_servidor.siape:
+        return True
+    # Servidor com SIAPE ativo (Legado Almoxarifado)
+    perfil_legado = getattr(user, 'perfil', None)
+    if perfil_legado and getattr(perfil_legado, 'vinculo', None) == 'SERVIDOR' and getattr(perfil_legado, 'siape', None):
+        return True
+    # Vínculo com Projeto P&D
+    if bem.projeto:
+        if bem.projeto.coordenador and bem.projeto.coordenador.user_id == user.id:
+            return True
+        if MembroEquipe.objects.filter(projeto=bem.projeto, usuario=user).exists():
+            return True
+    return False
+
+
+def usuario_pode_gerar_etiquetas_ambiente(user, ambiente: Ambiente) -> bool:
+    """
+    Verifica alçada RBAC para emissão em lote de etiquetas de um ambiente inteiro:
+    - Superusuário ou Staff;
+    - Servidor Efetivo com SIAPE ativo (Canônico ou Legado).
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    pf = getattr(user, 'pessoa_fisica', None)
+    if pf and hasattr(pf, 'perfil_servidor') and pf.perfil_servidor.ativo and pf.perfil_servidor.siape:
+        return True
+    perfil_legado = getattr(user, 'perfil', None)
+    if perfil_legado and getattr(perfil_legado, 'vinculo', None) == 'SERVIDOR' and getattr(perfil_legado, 'siape', None):
+        return True
+    return False
+
+
+@login_required
+def gerar_etiqueta_patrimonial(request, bem_id):
+    """View para emissão de etiqueta patrimonial individual com QR Code vetorial."""
+    bem = get_object_or_404(BemPatrimonial, id=bem_id)
+    if not usuario_pode_gerar_etiqueta_bem(request.user, bem):
+        raise PermissionDenied("Acesso restrito à gestão patrimonial ou equipe do projeto.")
+    identificador = bem.patrimonio_ifam or bem.patrimonio_doador or f"ID-{bem.id}"
+    payload_qr = f"ARGUS-BEM:{identificador}|{bem.descricao[:40]}"
+    qr_svg = gerar_qr_code_svg(payload_qr)
+    itens = [{
+        'bem': bem,
+        'identificador': identificador,
+        'qr_svg': qr_svg,
+    }]
+    contexto = {
+        'itens': itens,
+        'titulo': f"Etiqueta Patrimonial - {identificador}",
+        'subtitulo': "Impressão individual de etiqueta de tombamento",
+        'modo_lote': False,
+    }
+    return render(request, 'patrimonio/etiqueta_patrimonial.html', contexto)
+
+
+@login_required
+def gerar_etiquetas_ambiente(request, ambiente_id):
+    """View para emissão em lote de etiquetas de todos os bens alocados em um ambiente/laboratório."""
+    ambiente = get_object_or_404(Ambiente, id=ambiente_id)
+    if not usuario_pode_gerar_etiquetas_ambiente(request.user, ambiente):
+        raise PermissionDenied("Acesso restrito à equipe técnica ou servidores efetivos.")
+    bens = BemPatrimonial.objects.filter(ambiente=ambiente).order_by('id')
+    itens = []
+    for bem in bens:
+        identificador = bem.patrimonio_ifam or bem.patrimonio_doador or f"ID-{bem.id}"
+        payload_qr = f"ARGUS-BEM:{identificador}|{bem.descricao[:40]}"
+        qr_svg = gerar_qr_code_svg(payload_qr)
+        itens.append({
+            'bem': bem,
+            'identificador': identificador,
+            'qr_svg': qr_svg,
+        })
+    contexto = {
+        'itens': itens,
+        'ambiente': ambiente,
+        'titulo': f"Etiquetas - {ambiente.nome}",
+        'subtitulo': f"Lote de etiquetas dos bens alocados no ambiente ({len(itens)} itens)",
+        'modo_lote': True,
+    }
+    return render(request, 'patrimonio/etiqueta_patrimonial.html', contexto)

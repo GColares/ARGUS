@@ -15,4 +15,6 @@ urlpatterns = [
         views.conferir_bens_projeto,
         name='conferir_bens_projeto',
     ),
+    path('bem/<int:bem_id>/etiqueta/', views.gerar_etiqueta_patrimonial, name='gerar_etiqueta_patrimonial'),
+    path('ambiente/<int:ambiente_id>/etiquetas/', views.gerar_etiquetas_ambiente, name='gerar_etiquetas_ambiente'),
 ]

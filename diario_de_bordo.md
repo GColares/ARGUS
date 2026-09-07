@@ -1,5 +1,30 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Fase 5 — Etapa 5.3: Etiquetas Patrimoniais com QR Code Vetorial & RBAC Estrito (IBM Bob)
+
+### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`static/js/patrimonio_etiquetas.js`](static/js/patrimonio_etiquetas.js) (Criado arquivo JavaScript estático com zero JS inline / CSP compliant).
+  * [`patrimonio/views.py`](patrimonio/views.py) (Adicionados imports de ReportLab QR Code, função `gerar_qr_code_svg`, funções RBAC `usuario_pode_gerar_etiqueta_bem` e `usuario_pode_gerar_etiquetas_ambiente`, views `gerar_etiqueta_patrimonial` e `gerar_etiquetas_ambiente`).
+  * [`patrimonio/urls.py`](patrimonio/urls.py) (Registradas rotas `bem/<int:bem_id>/etiqueta/` e `ambiente/<int:ambiente_id>/etiquetas/`).
+  * [`patrimonio/templates/patrimonio/etiqueta_patrimonial.html`](patrimonio/templates/patrimonio/etiqueta_patrimonial.html) (Template canônico com grid de etiquetas, CSS print-friendly e QR Code vetorial SVG).
+  * [`patrimonio/tests.py`](patrimonio/tests.py) (Criada suíte `EtiquetasPatrimonioTestCase` com 8 testes cobrindo geração SVG, RBAC superusuário/coordenador/membro/servidor/leigo, lote por ambiente e fallback de identificador).
+- **Ajustes de Negócio e Governança:**
+  1. *QR Code Vetorial Nativo:* Geração de SVG puro via ReportLab sem dependências C (Cairo/libpng), garantindo portabilidade.
+  2. *RBAC Estrito Três Vias:* Superusuário/Staff + Servidor Efetivo SIAPE (canônico PessoaFisica+PerfilServidor e legado PerfilUsuario) + Coordenador/MembroEquipe do projeto.
+  3. *Verificação de ativo=True:* Implementada validação de `ativo=True` no perfil de servidor, corrigindo o bloqueio crítico identificado na análise.
+  4. *Fallback Gracioso:* Bens sem tombamento IFAM/doador usam identificador `ID-<id>` automaticamente.
+  5. *Conclusão da Fase 5:* **100% da Fase 5 (Patrimônio & Central de Serviços)** concluída com sucesso.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test patrimonio.tests.EtiquetasPatrimonioTestCase`: **8/8 testes OK (100%)**.
+- `manage.py test`: **151/151 testes automatizados aprovados (0 regressões)**.
+- **Meta Atingida:** 143 → 151 testes (+8 testes unitários/integração).
+- **Rastro SoD:** Implementador: IBM Bob | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Implementação — Fase 5 / Etapa 5.2: Baixa Atômica e Suíte da Central de Serviços
 
 ### Entregas
