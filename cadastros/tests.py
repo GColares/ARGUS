@@ -1714,8 +1714,11 @@ class CicloVidaProjetoTestCase(TestCase):
         self.assertEqual(historico.usuario, self.user_coord)
         self.assertEqual(historico.justificativa, "Formalização completa.")
 
-        # Trava RN-10 ativa
+        # Trava RN-10 ativa (propriedade calculada e campos persistidos no banco)
+        plano.refresh_from_db()
         self.assertTrue(plano.esta_congelado)
+        self.assertTrue(plano.congelado)
+        self.assertEqual(plano.status, 'CONGELADO_VIGENTE')
 
     def test_03_anti_bypass_save_direto_bloqueado(self):
         """Tentativa de mudar projeto.fase diretamente via .save() é interceptada e bloqueada por ValidationError."""
@@ -1828,6 +1831,11 @@ class CicloVidaProjetoTestCase(TestCase):
         self.client.force_login(self.user_alheio)
         resp = self.client.post(url, {'nova_fase': 'EXECUCAO'})
         self.assertEqual(resp.status_code, 403)
+
+        # Coordenador do projeto: tem permissão (não recebe 403, pode receber 302 redirecionando com mensagens)
+        self.client.force_login(self.user_coord)
+        resp = self.client.post(url, {'nova_fase': 'EXECUCAO'})
+        self.assertEqual(resp.status_code, 302)
 
         # Gestor do projeto: tem permissão (não recebe 403, pode receber 302 redirecionando com mensagens)
         self.client.force_login(self.user_gestor)

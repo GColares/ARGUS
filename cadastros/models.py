@@ -442,12 +442,12 @@ class ProjetoPDI(models.Model):
         """Avalia se o projeto possui todas as travas obrigatórias para operação e liberação de relatórios."""
         pendencias = []
 
-        # Utiliza o related_name 'atividades_plano' para verificar se o cronograma foi importado
-        if not self.atividades_plano.exists(): # type: ignore
-            pendencias.append("O Plano de Ação (Cronograma de Atividades) não foi desdobrado no sistema.")
+        plano = self.planos_trabalho.filter(ativo=True).first() or (self.termo_parceria and self.termo_parceria.planos_homologados.first())
+        if not plano or not plano.macroentregas.exists():
+            pendencias.append("O Plano de Trabalho com Macroentregas não foi registrado no sistema.")
 
-        if not self.termo_parceria or not (self.planos_trabalho.exists() or self.termo_parceria.planos_homologados.exists()):
-            pendencias.append("O Plano de Trabalho financeiro/cronológico não foi registrado no sistema para este projeto.")
+        if not self.termo_parceria:
+            pendencias.append("O Termo de Parceria não foi registrado no sistema para este projeto.")
 
         return pendencias
 
@@ -487,7 +487,9 @@ class ProjetoPDI(models.Model):
 
         # Gateway 2: EXECUCAO -> PRESTACAO_CONTAS
         elif fase_atual == 'EXECUCAO' and nova_fase == 'PRESTACAO_CONTAS':
-            pass
+            plano = self.planos_trabalho.filter(ativo=True).first() or (self.termo_parceria and self.termo_parceria.planos_homologados.first())
+            if not plano or not plano.macroentregas.exists():
+                pendencias.append("Exige Plano de Trabalho com Macroentregas para prestação de contas.")
 
         # Gateway 3: PRESTACAO_CONTAS -> ENCERRADO
         elif fase_atual == 'PRESTACAO_CONTAS' and nova_fase == 'ENCERRADO':
@@ -517,6 +519,18 @@ class ProjetoPDI(models.Model):
             self.fase = nova_fase
             self.save()
 
+            # Sincroniza e persiste o congelamento e status dos Planos de Trabalho vinculados
+            if nova_fase in ['EXECUCAO', 'PRESTACAO_CONTAS', 'ENCERRADO']:
+                for pt in self.planos_trabalho.all():
+                    pt.congelado = True
+                    pt.status = 'CONGELADO_VIGENTE'
+                    pt.save(update_fields=['congelado', 'status'])
+                if self.termo_parceria:
+                    for pt in self.termo_parceria.planos_homologados.all():
+                        pt.congelado = True
+                        pt.status = 'CONGELADO_VIGENTE'
+                        pt.save(update_fields=['congelado', 'status'])
+
             HistoricoTransicaoFase.objects.create(
                 projeto=self,
                 usuario=usuario,
@@ -536,7 +550,7 @@ class ProjetoPDI(models.Model):
 
 class HistoricoTransicaoFase(models.Model):
     """Rastro de auditoria indelével para a máquina de estados do Projeto PDI."""
-    projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='historico_fases')
+    projeto = models.ForeignKey('ProjetoPDI', on_delete=models.PROTECT, related_name='historico_fases')
     usuario = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="Responsável pela Transição")
     fase_anterior = models.CharField(max_length=20, choices=ProjetoPDI.FASE_CHOICES)
     fase_nova = models.CharField(max_length=20, choices=ProjetoPDI.FASE_CHOICES)

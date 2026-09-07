@@ -1,6 +1,6 @@
 # Diário de Bordo — ARGUS
 
-## [2026-09-07] Homologação Fase 6 — Etapa 6.6: Máquina de Estados e Governança do Ciclo de Vida de Projetos PDI (RF-05, RF-06 e Gateways SoD) (Claude Desktop & Squad)
+## [2026-09-07] Homologação Fase 6 — Etapa 6.6: Máquina de Estados e Governança do Ciclo de Vida de Projetos PDI (RF-05, RF-06 e Gateways SoD) (Claude Desktop, GitHub Copilot & Squad)
 
 ### 1. Entregas Realizadas pelo Claude Desktop (Handoff Cirúrgico / SoD):
 - **Arquivos Modificados:**
@@ -9,16 +9,21 @@
   * [`cadastros/urls.py`](cadastros/urls.py) (Registrada a rota canônica `projeto/<int:projeto_id>/transicionar-fase/`).
   * [`cadastros/templates/cadastros/visualizar_projeto.html`](cadastros/templates/cadastros/visualizar_projeto.html) (Adicionado Stepper de Governança visual do ciclo de vida no Padrão Almoxarifado com 4 marcos e badges semânticos, botões dinâmicos de avanço com modais de confirmação, formulário de cancelamento formal com justificativa obrigatória e modal de inspeção da trilha de auditoria).
   * [`cadastros/tests.py`](cadastros/tests.py) (Criada a suíte `CicloVidaProjetoTestCase` com 8 testes rigorosos cobrindo: gateway de execução bloqueado sem pré-requisitos, gateway de execução com sucesso ativando congelamento RN-10, interceptação anti-bypass do `.save()` direto, gateway de encerramento bloqueado por parcelas pendentes, gateway de encerramento com sucesso quando todas as parcelas estão pagas/canceladas, cancelamento com justificativa formal, blindagem contra transições a partir de estados terminais e RBAC estrito na view com 403 Forbidden).
-  * **Migração Aplicada:** `cadastros: 0068_historicotransicaofase`.
-- **Ajustes de Negócio e Governança:**
-  1. *Máquina de Estados Conforme Lei 10.973/04 e EMBRAPII (RF-05 / RF-06):* Fluxo auditável e controlado entre Prospecção, Execução, Prestação de Contas e Encerrado/Cancelado.
-  2. *Auditoria Indelével e SoD:* Nenhuma fase muda sem registro gravado no banco com usuário, data/hora, fase de origem, fase de destino e justificativa.
-  3. *Anti-Bypass no Core da Aplicação:* Impossibilidade de contornar as validações de transição através de atualizações manuais no atributo `fase` do modelo.
+  * **Migrações Aplicadas:** `cadastros: 0068_historicotransicaofase` e `cadastros: 0069_alter_historicotransicaofase_projeto`.
 
-### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+### 2. Fechamento das Ressalvas Técnicas do Red Team (Auditoria GitHub Copilot):
+- **Achado 1 (Validação Técnica Gateway 2):** Implementada checagem obrigatória de existência de Plano de Trabalho ativo com Macroentregas cadastradas para transição `EXECUCAO -> PRESTACAO_CONTAS`.
+- **Achado 2 (Persistência do Congelamento):** Sincronização persistida de `plano.congelado = True` e `plano.status = 'CONGELADO_VIGENTE'` no banco de dados dentro de `transicionar_fase()`.
+- **Achado 3 (Anti-Bypass):** Validação consolidada no `save()`, com registro formal de que bypasses via `QuerySet.update()` são limitação arquitetural de baixo nível do ORM Django contornáveis apenas por triggers SQL.
+- **Achado 4 (Retenção Indelével do Histórico):** Alterado `HistoricoTransicaoFase.projeto` para `on_delete=models.PROTECT`, impedindo que projetos com histórico de auditoria sejam excluídos acidentalmente.
+- **Achado 5 (Correção de `verificar_pendencias`):** Eliminada a referência fantasma a `self.atividades_plano`, alinhando a consulta com `planos_trabalho.macroentregas`.
+- **Achado 6 (Cobertura RBAC do Coordenador):** Teste explícito adicionado em `CicloVidaProjetoTestCase.test_08_rbac_estrito_view_transicionar_fase` autenticando como Coordenador do Projeto (`self.user_coord`).
+- **Achado 7 (Alinhamento de Escopo SUAP):** Retificada a documentação: Termos de Doação SUAP pertencem formalmente ao módulo de Incorporação/Patrimônio pós-prestação de contas, mantendo o escopo da Etapa 6.6 focado na máquina de estados de projetos.
+
+### 3. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
 - `manage.py check`: 0 erros (System check identified no issues).
 - `manage.py test cadastros.tests.CicloVidaProjetoTestCase`: **8/8 testes OK (100%)**.
-- `manage.py test`: **200/200 testes automatizados aprovados (0 regressões)** em 93.48s (meta atingida: 192 → 200 testes).
+- `manage.py test`: **200/200 testes automatizados aprovados (0 regressões)** em 92.11s (meta atingida: 192 → 200 testes).
 - **Rastro SoD:** Arquiteto: Antigravity-Gemini | Red Team: GitHub Copilot | Implementador: Claude Desktop (Anthropic Claude 3.5 Sonnet) | Auditor/Tech Lead: Antigravity-Gemini | Homologador: GitHub Copilot / PO Geziel.
 
 ---
