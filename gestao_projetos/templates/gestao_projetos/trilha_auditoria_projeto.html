@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Trilha de Auditoria — {{ projeto.nome }} — ARGUS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+
+    {# ── Breadcrumb ── #}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1 small">
+            <li class="breadcrumb-item">
+                <a href="{% url 'gestao_projetos:home_gestao_projetos' %}">Gestão de Projetos</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Trilha de Auditoria</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    {# ── Cabeçalho ── #}
+    <div class="d-flex flex-wrap justify-content-between align-items-start mb-4 border-bottom pb-3 gap-2">
+        <div>
+            <h4 class="fw-bold mb-0 text-primary">
+                <i class="fas fa-shield-alt me-2"></i>Trilha de Auditoria e Conformidade Legal
+            </h4>
+            <p class="text-muted small mb-0 mt-1">
+                Histórico auditável (TCU / CGU / Auditoria IFAM) de alterações no projeto
+                <strong>{{ projeto.nome }}</strong>.
+            </p>
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <a href="{% url 'gestao_projetos:extrato_financeiro_projeto' projeto.id %}"
+               class="btn btn-outline-info btn-sm">
+                <i class="fas fa-balance-scale me-1"></i>Extrato Financeiro
+            </a>
+        </div>
+    </div>
+
+    {# ── Alerta de marco ── #}
+    <div class="alert alert-light border shadow-sm py-2 mb-4 small text-muted">
+        <i class="fas fa-info-circle text-primary me-2"></i>
+        <strong>Marco Inicial de Rastreabilidade:</strong>
+        Esta trilha captura integralmente os snapshots e deltas a partir da ativação
+        do Simple History no ARGUS. Registros anteriores à ativação não constam.
+    </div>
+
+    {# ── Cards de KPIs ── #}
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 border-start border-primary border-4 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between py-3">
+                    <div>
+                        <p class="text-xs fw-bold text-primary text-uppercase mb-1 small">Total de Eventos</p>
+                        <h3 class="fw-bold mb-0">{{ total_eventos }}</h3>
+                        <small class="text-muted">Registros de Auditoria</small>
+                    </div>
+                    <i class="fas fa-history fa-2x text-primary opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 border-start border-success border-4 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between py-3">
+                    <div>
+                        <p class="text-xs fw-bold text-success text-uppercase mb-1 small">Criações</p>
+                        <h3 class="fw-bold mb-0">{{ total_criacoes }}</h3>
+                        <small class="text-muted">Cadastros Iniciais</small>
+                    </div>
+                    <i class="fas fa-plus-circle fa-2x text-success opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 border-start border-warning border-4 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between py-3">
+                    <div>
+                        <p class="text-xs fw-bold text-warning text-uppercase mb-1 small">Modificações</p>
+                        <h3 class="fw-bold mb-0">{{ total_alteracoes }}</h3>
+                        <small class="text-muted">Alterações com Delta</small>
+                    </div>
+                    <i class="fas fa-edit fa-2x text-warning opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 border-start border-danger border-4 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between py-3">
+                    <div>
+                        <p class="text-xs fw-bold text-danger text-uppercase mb-1 small">Exclusões</p>
+                        <h3 class="fw-bold mb-0">{{ total_exclusoes }}</h3>
+                        <small class="text-muted">Registros Removidos</small>
+                    </div>
+                    <i class="fas fa-trash-alt fa-2x text-danger opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── Tabela de eventos ── #}
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="m-0 fw-bold text-uppercase small text-muted">
+                <i class="fas fa-stream text-secondary me-2"></i>Relação Cronológica de Eventos Auditados
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center ps-3" style="width:150px;">Data / Hora</th>
+                            <th class="text-center" style="width:110px;">Operação</th>
+                            <th class="text-center" style="width:160px;">Entidade</th>
+                            <th class="text-center">Identificador</th>
+                            <th class="text-center">Responsável</th>
+                            <th class="text-center pe-3">Detalhamento / Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for evento in eventos %}
+                        <tr>
+                            <td class="text-center ps-3 text-nowrap small">
+                                <i class="far fa-clock text-muted me-1"></i>
+                                {{ evento.data_hora|date:"d/m/Y H:i:s" }}
+                            </td>
+                            <td class="text-center">
+                                {% if evento.tipo_code == '+' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-plus me-1"></i>Criação
+                                    </span>
+                                {% elif evento.tipo_code == '~' %}
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-edit me-1"></i>Alteração
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-trash me-1"></i>Exclusão
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">{{ evento.entidade }}</span>
+                            </td>
+                            <td class="text-center small fw-semibold">
+                                {{ evento.identificador }}
+                            </td>
+                            <td class="text-center small">
+                                <i class="fas fa-user-circle text-muted me-1"></i>
+                                {{ evento.usuario }}
+                            </td>
+                            <td class="text-center pe-3">
+                                {% if evento.mudancas %}
+                                    <button class="btn btn-outline-info btn-sm py-0 px-2"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#delta-{{ forloop.counter }}"
+                                            aria-expanded="false">
+                                        <i class="fas fa-eye me-1"></i>
+                                        Ver {{ evento.mudancas|length }} alterações
+                                    </button>
+                                    <div class="collapse mt-2 text-start" id="delta-{{ forloop.counter }}">
+                                        <div class="card card-body bg-light border-0 p-2 small">
+                                            <ul class="list-unstyled mb-0">
+                                                {% for m in evento.mudancas %}
+                                                <li class="mb-1">
+                                                    <code>{{ m.campo }}</code>:
+                                                    <span class="text-danger text-decoration-line-through">
+                                                        {{ m.antigo|default:"(vazio)"|truncatechars:35 }}
+                                                    </span>
+                                                    <i class="fas fa-arrow-right mx-1 text-muted"></i>
+                                                    <span class="text-success fw-bold">
+                                                        {{ m.novo|default:"(vazio)"|truncatechars:35 }}
+                                                    </span>
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small">
+                                        {% if evento.tipo_code == '-' %}
+                                            Item Excluído
+                                        {% else %}
+                                            Registro Inicial / Sem Delta
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# ── Rodapé informativo ── #}
+    <p class="text-muted small mt-3 mb-5">
+        <i class="fas fa-info-circle me-1"></i>
+        Dados produzidos automaticamente pelo <strong>django-simple-history</strong>.
+        A trilha é imutável — nenhum evento pode ser excluído pelo sistema operacional.
+    </p>
+
+</div>
+{% endblock %}

@@ -62,4 +62,7 @@ urlpatterns = [
 
     # Painel de Indicadores Oficiais EMBRAPII (Fase 4 — Etapa 4.1)
     path('indicadores-embrapii/', views.painel_indicadores_embrapii, name='painel_indicadores_embrapii'),
+
+    # Trilha de Auditoria TCU/CGU com Simple History (Passo 4.3)
+    path('projeto/<int:projeto_id>/trilha-auditoria/', views.trilha_auditoria_projeto, name='trilha_auditoria_projeto'),
 ]

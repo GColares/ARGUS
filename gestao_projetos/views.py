@@ -2383,3 +2383,158 @@ def painel_indicadores_embrapii(request):
         'distribuicao_trl': distribuicao_trl,
     }
     return render(request, 'gestao_projetos/painel_indicadores_embrapii.html', context)
+
+
+# =====================================================================
+# TRILHA DE AUDITORIA TCU/CGU — SIMPLE HISTORY (Passo 4.3)
+# =====================================================================
+
+@login_required
+def trilha_auditoria_projeto(request, projeto_id):
+    """
+    Trilha de Auditoria e Conformidade para Órgãos de Controle (TCU, CGU, Auditoria IFAM).
+
+    - Consulta direta aos managers históricos (PlanoDeTrabalho.history,
+      CotaBolsaPT.history, RubricaOrcamentariaPT.history).
+    - Captura deltas (diff_against) e suporta objetos excluídos (history_type='-').
+    - RBAC: Superusuários, Staff, ou MembroEquipe do projeto
+      (papéis COORDENADOR, GESTOR ou ANALISTA).
+    """
+    from django.core.exceptions import PermissionDenied
+    from cadastros.models import (
+        ProjetoPDI, MembroEquipe,
+        PlanoDeTrabalho, CotaBolsaPT, RubricaOrcamentariaPT,
+    )
+
+    projeto = get_object_or_404(ProjetoPDI, pk=projeto_id)
+
+    # ── RBAC ──
+    is_admin = request.user.is_superuser or request.user.is_staff
+    is_membro_autorizado = MembroEquipe.objects.filter(
+        projeto=projeto,
+        usuario=request.user,
+        papel__in=['COORDENADOR', 'GESTOR', 'ANALISTA'],
+    ).exists()
+
+    if not (is_admin or is_membro_autorizado):
+        raise PermissionDenied("Acesso restrito à auditoria e gestão deste projeto.")
+
+    # ── IDs de planos (vivos + históricos) para rastrear rubricas deletadas ──
+    plano_ids_vivos = list(
+        PlanoDeTrabalho.objects.filter(projeto=projeto).values_list('id', flat=True)
+    )
+    plano_ids_historicos = list(
+        PlanoDeTrabalho.history.filter(projeto_id=projeto.id).values_list('id', flat=True)
+    )
+    todos_plano_ids = list(set(plano_ids_vivos + plano_ids_historicos))
+
+    eventos = []
+
+    # ── A) Planos de Trabalho ──
+    historico_planos = PlanoDeTrabalho.history.filter(
+        projeto_id=projeto.id
+    ).order_by('-history_date')
+
+    for h in historico_planos:
+        mudancas = []
+        if h.prev_record:
+            delta = h.diff_against(h.prev_record)
+            for change in delta.changes:
+                mudancas.append({
+                    'campo': change.field,
+                    'antigo': str(change.old) if change.old is not None else '',
+                    'novo':   str(change.new) if change.new is not None else '',
+                })
+        eventos.append({
+            'data_hora':    h.history_date,
+            'usuario':      (h.history_user.get_full_name() or h.history_user.username)
+                            if h.history_user else 'Sistema / Rotina Automática',
+            'tipo':         h.get_history_type_display(),
+            'tipo_code':    h.history_type,
+            'entidade':     'Plano de Trabalho',
+            'identificador': f"Plano V{h.versao or 1}",
+            'mudancas':     mudancas,
+        })
+
+    # ── B) Cotas de Bolsas ──
+    historico_cotas = CotaBolsaPT.history.filter(
+        projeto_id=projeto.id
+    ).order_by('-history_date')
+
+    for h in historico_cotas:
+        mudancas = []
+        if h.prev_record:
+            delta = h.diff_against(h.prev_record)
+            for change in delta.changes:
+                mudancas.append({
+                    'campo': change.field,
+                    'antigo': str(change.old) if change.old is not None else '',
+                    'novo':   str(change.new) if change.new is not None else '',
+                })
+        identificador_cota = (
+            f"{h.perfil_funcao or 'Perfil não informado'} "
+            f"({h.quantidade_vagas or 0} vaga(s))"
+        )
+        eventos.append({
+            'data_hora':    h.history_date,
+            'usuario':      (h.history_user.get_full_name() or h.history_user.username)
+                            if h.history_user else 'Sistema / Rotina Automática',
+            'tipo':         h.get_history_type_display(),
+            'tipo_code':    h.history_type,
+            'entidade':     'Cota de Bolsa',
+            'identificador': identificador_cota,
+            'mudancas':     mudancas,
+        })
+
+    # ── C) Rubricas Orçamentárias ──
+    historico_rubricas = RubricaOrcamentariaPT.history.filter(
+        plano_trabalho_id__in=todos_plano_ids
+    ).order_by('-history_date')
+
+    for h in historico_rubricas:
+        mudancas = []
+        if h.prev_record:
+            delta = h.diff_against(h.prev_record)
+            for change in delta.changes:
+                mudancas.append({
+                    'campo': change.field,
+                    'antigo': str(change.old) if change.old is not None else '',
+                    'novo':   str(change.new) if change.new is not None else '',
+                })
+        categoria_display = (
+            h.get_categoria_display()
+            if hasattr(h, 'get_categoria_display')
+            else h.categoria
+        )
+        identificador_rubrica = f"{categoria_display} ({h.fonte_recurso or '-'})"
+        eventos.append({
+            'data_hora':    h.history_date,
+            'usuario':      (h.history_user.get_full_name() or h.history_user.username)
+                            if h.history_user else 'Sistema / Rotina Automática',
+            'tipo':         h.get_history_type_display(),
+            'tipo_code':    h.history_type,
+            'entidade':     'Rubrica Orçamentária',
+            'identificador': identificador_rubrica,
+            'mudancas':     mudancas,
+        })
+
+    # ── Ordenação cronológica decrescente ──
+    eventos.sort(key=lambda x: x['data_hora'], reverse=True)
+
+    # ── Métricas de auditoria ──
+    total_eventos    = len(eventos)
+    total_criacoes   = sum(1 for e in eventos if e['tipo_code'] == '+')
+    total_alteracoes = sum(1 for e in eventos if e['tipo_code'] == '~')
+    total_exclusoes  = sum(1 for e in eventos if e['tipo_code'] == '-')
+    ultimo_evento    = eventos[0] if eventos else None
+
+    context = {
+        'projeto':          projeto,
+        'eventos':          eventos,
+        'total_eventos':    total_eventos,
+        'total_criacoes':   total_criacoes,
+        'total_alteracoes': total_alteracoes,
+        'total_exclusoes':  total_exclusoes,
+        'ultimo_evento':    ultimo_evento,
+    }
+    return render(request, 'gestao_projetos/trilha_auditoria_projeto.html', context)

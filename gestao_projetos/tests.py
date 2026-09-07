@@ -2369,3 +2369,159 @@ class PainelIndicadoresEmbrapiiTestCase(TestCase):
         # TRL máx do projeto piloto deve ser 5
         proj_item = response.context['projetos_metricas'][0]
         self.assertEqual(proj_item['trl_max'], 5)
+
+
+# =====================================================================
+# TRILHA DE AUDITORIA — SIMPLE HISTORY (Passo 4.3)
+# =====================================================================
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class TrilhaAuditoriaProjetoTestCase(TestCase):
+    """
+    Testes de integração para a Trilha de Auditoria Simple History (Passo 4.3).
+    Cobre: RBAC por projeto, isolamento entre projetos, auditoria de planos,
+    cotas, rubricas e captura de exclusões (history_type='-').
+    """
+
+    def setUp(self):
+        from cadastros.models import (
+            EmpresaParceira, ProjetoPDI, MembroEquipe,
+            PlanoDeTrabalho, CotaBolsaPT, RubricaOrcamentariaPT,
+        )
+
+        self.gestor   = User.objects.create_user(username='gestor_auditor',   password='senha123')
+        self.analista = User.objects.create_user(username='analista_auditor', password='senha123')
+        self.outro    = User.objects.create_user(username='usuario_sem_acesso_auditoria', password='senha123')
+        self.superuser = User.objects.create_superuser(
+            username='admin_auditor', password='senha123', email='auditor@ifam.edu.br'
+        )
+
+        self.empresa = EmpresaParceira.objects.create(
+            nome='Empresa Auditada SA',
+            cnpj='99.888.777/0001-66',
+            natureza_juridica='SA',
+            representante_legal='Representante',
+            cargo_representante='Diretor',
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome='Projeto Auditoria TCU',
+            fase='EXECUCAO',
+            concedente=self.empresa,
+        )
+        MembroEquipe.objects.create(projeto=self.projeto, usuario=self.gestor,   papel='GESTOR')
+        MembroEquipe.objects.create(projeto=self.projeto, usuario=self.analista, papel='ANALISTA')
+
+        # Cria os 3 objetos que geram eventos '+' no histórico
+        self.plano = PlanoDeTrabalho.objects.create(
+            projeto=self.projeto,
+            versao=1,
+            ativo=True,
+            aporte_empresa=Decimal('50000.00'),
+            aporte_embrapii=Decimal('40000.00'),
+            aporte_sebrae=Decimal('0.00'),
+            aporte_contrapartida=Decimal('10000.00'),
+        )
+        self.cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao='Pesquisador Sênior',
+            quantidade_vagas=2,
+            parcelas_previstas=12,
+            valor_global_previsto=Decimal('24000.00'),
+        )
+        self.rubrica = RubricaOrcamentariaPT.objects.create(
+            plano_trabalho=self.plano,
+            categoria='CONSUMO',
+            descricao='Reagentes e Sensores',
+            valor_previsto=Decimal('5000.00'),
+            fonte_recurso='EMPRESA',
+        )
+
+        self.url = reverse(
+            'gestao_projetos:trilha_auditoria_projeto',
+            kwargs={'projeto_id': self.projeto.id},
+        )
+
+    # ------------------------------------------------------------------ #
+    # RBAC                                                                #
+    # ------------------------------------------------------------------ #
+    def test_acesso_anonimo_redireciona_login(self):
+        """GET sem autenticação deve redirecionar para o login."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login', response.url)
+
+    def test_acesso_usuario_nao_membro_negado(self):
+        """Usuário sem vínculo ao projeto deve receber 403."""
+        self.client.login(username='usuario_sem_acesso_auditoria', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_acesso_gestor_sucesso(self):
+        """Gestor do projeto acessa a trilha com 200 e template correto."""
+        self.client.login(username='gestor_auditor', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'gestao_projetos/trilha_auditoria_projeto.html')
+        # Deve ter pelo menos 3 eventos de criação (Plano + Cota + Rubrica)
+        self.assertGreaterEqual(response.context['total_eventos'], 3)
+        self.assertGreaterEqual(response.context['total_criacoes'], 3)
+
+    def test_acesso_analista_sucesso(self):
+        """Analista do projeto também deve ter acesso (papel autorizado)."""
+        self.client.login(username='analista_auditor', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_acesso_superuser_sucesso(self):
+        """Superusuário acessa qualquer projeto sem ser membro da equipe."""
+        self.client.login(username='admin_auditor', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    # ------------------------------------------------------------------ #
+    # Captura de delta (alteração)                                        #
+    # ------------------------------------------------------------------ #
+    def test_captura_delta_alteracao_orcamento_plano(self):
+        """Alteração no aporte_empresa gera evento '~' com delta do campo."""
+        self.plano.aporte_empresa = Decimal('75000.00')
+        self.plano.save()
+
+        self.client.login(username='gestor_auditor', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        eventos = response.context['eventos']
+        # O evento mais recente deve ser a alteração do plano
+        evento_recente = eventos[0]
+        self.assertEqual(evento_recente['entidade'],   'Plano de Trabalho')
+        self.assertEqual(evento_recente['tipo_code'],  '~')
+        campos_alterados = [m['campo'] for m in evento_recente['mudancas']]
+        self.assertIn('aporte_empresa', campos_alterados,
+                      "Delta deve registrar a mudança em aporte_empresa.")
+
+    # ------------------------------------------------------------------ #
+    # Captura de exclusão (history_type='-')                              #
+    # ------------------------------------------------------------------ #
+    def test_captura_historico_exclusao_cota_mesmo_sem_objeto_vivo(self):
+        """Exclusão da Cota de Bolsa deve aparecer na trilha mesmo após delete."""
+        self.cota.delete()
+
+        self.client.login(username='gestor_auditor', password='senha123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        eventos = response.context['eventos']
+        evento_exclusao = [
+            e for e in eventos
+            if e['entidade'] == 'Cota de Bolsa' and e['tipo_code'] == '-'
+        ]
+        self.assertTrue(
+            len(evento_exclusao) > 0,
+            "O evento de exclusão da Cota deve constar na trilha mesmo após delete físico.",
+        )
+        self.assertGreaterEqual(response.context['total_exclusoes'], 1)

@@ -141,8 +141,16 @@ flowchart LR
      * View executiva `painel_indicadores_embrapii` com cálculo dinâmico de TRL médio, TRL máximo por projeto, agregação de alavancagem e Fundo de Reserva.
      * Template `painel_indicadores_embrapii.html` no Padrão Almoxarifado com barras visuais de distribuição TRL e KPIs dinâmicos.
      * Suíte de 7 testes automatizados `PainelIndicadoresEmbrapiiTestCase` em `gestao_projetos/tests.py`.
-2. **Trilha de Auditoria com Simple History:**
+2. **Trilha de Auditoria com Simple History (Passo 4.3):** `[CONCLUÍDO & HOMOLOGADO]`
    - Interface de visualização para auditores do TCU/CGU: delta de modificações em planos de trabalho, cotas de bolsas e movimentações orçamentárias.
+   - **Entrega Técnica (126/126 testes OK):**
+     * Ativação de `history = HistoricalRecords()` em `PlanoDeTrabalho`, `CotaBolsaPT` e `RubricaOrcamentariaPT` (`0065_add_history_plano_cota_rubrica.py`).
+     * Rota `projeto/<int:projeto_id>/trilha-auditoria/` registrada em `gestao_projetos/urls.py`.
+     * View executiva `trilha_auditoria_projeto` com consulta direta aos managers históricos de classe, garantindo captura de exclusões físicas (`history_type='-'`) e deltas campo a campo (`diff_against`).
+     * Template `trilha_auditoria_projeto.html` no Padrão Almoxarifado com 4 KPIs canônicos, alerta de marco inicial e deltas colapsáveis.
+     * Suíte de 7 testes automatizados `TrilhaAuditoriaProjetoTestCase` em `gestao_projetos/tests.py` cobrindo RBAC, alterações orçamentárias e deleção de cotas.
+
+> **Status da Fase 4:** 🎉 **100% CONCLUÍDA E HOMOLOGADA (126 TESTES VERDES)**.
 
 ---
 

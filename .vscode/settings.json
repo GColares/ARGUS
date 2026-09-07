@@ -18,5 +18,8 @@
     },
     "files.watcherExclude": {
         "**/.venv/**": true
-    }
+    },
+    "github.copilot.chat.agent.isolationMode": "workspace",
+    "chat.editing.alwaysUseWorktree": false,
+    "git.detectWorktrees": false
 }

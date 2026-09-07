@@ -1,5 +1,28 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Fase 4 — Passo 4.3: Trilha de Auditoria TCU/CGU com Simple History (Kiro)
+
+### 1. Entregas Realizadas pelo Kiro (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`cadastros/models.py`](cadastros/models.py) (Adicionado `history = HistoricalRecords()` em `PlanoDeTrabalho`, `CotaBolsaPT` e `RubricaOrcamentariaPT`).
+  * [`cadastros/migrations/0065_add_history_plano_cota_rubrica.py`](cadastros/migrations/0065_add_history_plano_cota_rubrica.py) (Migração não-destrutiva criando as 3 tabelas históricas: `HistoricalPlanoDeTrabalho`, `HistoricalCotaBolsaPT`, `HistoricalRubricaOrcamentariaPT`).
+  * [`gestao_projetos/urls.py`](gestao_projetos/urls.py) (Registrada a rota `projeto/<int:projeto_id>/trilha-auditoria/`).
+  * [`gestao_projetos/views.py`](gestao_projetos/views.py) (Implementação da view `trilha_auditoria_projeto` com consulta direta aos managers históricos de classe, permitindo captura de exclusões `history_type='-'`, mapeamento de deltas com `diff_against` e RBAC estrito de projeto).
+  * [`gestao_projetos/templates/gestao_projetos/trilha_auditoria_projeto.html`](gestao_projetos/templates/gestao_projetos/trilha_auditoria_projeto.html) (Template no Padrão Almoxarifado com 4 KPIs canônicos, alerta de marco de rastreabilidade e tabela com deltas expansíveis).
+  * [`gestao_projetos/tests.py`](gestao_projetos/tests.py) (Criação da suíte `TrilhaAuditoriaProjetoTestCase` com 7 testes de integração cobrindo RBAC, alterações em aportes e verificação de exclusão física sem objeto vivo).
+- **Ajustes de Negócio e Governança:**
+  1. *Conformidade TCU / CGU:* Rastreabilidade completa de todas as alterações, quem alterou, quando e deltas campo a campo em planos de trabalho, cotas de bolsas e orçamento.
+  2. *Resiliência contra Exclusões:* Graças à consulta direta aos managers históricos, itens excluídos do banco continuam preservados na trilha de auditoria para inspeção legal.
+  3. *Conclusão da Fase 4:* **100% da Fase 4 (BI Executivo, Auditoria & Prestação de Contas)** concluída com sucesso.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test gestao_projetos.tests.TrilhaAuditoriaProjetoTestCase`: **7/7 testes OK (100%)**.
+- **Total Global ARGUS: 126/126 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: Kiro | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Homologação Fase 4 — Etapa 4.2: Evolução de Schema para TRL em Macroentregas (IBM Bob)
 
 ### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):

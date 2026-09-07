@@ -207,6 +207,8 @@ class PlanoDeTrabalho(models.Model):
     ativo = models.BooleanField(default=True, verbose_name="Versão Vigente")
     data_criacao = models.DateTimeField(auto_now_add=True)
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = "Plano de Trabalho"
         verbose_name_plural = "Planos de Trabalho"
@@ -509,6 +511,8 @@ class RubricaOrcamentariaPT(models.Model):
     valor_previsto = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Valor Previsto (R$)")
     fonte_recurso = models.CharField(max_length=50, choices=FONTES, verbose_name="Fonte do Recurso")
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = "Rubrica Orçamentária"
         verbose_name_plural = "Rubricas Orçamentárias"
@@ -634,6 +638,8 @@ class CotaBolsaPT(models.Model):
     # Parâmetros globais aprovados no PT
     parcelas_previstas = models.PositiveIntegerField(verbose_name="Total de Parcelas Previstas")
     valor_global_previsto = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Valor Global Previsto (R$)")
+
+    history = HistoricalRecords()
 
     def __str__(self):
         termo = self.projeto.termo_parceria.numero if self.projeto.termo_parceria else "Sem Termo"
