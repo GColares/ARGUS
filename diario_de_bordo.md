@@ -1,5 +1,27 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-07] Homologação Fase 6 — Etapa 6.5: Esteira Ponta a Ponta de Prestação de Contas & Atesto SIAPE de Bolsas (Devin Desktop & Squad)
+
+### 1. Entregas Realizadas pelo Devin Desktop (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`gestao_projetos/models.py`](gestao_projetos/models.py) (Adicionado status `'EM_ANALISE'` ao `STATUS_CHOICES` de `RelatorioAtividade`: `PENDENTE` ➔ `EM_ANALISE` ➔ `CONCLUIDO`).
+  * [`gestao_projetos/views.py`](gestao_projetos/views.py) (Criada a view `submeter_relatorio` com RBAC de bolsista/criador/equipe, validação de conteúdo mínimo e transição atômica de `RelatorioAtividade` e `Parcela` para `EM_ANALISE`; atualizada a view `atestar_relatorio` com sincronização atômica para `parcela.status = 'APROVADO'`; e atualizada `alterar_relatorio` com congelamento a partir de `EM_ANALISE`).
+  * [`gestao_projetos/urls.py`](gestao_projetos/urls.py) (Registrada rota `relatorio/<int:relatorio_id>/submeter/`).
+  * [`gestao_projetos/templates/gestao_projetos/visualizar_relatorio.html`](gestao_projetos/templates/gestao_projetos/visualizar_relatorio.html) (Refatoração dos 3 estágios visuais canônicos: Rascunho cinza com botão "Submeter para Atesto", Em Análise azul com botão "Atestar Relatório (SIAPE)", e Homologado verde com carimbo digital e badge "APTO PARA PAGAMENTO").
+  * [`gestao_projetos/tests.py`](gestao_projetos/tests.py) (Criada a suíte `EsteiraPrestacaoContasTestCase` com 8 testes rigorosos: submissão com sucesso, rejeição de relatório vazio, RBAC 403, atesto atualizando parcela para `APROVADO`, trava SoD anti-auto-atesto, rejeição de usuário sem SIAPE, idempotência de relatório concluído e integração com liquidação em lote da folha FAEPI).
+- **Ajustes de Negócio e Governança:**
+  1. *Ciclo de Vida Fechado de Bolsas (RF-10, RF-11, RF-12):* Esteira fluida e auditável desde a submissão das atividades pelo bolsista até a liberação contábil para pagamento.
+  2. *Segregação de Funções e Integridade SIAPE (RN-08 e RN-09):* Trava estrita contra auto-homologação e garantia de assinatura digital por servidor público efetivo estável.
+  3. *Integridade Transacional (ACID):* Transições de status entre Relatório e Parcela estritamente encapsuladas em blocos `transaction.atomic()`.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros (System check identified no issues).
+- `manage.py test gestao_projetos.tests.EsteiraPrestacaoContasTestCase`: **8/8 testes OK (100%)**.
+- `manage.py test`: **192/192 testes automatizados aprovados (0 regressões)** em 86.22s (meta atingida: 184 → 192 testes).
+- **Rastro SoD:** Arquiteto: Antigravity-Gemini | Red Team: Devin Desktop & DeepSeek | Implementador: Devin Desktop | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-07] Homologação Fase 6 — Etapa 6.4: Travas Regulatórias de Planejamento Físico & Congelamento de Escopo (RN-07 e RN-10) (Devin Desktop & Squad)
 
 ### 1. Entregas Realizadas pelo Devin Desktop (Handoff Cirúrgico / SoD):

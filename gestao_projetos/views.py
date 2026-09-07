@@ -268,12 +268,12 @@ def alterar_relatorio(request, relatorio_id):
     from django.contrib import messages  # garante escopo em toda a função
     relatorio = get_object_or_404(RelatorioAtividade, id=relatorio_id)
 
-    # ── Trava de Congelamento (Passo 6): relatório homologado é imutável ──
-    if relatorio.status == 'CONCLUIDO':
+    # ── Trava de Congelamento (Passo 6): relatório submetido ou homologado é imutável ──
+    if relatorio.status in ['EM_ANALISE', 'CONCLUIDO']:
         messages.warning(
             request,
-            "Este Relatório de Atividades já foi homologado e está congelado. "
-            "Não é possível realizar alterações após o atesto do servidor."
+            "Este Relatório de Atividades já foi submetido ou homologado e está congelado. "
+            "Não é possível realizar alterações após a submissão ou atesto do servidor."
         )
         return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
 
@@ -1550,6 +1550,80 @@ def _gerar_docx_oficio(template_obj, contexto, nome_fallback):
 
 
 # =====================================================================
+# SUBMISSÃO DO RELATÓRIO DE ATIVIDADES (Passo 6 — Esteira de Prestação de Contas)
+# =====================================================================
+
+@login_required
+def submeter_relatorio(request, relatorio_id):
+    """
+    Submissão do relatório pelo bolsista para atesto SIAPE.
+
+    Regras de negócio implementadas:
+    1. Método exclusivo POST (redireciona em GET).
+    2. RBAC: apenas o bolsista vinculado, criador do relatório ou membro da equipe.
+    3. Validação de Conteúdo Mínimo: exige itens de atividade ou PDF assinado.
+    4. Transição Atômica: relatorio.status e parcela.status atualizados juntos.
+    """
+    from django.db import transaction
+
+    relatorio = get_object_or_404(RelatorioAtividade, id=relatorio_id)
+
+    # ── Redireciona em GET ──
+    if request.method != 'POST':
+        return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
+    # ── Resolve o projeto para RBAC ──
+    if relatorio.termo_bolsa:
+        projeto = relatorio.termo_bolsa.cota_pt.projeto
+        bolsista_pessoa = relatorio.termo_bolsa.pessoa
+    else:
+        projeto = relatorio.bolsista.projeto  # type: ignore[union-attr]
+        bolsista_pessoa = None  # Fallback legado
+
+    # ── RBAC: bolsista vinculado, criador ou membro da equipe ──
+    tem_permissao = False
+    if request.user.is_superuser:
+        tem_permissao = True
+    elif request.user == relatorio.criado_por:
+        tem_permissao = True
+    elif bolsista_pessoa and bolsista_pessoa.user_id == request.user.pk:
+        tem_permissao = True
+    elif MembroEquipe.objects.filter(projeto=projeto, usuario=request.user).exists():
+        tem_permissao = True
+
+    if not tem_permissao:
+        return HttpResponseForbidden("Acesso negado: Você não tem permissão para submeter este relatório.")
+
+    # ── Validação de Conteúdo Mínimo ──
+    if not relatorio.itens_atividade.exists() and not relatorio.arquivo_pdf:
+        messages.error(
+            request,
+            "Não é possível submeter um relatório vazio. Adicione itens de atividade ou anexe o PDF assinado."
+        )
+        return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
+    # ── Idempotência: já está em análise ou concluído ──
+    if relatorio.status in ['EM_ANALISE', 'CONCLUIDO']:
+        messages.info(request, "Este relatório já foi submetido ou está homologado.")
+        return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
+    # ── Transição Atômica ──
+    with transaction.atomic():
+        relatorio.status = 'EM_ANALISE'
+        relatorio.save()
+
+        if relatorio.parcela_referencia:
+            relatorio.parcela_referencia.status = 'EM_ANALISE'
+            relatorio.parcela_referencia.save()
+
+    messages.success(
+        request,
+        "Relatório submetido com sucesso! Aguardando atesto do servidor SIAPE."
+    )
+    return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
+
+# =====================================================================
 # ATESTO SIAPE DO RELATÓRIO DE ATIVIDADES (Passo 6 — Execução Financeira)
 # =====================================================================
 
@@ -1567,9 +1641,11 @@ def atestar_relatorio(request, relatorio_id):
     4. RBAC: apenas membros da equipe do projeto (ou superusuários) têm acesso.
     5. POST recebe cumpriu_carga_horaria e parecer_coordenador; grava atestado_por,
        data_atesto, siape_atesto e muda status para CONCLUIDO.
+    6. Sincronização atômica com Parcela: atualiza parcela.status para APROVADO.
     """
     from cadastros.decorators import servidor_efetivo_required
     from django.utils import timezone
+    from django.db import transaction
 
     # Aplica o decorator de servidor SIAPE programaticamente (permite uso em testes)
     relatorio = get_object_or_404(RelatorioAtividade, id=relatorio_id)
@@ -1608,6 +1684,16 @@ def atestar_relatorio(request, relatorio_id):
         messages.info(request, "Este Relatório já está homologado.")
         return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
 
+    # ── Permite atesto se status for EM_ANALISE ou PENDENTE ──
+    if relatorio.status not in ['EM_ANALISE', 'PENDENTE']:
+        messages.warning(
+            request,
+            "Este relatório não está em um estado que permite atesto (status atual: {}).".format(
+                relatorio.get_status_display()
+            )
+        )
+        return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
+
     # ── Segregação de Funções: impede auto-atesto do bolsista ──
     bolsista_pessoa_fisica = None
     if relatorio.termo_bolsa:
@@ -1623,17 +1709,23 @@ def atestar_relatorio(request, relatorio_id):
     if request.method != 'POST':
         return redirect('gestao_projetos:visualizar_relatorio', relatorio_id=relatorio_id)
 
-    # ── Grava o atesto ──
+    # ── Grava o atesto com transação atômica ──
     cumpriu = request.POST.get('cumpriu_carga_horaria') == '1'
     parecer = request.POST.get('parecer_coordenador', '').strip()
 
-    relatorio.cumpriu_carga_horaria = cumpriu
-    relatorio.parecer_coordenador = parecer or 'Desempenho satisfatório alinhado às metas do projeto.'
-    relatorio.atestado_por = request.user
-    relatorio.data_atesto = timezone.now()
-    relatorio.siape_atesto = siape
-    relatorio.status = 'CONCLUIDO'
-    relatorio.save()
+    with transaction.atomic():
+        relatorio.cumpriu_carga_horaria = cumpriu
+        relatorio.parecer_coordenador = parecer or 'Desempenho satisfatório alinhado às metas do projeto.'
+        relatorio.atestado_por = request.user
+        relatorio.data_atesto = timezone.now()
+        relatorio.siape_atesto = siape
+        relatorio.status = 'CONCLUIDO'
+        relatorio.save()
+
+        # Sincronização atômica com Parcela
+        if relatorio.parcela_referencia:
+            relatorio.parcela_referencia.status = 'APROVADO'
+            relatorio.parcela_referencia.save()
 
     messages.success(
         request,

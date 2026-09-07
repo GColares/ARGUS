@@ -8,7 +8,7 @@ from django.urls import reverse
 
 from cadastros.models import (
     EmpresaParceira, ProjetoPDI, CotaBolsaPT, TermoBolsa,
-    Parcela, PessoaFisica, ContaBancaria, MembroEquipe, DadoBancario,
+    Parcela, PessoaFisica, ContaBancaria, MembroEquipe, DadoBancario, PerfilServidor,
 )
 from gestao_projetos.models import RelatorioAtividade
 
@@ -2543,3 +2543,347 @@ class TrilhaAuditoriaProjetoTestCase(TestCase):
         self.client.login(username='coord_pf', password='123')
         resp = self.client.get(url_coord)
         self.assertEqual(resp.status_code, 200)
+
+
+# =====================================================================
+# FASE 6 — ETAPA 6.5: Esteira Ponta a Ponta de Prestação de Contas & Atesto SIAPE
+# =====================================================================
+
+class EsteiraPrestacaoContasTestCase(TestCase):
+    """
+    Bateria de testes de integração da esteira completa de prestação de contas.
+
+    Cobre:
+    a) Submissão do relatório pelo bolsista (transição PENDENTE → EM_ANALISE)
+    b) Sincronização atômica com Parcela
+    c) Atesto SIAPE com atualização da Parcela para APROVADO
+    d) RBAC estrito e SoD (auto-atesto bloqueado)
+    e) Validação de conteúdo mínimo
+    f) Idempotência de estados
+    g) Integração com liquidação de folha
+    """
+
+    def setUp(self):
+        # ── Servidor efetivo com SIAPE (atestante) ──
+        self.user_servidor = User.objects.create_user(
+            username='servidor_siape_pc',
+            password='senha123',
+            first_name='Ana',
+            last_name='Servidora',
+        )
+        self.pessoa_servidor = PessoaFisica.objects.create(
+            nome='Ana Servidora',
+            cpf='000.111.222-33',
+            user=self.user_servidor,
+        )
+        PerfilServidor.objects.create(
+            pessoa=self.pessoa_servidor,
+            siape='7654321',
+            cargo='Coordenador de Pesquisa',
+            lotacao='IFAM/Manaus',
+            ativo=True,
+        )
+
+        # ── Bolsista com User vinculado ──
+        self.user_bolsista = User.objects.create_user(
+            username='bolsista_pc',
+            password='senha123',
+        )
+        self.pessoa_bolsista = PessoaFisica.objects.create(
+            nome='Carlos Bolsista PC',
+            cpf='444.555.666-77',
+            user=self.user_bolsista,
+        )
+        DadoBancario.objects.create(
+            pessoa=self.pessoa_bolsista,
+            finalidade='PAGAMENTO_BOLSA',
+            banco_codigo='001',
+            agencia='0001',
+            conta='11111-1',
+            ativo=True,
+        )
+
+        # ── Estrutura do projeto ──
+        self.empresa = EmpresaParceira.objects.create(
+            nome='Empresa Prestação Contas LTDA',
+            cnpj='99.888.777/0001-66',
+            natureza_juridica='LTDA',
+            representante_legal='Rep PC',
+            cargo_representante='Diretor',
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome='Projeto Prestação Contas',
+            fase='EXECUCAO',
+            concedente=self.empresa,
+        )
+
+        # ── RBAC: servidor é membro da equipe ──
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=self.user_servidor,
+            papel='GESTOR',
+        )
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=self.user_bolsista,
+            papel='COLABORADOR',
+        )
+
+        # ── Cota, Termo e Parcela ──
+        self.cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao='Pesquisador Junior',
+            quantidade_vagas=1,
+            parcelas_previstas=2,
+            valor_global_previsto=Decimal('3000.00'),
+        )
+        self.termo = TermoBolsa.objects.create(
+            cota_pt=self.cota,
+            pessoa=self.pessoa_bolsista,
+            numero_termo='TB-PC-001',
+            vigencia_inicio=date(2026, 9, 1),
+            vigencia_fim=date(2026, 10, 31),
+            quantidade_parcelas=2,
+            valor_parcela=Decimal('1500.00'),
+        )
+        self.parcela = self.termo.parcelas.get(numero=1)
+
+        # ── Relatório PENDENTE base ──
+        self.relatorio = RelatorioAtividade.objects.create(
+            termo_bolsa=self.termo,
+            parcela_referencia=self.parcela,
+            criado_por=self.user_bolsista,
+            status='PENDENTE',
+            periodo_inicio=date(2026, 9, 1),
+            periodo_fim=date(2026, 9, 30),
+            carga_horaria_periodo=160,
+        )
+
+        # URLs
+        self.url_submeter = reverse(
+            'gestao_projetos:submeter_relatorio',
+            args=[self.relatorio.id],
+        )
+        self.url_atestar = reverse(
+            'gestao_projetos:atestar_relatorio',
+            args=[self.relatorio.id],
+        )
+        self.url_visualizar = reverse(
+            'gestao_projetos:visualizar_relatorio',
+            args=[self.relatorio.id],
+        )
+
+        self.client = Client()
+
+    # ------------------------------------------------------------------ #
+    # Teste a) Submissão do relatório com sucesso                        #
+    # ------------------------------------------------------------------ #
+    def test_01_submissao_relatorio_sucesso(self):
+        """Bolsista submete relatório preenchido ➔ relatorio.status == 'EM_ANALISE' e parcela.status == 'EM_ANALISE'."""
+        # Adiciona um item de atividade para validar conteúdo mínimo
+        from gestao_projetos.models import ItemAtividade
+        ItemAtividade.objects.create(
+            relatorio=self.relatorio,
+            atividade_mae=None,
+            periodo_execucao='01/09 a 30/09',
+            descricao='Atividade de teste',
+            carga_horaria_percentual='100%',
+        )
+
+        self.client.login(username='bolsista_pc', password='senha123')
+        response = self.client.post(self.url_submeter)
+
+        # Deve redirecionar para visualizar
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(str(self.relatorio.id), response['Location'])
+
+        # Verifica transição atômica
+        self.relatorio.refresh_from_db()
+        self.parcela.refresh_from_db()
+        self.assertEqual(self.relatorio.status, 'EM_ANALISE')
+        self.assertEqual(self.parcela.status, 'EM_ANALISE')
+
+    # ------------------------------------------------------------------ #
+    # Teste b) Submissão sem itens rejeitada                               #
+    # ------------------------------------------------------------------ #
+    def test_02_submissao_relatorio_sem_itens_rejeitada(self):
+        """Relatório vazio sem itens é rejeitado com mensagem de erro."""
+        self.client.login(username='bolsista_pc', password='senha123')
+        response = self.client.post(self.url_submeter)
+
+        # Deve redirecionar com erro
+        self.assertEqual(response.status_code, 302)
+
+        # Status não deve mudar
+        self.relatorio.refresh_from_db()
+        self.assertEqual(self.relatorio.status, 'PENDENTE')
+
+    # ------------------------------------------------------------------ #
+    # Teste c) RBAC estrito                                               #
+    # ------------------------------------------------------------------ #
+    def test_03_submissao_rbac_estrito(self):
+        """Usuário não vinculado ao projeto/bolsa recebe HttpResponseForbidden (403)."""
+        user_externo = User.objects.create_user('externo', password='senha123')
+        self.client.login(username='externo', password='senha123')
+
+        response = self.client.post(self.url_submeter)
+        self.assertEqual(response.status_code, 403)
+
+    # ------------------------------------------------------------------ #
+    # Teste d) Atesto atualiza Parcela para APROVADO                      #
+    # ------------------------------------------------------------------ #
+    def test_04_atesto_siape_atualiza_parcela_para_aprovado(self):
+        """Servidor efetivo atesta ➔ relatorio.status == 'CONCLUIDO' e parcela.status == 'APROVADO'."""
+        # Prepara: submete o relatório
+        from gestao_projetos.models import ItemAtividade
+        ItemAtividade.objects.create(
+            relatorio=self.relatorio,
+            atividade_mae=None,
+            periodo_execucao='01/09 a 30/09',
+            descricao='Atividade de teste',
+            carga_horaria_percentual='100%',
+        )
+        self.relatorio.status = 'EM_ANALISE'
+        self.relatorio.save()
+        self.parcela.status = 'EM_ANALISE'
+        self.parcela.save()
+
+        # Atesta
+        self.client.login(username='servidor_siape_pc', password='senha123')
+        response = self.client.post(self.url_atestar, {
+            'cumpriu_carga_horaria': '1',
+            'parecer_coordenador': 'Desempenho excelente.',
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+        # Verifica transição atômica
+        self.relatorio.refresh_from_db()
+        self.parcela.refresh_from_db()
+        self.assertEqual(self.relatorio.status, 'CONCLUIDO')
+        self.assertEqual(self.parcela.status, 'APROVADO')
+        self.assertIsNotNone(self.relatorio.atestado_por)
+        self.assertEqual(self.relatorio.siape_atesto, '7654321')
+
+    # ------------------------------------------------------------------ #
+    # Teste e) Trava SoD impede auto-atesto                                #
+    # ------------------------------------------------------------------ #
+    def test_05_trava_sod_impede_auto_atesto_bolsista(self):
+        """Bolsista com SIAPE não consegue atestar o próprio relatório (erro de SoD)."""
+        # Dá SIAPE ao bolsista para simular servidor
+        PerfilServidor.objects.create(
+            pessoa=self.pessoa_bolsista,
+            siape='9999999',
+            cargo='Professor',
+            lotacao='IFAM',
+            ativo=True,
+        )
+
+        self.client.login(username='bolsista_pc', password='senha123')
+        response = self.client.post(self.url_atestar, {
+            'cumpriu_carga_horaria': '1',
+        })
+
+        # Deve redirecionar com erro
+        self.assertEqual(response.status_code, 302)
+
+        # Status não deve mudar
+        self.relatorio.refresh_from_db()
+        self.assertEqual(self.relatorio.status, 'PENDENTE')
+
+    # ------------------------------------------------------------------ #
+    # Teste f) Usuário sem SIAPE rejeitado no atesto                       #
+    # ------------------------------------------------------------------ #
+    def test_06_usuario_sem_siape_rejeitado_no_atesto(self):
+        """Usuário sem SIAPE ativo é bloqueado no atesto."""
+        # Cria usuário sem SIAPE
+        user_sem_siape = User.objects.create_user('sem_siape', password='senha123')
+        pf_sem_siape = PessoaFisica.objects.create(
+            nome='Sem SIAPE',
+            cpf='888.999.000-11',
+            user=user_sem_siape,
+        )
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=user_sem_siape,
+            papel='GESTOR',
+        )
+
+        self.client.login(username='sem_siape', password='senha123')
+        response = self.client.post(self.url_atestar, {
+            'cumpriu_carga_horaria': '1',
+        })
+
+        # Deve redirecionar com erro
+        self.assertEqual(response.status_code, 302)
+
+        # Status não deve mudar
+        self.relatorio.refresh_from_db()
+        self.assertEqual(self.relatorio.status, 'PENDENTE')
+
+    # ------------------------------------------------------------------ #
+    # Teste g) Idempotência: relatório já concluído                       #
+    # ------------------------------------------------------------------ #
+    def test_07_idempotencia_relatorio_ja_concluido(self):
+        """Relatório já concluído não aceita re-atesto."""
+        self.relatorio.status = 'CONCLUIDO'
+        self.relatorio.atestado_por = self.user_servidor
+        self.relatorio.siape_atesto = '7654321'
+        self.relatorio.save()
+
+        self.client.login(username='servidor_siape_pc', password='senha123')
+        response = self.client.post(self.url_atestar, {
+            'cumpriu_carga_horaria': '1',
+        })
+
+        # Deve redirecionar sem erro (idempotente)
+        self.assertEqual(response.status_code, 302)
+
+    # ------------------------------------------------------------------ #
+    # Teste h) Integração com liquidação de folha                          #
+    # ------------------------------------------------------------------ #
+    def test_08_integracao_folha_liquidacao(self):
+        """Parcela APROVADO fica elegível e é liquidada com sucesso na liquidar_folha_lote (status PAGO)."""
+        # Prepara: relatório concluído e parcela aprovada
+        from gestao_projetos.models import ItemAtividade
+        ItemAtividade.objects.create(
+            relatorio=self.relatorio,
+            atividade_mae=None,
+            periodo_execucao='01/09 a 30/09',
+            descricao='Atividade de teste',
+            carga_horaria_percentual='100%',
+        )
+        self.relatorio.status = 'CONCLUIDO'
+        self.relatorio.atestado_por = self.user_servidor
+        self.relatorio.siape_atesto = '7654321'
+        self.relatorio.save()
+        self.parcela.status = 'APROVADO'
+        self.parcela.save()
+
+        # Cria conta bancária para pagamento
+        from cadastros.models import FonteDeRecurso, ContaBancaria
+        fonte = FonteDeRecurso.objects.create(nome='Empresa Parceira')
+        conta = ContaBancaria.objects.create(
+            projeto=self.projeto,
+            fonte_recurso=fonte,
+            banco='Banco do Brasil',
+            agencia='1234',
+            conta='10001',
+            dv='1',
+        )
+
+        # Liquidar
+        url_liquidar = reverse('gestao_projetos:liquidar_folha_lote', args=[self.projeto.id])
+        self.client.login(username='servidor_siape_pc', password='senha123')
+        response = self.client.post(url_liquidar, {
+            'parcelas_ids': [self.parcela.id],
+            'data_pagamento': '2026-09-30',
+            'conta_id': conta.id,
+        })
+
+        # Deve ter sucesso
+        self.assertEqual(response.status_code, 302)
+
+        # Verifica liquidação
+        self.parcela.refresh_from_db()
+        self.assertEqual(self.parcela.status, 'PAGO')

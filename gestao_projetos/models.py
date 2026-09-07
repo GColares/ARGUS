@@ -10,8 +10,9 @@ class RelatorioAtividade(models.Model):
     garantindo que apenas membros alocados no projeto manipulem o documento.
     """
     STATUS_CHOICES = [
-        ('PENDENTE', 'Aguardando Assinatura'),
-        ('CONCLUIDO', 'Assinado / Concluído'),
+        ('PENDENTE', 'Rascunho / Em Elaboração'),
+        ('EM_ANALISE', 'Submetido / Aguardando Atesto SIAPE'),
+        ('CONCLUIDO', 'Homologado / Atestado'),
     ]
 
     # Utilização de Lazy Reference ('app.Model') para evitar circular imports 

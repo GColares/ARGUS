@@ -23,6 +23,7 @@ urlpatterns = [
 
     path('relatorio/novo/', views.criar_relatorio, name='criar_relatorio'), # CREATE
     path('relatorio/<int:relatorio_id>/visualizar/', views.visualizar_relatorio, name='visualizar_relatorio'), # READ
+    path('relatorio/<int:relatorio_id>/submeter/', views.submeter_relatorio, name='submeter_relatorio'), # SUBMIT
     path('relatorio/<int:relatorio_id>/alterar/', views.alterar_relatorio, name='alterar_relatorio'), # UPDATE
     path('relatorio/<int:relatorio_id>/baixar/', views.baixar_relatorio_docx, name='baixar_relatorio_docx'), # DOWNLOAD
     path('relatorio/<int:relatorio_id>/excluir/', views.excluir_relatorio, name='excluir_relatorio'), # DELETE

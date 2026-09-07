@@ -37,13 +37,14 @@
     {% endif %}
 
     {# ══════════════════════════════════════════════════════════════════════
-       CARIMBO DE ATESTO — exibido quando status == 'CONCLUIDO'
+       ESTÁGIO CONCLUIDO — Carimbo Digital Completo
     ══════════════════════════════════════════════════════════════════════ #}
     {% if relatorio_obj.status == 'CONCLUIDO' %}
     <div class="card border-success shadow-sm mb-4" style="max-width: 900px; margin: 0 auto;">
         <div class="card-header bg-success text-white d-flex align-items-center gap-2 py-2">
             <i class="fas fa-stamp fa-lg"></i>
             <span class="fw-bold fs-6">RELATÓRIO HOMOLOGADO — ATESTO SIAPE REGISTRADO</span>
+            <span class="badge bg-white text-success ms-auto">APTO PARA PAGAMENTO</span>
         </div>
         <div class="card-body p-4">
             <div class="row g-3">
@@ -99,20 +100,20 @@
     </div>
 
     {# ══════════════════════════════════════════════════════════════════════
-       BOTÃO / MODAL DE ATESTO — exibido apenas quando status == 'PENDENTE'
+       ESTÁGIO EM_ANALISE — Aguardando Servidor
     ══════════════════════════════════════════════════════════════════════ #}
-    {% else %}
-    <div class="card border-warning shadow-sm mb-4" style="max-width: 900px; margin: 0 auto;">
-        <div class="card-header bg-warning text-dark d-flex align-items-center gap-2 py-2">
-            <i class="fas fa-clock fa-lg"></i>
-            <span class="fw-bold fs-6">AGUARDANDO HOMOLOGAÇÃO — ATESTO DO SERVIDOR</span>
+    {% elif relatorio_obj.status == 'EM_ANALISE' %}
+    <div class="card border-info shadow-sm mb-4" style="max-width: 900px; margin: 0 auto;">
+        <div class="card-header bg-info text-white d-flex align-items-center gap-2 py-2">
+            <i class="fas fa-hourglass-half fa-lg"></i>
+            <span class="fw-bold fs-6">RELATÓRIO SUBMETIDO — AGUARDANDO ATESTO SIAPE</span>
         </div>
         <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
             <p class="mb-0 text-muted small">
-                Este relatório ainda não foi homologado. Um <strong>Servidor Efetivo com matrícula SIAPE</strong>
-                deve atestar o cumprimento das atividades e da carga horária do período.
+                Este relatório foi submetido pelo bolsista e aguarda homologação por um
+                <strong>Servidor Efetivo com matrícula SIAPE</strong>.
             </p>
-            <button type="button" class="btn btn-warning fw-bold px-4" data-bs-toggle="modal" data-bs-target="#modalAtesto">
+            <button type="button" class="btn btn-info fw-bold px-4" data-bs-toggle="modal" data-bs-target="#modalAtesto">
                 <i class="fas fa-stamp me-1"></i> Atestar Relatório (SIAPE)
             </button>
         </div>
@@ -124,7 +125,7 @@
             <div class="modal-content">
                 <form method="POST" action="{% url 'gestao_projetos:atestar_relatorio' relatorio_obj.id %}">
                     {% csrf_token %}
-                    <div class="modal-header bg-warning text-dark">
+                    <div class="modal-header bg-info text-white">
                         <h5 class="modal-title" id="modalALabel">
                             <i class="fas fa-stamp me-2"></i>Homologar Relatório de Atividades
                         </h5>
@@ -192,12 +193,35 @@
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                             Cancelar
                         </button>
-                        <button type="submit" class="btn btn-warning fw-bold">
+                        <button type="submit" class="btn btn-info fw-bold">
                             <i class="fas fa-stamp me-1"></i> Confirmar Atesto
                         </button>
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════
+       ESTÁGIO PENDENTE — Rascunho / Em Elaboração
+    ══════════════════════════════════════════════════════════════════════ #}
+    {% else %}
+    <div class="card border-secondary shadow-sm mb-4" style="max-width: 900px; margin: 0 auto;">
+        <div class="card-header bg-secondary text-white d-flex align-items-center gap-2 py-2">
+            <i class="fas fa-edit fa-lg"></i>
+            <span class="fw-bold fs-6">RELATÓRIO EM ELABORAÇÃO — RASCUNHO</span>
+        </div>
+        <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <p class="mb-0 text-muted small">
+                Este relatório ainda está em elaboração. Revise as atividades, anexe o PDF assinado
+                e submeta para atesto quando estiver pronto.
+            </p>
+            <form method="POST" action="{% url 'gestao_projetos:submeter_relatorio' relatorio_obj.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary fw-bold px-4" onclick="return confirm('Deseja submeter este relatório para atesto? Após a submissão, não será possível editar.')">
+                    <i class="fas fa-paper-plane me-1"></i> Submeter Relatório para Atesto
+                </button>
+            </form>
         </div>
     </div>
     {% endif %}
