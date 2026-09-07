@@ -1,6 +1,6 @@
 from simple_history.models import HistoricalRecords
 # pyrefly: ignore [untyped-import]
-from django.db import models
+from django.db import models, transaction
 # pyrefly: ignore [untyped-import]
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -317,14 +317,59 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 @receiver(post_save, sender=OrdemServico)
-def dar_baixa_estoque(sender, instance, created, **kwargs):
-    # Quando o status muda para CONCLUIDA e o estoque ainda não foi baixado, debita do almoxarifado
+def gerenciar_estoque_ordem_servico(sender, instance, created, **kwargs):
+    """Debita ou estorna os materiais de uma ordem de serviço atomicamente."""
     if instance.status == 'CONCLUIDA' and not instance.estoque_baixado:
-        for material in instance.materiais.all():
-            if material.produto_almoxarifado.quantidade >= material.quantidade:
-                material.produto_almoxarifado.quantidade -= material.quantidade
-                material.produto_almoxarifado.save()
-        
-        # Atualiza o banco direto para evitar loop no post_save
-        OrdemServico.objects.filter(pk=instance.pk).update(estoque_baixado=True)
-        instance.estoque_baixado = True
+        with transaction.atomic():
+            materiais = list(
+                instance.materiais.select_related('produto_almoxarifado').all()
+            )
+            if not materiais:
+                OrdemServico.objects.filter(pk=instance.pk).update(estoque_baixado=True)
+                instance.estoque_baixado = True
+                return
+
+            produto_ids = sorted({material.produto_almoxarifado_id for material in materiais})
+            produtos = {
+                produto.pk: produto
+                for produto in ProdutoAlmoxarifado.objects.select_for_update().filter(
+                    pk__in=produto_ids
+                )
+            }
+
+            for material in materiais:
+                produto = produtos[material.produto_almoxarifado_id]
+                if produto.quantidade < material.quantidade:
+                    raise ValidationError(
+                        f"Saldo insuficiente para o insumo '{produto.descricao[:30]}'. "
+                        f"Disponível: {produto.quantidade}, Solicitado: {material.quantidade}"
+                    )
+
+            for material in materiais:
+                produto = produtos[material.produto_almoxarifado_id]
+                produto.quantidade -= material.quantidade
+                produto.save(update_fields=['quantidade'])
+
+            OrdemServico.objects.filter(pk=instance.pk).update(estoque_baixado=True)
+            instance.estoque_baixado = True
+
+    elif instance.status == 'CANCELADA' and instance.estoque_baixado:
+        with transaction.atomic():
+            materiais = list(
+                instance.materiais.select_related('produto_almoxarifado').all()
+            )
+            produto_ids = sorted({material.produto_almoxarifado_id for material in materiais})
+            produtos = {
+                produto.pk: produto
+                for produto in ProdutoAlmoxarifado.objects.select_for_update().filter(
+                    pk__in=produto_ids
+                )
+            }
+
+            for material in materiais:
+                produto = produtos[material.produto_almoxarifado_id]
+                produto.quantidade += material.quantidade
+                produto.save(update_fields=['quantidade'])
+
+            OrdemServico.objects.filter(pk=instance.pk).update(estoque_baixado=False)
+            instance.estoque_baixado = False

@@ -1,5 +1,16 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Implementação — Fase 5 / Etapa 5.2: Baixa Atômica e Suíte da Central de Serviços
+
+### Entregas
+- Refinado o signal de estoque em `central_servicos/models.py` com transação atômica, bloqueio `select_for_update()`, validação prévia de todos os materiais e estorno em cancelamento.
+- Criada a suíte `CentralServicosOSTestCase` em `central_servicos/tests.py` com 8 testes de dashboard, OS, materiais, baixa, saldo insuficiente, estorno, RBAC de cancelamento e relatório por status.
+
+### Verificação
+- `python manage.py check`: 0 erros.
+- `python manage.py test central_servicos.tests.CentralServicosOSTestCase`: 8/8 testes OK.
+- `python manage.py test`: 143/143 testes OK, sem regressões.
+
 ## [2026-09-06] Homologação Fase 5 — Etapa 5.1: Suíte de Testes do Almoxarifado (Kiro & Antigravity)
 
 ### 1. Entregas Realizadas pelo Squad (Handoff Cirúrgico / SoD):
