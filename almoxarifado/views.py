@@ -252,7 +252,7 @@ def detalhe_nota_almoxarifado(request, pk):
     
     # 2. Busca todos os projetos para preencher o select de "Projeto Vinculado"
     # IMPORTANTE: Substitua 'Projeto' pelo nome exato do Model que você criou para os projetos
-    projetos_lista = ProjetoPDI.objects.all().order_by('convenio')
+    projetos_lista = ProjetoPDI.objects.all().order_by('nome')
 
 
     # =====================================================================

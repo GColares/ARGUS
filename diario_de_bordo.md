@@ -1,5 +1,25 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Homologação Fase 5 — Etapa 5.1: Suíte de Testes do Almoxarifado (Kiro & Antigravity)
+
+### 1. Entregas Realizadas pelo Squad (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`almoxarifado/tests.py`](almoxarifado/tests.py) (Criação da suíte `AlmoxarifadoTestCase` com 8 testes unitários e de integração cobrindo o dashboard, tolerância de centavos, unicidade de notas, bloqueio/liberação de servidor efetivo SIAPE e upload seguro de PDF).
+  * [`almoxarifado/views.py`](almoxarifado/views.py) (Correção do bug pré-existente na view `detalhe_nota_almoxarifado`, substituindo `order_by('convenio')` pelo campo canônico `order_by('nome')`).
+  * [`almoxarifado/templates/almoxarifado/detalhe_nota.html`](almoxarifado/templates/almoxarifado/detalhe_nota.html) (Correção de `TemplateSyntaxError` na linha 208, unificando a tag `{% if %}` em linha única).
+- **Ajustes de Negócio e Governança:**
+  1. *Blindagem Institucional:* Rastreamento do Termo RME blindado pelo decorator `@servidor_efetivo_required` tanto via caminho canônico (`PessoaFisica` + `PerfilServidor`) quanto pelo legado.
+  2. *Segurança Fiscal:* Trava de líquido de nota e regra de tolerância de até 2 centavos em `inconsistencia_produtos`.
+  3. *Conclusão da Etapa 5.1:* Módulo de almoxarifado totalmente coberto por testes automatizados.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test almoxarifado.tests.AlmoxarifadoTestCase`: **8/8 testes OK (100%)**.
+- **Total Global ARGUS: 135/135 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador inicial: Kiro | Resgate & Bugfix: Antigravity-Gemini | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Ajuste de RBAC na Trilha de Auditoria — Correção de Acesso para Coordenador com PessoaFisica (IBM Bob)
 
 ### 1. Contexto e Motivação:

@@ -205,8 +205,7 @@
                     {{ nota.usuario_recebedor.get_full_name|default:nota.usuario_recebedor.username }}
                     {% if nota.usuario_recebedor.perfil %}
                     <span class="badge bg-light text-secondary border fw-semibold" style="font-size: 0.70rem;">
-                        {% if nota.usuario_recebedor.perfil.vinculo == 'SERVIDOR' and
-                        nota.usuario_recebedor.perfil.siape %}
+                        {% if nota.usuario_recebedor.perfil.vinculo == 'SERVIDOR' and nota.usuario_recebedor.perfil.siape %}
                         SIAPE {{ nota.usuario_recebedor.perfil.siape }}
                         {% elif nota.usuario_recebedor.perfil.vinculo == 'TERCEIRIZADO' %}
                         Terceirizado
