@@ -2408,16 +2408,20 @@ def trilha_auditoria_projeto(request, projeto_id):
 
     projeto = get_object_or_404(ProjetoPDI, pk=projeto_id)
 
-    # ── RBAC ──
+    # ── RBAC Estrito ARGUS ──
     is_admin = request.user.is_superuser or request.user.is_staff
+    is_coordenador = bool(
+        projeto.coordenador_id
+        and projeto.coordenador.user_id == request.user.id
+    )
     is_membro_autorizado = MembroEquipe.objects.filter(
         projeto=projeto,
         usuario=request.user,
         papel__in=['COORDENADOR', 'GESTOR', 'ANALISTA'],
     ).exists()
 
-    if not (is_admin or is_membro_autorizado):
-        raise PermissionDenied("Acesso restrito à auditoria e gestão deste projeto.")
+    if not (is_admin or is_coordenador or is_membro_autorizado):
+        raise PermissionDenied("Acesso restrito à auditoria e equipe gestora deste projeto.")
 
     # ── IDs de planos (vivos + históricos) para rastrear rubricas deletadas ──
     plano_ids_vivos = list(

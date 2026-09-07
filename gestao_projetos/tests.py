@@ -2525,3 +2525,21 @@ class TrilhaAuditoriaProjetoTestCase(TestCase):
             "O evento de exclusão da Cota deve constar na trilha mesmo após delete físico.",
         )
         self.assertGreaterEqual(response.context['total_exclusoes'], 1)
+
+    def test_acesso_liberado_coordenador_direto_pessoa_fisica(self):
+        """Coordenador com PessoaFisica vinculada ao User tem acesso liberado (HTTP 200)."""
+        from cadastros.models import PessoaFisica
+        coord_user = User.objects.create_user(username='coord_pf', password='123')
+        pf_coord = PessoaFisica.objects.create(
+            nome="Coordenador PF",
+            cpf="111.222.333-44",
+            user=coord_user
+        )
+        projeto_coord = ProjetoPDI.objects.create(
+            nome="Projeto Coordenador Avulso",
+            coordenador=pf_coord
+        )
+        url_coord = reverse('gestao_projetos:trilha_auditoria_projeto', args=[projeto_coord.id])
+        self.client.login(username='coord_pf', password='123')
+        resp = self.client.get(url_coord)
+        self.assertEqual(resp.status_code, 200)

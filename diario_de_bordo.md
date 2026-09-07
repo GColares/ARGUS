@@ -1,5 +1,27 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-06] Ajuste de RBAC na Trilha de Auditoria — Correção de Acesso para Coordenador com PessoaFisica (IBM Bob)
+
+### 1. Contexto e Motivação:
+Após homologação inicial do Passo 4.3, foi identificado um bug crítico no RBAC: coordenadores que possuem `PessoaFisica` vinculada ao `User` estavam recebendo acesso negado indevidamente. O Kiro realizou análise crítica e aprovou a correção pela Arquitetura.
+
+### 2. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`gestao_projetos/views.py`](gestao_projetos/views.py) (Linhas ~2411-2420: Adicionada verificação `is_coordenador` via `projeto.coordenador.user_id == request.user.id`).
+  * [`gestao_projetos/tests.py`](gestao_projetos/tests.py) (Adicionado teste `test_acesso_liberado_coordenador_direto_pessoa_fisica` cobrindo coordenador com PessoaFisica vinculada).
+- **Ajustes de Negócio e Governança:**
+  1. *Correção do Bug de Acesso:* Coordenadores com `PessoaFisica` vinculada ao `User` agora têm acesso liberado corretamente.
+  2. *Manutenção da Segurança:* Mantido `raise PermissionDenied` com mensagem descritiva e sem adição de campo `ativo` (decisão arquitetural).
+  3. *Lógica de Três Vias:* RBAC agora cobre Admin + Coordenador Direto + MembroEquipe autorizado.
+
+### 3. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test gestao_projetos.tests.TrilhaAuditoriaProjetoTestCase`: **8/8 testes OK (100%)** (7 originais + 1 novo).
+- **Total Global ARGUS: 127/127 testes automatizados aprovados (0 regressões).**
+- **Rastro SoD:** Implementador: IBM Bob | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Homologação Fase 4 — Passo 4.3: Trilha de Auditoria TCU/CGU com Simple History (Kiro)
 
 ### 1. Entregas Realizadas pelo Kiro (Handoff Cirúrgico / SoD):
