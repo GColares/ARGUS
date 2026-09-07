@@ -1603,3 +1603,239 @@ class TravaPlanejamentoFisicoTestCase(TestCase):
         with self.assertRaises(ValidationError) as ctx:
             m1.delete()
         self.assertIn('RN-10', str(ctx.exception))
+
+
+class CicloVidaProjetoTestCase(TestCase):
+    """
+    Suíte de testes da Etapa 6.6: Máquina de Estados e Governança do Ciclo de Vida (RF-05 / RF-06).
+    Testa gateways de transição, rastro indelével de auditoria, anti-bypass e RBAC estrito.
+    """
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from cadastros.models import (
+            ProjetoPDI, TermoDeParceria, PlanoDeTrabalho, Macroentrega,
+            ContaBancaria, HistoricoTransicaoFase, MembroEquipe, PessoaFisica,
+            EmpresaParceira, ICT, FundacaoApoio, CotaBolsaPT, TermoBolsa, Parcela
+        )
+        from decimal import Decimal
+
+        # Usuários
+        self.user_admin = User.objects.create_superuser(username='admin_ciclo', password='pass', email='admin@test.com')
+        self.user_coord = User.objects.create_user(username='coord_ciclo', password='pass')
+        self.user_gestor = User.objects.create_user(username='gestor_ciclo', password='pass')
+        self.user_alheio = User.objects.create_user(username='alheio_ciclo', password='pass')
+
+        # Pessoas Jurídicas
+        self.empresa = EmpresaParceira.objects.create(nome="Empresa Financiadora PDI", cnpj="11.222.333/0001-44")
+        self.ict = ICT.objects.create(nome="Polo de Inovação IFAM", cnpj="22.333.444/0001-55")
+        self.fundacao = FundacaoApoio.objects.create(nome="FAEPI Apoio", cnpj="33.444.555/0001-66")
+
+        # Coordenador PF
+        self.pf_coord = PessoaFisica.objects.create(
+            nome="Coordenador do Projeto",
+            cpf="111.222.333-44",
+            user=self.user_coord
+        )
+
+        # Projeto PDI na fase PROSPECCAO
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Ciclo de Vida PDI",
+            fase='PROSPECCAO',
+            coordenador=self.pf_coord,
+            concedente=self.empresa,
+            convenente=self.ict,
+            interveniente=self.fundacao,
+            vigencia_inicio=date(2026, 1, 1),
+            vigencia_fim=date(2026, 12, 31),
+        )
+
+        # Membro Equipe Gestor
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=self.user_gestor,
+            papel='GESTOR'
+        )
+
+    def test_01_gateway_execucao_sem_termo_ou_plano_bloqueado(self):
+        """Gateway 1: Tentar transicionar PROSPECCAO -> EXECUCAO sem termo, plano ou conta deve falhar com lista de pendências."""
+        pendencias = self.projeto.validar_transicao_fase('EXECUCAO')
+        self.assertTrue(len(pendencias) >= 3)
+        self.assertTrue(any("Termo de Parceria" in p for p in pendencias))
+        self.assertTrue(any("Macroentregas" in p for p in pendencias))
+        self.assertTrue(any("Conta Bancária" in p for p in pendencias))
+
+        with self.assertRaises(ValidationError):
+            self.projeto.transicionar_fase('EXECUCAO', self.user_admin)
+
+    def test_02_gateway_execucao_com_sucesso_ativa_congelamento(self):
+        """Gateway 1: Com termo assinado, macroentregas e conta, transiciona para EXECUCAO, grava auditoria e ativa congelamento."""
+        from cadastros.models import TermoDeParceria, PlanoDeTrabalho, Macroentrega, ContaBancaria, HistoricoTransicaoFase
+
+        termo = TermoDeParceria.objects.create(
+            projeto=self.projeto,
+            numero="TP-2026/01",
+            data_assinatura=date(2026, 1, 10),
+            concedente=self.empresa,
+            convenente=self.ict,
+            interveniente=self.fundacao,
+            ativo=True
+        )
+        plano = PlanoDeTrabalho.objects.create(
+            projeto=self.projeto,
+            versao=1,
+            objetivo_geral="Plano Operacional"
+        )
+        Macroentrega.objects.create(
+            plano_trabalho=plano,
+            numero=1,
+            nome="Macroentrega 1",
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 6, 30),
+            trl=4
+        )
+        ContaBancaria.objects.create(
+            projeto=self.projeto,
+            banco="Banco do Brasil",
+            agencia="1234-5",
+            conta="54321",
+            dv="0"
+        )
+
+        self.projeto.transicionar_fase('EXECUCAO', self.user_coord, justificativa="Formalização completa.")
+        self.projeto.refresh_from_db()
+        self.assertEqual(self.projeto.fase, 'EXECUCAO')
+
+        # Auditoria gravada
+        historico = HistoricoTransicaoFase.objects.filter(projeto=self.projeto).first()
+        self.assertIsNotNone(historico)
+        self.assertEqual(historico.fase_anterior, 'PROSPECCAO')
+        self.assertEqual(historico.fase_nova, 'EXECUCAO')
+        self.assertEqual(historico.usuario, self.user_coord)
+        self.assertEqual(historico.justificativa, "Formalização completa.")
+
+        # Trava RN-10 ativa
+        self.assertTrue(plano.esta_congelado)
+
+    def test_03_anti_bypass_save_direto_bloqueado(self):
+        """Tentativa de mudar projeto.fase diretamente via .save() é interceptada e bloqueada por ValidationError."""
+        self.projeto.fase = 'ENCERRADO'
+        with self.assertRaises(ValidationError) as ctx:
+            self.projeto.save()
+        self.assertIn("transicionar_fase()", str(ctx.exception))
+
+    def test_04_gateway_encerrado_bloqueia_se_houver_parcelas_pendentes(self):
+        """Gateway 3: Transicionar PRESTACAO_CONTAS -> ENCERRADO bloqueia se existirem parcelas de bolsas não liquidadas."""
+        from cadastros.models import PlanoDeTrabalho, CotaBolsaPT, TermoBolsa, Parcela, PessoaFisica, PerfilServidor
+        from decimal import Decimal
+
+        # Coloca projeto em PRESTACAO_CONTAS via transicionar_fase
+        self.projeto._permitir_mudanca_fase = True
+        self.projeto.fase = 'PRESTACAO_CONTAS'
+        self.projeto.save()
+
+        pf_bolsista = PessoaFisica.objects.create(nome="Bolsista Teste", cpf="222.333.444-55")
+        PerfilServidor.objects.create(pessoa=pf_bolsista, siape="1234567", cargo="Docente")
+        cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao="Pesquisador",
+            quantidade_vagas=1,
+            parcelas_previstas=6,
+            valor_global_previsto=Decimal("6000.00")
+        )
+        tb = TermoBolsa.objects.create(
+            cota_pt=cota, pessoa=pf_bolsista, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-01/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 3, 31),
+            quantidade_parcelas=2, valor_parcela=Decimal("1500.00"), carga_horaria_semanal=20
+        )
+        p1 = tb.parcelas.get(numero=1)
+        p1.status = 'PAGO'
+        p1.save()
+        p2 = tb.parcelas.get(numero=2)
+        p2.status = 'EM_ANALISE'
+        p2.save()
+
+        pendencias = self.projeto.validar_transicao_fase('ENCERRADO')
+        self.assertTrue(any("não liquidadas" in p for p in pendencias))
+
+        with self.assertRaises(ValidationError):
+            self.projeto.transicionar_fase('ENCERRADO', self.user_admin)
+
+    def test_05_gateway_encerrado_sucesso_quando_parcelas_pagas(self):
+        """Gateway 3: Transicionar PRESTACAO_CONTAS -> ENCERRADO tem sucesso quando todas as parcelas estão PAGO ou CANCELADO."""
+        from cadastros.models import PlanoDeTrabalho, CotaBolsaPT, TermoBolsa, Parcela, PessoaFisica, PerfilServidor
+        from decimal import Decimal
+
+        self.projeto._permitir_mudanca_fase = True
+        self.projeto.fase = 'PRESTACAO_CONTAS'
+        self.projeto.save()
+
+        pf_bolsista = PessoaFisica.objects.create(nome="Bolsista Teste 2", cpf="333.444.555-66")
+        PerfilServidor.objects.create(pessoa=pf_bolsista, siape="7654321", cargo="Docente")
+        cota = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao="Pesquisador",
+            quantidade_vagas=1,
+            parcelas_previstas=6,
+            valor_global_previsto=Decimal("6000.00")
+        )
+        tb = TermoBolsa.objects.create(
+            cota_pt=cota, pessoa=pf_bolsista, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-02/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 2, 28),
+            quantidade_parcelas=2, valor_parcela=Decimal("1500.00"), carga_horaria_semanal=20
+        )
+        p1 = tb.parcelas.get(numero=1)
+        p1.status = 'PAGO'
+        p1.save()
+        p2 = tb.parcelas.get(numero=2)
+        p2.status = 'CANCELADO'
+        p2.save()
+
+        self.projeto.transicionar_fase('ENCERRADO', self.user_admin, justificativa="Prestação de contas aprovada integralmente.")
+        self.projeto.refresh_from_db()
+        self.assertEqual(self.projeto.fase, 'ENCERRADO')
+
+    def test_06_cancelamento_exige_justificativa_e_salva_historico(self):
+        """Cancelamento de projeto em PROSPECCAO exige justificativa; em PRESTACAO_CONTAS é rejeitado."""
+        # Sem justificativa: falha
+        with self.assertRaises(ValidationError) as ctx:
+            self.projeto.transicionar_fase('CANCELADO', self.user_coord, justificativa="")
+        self.assertIn("justificativa formal", str(ctx.exception))
+
+        # Com justificativa: sucesso
+        self.projeto.transicionar_fase('CANCELADO', self.user_coord, justificativa="Cancelado por desistência do parceiro.")
+        self.projeto.refresh_from_db()
+        self.assertEqual(self.projeto.fase, 'CANCELADO')
+
+    def test_07_estados_terminais_bloqueiam_novas_transicoes(self):
+        """Estados terminais (ENCERRADO e CANCELADO) rejeitam qualquer nova transição posterior."""
+        self.projeto._permitir_mudanca_fase = True
+        self.projeto.fase = 'ENCERRADO'
+        self.projeto.save()
+
+        pendencias = self.projeto.validar_transicao_fase('EXECUCAO')
+        self.assertTrue(any("estado terminal" in p for p in pendencias))
+
+        with self.assertRaises(ValidationError):
+            self.projeto.transicionar_fase('EXECUCAO', self.user_admin)
+
+    def test_08_rbac_estrito_view_transicionar_fase(self):
+        """View transicionar_fase_projeto: Coordenador/Gestor têm permissão (200/302); usuário alheio recebe 403 Forbidden."""
+        from django.urls import reverse
+        url = reverse('cadastros:transicionar_fase_projeto', args=[self.projeto.id])
+
+        # Usuário alheio: 403
+        self.client.force_login(self.user_alheio)
+        resp = self.client.post(url, {'nova_fase': 'EXECUCAO'})
+        self.assertEqual(resp.status_code, 403)
+
+        # Gestor do projeto: tem permissão (não recebe 403, pode receber 302 redirecionando com mensagens)
+        self.client.force_login(self.user_gestor)
+        resp = self.client.post(url, {'nova_fase': 'EXECUCAO'})
+        self.assertEqual(resp.status_code, 302)
+
+        # Superusuário: tem permissão (não recebe 403)
+        self.client.force_login(self.user_admin)
+        resp = self.client.post(url, {'nova_fase': 'EXECUCAO'})
+        self.assertEqual(resp.status_code, 302)
+

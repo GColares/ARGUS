@@ -13,7 +13,8 @@ from .forms import (
     PessoaFisicaForm, PerfilServidorForm, PerfilAlunoForm,
     PerfilColaboradorExternoForm, PerfilTerceirizadoForm, DadoBancarioForm,
 )
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 
@@ -1290,26 +1291,43 @@ class TermoDeParceriaDeleteView(SuccessMessageMixin, DeleteView):
             messages.success(request, success_message)
         return response
 
-# Trigger restart
 
-# Trigger restart 2
+@login_required
+@require_POST
+def transicionar_fase_projeto(request, projeto_id):
+    """
+    Controlador de transição de fase do Projeto PDI com Segregação de Funções (RBAC).
+    Permite a mudança apenas para Superusuários, Coordenador do Projeto ou Membros da Equipe
+    com papel de COORDENADOR ou GESTOR.
+    """
+    from cadastros.models import MembroEquipe
+    projeto = get_object_or_404(ProjetoPDI, pk=projeto_id)
 
-# Trigger restart 3
+    tem_permissao = False
+    if request.user.is_superuser:
+        tem_permissao = True
+    elif projeto.coordenador and getattr(projeto.coordenador, 'user_id', None) == request.user.pk:
+        tem_permissao = True
+    elif MembroEquipe.objects.filter(projeto=projeto, usuario=request.user, papel__in=['COORDENADOR', 'GESTOR']).exists():
+        tem_permissao = True
 
-# Trigger restart 4
+    if not tem_permissao:
+        return HttpResponseForbidden("Acesso negado: Apenas a coordenação ou gestores deste projeto podem alterar sua fase.")
 
-# Trigger restart 5
+    nova_fase = request.POST.get('nova_fase')
+    justificativa = request.POST.get('justificativa', '').strip()
 
-# Trigger restart 6
+    try:
+        projeto.transicionar_fase(nova_fase, request.user, justificativa)
+        messages.success(request, f"Projeto transicionado com sucesso para {projeto.get_fase_display()}!")
+    except ValidationError as e:
+        if hasattr(e, 'messages'):
+            for msg in e.messages:
+                messages.error(request, msg)
+        else:
+            messages.error(request, str(e))
+    except Exception as e:
+        messages.error(request, f"Erro inesperado ao transicionar fase: {str(e)}")
 
-# Trigger restart 7
+    return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
 
-# Trigger restart 8
-
-# Trigger restart 9
-
-# Trigger restart 10
-
-# Trigger restart 11
-
-# Trigger restart 12

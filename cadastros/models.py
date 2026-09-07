@@ -441,15 +441,116 @@ class ProjetoPDI(models.Model):
     def verificar_pendencias(self):
         """Avalia se o projeto possui todas as travas obrigatórias para operação e liberação de relatórios."""
         pendencias = []
-        
+
         # Utiliza o related_name 'atividades_plano' para verificar se o cronograma foi importado
         if not self.atividades_plano.exists(): # type: ignore
             pendencias.append("O Plano de Ação (Cronograma de Atividades) não foi desdobrado no sistema.")
-            
-        if not self.termo_parceria or not self.termo_parceria.planos_trabalho.exists():
+
+        if not self.termo_parceria or not (self.planos_trabalho.exists() or self.termo_parceria.planos_homologados.exists()):
             pendencias.append("O Plano de Trabalho financeiro/cronológico não foi registrado no sistema para este projeto.")
-            
+
         return pendencias
+
+    def validar_transicao_fase(self, nova_fase, justificativa=None):
+        """Valida os gateways regulatórios e retorna lista de pendências impeditivas."""
+        pendencias = []
+        fase_atual = self.fase
+
+        if nova_fase == fase_atual:
+            pendencias.append(f"O projeto já se encontra na fase {self.get_fase_display()}.")
+            return pendencias
+
+        if fase_atual in ['ENCERRADO', 'CANCELADO']:
+            pendencias.append(f"O projeto está em estado terminal ({self.get_fase_display()}) e não admite novas transições.")
+            return pendencias
+
+        if nova_fase == 'CANCELADO':
+            if fase_atual not in ['PROSPECCAO', 'EXECUCAO']:
+                pendencias.append("Projetos em fase de Prestação de Contas ou Encerrados não podem ser cancelados.")
+            if not justificativa or not justificativa.strip():
+                pendencias.append("O cancelamento de um projeto exige justificativa formal fundamentada.")
+            return pendencias
+
+        # Gateway 1: PROSPECCAO -> EXECUCAO
+        if fase_atual == 'PROSPECCAO' and nova_fase == 'EXECUCAO':
+            termo = self.termo_parceria
+            if not termo or not termo.ativo or not termo.numero or not termo.data_assinatura:
+                pendencias.append("Exige Termo de Parceria ativo, numerado e formalmente assinado.")
+            if not termo or not termo.concedente or not termo.convenente or not termo.interveniente:
+                pendencias.append("Exige a qualificação completa dos partícipes (Concedente, Convenente e Interveniente).")
+
+            plano = self.planos_trabalho.filter(ativo=True).first() or (termo.planos_homologados.first() if termo else None)
+            if not plano or not plano.macroentregas.exists():
+                pendencias.append("Exige Plano de Trabalho com Macroentregas cadastradas.")
+            if not self.contas.exists():
+                pendencias.append("Exige pelo menos uma Conta Bancária vinculada ao projeto.")
+
+        # Gateway 2: EXECUCAO -> PRESTACAO_CONTAS
+        elif fase_atual == 'EXECUCAO' and nova_fase == 'PRESTACAO_CONTAS':
+            pass
+
+        # Gateway 3: PRESTACAO_CONTAS -> ENCERRADO
+        elif fase_atual == 'PRESTACAO_CONTAS' and nova_fase == 'ENCERRADO':
+            from cadastros.models import Parcela
+            parcelas_pendentes = Parcela.objects.filter(
+                termo_bolsa__cota_pt__projeto=self
+            ).exclude(status__in=['PAGO', 'CANCELADO'])
+            if parcelas_pendentes.exists():
+                pendencias.append(f"Existem {parcelas_pendentes.count()} parcelas de bolsas não liquidadas (devem estar Pagas ou Canceladas).")
+
+        else:
+            pendencias.append(f"Transição inválida: não é permitido saltar de {self.get_fase_display()} diretamente para {nova_fase}.")
+
+        return pendencias
+
+    def transicionar_fase(self, nova_fase, usuario, justificativa=None):
+        """Executa a transição atômica registrando rastro indelével de auditoria."""
+        pendencias = self.validar_transicao_fase(nova_fase, justificativa)
+        if pendencias:
+            from django.core.exceptions import ValidationError
+            raise ValidationError(pendencias)
+
+        from django.db import transaction
+        with transaction.atomic():
+            fase_anterior = self.fase
+            self._permitir_mudanca_fase = True
+            self.fase = nova_fase
+            self.save()
+
+            HistoricoTransicaoFase.objects.create(
+                projeto=self,
+                usuario=usuario,
+                fase_anterior=fase_anterior,
+                fase_nova=nova_fase,
+                justificativa=justificativa
+            )
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            original = ProjetoPDI.objects.filter(pk=self.pk).values('fase').first()
+            if original and original['fase'] != self.fase and not getattr(self, '_permitir_mudanca_fase', False):
+                from django.core.exceptions import ValidationError
+                raise ValidationError("A fase do projeto só pode ser alterada através do método oficial transicionar_fase().")
+        super().save(*args, **kwargs)
+
+
+class HistoricoTransicaoFase(models.Model):
+    """Rastro de auditoria indelével para a máquina de estados do Projeto PDI."""
+    projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='historico_fases')
+    usuario = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="Responsável pela Transição")
+    fase_anterior = models.CharField(max_length=20, choices=ProjetoPDI.FASE_CHOICES)
+    fase_nova = models.CharField(max_length=20, choices=ProjetoPDI.FASE_CHOICES)
+    data_transicao = models.DateTimeField(auto_now_add=True, verbose_name="Data/Hora da Transição")
+    justificativa = models.TextField(blank=True, null=True, verbose_name="Justificativa / Parecer")
+
+    class Meta:
+        verbose_name = "Histórico de Transição de Fase"
+        verbose_name_plural = "Histórico de Transições de Fases"
+        ordering = ['-data_transicao']
+
+    def __str__(self):
+        return f"{self.projeto.nome}: {self.fase_anterior} -> {self.fase_nova} ({self.data_transicao.strftime('%d/%m/%Y %H:%M')})"
+
 
 class AtividadePlanoAcao(models.Model):
     plano_trabalho = models.ForeignKey('PlanoDeTrabalho', on_delete=models.CASCADE, related_name='atividades', null=True)

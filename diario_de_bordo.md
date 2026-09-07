@@ -1,5 +1,28 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-07] Homologação Fase 6 — Etapa 6.6: Máquina de Estados e Governança do Ciclo de Vida de Projetos PDI (RF-05, RF-06 e Gateways SoD) (Claude Desktop & Squad)
+
+### 1. Entregas Realizadas pelo Claude Desktop (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`cadastros/models.py`](cadastros/models.py) (Implementados os métodos `validar_transicao_fase(nova_fase, justificativa)` e `transicionar_fase(nova_fase, usuario, justificativa)` em `ProjetoPDI`, bloqueio anti-bypass no método `save()`, e criação do modelo `HistoricoTransicaoFase` com rastro de auditoria indelével; Claude sanou com precisão dois bugs sutis de import-time de ordem de classes e do reverse relation `planos_homologados`).
+  * [`cadastros/views.py`](cadastros/views.py) (Criada a view controladora `transicionar_fase_projeto` com `@require_POST`, captura de mensagens de erro amigáveis para cada pendência e RBAC estrito permitindo alteração apenas por Superusuários, Coordenador do Projeto ou Membros da Equipe com papel de `COORDENADOR` ou `GESTOR`).
+  * [`cadastros/urls.py`](cadastros/urls.py) (Registrada a rota canônica `projeto/<int:projeto_id>/transicionar-fase/`).
+  * [`cadastros/templates/cadastros/visualizar_projeto.html`](cadastros/templates/cadastros/visualizar_projeto.html) (Adicionado Stepper de Governança visual do ciclo de vida no Padrão Almoxarifado com 4 marcos e badges semânticos, botões dinâmicos de avanço com modais de confirmação, formulário de cancelamento formal com justificativa obrigatória e modal de inspeção da trilha de auditoria).
+  * [`cadastros/tests.py`](cadastros/tests.py) (Criada a suíte `CicloVidaProjetoTestCase` com 8 testes rigorosos cobrindo: gateway de execução bloqueado sem pré-requisitos, gateway de execução com sucesso ativando congelamento RN-10, interceptação anti-bypass do `.save()` direto, gateway de encerramento bloqueado por parcelas pendentes, gateway de encerramento com sucesso quando todas as parcelas estão pagas/canceladas, cancelamento com justificativa formal, blindagem contra transições a partir de estados terminais e RBAC estrito na view com 403 Forbidden).
+  * **Migração Aplicada:** `cadastros: 0068_historicotransicaofase`.
+- **Ajustes de Negócio e Governança:**
+  1. *Máquina de Estados Conforme Lei 10.973/04 e EMBRAPII (RF-05 / RF-06):* Fluxo auditável e controlado entre Prospecção, Execução, Prestação de Contas e Encerrado/Cancelado.
+  2. *Auditoria Indelével e SoD:* Nenhuma fase muda sem registro gravado no banco com usuário, data/hora, fase de origem, fase de destino e justificativa.
+  3. *Anti-Bypass no Core da Aplicação:* Impossibilidade de contornar as validações de transição através de atualizações manuais no atributo `fase` do modelo.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros (System check identified no issues).
+- `manage.py test cadastros.tests.CicloVidaProjetoTestCase`: **8/8 testes OK (100%)**.
+- `manage.py test`: **200/200 testes automatizados aprovados (0 regressões)** em 93.48s (meta atingida: 192 → 200 testes).
+- **Rastro SoD:** Arquiteto: Antigravity-Gemini | Red Team: GitHub Copilot | Implementador: Claude Desktop (Anthropic Claude 3.5 Sonnet) | Auditor/Tech Lead: Antigravity-Gemini | Homologador: GitHub Copilot / PO Geziel.
+
+---
+
 ## [2026-09-07] Homologação Fase 6 — Etapa 6.5: Esteira Ponta a Ponta de Prestação de Contas & Atesto SIAPE de Bolsas (Devin Desktop & Squad)
 
 ### 1. Entregas Realizadas pelo Devin Desktop (Handoff Cirúrgico / SoD):
