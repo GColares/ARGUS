@@ -75,7 +75,7 @@
                         <div class="fw-bold fs-5 text-dark">{{ pessoa.nome }}</div>
                         
                         <div class="text-muted small fw-bold text-uppercase mt-3 mb-1">CPF</div>
-                        <div class="text-dark">{{ pessoa.cpf }}</div>
+                        <div class="text-dark">{{ pessoa.cpf|mask_cpf }}</div>
                     </div>
 
                     <form method="post">
