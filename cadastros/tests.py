@@ -6,7 +6,8 @@ from datetime import date, timedelta
 from .models import (
     PessoaJuridica, EmpresaParceira, AgenciaFomento, ProjetoPDI, 
     PlanoDeTrabalho, RubricaOrcamentariaPT, AtividadePlanoAcao,
-    CotaBolsaPT, TermoBolsa, Parcela, ContaBancaria
+    CotaBolsaPT, TermoBolsa, Parcela, ContaBancaria,
+    PessoaFisica, PerfilServidor,
 )
 
 
@@ -554,6 +555,163 @@ class ParcelaTestCase(TestCase):
         self.assertEqual(parcela.status, "PAGO")
         self.assertEqual(parcela.conta_pagamento, conta)
         self.assertEqual(parcela.conta_pagamento_id, conta.pk)
+
+
+class TravaAcumuloBolsasTestCase(TestCase):
+    """Testes do RN-12: teto de projetos, cargos de direção e carga horária semanal."""
+
+    def setUp(self):
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Fomento Bolsas",
+            cnpj="77.888.999/0001-11",
+            natureza_juridica="LTDA",
+            representante_legal="Diretor Empresa",
+            cargo_representante="Diretor",
+        )
+        self.projeto_a = ProjetoPDI.objects.create(nome="Projeto P&I Alpha", fase="EXECUCAO", concedente=self.empresa)
+        self.projeto_b = ProjetoPDI.objects.create(nome="Projeto P&I Beta", fase="EXECUCAO", concedente=self.empresa)
+        self.projeto_c = ProjetoPDI.objects.create(nome="Projeto P&I Gamma", fase="EXECUCAO", concedente=self.empresa)
+
+        self.cota_a = CotaBolsaPT.objects.create(projeto=self.projeto_a, perfil_funcao="Pesquisador A", quantidade_vagas=2, parcelas_previstas=12, valor_global_previsto=Decimal("60000.00"))
+        self.cota_b = CotaBolsaPT.objects.create(projeto=self.projeto_b, perfil_funcao="Pesquisador B", quantidade_vagas=2, parcelas_previstas=12, valor_global_previsto=Decimal("60000.00"))
+        self.cota_c = CotaBolsaPT.objects.create(projeto=self.projeto_c, perfil_funcao="Pesquisador C", quantidade_vagas=2, parcelas_previstas=12, valor_global_previsto=Decimal("60000.00"))
+
+        self.pf_docente = PessoaFisica.objects.create(nome="Prof. Carlos Silva", cpf="111.222.333-44", data_nascimento="1980-05-10")
+        PerfilServidor.objects.create(pessoa=self.pf_docente, siape="1234567", cargo="Professor EBTT", lotacao="Campus Manaus Centro", cargo_direcao="NENHUM")
+
+        self.pf_gestor_cd1 = PessoaFisica.objects.create(nome="Diretor Reitor", cpf="222.333.444-55", data_nascimento="1975-02-15")
+        PerfilServidor.objects.create(pessoa=self.pf_gestor_cd1, siape="2345678", cargo="Professor EBTT", lotacao="Reitoria", cargo_direcao="CD1")
+
+        self.pf_gestor_cd3 = PessoaFisica.objects.create(nome="Chefe Departamento", cpf="333.444.555-66", data_nascimento="1985-08-20")
+        PerfilServidor.objects.create(pessoa=self.pf_gestor_cd3, siape="3456789", cargo="Professor EBTT", lotacao="Campus Manaus Distrito", cargo_direcao="CD3")
+
+    def test_01_bolsa_individual_legitima_sucesso(self):
+        termo = TermoBolsa(
+            cota_pt=self.cota_a, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-001/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("2500.00"), carga_horaria_semanal=10, status="ATIVO"
+        )
+        termo.full_clean()
+        termo.save()
+        self.assertEqual(termo.status, "ATIVO")
+
+    def test_02_rejeita_bolsa_para_servidor_cd01_vedacao_absoluta(self):
+        termo = TermoBolsa(
+            cota_pt=self.cota_a, pessoa=self.pf_gestor_cd1, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-002/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("2500.00"), carga_horaria_semanal=10, status="ATIVO"
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            termo.full_clean()
+        self.assertIn("pessoa", ctx.exception.message_dict)
+        self.assertIn("CD-01", str(ctx.exception))
+
+    def test_03_limita_servidor_cd02_a_cd04_a_um_projeto_ativo(self):
+        TermoBolsa.objects.create(
+            cota_pt=self.cota_a, pessoa=self.pf_gestor_cd3, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-CD3-1/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("2000.00"), carga_horaria_semanal=10, status="ATIVO"
+        )
+        termo_segundo = TermoBolsa(
+            cota_pt=self.cota_b, pessoa=self.pf_gestor_cd3, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-CD3-2/2026", vigencia_inicio=date(2026, 2, 1), vigencia_fim=date(2026, 7, 31),
+            quantidade_parcelas=6, valor_parcela=Decimal("2000.00"), carga_horaria_semanal=10, status="ATIVO"
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            termo_segundo.full_clean()
+        self.assertIn("pessoa", ctx.exception.message_dict)
+        self.assertIn("CD-02, CD-03 ou CD-04", str(ctx.exception))
+
+    def test_04_permite_ate_dois_projetos_distintos_concorrentes(self):
+        TermoBolsa.objects.create(
+            cota_pt=self.cota_a, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-P1/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("1500.00"), carga_horaria_semanal=10, status="ATIVO"
+        )
+        termo_p2 = TermoBolsa(
+            cota_pt=self.cota_b, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-P2/2026", vigencia_inicio=date(2026, 2, 1), vigencia_fim=date(2026, 5, 31),
+            quantidade_parcelas=4, valor_parcela=Decimal("1500.00"), carga_horaria_semanal=10, status="ATIVO"
+        )
+        termo_p2.full_clean()
+        termo_p2.save()
+        self.assertEqual(termo_p2.status, "ATIVO")
+
+    def test_05_rejeita_terceiro_projeto_concorrente_sem_excecao(self):
+        TermoBolsa.objects.create(
+            cota_pt=self.cota_a, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-P1/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("1000.00"), carga_horaria_semanal=5, status="ATIVO"
+        )
+        TermoBolsa.objects.create(
+            cota_pt=self.cota_b, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-P2/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("1000.00"), carga_horaria_semanal=5, status="ATIVO"
+        )
+        termo_p3 = TermoBolsa(
+            cota_pt=self.cota_c, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-P3/2026", vigencia_inicio=date(2026, 3, 1), vigencia_fim=date(2026, 8, 31),
+            quantidade_parcelas=6, valor_parcela=Decimal("1000.00"), carga_horaria_semanal=5, status="ATIVO"
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            termo_p3.full_clean()
+        self.assertIn("pessoa", ctx.exception.message_dict)
+        self.assertIn("mais de dois (02) projetos", str(ctx.exception))
+
+    def test_06_rejeita_duplicidade_de_bolsa_no_mesmo_projeto(self):
+        TermoBolsa.objects.create(
+            cota_pt=self.cota_a, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-DUP1/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("2000.00"), carga_horaria_semanal=10, status="ATIVO"
+        )
+        termo_dup2 = TermoBolsa(
+            cota_pt=self.cota_a, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-DUP2/2026", vigencia_inicio=date(2026, 2, 1), vigencia_fim=date(2026, 5, 31),
+            quantidade_parcelas=4, valor_parcela=Decimal("2000.00"), carga_horaria_semanal=10, status="ATIVO"
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            termo_dup2.full_clean()
+        self.assertIn("pessoa", ctx.exception.message_dict)
+        self.assertIn("neste mesmo projeto", str(ctx.exception))
+
+    def test_07_rejeita_soma_carga_horaria_semanal_superior_a_20h(self):
+        TermoBolsa.objects.create(
+            cota_pt=self.cota_a, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-CH1/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("2000.00"), carga_horaria_semanal=15, status="ATIVO"
+        )
+        termo_ch2 = TermoBolsa(
+            cota_pt=self.cota_b, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-CH2/2026", vigencia_inicio=date(2026, 2, 1), vigencia_fim=date(2026, 5, 31),
+            quantidade_parcelas=4, valor_parcela=Decimal("1500.00"), carga_horaria_semanal=10, status="ATIVO"
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            termo_ch2.full_clean()
+        self.assertIn("carga_horaria_semanal", ctx.exception.message_dict)
+        self.assertIn("excede o teto legal de 20h", str(ctx.exception))
+
+    def test_08_autorizacao_excepcional_permite_terceiro_projeto_se_justificado(self):
+        TermoBolsa.objects.create(
+            cota_pt=self.cota_a, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-EXC1/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("1000.00"), carga_horaria_semanal=5, status="ATIVO"
+        )
+        TermoBolsa.objects.create(
+            cota_pt=self.cota_b, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-EXC2/2026", vigencia_inicio=date(2026, 1, 1), vigencia_fim=date(2026, 6, 30),
+            quantidade_parcelas=6, valor_parcela=Decimal("1000.00"), carga_horaria_semanal=5, status="ATIVO"
+        )
+        termo_p3_excepcional = TermoBolsa(
+            cota_pt=self.cota_c, pessoa=self.pf_docente, modalidade_bolsa="Pesquisa",
+            numero_termo="TB-EXC3/2026", vigencia_inicio=date(2026, 3, 1), vigencia_fim=date(2026, 8, 31),
+            quantidade_parcelas=6, valor_parcela=Decimal("1000.00"), carga_horaria_semanal=5, status="ATIVO",
+            autorizacao_excepcional=True,
+            justificativa_excepcional="Despacho PROPESP/IFAM nº 42/2026 autorizando atuação estratégica em projeto prioritário."
+        )
+        termo_p3_excepcional.full_clean()
+        termo_p3_excepcional.save()
+        self.assertEqual(termo_p3_excepcional.status, "ATIVO")
+        self.assertTrue(termo_p3_excepcional.autorizacao_excepcional)
 
 
 from django.test import override_settings

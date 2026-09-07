@@ -1,5 +1,27 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-07] Homologação Fase 6 — Etapa 6.3: Trava Regulatória de Concessão e Acúmulo de Bolsas (RN-12 / IFAM) (GitHub Copilot & Squad)
+
+### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`cadastros/models.py`](cadastros/models.py) (Adicionado campo `cargo_direcao` em `PerfilServidor` com choices CD-01 a CD-04/FG; adicionados `carga_horaria_semanal`, `autorizacao_excepcional` e `justificativa_excepcional` em `TermoBolsa`; e implementação completa do algoritmo de conformidade regulatória no método `clean()` de `TermoBolsa`).
+  * [`cadastros/forms.py`](cadastros/forms.py) (Adicionados campos aos formulários `PerfilServidorForm` e `TermoBolsaForm` com widgets canônicos Bootstrap 5, zero JS inline).
+  * [`cadastros/templates/cadastros/form_pessoa_fisica.html`](cadastros/templates/cadastros/form_pessoa_fisica.html) (Adicionado campo `cargo_direcao` no card de perfil servidor).
+  * [`cadastros/tests.py`](cadastros/tests.py) (Criada a suíte `TravaAcumuloBolsasTestCase` com 8 testes rigorosos cobrindo: vedação absoluta CD-01, teto CD-02..04 de 1 projeto, duplicidade no mesmo projeto, teto geral de 2 projetos, autorização excepcional com justificativa, teto de 20h semanais acumuladas e vigência cronológica não sobreposta).
+  * **Migração Aplicada:** `cadastros: 0067_perfilservidor_cargo_direcao_and_more`.
+- **Ajustes de Negócio e Governança:**
+  1. *Regulamento de Bolsas do IFAM (RN-12):* Blindagem estrita contra acúmulo indevido de bolsas por servidores, discentes e colaboradores.
+  2. *Intersecção Temporal Estrita:* Detecção matemática precisa de vigências sobrepostas (`vigencia_inicio <= self.vigencia_fim and vigencia_fim >= self.vigencia_inicio`), sem bloqueios indevidos para projetos passados/futuros.
+  3. *Segregação de Funções (SoD):* Exceções regulatórias exigem flag de autorização deferida associada a parecer/justificativa fundamentada.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros (System check identified no issues).
+- `manage.py test cadastros.tests.TravaAcumuloBolsasTestCase`: **8/8 testes OK (100%)**.
+- `manage.py test`: **176/176 testes automatizados aprovados (0 regressões)** em 93.08s (meta atingida: 168 → 176 testes).
+- **Rastro SoD:** Arquiteto: Antigravity-Gemini | Red Team: DeepSeek & Copilot | Implementador: GitHub Copilot | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-07] Homologação Fase 6 — Etapa 6.2: Trava Regulatória de Bens de Capital EMBRAPII na Incorporação Patrimonial (RN-06) (GitHub Copilot & Squad)
 
 ### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):

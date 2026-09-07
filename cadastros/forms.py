@@ -250,7 +250,11 @@ class ProcessoForm(forms.ModelForm):
 class TermoBolsaForm(forms.ModelForm):
     class Meta:
         model = TermoBolsa
-        fields = ['cota_pt', 'pessoa', 'modalidade_bolsa', 'carga_horaria_total', 'numero_termo', 'vigencia_inicio', 'vigencia_fim', 'quantidade_parcelas', 'valor_parcela', 'status']
+        fields = [
+            'cota_pt', 'pessoa', 'modalidade_bolsa', 'carga_horaria_semanal', 'carga_horaria_total',
+            'numero_termo', 'vigencia_inicio', 'vigencia_fim', 'quantidade_parcelas', 'valor_parcela',
+            'status', 'autorizacao_excepcional', 'justificativa_excepcional'
+        ]
         widgets = {
             'cota_pt': forms.Select(attrs={'class': 'form-select'}),
             'pessoa': forms.Select(attrs={'class': 'form-select'}),
@@ -259,9 +263,12 @@ class TermoBolsaForm(forms.ModelForm):
             'vigencia_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'vigencia_fim': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'quantidade_parcelas': forms.NumberInput(attrs={'class': 'form-control'}),
+            'carga_horaria_semanal': forms.NumberInput(attrs={'class': 'form-control'}),
             'carga_horaria_total': forms.NumberInput(attrs={'class': 'form-control'}),
             'valor_parcela': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'status': forms.Select(attrs={'class': 'form-select fw-bold'}),
+            'autorizacao_excepcional': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'justificativa_excepcional': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 
@@ -508,15 +515,25 @@ class PessoaFisicaForm(forms.ModelForm):
 class PerfilServidorForm(forms.ModelForm):
     ativo = forms.BooleanField(required=False, initial=True, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     interno = forms.BooleanField(required=False, initial=True, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    cargo_direcao = forms.ChoiceField(
+        required=False,
+        choices=PerfilServidor.CARGOS_DIRECAO_CHOICES,
+        initial='NENHUM',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
 
     class Meta:
         model = PerfilServidor
-        fields = ['siape', 'cargo', 'lotacao', 'interno', 'ativo']
+        fields = ['siape', 'cargo', 'cargo_direcao', 'lotacao', 'interno', 'ativo']
         widgets = {
             'siape': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Matrícula SIAPE'}),
             'cargo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Cargo Efetivo'}),
             'lotacao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Lotação / Campus'}),
         }
+
+    def clean_cargo_direcao(self):
+        valor = self.cleaned_data.get('cargo_direcao')
+        return valor or 'NENHUM'
 
 
 class PerfilAlunoForm(forms.ModelForm):

@@ -769,9 +769,24 @@ class DadoBancario(models.Model):
 
 class PerfilServidor(models.Model):
     """Papel: Servidor Público (Docente ou Técnico)."""
+    CARGOS_DIRECAO_CHOICES = [
+        ('NENHUM', 'Nenhum / Sem Cargo Comissionado'),
+        ('CD1', 'CD-01 (Reitor / Pró-Reitor / Diretor-Geral)'),
+        ('CD2', 'CD-02 (Diretor Sistêmico / Diretor de Campus Avançado)'),
+        ('CD3', 'CD-03 (Diretor de Departamento / Coordenador-Geral)'),
+        ('CD4', 'CD-04 (Coordenador de Curso / Chefe de Setor)'),
+        ('FG', 'Função Gratificada (FG / FUC)'),
+    ]
+
     pessoa = models.OneToOneField(PessoaFisica, on_delete=models.CASCADE, related_name='perfil_servidor')
     siape = models.CharField(max_length=20, unique=True, verbose_name="Matrícula SIAPE")
     cargo = models.CharField(max_length=100, verbose_name="Cargo Efetivo")
+    cargo_direcao = models.CharField(
+        max_length=10,
+        choices=CARGOS_DIRECAO_CHOICES,
+        default='NENHUM',
+        verbose_name="Cargo de Direção / Função Gratificada"
+    )
     lotacao = models.CharField(max_length=100, verbose_name="Unidade / Campus de Lotação")
     interno = models.BooleanField(default=True, verbose_name="Servidor Interno (IFAM)?")
     ativo = models.BooleanField(default=True)
@@ -844,7 +859,20 @@ class TermoBolsa(models.Model):
     cota_pt = models.ForeignKey(CotaBolsaPT, on_delete=models.PROTECT, related_name='termos_vinculados')
     pessoa = models.ForeignKey(PessoaFisica, on_delete=models.PROTECT, related_name='termos_bolsa', null=True, blank=True)
     modalidade_bolsa = models.CharField(max_length=100, choices=[('Pesquisa', 'Pesquisa'), ('Ensino', 'Ensino'), ('Extensao', 'Extensão'), ('Desenvolvimento', 'Desenvolvimento Institucional'), ('Inovacao', 'Inovação')], default='Pesquisa')
+    carga_horaria_semanal = models.PositiveIntegerField(
+        default=20,
+        verbose_name="Carga Horária Semanal (horas/semana)"
+    )
     carga_horaria_total = models.PositiveIntegerField(verbose_name="Carga Horária Total (horas)", default=0)
+    autorizacao_excepcional = models.BooleanField(
+        default=False,
+        verbose_name="Autorização Excepcional Deferida?"
+    )
+    justificativa_excepcional = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Justificativa / Parecer da Autorização Excepcional"
+    )
 
     
     numero_termo = models.CharField(max_length=50, verbose_name="Número do Termo de Bolsa/Aditivo")
@@ -897,6 +925,58 @@ class TermoBolsa(models.Model):
                 f"Liquidação bloqueada: A projeção financeira deste termo (R$ {valor_total_deste_termo:.2f}) "
                 f"somada à execução anterior (R$ {gasto_acumulado:.2f}) ultrapassa o teto do Plano de Trabalho (R$ {self.cota_pt.valor_global_previsto:.2f})."
             )
+
+        if self.pessoa and self.vigencia_inicio and self.vigencia_fim and self.status == 'ATIVO':
+            if self.vigencia_fim < self.vigencia_inicio:
+                raise ValidationError({"vigencia_fim": "A data de término da vigência não pode ser anterior à data de início."})
+
+            perfil_servidor = getattr(self.pessoa, 'perfil_servidor', None)
+
+            if perfil_servidor and perfil_servidor.cargo_direcao == 'CD1':
+                raise ValidationError({
+                    "pessoa": "Regulamento de Bolsas IFAM (§ 4º): É terminantemente vedada a concessão de bolsas a servidores ocupantes de Cargo de Direção CD-01."
+                })
+
+            termos_ativos = TermoBolsa.objects.filter(
+                pessoa=self.pessoa,
+                status='ATIVO',
+                vigencia_inicio__lte=self.vigencia_fim,
+                vigencia_fim__gte=self.vigencia_inicio
+            )
+            if self.pk:
+                termos_ativos = termos_ativos.exclude(pk=self.pk)
+
+            if perfil_servidor and perfil_servidor.cargo_direcao in ['CD2', 'CD3', 'CD4']:
+                projetos_existentes = set(termos_ativos.values_list('cota_pt__projeto_id', flat=True))
+                if self.cota_pt.projeto_id not in projetos_existentes and len(projetos_existentes) >= 1:
+                    raise ValidationError({
+                        "pessoa": "Regulamento de Bolsas IFAM (§ 5º): Servidores ocupantes de Cargo de Direção CD-02, CD-03 ou CD-04 só podem participar de no máximo um (01) projeto ativo com bolsa."
+                    })
+
+            projeto_atual_id = self.cota_pt.projeto_id
+            if termos_ativos.filter(cota_pt__projeto_id=projeto_atual_id).exists():
+                raise ValidationError({
+                    "pessoa": "RN-12: O beneficiário já possui um Termo de Bolsa ativo com vigência concorrente neste mesmo projeto."
+                })
+
+            projetos_concorrentes_ids = set(termos_ativos.values_list('cota_pt__projeto_id', flat=True))
+            projetos_concorrentes_ids.add(projeto_atual_id)
+
+            if len(projetos_concorrentes_ids) > 2 and not self.autorizacao_excepcional:
+                raise ValidationError({
+                    "pessoa": "RN-12 / Regulamento de Bolsas IFAM (§ 3º): É vedada a participação de um mesmo beneficiário em mais de dois (02) projetos simultâneos com bolsa sem autorização excepcional aprovada."
+                })
+
+            soma_ch_semanal = sum(t.carga_horaria_semanal for t in termos_ativos) + (self.carga_horaria_semanal or 0)
+            if soma_ch_semanal > 20 and not self.autorizacao_excepcional:
+                raise ValidationError({
+                    "carga_horaria_semanal": f"Carga horária semanal acumulada ({soma_ch_semanal}h/sem) excede o teto legal de 20h semanais para bolsas concorrentes."
+                })
+
+            if self.autorizacao_excepcional and not self.justificativa_excepcional:
+                raise ValidationError({
+                    "justificativa_excepcional": "Informe a justificativa fundamentada / despacho da Diretoria para a concessão da autorização excepcional."
+                })
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
