@@ -1,6 +1,7 @@
 """
 argus/patrimonio/models.py
 """
+from django.core.exceptions import ValidationError
 from django.db import models
 
 class VerificacaoTermo(models.Model):
@@ -83,6 +84,23 @@ class BemPatrimonial(models.Model):
     
     status_operacional = models.CharField(max_length=20, default='ATIVO')
     data_incorporacao = models.DateTimeField(auto_now_add=True)
+    conta_bancaria = models.ForeignKey(
+        'cadastros.ContaBancaria',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='bens_patrimoniais',
+        verbose_name="Conta Bancária Pagadora"
+    )
+
+    def clean(self):
+        super().clean()
+
+        if self.conta_bancaria and self.conta_bancaria.fonte_recurso:
+            if self.conta_bancaria.fonte_recurso.nome in ['EMBRAPII', 'SEBRAE']:
+                raise ValidationError({
+                    'conta_bancaria': "RN-06: Bens de capital não podem ser custeados com recursos da conta EMBRAPII ou SEBRAE."
+                })
 
     def __str__(self):
         return f"{self.patrimonio_ifam or self.patrimonio_doador} - {self.descricao[:50]}"

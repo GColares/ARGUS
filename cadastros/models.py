@@ -994,6 +994,14 @@ class Processo(models.Model):
     numero = models.CharField(max_length=100, verbose_name="Nº do Processo")
     descricao = models.CharField(max_length=255, blank=True, null=True, verbose_name="Descrição do Objeto")
     origem = models.CharField(max_length=100, choices=ORIGEM_CHOICES, default='FAEPI', verbose_name="Origem do Processo")
+    conta_bancaria = models.ForeignKey(
+        'ContaBancaria',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='processos',
+        verbose_name="Conta Bancária Pagadora"
+    )
 
     class Meta:
         ordering = ['numero']
@@ -1016,6 +1024,25 @@ class Processo(models.Model):
         elif "COMPRA" in tipo_nome or "PAGAMENTO" in tipo_nome:
             if not re.match(r'^\d{5}/\d{4}$', self.numero):
                 raise ValidationError({"numero": "Processos da FAEPI (Compra/Pagamento) devem seguir o formato XXXXX/ANO (com 5 algarismos no número inicial)."})
+
+        # Validação de consistência com o projeto
+        if self.conta_bancaria and self.projeto_id:
+            if self.conta_bancaria.projeto_id != self.projeto_id:
+                raise ValidationError({
+                    'conta_bancaria': "A conta bancária informada deve pertencer ao mesmo projeto do processo."
+                })
+
+        # RN-06: Proteção contra mutação posterior (Post-Hoc Tampering)
+        # Se o processo já estiver vinculado a itens patrimoniais (compra ou pagamento),
+        # não pode ter sua conta alterada para EMBRAPII ou SEBRAE.
+        if self.pk and self.conta_bancaria and self.conta_bancaria.fonte_recurso:
+            if self.conta_bancaria.fonte_recurso.nome in ['EMBRAPII', 'SEBRAE']:
+                tem_itens_comprados = hasattr(self, 'itens_comprados') and self.itens_comprados.exists()
+                tem_itens_pagos = hasattr(self, 'itens_pagos') and self.itens_pagos.exists()
+                if tem_itens_comprados or tem_itens_pagos:
+                    raise ValidationError({
+                        'conta_bancaria': "RN-06: Este processo está vinculado a bens de capital/patrimoniais e não pode ser associado a uma conta da EMBRAPII ou SEBRAE."
+                    })
 
 class OrigemDoacao(models.Model):
     """Entidades doadoras externas."""

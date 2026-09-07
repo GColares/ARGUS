@@ -1,5 +1,28 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-07] Homologação Fase 6 — Etapa 6.2: Trava Regulatória de Bens de Capital EMBRAPII na Incorporação Patrimonial (RN-06) (GitHub Copilot & Squad)
+
+### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`cadastros/models.py`](cadastros/models.py) (Adicionado campo `conta_bancaria` FK em `Processo`, com validação de pertencimento ao projeto e trava anti-tampering impedindo mutação posterior para contas EMBRAPII/SEBRAE se houver bens vinculados).
+  * [`incorporacao/models.py`](incorporacao/models.py) (Adicionado campo `conta_bancaria` FK em `ItemPatrimonial`, validação de `clean()` rejeitando contas e processos de compra EMBRAPII/SEBRAE, e implementação do signal bidirecional `m2m_changed` para `processos_pagamento.through` cobrindo tanto a direção direta quanto a reversa).
+  * [`patrimonio/models.py`](patrimonio/models.py) (Adicionado campo `conta_bancaria` FK em `BemPatrimonial` e validação no `clean()` contra fontes EMBRAPII/SEBRAE).
+  * [`patrimonio/views.py`](patrimonio/views.py) (Atualizada a view `confirmar_importacao` com trava regulatória ativa, bloqueando a importação de lotes cujos itens estejam vinculados a contas de subvenção governamental).
+  * [`incorporacao/tests.py`](incorporacao/tests.py) (Criada a suíte `TravaCapitalEmbrapiiTestCase` com 7 testes rigorosos cobrindo criação legítima, rejeição de conta direta, rejeição de processo de compra, bloqueio de M2M direto, bloqueio de M2M reverso, anti-tampering em `Processo` e validação direta em `BemPatrimonial`).
+  * **Migrações Aplicadas:** `cadastros: 0066_processo_conta_bancaria`, `incorporacao: 0002..0004`, `patrimonio: 0004_bempatrimonial_conta_bancaria`.
+- **Ajustes de Negócio e Governança:**
+  1. *Conformidade Regulatória Plena (RN-06):* Subvenção EMBRAPII e SEBRAE blindada em todas as camadas (planejamento, execução, M2M e importação FAEPI).
+  2. *Auditoria Red Team Integrada:* Incorporação das sugestões do DeepSeek contra mutação posterior e bypass na relação reversa do ManyToMany.
+  3. *Zero Regressões:* Baseline expandido com integridade de dados e estabilidade transacional.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros (System check identified no issues).
+- `manage.py test incorporacao.tests.TravaCapitalEmbrapiiTestCase`: **7/7 testes OK (100%)** em 0.065s.
+- `manage.py test`: **168/168 testes automatizados aprovados (0 regressões)** em 82.79s (meta atingida: 161 → 168 testes).
+- **Rastro SoD:** Arquiteto: Antigravity-Gemini | Red Team: DeepSeek | Implementador: GitHub Copilot | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-07] Homologação Fase 6 — Etapa 6.1: Identidade Canônica Completa & Gestão de Pessoas Físicas (IBM Bob)
 
 ### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):

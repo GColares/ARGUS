@@ -58,6 +58,8 @@ Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Claude 3.5 Sonnet, C
 | **Devin Desktop** | Desenvolvedor Autônomo & Refatoração | Faxinas pesadas (código duplicado), refatorações multi-arquivos, suítes de testes, execuções autônomas de Handoffs | `DEVIN.md` |
 | **IBM Bob** | Desenvolvedor Autônomo & SDLC Partner | Implementação autônoma de backend, suítes de testes, regras de negócio e suporte ao ciclo SDLC | `BOB.md` |
 | **Kiro (AWS)** | Engenheiro de QA & Property-Testing | Testes de propriedades, agent hooks de validação contínua, blindagem de invariantes matemáticas/legais | `KIRO.md` |
+| **DeepSeek (Local)** | Lógica Algorítmica & Auditoria Red Team | Raciocínio profundo, auditoria matemática de regras fiscais, invariantes e refatoração de alta precisão | `DEEPSEEK.md` |
+
 
 ```mermaid
 flowchart TD

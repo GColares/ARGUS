@@ -12,7 +12,7 @@ from reportlab.graphics.shapes import Drawing
 from reportlab.graphics.barcode.qr import QrCodeWidget
 from reportlab.graphics import renderSVG
 from .models import VerificacaoTermo, BemPatrimonial, ItemVerificacao, FiltroImportacao
-from cadastros.models import ProjetoPDI, MembroEquipe
+from cadastros.models import ProjetoPDI, MembroEquipe, ContaBancaria
 from central_servicos.models import Ambiente
 from incorporacao.models import TermoDoacao
 from .extratores_faepi import extrair_linhas_brutas_faepi, limpar_lixo_digital, limpar_valor
@@ -425,6 +425,21 @@ def confirmar_importacao(request, verificacao_id):
         projeto = ProjetoPDI.objects.filter(codigo=item.projeto).first() or ProjetoPDI.objects.filter(status='ATIVO').first()
         termo = TermoDoacao.objects.filter(numero=item.documento).first()
 
+        # RN-06: Rastreamento e verificação da conta bancária de débito
+        conta_obj = None
+        if item.conta and item.conta != 'pendente':
+            conta_obj = ContaBancaria.objects.filter(conta=item.conta, projeto=projeto).first()
+            if not conta_obj:
+                conta_obj = ContaBancaria.objects.filter(conta=item.conta).first()
+
+        if conta_obj and conta_obj.fonte_recurso and conta_obj.fonte_recurso.nome in ['EMBRAPII', 'SEBRAE']:
+            messages.error(
+                request,
+                f"RN-06 Violação Regulatória: O item '{item.descricao[:40]}' está associado à conta {item.conta} "
+                f"da fonte {conta_obj.fonte_recurso.nome}. Bens de capital não podem ser adquiridos com recursos de subvenção."
+            )
+            return redirect('patrimonio:conferir_importacao', verificacao_id=verificacao.id)
+
         bens_para_criar.append(BemPatrimonial(
             patrimonio_doador=item.numero_ativo,
             descricao=item.descricao,
@@ -432,6 +447,7 @@ def confirmar_importacao(request, verificacao_id):
             projeto=projeto,
             termo_doacao=termo,
             nota_fiscal=item.nota_fiscal,
+            conta_bancaria=conta_obj,
             estado_conservacao='NOVO',
             status_operacional='ATIVO'
         ))
