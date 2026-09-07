@@ -516,8 +516,11 @@ class ProjetoPDI(models.Model):
         with transaction.atomic():
             fase_anterior = self.fase
             self._permitir_mudanca_fase = True
-            self.fase = nova_fase
-            self.save()
+            try:
+                self.fase = nova_fase
+                self.save()
+            finally:
+                self._permitir_mudanca_fase = False
 
             # Sincroniza e persiste o congelamento e status dos Planos de Trabalho vinculados
             if nova_fase in ['EXECUCAO', 'PRESTACAO_CONTAS', 'ENCERRADO']:
@@ -542,9 +545,12 @@ class ProjetoPDI(models.Model):
     def save(self, *args, **kwargs):
         if self.pk:
             original = ProjetoPDI.objects.filter(pk=self.pk).values('fase').first()
-            if original and original['fase'] != self.fase and not getattr(self, '_permitir_mudanca_fase', False):
-                from django.core.exceptions import ValidationError
-                raise ValidationError("A fase do projeto só pode ser alterada através do método oficial transicionar_fase().")
+            if original and original['fase'] != self.fase:
+                if not getattr(self, '_permitir_mudanca_fase', False):
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError("A fase do projeto só pode ser alterada através do método oficial transicionar_fase().")
+                # Consumo atômico do token efêmero para impedir reutilização na mesma instância em memória
+                self._permitir_mudanca_fase = False
         super().save(*args, **kwargs)
 
 

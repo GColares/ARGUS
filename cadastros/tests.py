@@ -1727,6 +1727,20 @@ class CicloVidaProjetoTestCase(TestCase):
             self.projeto.save()
         self.assertIn("transicionar_fase()", str(ctx.exception))
 
+        # Testa que a flag _permitir_mudanca_fase é um token efêmero de uso único consumido imediatamente
+        self.projeto.refresh_from_db()
+        self.projeto._permitir_mudanca_fase = True
+        self.projeto.fase = 'EXECUCAO'
+        self.projeto.save()
+        self.assertFalse(getattr(self.projeto, '_permitir_mudanca_fase', False))
+
+        # Reutilização da mesma instância em memória para nova alteração sem transição deve ser barrada
+        self.projeto.fase = 'ENCERRADO'
+        with self.assertRaises(ValidationError) as ctx:
+            self.projeto.save()
+        self.assertIn("transicionar_fase()", str(ctx.exception))
+
+
     def test_04_gateway_encerrado_bloqueia_se_houver_parcelas_pendentes(self):
         """Gateway 3: Transicionar PRESTACAO_CONTAS -> ENCERRADO bloqueia se existirem parcelas de bolsas não liquidadas."""
         from cadastros.models import PlanoDeTrabalho, CotaBolsaPT, TermoBolsa, Parcela, PessoaFisica, PerfilServidor
