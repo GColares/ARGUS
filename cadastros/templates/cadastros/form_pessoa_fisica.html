@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% block title %}{% if editando %}Editar Pessoa Física - {{ pessoa.nome }}{% else %}Nova Pessoa Física{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4 mb-5">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+                <a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'cadastros:listar_pessoas_fisicas' %}" class="text-decoration-none">Pessoas Físicas</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {% if editando %}Editar{% else %}Novo Cadastro{% endif %}
+            </li>
+        </ol>
+    </nav>
+
+    <div class="mb-3">
+        <a href="javascript:history.back()" class="text-decoration-none text-muted fw-bold small d-inline-block">
+            <i class="bi bi-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-bottom border-success border-3 d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0 fw-bold text-success">
+                    <i class="bi bi-person-badge me-2"></i>
+                    {% if editando %}Editar Pessoa Física: {{ pessoa.nome }}{% else %}Cadastrar Nova Pessoa Física{% endif %}
+                </h4>
+                <p class="text-muted small mb-0 mt-1">Identidade Central e Perfis Institucionais (Party-Role).</p>
+            </div>
+            {% if editando %}
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2">
+                ID #{{ pessoa.id }}
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="card-body p-4 bg-light">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger shadow-sm mb-4">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>{{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <!-- SEÇÃO 1: IDENTIFICAÇÃO CIVIL -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-person me-2 text-primary"></i>1. Identificação Civil
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-secondary small">Nome Completo *</label>
+                                {{ form.nome }}
+                                {% if form.nome.errors %}<div class="text-danger small mt-1">{{ form.nome.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-secondary small">CPF (11 dígitos) *</label>
+                                {{ form.cpf }}
+                                {% if form.cpf.errors %}<div class="text-danger small mt-1">{{ form.cpf.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-secondary small">Data de Nascimento</label>
+                                {{ form.data_nascimento }}
+                                {% if form.data_nascimento.errors %}<div class="text-danger small mt-1">{{ form.data_nascimento.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-secondary small">RG</label>
+                                {{ form.rg }}
+                                {% if form.rg.errors %}<div class="text-danger small mt-1">{{ form.rg.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-secondary small">Órgão Emissor</label>
+                                {{ form.orgao_emissor_rg }}
+                                {% if form.orgao_emissor_rg.errors %}<div class="text-danger small mt-1">{{ form.orgao_emissor_rg.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-secondary small">Estado Civil</label>
+                                {{ form.estado_civil }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold text-secondary small">Nacionalidade</label>
+                                {{ form.nacionalidade }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 2: CONTATO E ENDEREÇO -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-geo-alt me-2 text-info"></i>2. Contato e Endereço
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary small">E-mail</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary small">Telefone</label>
+                                {{ form.telefone }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary small">CEP</label>
+                                {{ form.cep }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold text-secondary small">Endereço Completo</label>
+                                {{ form.endereco }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 3: PAPÉIS INSTITUCIONAIS (PARTY-ROLE) -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-diagram-3 me-2 text-success"></i>3. Papéis Institucionais (Party-Role)
+                        </h5>
+                        <p class="text-muted small mb-0">Habilite os papéis que esta pessoa física desempenha no Polo.</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="accordion" id="accordionPapeis">
+
+                            <!-- Papel 1: Servidor Público -->
+                            <div class="accordion-item mb-3 border rounded shadow-sm">
+                                <h2 class="accordion-header" id="headingServidor">
+                                    <div class="accordion-button collapsed bg-light d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapseServidor">
+                                        <div class="form-check form-switch m-0" onclick="event.stopPropagation();">
+                                            <input class="form-check-input" type="checkbox" name="tem_perfil_servidor" value="1" id="switchServidor" {% if tem_servidor or form_servidor.siape.value %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold text-dark ms-2" for="switchServidor">
+                                                <i class="bi bi-award me-1 text-primary"></i> Servidor Público (SIAPE / IFAM)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </h2>
+                                <div id="collapseServidor" class="accordion-collapse collapse {% if tem_servidor or form_servidor.siape.value %}show{% endif %}">
+                                    <div class="accordion-body p-3 bg-white">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-semibold">SIAPE *</label>
+                                                {{ form_servidor.siape }}
+                                                {% if form_servidor.siape.errors %}<div class="text-danger small mt-1">{{ form_servidor.siape.errors.0 }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-semibold">Cargo Efetivo *</label>
+                                                {{ form_servidor.cargo }}
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-semibold">Campus / Lotação *</label>
+                                                {{ form_servidor.lotacao }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    {{ form_servidor.interno }}
+                                                    <label class="form-check-label small fw-semibold" for="{{ form_servidor.interno.id_for_label }}">Servidor Interno (IFAM)?</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    {{ form_servidor.ativo }}
+                                                    <label class="form-check-label small fw-semibold" for="{{ form_servidor.ativo.id_for_label }}">Perfil Ativo?</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Papel 2: Aluno -->
+                            <div class="accordion-item mb-3 border rounded shadow-sm">
+                                <h2 class="accordion-header" id="headingAluno">
+                                    <div class="accordion-button collapsed bg-light d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapseAluno">
+                                        <div class="form-check form-switch m-0" onclick="event.stopPropagation();">
+                                            <input class="form-check-input" type="checkbox" name="tem_perfil_aluno" value="1" id="switchAluno" {% if tem_aluno or form_aluno.matricula.value %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold text-dark ms-2" for="switchAluno">
+                                                <i class="bi bi-mortarboard me-1 text-success"></i> Aluno / Discente
+                                            </label>
+                                        </div>
+                                    </div>
+                                </h2>
+                                <div id="collapseAluno" class="accordion-collapse collapse {% if tem_aluno or form_aluno.matricula.value %}show{% endif %}">
+                                    <div class="accordion-body p-3 bg-white">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-semibold">Matrícula Discente *</label>
+                                                {{ form_aluno.matricula }}
+                                                {% if form_aluno.matricula.errors %}<div class="text-danger small mt-1">{{ form_aluno.matricula.errors.0 }}</div>{% endif %}
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-semibold">Nível</label>
+                                                {{ form_aluno.nivel }}
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label small fw-semibold">Curso *</label>
+                                                {{ form_aluno.curso }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    {{ form_aluno.interno }}
+                                                    <label class="form-check-label small fw-semibold" for="{{ form_aluno.interno.id_for_label }}">Aluno Interno (IFAM)?</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    {{ form_aluno.ativo }}
+                                                    <label class="form-check-label small fw-semibold" for="{{ form_aluno.ativo.id_for_label }}">Perfil Ativo?</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Papel 3: Colaborador Externo -->
+                            <div class="accordion-item mb-3 border rounded shadow-sm">
+                                <h2 class="accordion-header" id="headingColab">
+                                    <div class="accordion-button collapsed bg-light d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapseColab">
+                                        <div class="form-check form-switch m-0" onclick="event.stopPropagation();">
+                                            <input class="form-check-input" type="checkbox" name="tem_perfil_colab" value="1" id="switchColab" {% if tem_colab or form_colab.instituicao_origem.value %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold text-dark ms-2" for="switchColab">
+                                                <i class="bi bi-briefcase me-1 text-warning"></i> Colaborador Externo / Pesquisador Visitante
+                                            </label>
+                                        </div>
+                                    </div>
+                                </h2>
+                                <div id="collapseColab" class="accordion-collapse collapse {% if tem_colab or form_colab.instituicao_origem.value %}show{% endif %}">
+                                    <div class="accordion-body p-3 bg-white">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Instituição de Origem</label>
+                                                {{ form_colab.instituicao_origem }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Área de Expertise</label>
+                                                {{ form_colab.expertise }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Papel 4: Terceirizado -->
+                            <div class="accordion-item mb-3 border rounded shadow-sm">
+                                <h2 class="accordion-header" id="headingTerc">
+                                    <div class="accordion-button collapsed bg-light d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapseTerc">
+                                        <div class="form-check form-switch m-0" onclick="event.stopPropagation();">
+                                            <input class="form-check-input" type="checkbox" name="tem_perfil_terc" value="1" id="switchTerc" {% if tem_terc or form_terceirizado.empresa_contratada.value %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold text-dark ms-2" for="switchTerc">
+                                                <i class="bi bi-person-gear me-1 text-secondary"></i> Profissional Terceirizado
+                                            </label>
+                                        </div>
+                                    </div>
+                                </h2>
+                                <div id="collapseTerc" class="accordion-collapse collapse {% if tem_terc or form_terceirizado.empresa_contratada.value %}show{% endif %}">
+                                    <div class="accordion-body p-3 bg-white">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Empresa Contratada</label>
+                                                {{ form_terceirizado.empresa_contratada }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold">Função / Cargo</label>
+                                                {{ form_terceirizado.funcao }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div><!-- /accordion -->
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 4: DADOS BANCÁRIOS -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" name="tem_dado_bancario" value="1" id="switchBanco" {% if tem_banco or form_banco.conta.value %}checked{% endif %}>
+                            <label class="form-check-label fw-bold text-dark ms-2" for="switchBanco">
+                                <i class="bi bi-bank me-1 text-info"></i> 4. Dados Bancários (Opcional para Bolsistas e Prestadores)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">Finalidade</label>
+                                {{ form_banco.finalidade }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">Banco (Cód)</label>
+                                {{ form_banco.banco_codigo }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">Agência</label>
+                                {{ form_banco.agencia }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">Conta Corrente</label>
+                                {{ form_banco.conta }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">Chave PIX</label>
+                                {{ form_banco.chave_pix }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 5: VÍNCULO DE ACESSO (EXCLUSIVO SUPERUSER — RNF-06) -->
+                {% if request.user.is_superuser %}
+                <div class="card border-0 shadow-sm mb-4 border-start border-warning border-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-shield-lock me-2 text-warning"></i>5. Vínculo de Conta de Acesso (Exclusivo Administrador - RNF-06)
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Conta de Usuário Django (Login)</label>
+                                {{ form.user }}
+                                <small class="text-muted d-block mt-1">Conecta esta Pessoa Física ao usuário para login no ERP.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- BOTÕES DE SUBMISSÃO -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'cadastros:listar_pessoas_fisicas' %}" class="btn btn-outline-secondary px-4">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm">
+                        <i class="bi bi-check2-circle me-1"></i>
+                        {% if editando %}Salvar Alterações{% else %}Cadastrar Pessoa{% endif %}
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

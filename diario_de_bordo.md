@@ -1,5 +1,27 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-07] Homologação Fase 6 — Etapa 6.1: Identidade Canônica Completa & Gestão de Pessoas Físicas (IBM Bob)
+
+### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`cadastros/forms.py`](cadastros/forms.py) (Implementado `validar_cpf_matematico` com Módulo 11 oficial da Receita Federal, `PessoaFisicaForm` com purga de campo `user` para não-superusuários [R-02], e formulários de perfis: `PerfilServidorForm`, `PerfilAlunoForm`, `PerfilColaboradorExternoForm`, `PerfilTerceirizadoForm` e `DadoBancarioForm`).
+  * [`cadastros/views.py`](cadastros/views.py) (Adicionado `@login_required` a `listar_pessoas_fisicas` [R-06], implementada guarda RBAC `usuario_pode_gerenciar_pessoas` emitindo `PermissionDenied` HTTP 403 [R-01], e views atômicas com upsert idempotente `cadastrar_pessoa_fisica` e `editar_pessoa_fisica` sob `transaction.atomic` com prefixos exclusivos [A-01]).
+  * [`cadastros/templates/cadastros/form_pessoa_fisica.html`](cadastros/templates/cadastros/form_pessoa_fisica.html) (Template canônico no Almoxarifado Design System com Bootstrap Icons `bi bi-*`, accordions nativos Bootstrap 5 para perfis Party-Role e zero JS inline).
+  * [`cadastros/tests.py`](cadastros/tests.py) (Criada a suíte `PessoaFisicaGestaoTestCase` com 10 testes cobrindo RBAC 403, acesso de gestor, rejeição de CPF matematicamente inválido, rejeição de CPF duplicado, cadastro civil, cadastro atômico com servidor, discente com dado bancário, edição idempotente, reativação de perfil e neutralização de injeção do campo `user` por não-superusuários).
+- **Ajustes de Negócio e Governança:**
+  1. *Party-Role Pleno:* Suporte modular e desacoplado a servidores, alunos, colaboradores externos, terceirizados e dados bancários.
+  2. *Segurança Institucional (RNF-06):* Atribuição de conta de login `auth.User` estritamente blindada e expurgada para não-superusuários.
+  3. *Validação Matemática Estrita:* Prevenção absoluta contra CPFs inválidos ou forjados no banco de dados.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros.
+- `manage.py test cadastros.tests.PessoaFisicaGestaoTestCase`: **10/10 testes OK (100%)**.
+- `manage.py test cadastros`: **48/48 testes OK (100%)** (baseline era 38, +10 testes).
+- `manage.py test`: **161/161 testes automatizados aprovados (0 regressões)** (meta atingida: 151 → 161 testes).
+- **Rastro SoD:** Implementador: IBM Bob | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-06] Homologação Fase 5 — Etapa 5.3: Etiquetas Patrimoniais com QR Code Vetorial & RBAC Estrito (IBM Bob)
 
 ### 1. Entregas Realizadas pelo IBM Bob (Handoff Cirúrgico / SoD):

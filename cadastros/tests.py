@@ -1035,3 +1035,211 @@ class AuditoriaCryptoShreddingLGPDTestCase(TestCase):
         duplicatas = PessoaFisica.objects.filter(cpf=cpf_hash_esperado).count()
         self.assertEqual(duplicatas, 1,
                          "Deve existir exatamente 1 registro com o hash gerado.")
+
+
+# ==============================================================================
+# FASE 6.1 — IDENTIDADE CANÔNICA & GESTÃO DE PESSOAS FÍSICAS (PARTY-ROLE)
+# Revisor: Bob (Squad IA ARGUS) | SoD / Four-Eyes
+# Achados cobertos: R-01 (403), R-02 (user expurgo), R-03 (SIAPE único),
+#                   R-04 (upsert), R-05 (clean_cpf exclude), R-06 (@login_required)
+# ==============================================================================
+from django.contrib.auth.models import Group, User
+from django.test import Client
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class PessoaFisicaGestaoTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        # 1. Superuser
+        self.super_user = User.objects.create_superuser('admin_pf', 'admin@argus.com', 'senha123')
+        # 2. Usuário com Grupo GESTOR
+        self.gestor_user = User.objects.create_user('gestor_pf', 'gestor@argus.com', 'senha123')
+        grupo_gestor, _ = Group.objects.get_or_create(name='GESTOR')
+        self.gestor_user.groups.add(grupo_gestor)
+        # 3. Usuário Leigo (sem grupo nem staff)
+        self.leigo_user = User.objects.create_user('leigo_pf', 'leigo@argus.com', 'senha123')
+
+        from django.urls import reverse
+        self.url_listar = reverse('cadastros:listar_pessoas_fisicas')
+        self.url_cadastrar = reverse('cadastros:cadastrar_pessoa_fisica')
+
+        # CPFs válidos (Módulo 11 verificado algoritmicamente)
+        self.cpf_valido_1 = "529.982.247-25"
+        self.cpf_valido_2 = "712.345.678-57"   # corrigido: 853.473.840-02 falha no Módulo 11
+        self.cpf_invalido = "123.456.789-00"
+
+    def test_01_acesso_formulario_cadastro_bloqueia_usuario_comum(self):
+        """R-01: Usuário comum sem permissão recebe 403 Forbidden (não 302 redirect)."""
+        self.client.login(username='leigo_pf', password='senha123')
+        response = self.client.get(self.url_cadastrar)
+        self.assertEqual(response.status_code, 403)
+
+    def test_02_acesso_formulario_cadastro_permite_gestor_autorizado(self):
+        """Gestor com grupo institucional acessa o formulário de cadastro com status 200."""
+        self.client.login(username='gestor_pf', password='senha123')
+        response = self.client.get(self.url_cadastrar)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Cadastrar Nova Pessoa Física")
+
+    def test_03_validacao_cpf_invalido_matematica_rejeita(self):
+        """Rejeita CPF com dígito verificador matematicamente incorreto."""
+        self.client.login(username='gestor_pf', password='senha123')
+        payload = {
+            'nome': 'Cidadão Inválido',
+            'cpf': self.cpf_invalido,
+        }
+        response = self.client.post(self.url_cadastrar, payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "CPF inválido")
+        from cadastros.models import PessoaFisica
+        self.assertFalse(PessoaFisica.objects.filter(nome='Cidadão Inválido').exists())
+
+    def test_04_validacao_cpf_duplicado_rejeita(self):
+        """R-05: Rejeita cadastro de CPF que já existe no banco de dados."""
+        from cadastros.models import PessoaFisica
+        PessoaFisica.objects.create(nome="Pessoa Existente", cpf=self.cpf_valido_1)
+        self.client.login(username='gestor_pf', password='senha123')
+        payload = {
+            'nome': 'Pessoa Clone',
+            'cpf': self.cpf_valido_1,
+        }
+        response = self.client.post(self.url_cadastrar, payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "já está cadastrado")
+
+    def test_05_cadastro_pessoa_fisica_simples_sucesso(self):
+        """Cadastra pessoa física básica com sucesso e redireciona para detalhe."""
+        from cadastros.models import PessoaFisica
+        from django.urls import reverse
+        self.client.login(username='gestor_pf', password='senha123')
+        payload = {
+            'nome': 'Ana Silva Santos',
+            'cpf': self.cpf_valido_1,
+            'email': 'ana.silva@ifam.edu.br',
+            'estado_civil': 'Solteiro',
+            'nacionalidade': 'Brasileiro',
+        }
+        response = self.client.post(self.url_cadastrar, payload)
+        pf = PessoaFisica.objects.filter(nome='Ana Silva Santos').first()
+        self.assertIsNotNone(pf)
+        self.assertRedirects(response, reverse('cadastros:visualizar_pessoa_fisica', args=[pf.id]))
+
+    def test_06_cadastro_com_perfil_servidor_atomico(self):
+        """R-03: Cria Pessoa Física + PerfilServidor com SIAPE único atomicamente."""
+        from cadastros.models import PessoaFisica
+        self.client.login(username='gestor_pf', password='senha123')
+        payload = {
+            'nome': 'Prof. Carlos Alberto',
+            'cpf': self.cpf_valido_2,
+            'tem_perfil_servidor': '1',
+            'servidor-siape': 'SIAPE-T06',
+            'servidor-cargo': 'Professor EBTT',
+            'servidor-lotacao': 'Polo de Inovação',
+            'servidor-interno': 'on',
+            'servidor-ativo': 'on',
+        }
+        response = self.client.post(self.url_cadastrar, payload)
+        pf = PessoaFisica.objects.filter(nome='Prof. Carlos Alberto').first()
+        self.assertIsNotNone(pf)
+        self.assertTrue(hasattr(pf, 'perfil_servidor'))
+        self.assertEqual(pf.perfil_servidor.siape, 'SIAPE-T06')
+
+    def test_07_cadastro_com_perfil_aluno_e_dado_bancario(self):
+        """Cria Pessoa Física com PerfilAluno e DadoBancario simultaneamente."""
+        from cadastros.models import PessoaFisica
+        self.client.login(username='gestor_pf', password='senha123')
+        payload = {
+            'nome': 'Mariana Aluna Bolsista',
+            'cpf': self.cpf_valido_1,
+            'tem_perfil_aluno': '1',
+            'aluno-matricula': 'MAT-T07',
+            'aluno-nivel': 'Graduacao',
+            'aluno-curso': 'Engenharia de Software',
+            'aluno-interno': 'on',
+            'aluno-ativo': 'on',
+            'tem_dado_bancario': '1',
+            'banco-finalidade': 'PAGAMENTO_BOLSA',
+            'banco-banco_codigo': '001',
+            'banco-agencia': '1234',
+            'banco-conta': '98765-4',
+        }
+        response = self.client.post(self.url_cadastrar, payload)
+        pf = PessoaFisica.objects.filter(nome='Mariana Aluna Bolsista').first()
+        self.assertIsNotNone(pf)
+        self.assertEqual(pf.perfil_aluno.matricula, 'MAT-T07')
+        self.assertEqual(pf.dados_bancarios.count(), 1)
+        self.assertEqual(pf.dados_bancarios.first().conta, '98765-4')
+
+    def test_08_edicao_atualiza_dados_civis_e_perfil_existente(self):
+        """R-04: Edição atualiza dados civis e perfil sem duplicar registro."""
+        from cadastros.models import PessoaFisica, PerfilServidor
+        from django.urls import reverse
+        pf = PessoaFisica.objects.create(nome="Lucas Oliveira", cpf=self.cpf_valido_1)
+        perfil = PerfilServidor.objects.create(
+            pessoa=pf, siape="SIAPE-T08", cargo="Assistente", lotacao="Reitoria"
+        )
+        url_editar = reverse('cadastros:editar_pessoa_fisica', args=[pf.id])
+        self.client.login(username='gestor_pf', password='senha123')
+        payload = {
+            'nome': 'Lucas Oliveira Modificado',
+            'cpf': self.cpf_valido_1,
+            'endereco': 'Nova Rua 100',
+            'tem_perfil_servidor': '1',
+            'servidor-siape': 'SIAPE-T08',
+            'servidor-cargo': 'Coordenador',
+            'servidor-lotacao': 'Polo de Inovação',
+            'servidor-ativo': 'on',
+        }
+        self.client.post(url_editar, payload)
+        pf.refresh_from_db()
+        perfil.refresh_from_db()
+        self.assertEqual(pf.nome, 'Lucas Oliveira Modificado')
+        self.assertEqual(pf.endereco, 'Nova Rua 100')
+        self.assertEqual(perfil.cargo, 'Coordenador')
+        self.assertEqual(PerfilServidor.objects.filter(pessoa=pf).count(), 1)
+
+    def test_09_edicao_adiciona_novo_perfil_a_pessoa_existente(self):
+        """Adiciona PerfilAluno a uma PessoaFisica que antes não tinha perfil."""
+        from cadastros.models import PessoaFisica
+        from django.urls import reverse
+        pf = PessoaFisica.objects.create(nome="Juliana Santos", cpf=self.cpf_valido_1)
+        url_editar = reverse('cadastros:editar_pessoa_fisica', args=[pf.id])
+        self.client.login(username='gestor_pf', password='senha123')
+        payload = {
+            'nome': 'Juliana Santos',
+            'cpf': self.cpf_valido_1,
+            'tem_perfil_aluno': '1',
+            'aluno-matricula': 'MAT-T09',
+            'aluno-nivel': 'Graduacao',
+            'aluno-curso': 'Sistemas de Informação',
+            'aluno-ativo': 'on',
+        }
+        self.client.post(url_editar, payload)
+        pf.refresh_from_db()
+        self.assertTrue(hasattr(pf, 'perfil_aluno'))
+        self.assertEqual(pf.perfil_aluno.matricula, 'MAT-T09')
+
+    def test_10_vinculo_auth_user_restrito_a_superuser(self):
+        """R-02: Gestor comum não consegue vincular conta de login (campo expurgado e ignorado)."""
+        from cadastros.models import PessoaFisica
+        alvo_user = User.objects.create_user('alvo_pf', 'alvo@argus.com', 'senha123')
+        self.client.login(username='gestor_pf', password='senha123')
+        # GET não deve expor o campo 'user' para gestores comuns
+        response_get = self.client.get(self.url_cadastrar)
+        self.assertNotContains(response_get, 'Conta de Usuário Django')
+        # POST tentando injetar 'user' deve ser neutralizado pelo form
+        payload = {
+            'nome': 'Tentativa Injecao User',
+            'cpf': self.cpf_valido_1,
+            'user': alvo_user.id,
+        }
+        self.client.post(self.url_cadastrar, payload)
+        pf = PessoaFisica.objects.filter(nome='Tentativa Injecao User').first()
+        self.assertIsNotNone(pf)
+        self.assertIsNone(pf.user)

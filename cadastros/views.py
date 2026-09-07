@@ -9,8 +9,13 @@ from django.db import transaction
 from django.db.models import Q
 from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa
 from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
+from .forms import (
+    PessoaFisicaForm, PerfilServidorForm, PerfilAlunoForm,
+    PerfilColaboradorExternoForm, PerfilTerceirizadoForm, DadoBancarioForm,
+)
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import PermissionDenied
 
 @login_required
 def home_cadastros(request):
@@ -842,21 +847,228 @@ def excluir_fonte_recurso(request, id):
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import PessoaFisica
+from .models import PessoaFisica, PerfilServidor, PerfilAluno, PerfilColaboradorExterno, PerfilTerceirizado, DadoBancario
 
+
+def usuario_pode_gerenciar_pessoas(user) -> bool:
+    """
+    RBAC Canônico — Fase 6.1.
+    Superuser, Staff, Grupos Institucionais ou Coordenador/Gestor de projeto têm acesso.
+    Usuários fora deste escopo recebem 403 Forbidden (não redirecionamento para login).
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    if user.groups.filter(name__in=['Administrador do Sistema', 'Coordenador Admin-Financeiro', 'GESTOR']).exists():
+        return True
+    from .models import MembroEquipe
+    if MembroEquipe.objects.filter(usuario=user, papel__in=['COORDENADOR', 'GESTOR']).exists():
+        return True
+    return False
+
+
+@login_required
 def listar_pessoas_fisicas(request):
     pessoas = PessoaFisica.objects.all().order_by('nome')
     return render(request, 'cadastros/listar_pessoas_fisicas.html', {'pessoas': pessoas})
 
-def cadastrar_pessoa_fisica(request):
-    # TODO: Implement form wizard
-    messages.info(request, "Interface de cadastro de Pessoa Física em desenvolvimento.")
-    return redirect('cadastros:listar_pessoas_fisicas')
 
+@login_required
+@transaction.atomic
+def cadastrar_pessoa_fisica(request):
+    """Criação atômica de Pessoa Física e Perfis Party-Role opcionais."""
+    if not usuario_pode_gerenciar_pessoas(request.user):
+        raise PermissionDenied("Acesso restrito à gestão de pessoas e administração.")
+
+    if request.method == 'POST':
+        form = PessoaFisicaForm(request.POST, current_user=request.user)
+        form_servidor = PerfilServidorForm(request.POST, prefix='servidor')
+        form_aluno = PerfilAlunoForm(request.POST, prefix='aluno')
+        form_colab = PerfilColaboradorExternoForm(request.POST, prefix='colab')
+        form_terc = PerfilTerceirizadoForm(request.POST, prefix='terc')
+        form_banco = DadoBancarioForm(request.POST, prefix='banco')
+
+        has_servidor = request.POST.get('tem_perfil_servidor') == '1'
+        has_aluno = request.POST.get('tem_perfil_aluno') == '1'
+        has_colab = request.POST.get('tem_perfil_colab') == '1'
+        has_terc = request.POST.get('tem_perfil_terc') == '1'
+        has_banco = request.POST.get('tem_dado_bancario') == '1'
+
+        valido = form.is_valid()
+        if has_servidor:
+            valido = valido and form_servidor.is_valid()
+        if has_aluno:
+            valido = valido and form_aluno.is_valid()
+        if has_colab:
+            valido = valido and form_colab.is_valid()
+        if has_terc:
+            valido = valido and form_terc.is_valid()
+        if has_banco:
+            valido = valido and form_banco.is_valid()
+
+        if valido:
+            pessoa = form.save(commit=False)
+            # R-02: nunca aplica user vindo de POST se não for superusuário
+            if not request.user.is_superuser:
+                pessoa.user = None
+            pessoa.save()
+
+            if has_servidor and form_servidor.cleaned_data.get('siape'):
+                PerfilServidor.objects.create(pessoa=pessoa, **form_servidor.cleaned_data)
+            if has_aluno and form_aluno.cleaned_data.get('matricula'):
+                PerfilAluno.objects.create(pessoa=pessoa, **form_aluno.cleaned_data)
+            if has_colab and (form_colab.cleaned_data.get('instituicao_origem') or form_colab.cleaned_data.get('expertise')):
+                PerfilColaboradorExterno.objects.create(pessoa=pessoa, **form_colab.cleaned_data)
+            if has_terc and form_terc.cleaned_data.get('empresa_contratada'):
+                PerfilTerceirizado.objects.create(pessoa=pessoa, **form_terc.cleaned_data)
+            if has_banco and form_banco.cleaned_data.get('conta'):
+                DadoBancario.objects.create(pessoa=pessoa, **form_banco.cleaned_data)
+
+            messages.success(request, f"Pessoa Física '{pessoa.nome}' cadastrada com sucesso!")
+            return redirect('cadastros:visualizar_pessoa_fisica', pk=pessoa.id)
+    else:
+        form = PessoaFisicaForm(current_user=request.user)
+        form_servidor = PerfilServidorForm(prefix='servidor')
+        form_aluno = PerfilAlunoForm(prefix='aluno')
+        form_colab = PerfilColaboradorExternoForm(prefix='colab')
+        form_terc = PerfilTerceirizadoForm(prefix='terc')
+        form_banco = DadoBancarioForm(prefix='banco')
+
+    contexto = {
+        'form': form,
+        'form_servidor': form_servidor,
+        'form_aluno': form_aluno,
+        'form_colab': form_colab,
+        'form_terceirizado': form_terc,
+        'form_banco': form_banco,
+        'editando': False,
+    }
+    return render(request, 'cadastros/form_pessoa_fisica.html', contexto)
+
+
+@login_required
+@transaction.atomic
 def editar_pessoa_fisica(request, id):
-    # TODO: Implement form wizard
-    messages.info(request, "Interface de edição de Pessoa Física em desenvolvimento.")
-    return redirect('cadastros:listar_pessoas_fisicas')
+    """Edição atômica e idempotente de Pessoa Física e Perfis Party-Role."""
+    if not usuario_pode_gerenciar_pessoas(request.user):
+        raise PermissionDenied("Acesso restrito à gestão de pessoas e administração.")
+
+    pessoa = get_object_or_404(PessoaFisica, id=id)
+    perfil_servidor = getattr(pessoa, 'perfil_servidor', None)
+    perfil_aluno = getattr(pessoa, 'perfil_aluno', None)
+    perfil_colab = getattr(pessoa, 'perfil_colaborador_externo', None)
+    perfil_terc = getattr(pessoa, 'perfil_terceirizado', None)
+    dado_banco = pessoa.dados_bancarios.filter(ativo=True).first()
+
+    if request.method == 'POST':
+        form = PessoaFisicaForm(request.POST, instance=pessoa, current_user=request.user)
+        form_servidor = PerfilServidorForm(request.POST, instance=perfil_servidor, prefix='servidor')
+        form_aluno = PerfilAlunoForm(request.POST, instance=perfil_aluno, prefix='aluno')
+        form_colab = PerfilColaboradorExternoForm(request.POST, instance=perfil_colab, prefix='colab')
+        form_terc = PerfilTerceirizadoForm(request.POST, instance=perfil_terc, prefix='terc')
+        form_banco = DadoBancarioForm(request.POST, instance=dado_banco, prefix='banco')
+
+        has_servidor = request.POST.get('tem_perfil_servidor') == '1'
+        has_aluno = request.POST.get('tem_perfil_aluno') == '1'
+        has_colab = request.POST.get('tem_perfil_colab') == '1'
+        has_terc = request.POST.get('tem_perfil_terc') == '1'
+        has_banco = request.POST.get('tem_dado_bancario') == '1'
+
+        valido = form.is_valid()
+        if has_servidor:
+            valido = valido and form_servidor.is_valid()
+        if has_aluno:
+            valido = valido and form_aluno.is_valid()
+        if has_colab:
+            valido = valido and form_colab.is_valid()
+        if has_terc:
+            valido = valido and form_terc.is_valid()
+        if has_banco:
+            valido = valido and form_banco.is_valid()
+
+        if valido:
+            p = form.save(commit=False)
+            # R-02: preserva o user original se o requisitante não for superusuário
+            if not request.user.is_superuser:
+                p.user = pessoa.user
+            p.save()
+
+            # R-04: Upsert idempotente — get_or_create previne IntegrityError na reativação
+            if has_servidor and form_servidor.cleaned_data.get('siape'):
+                obj, _ = PerfilServidor.objects.get_or_create(pessoa=p)
+                for k, v in form_servidor.cleaned_data.items():
+                    setattr(obj, k, v)
+                obj.save()
+            elif perfil_servidor:
+                perfil_servidor.ativo = False
+                perfil_servidor.save()
+
+            if has_aluno and form_aluno.cleaned_data.get('matricula'):
+                obj, _ = PerfilAluno.objects.get_or_create(pessoa=p)
+                for k, v in form_aluno.cleaned_data.items():
+                    setattr(obj, k, v)
+                obj.save()
+            elif perfil_aluno:
+                perfil_aluno.ativo = False
+                perfil_aluno.save()
+
+            if has_colab and (form_colab.cleaned_data.get('instituicao_origem') or form_colab.cleaned_data.get('expertise')):
+                obj, _ = PerfilColaboradorExterno.objects.get_or_create(pessoa=p)
+                for k, v in form_colab.cleaned_data.items():
+                    setattr(obj, k, v)
+                obj.save()
+            elif perfil_colab:
+                perfil_colab.ativo = False
+                perfil_colab.save()
+
+            if has_terc and form_terc.cleaned_data.get('empresa_contratada'):
+                obj, _ = PerfilTerceirizado.objects.get_or_create(pessoa=p)
+                for k, v in form_terc.cleaned_data.items():
+                    setattr(obj, k, v)
+                obj.save()
+            elif perfil_terc:
+                perfil_terc.ativo = False
+                perfil_terc.save()
+
+            if has_banco and form_banco.cleaned_data.get('conta'):
+                if dado_banco:
+                    for k, v in form_banco.cleaned_data.items():
+                        setattr(dado_banco, k, v)
+                    dado_banco.save()
+                else:
+                    DadoBancario.objects.create(pessoa=p, **form_banco.cleaned_data)
+            elif dado_banco:
+                dado_banco.ativo = False
+                dado_banco.save()
+
+            messages.success(request, f"Cadastro de '{p.nome}' atualizado com sucesso!")
+            return redirect('cadastros:visualizar_pessoa_fisica', pk=p.id)
+    else:
+        form = PessoaFisicaForm(instance=pessoa, current_user=request.user)
+        form_servidor = PerfilServidorForm(instance=perfil_servidor, prefix='servidor')
+        form_aluno = PerfilAlunoForm(instance=perfil_aluno, prefix='aluno')
+        form_colab = PerfilColaboradorExternoForm(instance=perfil_colab, prefix='colab')
+        form_terc = PerfilTerceirizadoForm(instance=perfil_terc, prefix='terc')
+        form_banco = DadoBancarioForm(instance=dado_banco, prefix='banco')
+
+    contexto = {
+        'form': form,
+        'form_servidor': form_servidor,
+        'form_aluno': form_aluno,
+        'form_colab': form_colab,
+        'form_terceirizado': form_terc,
+        'form_banco': form_banco,
+        'editando': True,
+        'pessoa': pessoa,
+        'tem_servidor': bool(perfil_servidor and perfil_servidor.ativo),
+        'tem_aluno': bool(perfil_aluno and perfil_aluno.ativo),
+        'tem_colab': bool(perfil_colab and perfil_colab.ativo),
+        'tem_terc': bool(perfil_terc and perfil_terc.ativo),
+        'tem_banco': bool(dado_banco and dado_banco.ativo),
+    }
+    return render(request, 'cadastros/form_pessoa_fisica.html', contexto)
+
 
 from django.db import transaction
 
