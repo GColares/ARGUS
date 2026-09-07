@@ -23,8 +23,9 @@
 ### 3. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
 - `manage.py check`: 0 erros (System check identified no issues).
 - `manage.py test cadastros.tests.CicloVidaProjetoTestCase`: **8/8 testes OK (100%)**.
-- `manage.py test`: **200/200 testes automatizados aprovados (0 regressões)** em 92.11s (meta atingida: 192 → 200 testes).
+- `manage.py test`: **200/200 testes automatizados aprovados (0 regressões)** em 100.12s (meta atingida: 192 → 200 testes).
 - **Rastro SoD:** Arquiteto: Antigravity-Gemini | Red Team: GitHub Copilot | Implementador: Claude Desktop (Anthropic Claude 3.5 Sonnet) | Auditor/Tech Lead: Antigravity-Gemini | Homologador: GitHub Copilot / PO Geziel.
+- **Chancela Final do Red Team (GitHub Copilot):** *Homologação funcional 100% aprovada para os fluxos comuns da aplicação e do ORM Django.* A trava contra mutações diretas via `save()` e o consumo do token efêmero foram comprovados, restando devidamente registrada a fronteira estrutural de queries em lote via `QuerySet.update()` (bypass nativo do driver SQL do Django).
 
 ---
 
