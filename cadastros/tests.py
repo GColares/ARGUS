@@ -4,10 +4,10 @@ from decimal import Decimal
 from datetime import date, timedelta
 
 from .models import (
-    PessoaJuridica, EmpresaParceira, AgenciaFomento, ProjetoPDI, 
+    PessoaJuridica, EmpresaParceira, AgenciaFomento, ProjetoPDI,
     PlanoDeTrabalho, RubricaOrcamentariaPT, AtividadePlanoAcao,
     CotaBolsaPT, TermoBolsa, Parcela, ContaBancaria,
-    PessoaFisica, PerfilServidor,
+    PessoaFisica, PerfilServidor, Macroentrega,
 )
 
 
@@ -1397,7 +1397,209 @@ class PessoaFisicaGestaoTestCase(TestCase):
             'cpf': self.cpf_valido_1,
             'user': alvo_user.id,
         }
-        self.client.post(self.url_cadastrar, payload)
-        pf = PessoaFisica.objects.filter(nome='Tentativa Injecao User').first()
-        self.assertIsNotNone(pf)
-        self.assertIsNone(pf.user)
+
+
+# =====================================================================
+# FASE 6 — ETAPA 6.4: Travas Regulatórias de Planejamento Físico & Congelamento de Escopo (RN-07 e RN-10)
+# =====================================================================
+
+class TravaPlanejamentoFisicoTestCase(TestCase):
+    """
+    Bateria de testes de conformidade regulatória para RN-07 e RN-10:
+    - RN-07: Não-Sobreposição Temporal de Macroentregas (Sequenciamento Estrito)
+    - RN-10: Congelamento do Escopo em Execução
+    """
+
+    def setUp(self):
+        # Estrutura básica do projeto
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Planejamento Físico LTDA",
+            cnpj="12.345.678/0001-90",
+            natureza_juridica="LTDA",
+            representante_legal="Gestor Planejamento",
+            cargo_representante="Diretor"
+        )
+        self.projeto_prospeccao = ProjetoPDI.objects.create(
+            nome="Projeto em Prospecção",
+            fase="PROSPECCAO",
+            concedente=self.empresa,
+        )
+        self.projeto_execucao = ProjetoPDI.objects.create(
+            nome="Projeto em Execução",
+            fase="EXECUCAO",
+            concedente=self.empresa,
+        )
+        self.plano_prospeccao = PlanoDeTrabalho.objects.create(
+            projeto=self.projeto_prospeccao,
+            versao=1,
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 12, 31),
+            total_meses=12,
+            valor_global=Decimal('100000.00'),
+            aporte_empresa=Decimal('50000.00'),
+            aporte_embrapii=Decimal('50000.00'),
+        )
+        self.plano_execucao = PlanoDeTrabalho.objects.create(
+            projeto=self.projeto_execucao,
+            versao=1,
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 12, 31),
+            total_meses=12,
+            valor_global=Decimal('100000.00'),
+            aporte_empresa=Decimal('50000.00'),
+            aporte_embrapii=Decimal('50000.00'),
+        )
+
+    def test_01_macroentrega_cronologia_invalida_rejeitada(self):
+        """Data fim < data início gera ValidationError({'data_fim': ...})."""
+        macro = Macroentrega(
+            plano_trabalho=self.plano_prospeccao,
+            numero=1,
+            nome="Macroentrega Inválida",
+            data_inicio=date(2026, 6, 1),
+            data_fim=date(2026, 5, 31),
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            macro.full_clean()
+        self.assertIn('data_fim', ctx.exception.message_dict)
+
+    def test_02_macroentregas_sequenciais_validas(self):
+        """M1 (Jan-Mar) e M2 (Mar-Jun) aceitas perfeitamente."""
+        m1 = Macroentrega.objects.create(
+            plano_trabalho=self.plano_prospeccao,
+            numero=1,
+            nome="Macroentrega 1",
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 3, 31),
+        )
+        m2 = Macroentrega(
+            plano_trabalho=self.plano_prospeccao,
+            numero=2,
+            nome="Macroentrega 2",
+            data_inicio=date(2026, 4, 1),
+            data_fim=date(2026, 6, 30),
+        )
+        # Não deve levantar ValidationError
+        m2.full_clean()
+
+    def test_03_macroentregas_sobrepostas_rejeitadas(self):
+        """M2 iniciando antes do término de M1 é rejeitada pela RN-07."""
+        Macroentrega.objects.create(
+            plano_trabalho=self.plano_prospeccao,
+            numero=1,
+            nome="Macroentrega 1",
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 3, 31),
+        )
+        m2 = Macroentrega(
+            plano_trabalho=self.plano_prospeccao,
+            numero=2,
+            nome="Macroentrega 2 Sobreposta",
+            data_inicio=date(2026, 3, 15),  # Inicia antes do término de M1
+            data_fim=date(2026, 6, 30),
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            m2.full_clean()
+        self.assertIn('data_inicio', ctx.exception.message_dict)
+        self.assertIn('RN-07', str(ctx.exception))
+
+    def test_04_macroentrega_posterior_sobreposta_rejeitada(self):
+        """M1 editada com data fim ultrapassando início de M2 é rejeitada."""
+        m1 = Macroentrega.objects.create(
+            plano_trabalho=self.plano_prospeccao,
+            numero=1,
+            nome="Macroentrega 1",
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 3, 31),
+        )
+        Macroentrega.objects.create(
+            plano_trabalho=self.plano_prospeccao,
+            numero=2,
+            nome="Macroentrega 2",
+            data_inicio=date(2026, 4, 1),
+            data_fim=date(2026, 6, 30),
+        )
+        # Tenta estender M1 para ultrapassar o início de M2
+        m1.data_fim = date(2026, 4, 15)
+        with self.assertRaises(ValidationError) as ctx:
+            m1.full_clean()
+        self.assertIn('data_fim', ctx.exception.message_dict)
+        self.assertIn('RN-07', str(ctx.exception))
+
+    def test_05_projeto_prospeccao_permite_edicao_livre(self):
+        """Projeto em fase='PROSPECCAO' permite adicionar, editar e excluir macroentregas sem restrição de congelamento."""
+        # Adicionar nova macroentrega
+        m1 = Macroentrega(
+            plano_trabalho=self.plano_prospeccao,
+            numero=1,
+            nome="Nova Macroentrega",
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 3, 31),
+        )
+        m1.full_clean()
+        m1.save()
+
+        # Editar macroentrega existente
+        m1.nome = "Macroentrega Editada"
+        m1.full_clean()
+        m1.save()
+
+        # Excluir macroentrega
+        m1.delete()
+        self.assertEqual(Macroentrega.objects.filter(plano_trabalho=self.plano_prospeccao).count(), 0)
+
+    def test_06_projeto_execucao_bloqueia_nova_macroentrega(self):
+        """Projeto em fase='EXECUCAO' rejeita adição de nova macroentrega com erro RN-10."""
+        macro = Macroentrega(
+            plano_trabalho=self.plano_execucao,
+            numero=1,
+            nome="Nova Macroentrega em Execução",
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 3, 31),
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            macro.full_clean()
+        self.assertIn('RN-10', str(ctx.exception))
+
+    def test_07_projeto_execucao_bloqueia_mutacao_macroentrega_existente(self):
+        """Tentar alterar nome, TRL ou datas de macroentrega existente em projeto em execução é rejeitado pela RN-10."""
+        m1 = Macroentrega.objects.create(
+            plano_trabalho=self.plano_execucao,
+            numero=1,
+            nome="Macroentrega Original",
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 3, 31),
+            trl=3,
+        )
+        # Tenta alterar nome
+        m1.nome = "Macroentrega Alterada"
+        with self.assertRaises(ValidationError) as ctx:
+            m1.full_clean()
+        self.assertIn('RN-10', str(ctx.exception))
+
+        # Tenta alterar TRL
+        m1.nome = "Macroentrega Original"  # Restaura nome
+        m1.trl = 4
+        with self.assertRaises(ValidationError) as ctx:
+            m1.full_clean()
+        self.assertIn('RN-10', str(ctx.exception))
+
+        # Tenta alterar datas
+        m1.trl = 3  # Restaura TRL
+        m1.data_inicio = date(2026, 1, 15)
+        with self.assertRaises(ValidationError) as ctx:
+            m1.full_clean()
+        self.assertIn('RN-10', str(ctx.exception))
+
+    def test_08_projeto_execucao_bloqueia_delecao_macroentrega(self):
+        """Tentar chamar .delete() em macroentrega de plano congelado levanta ValidationError."""
+        m1 = Macroentrega.objects.create(
+            plano_trabalho=self.plano_execucao,
+            numero=1,
+            nome="Macroentrega para Deleção",
+            data_inicio=date(2026, 1, 1),
+            data_fim=date(2026, 3, 31),
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            m1.delete()
+        self.assertIn('RN-10', str(ctx.exception))

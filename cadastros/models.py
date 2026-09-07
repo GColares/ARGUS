@@ -216,12 +216,12 @@ class PlanoDeTrabalho(models.Model):
 
     def save(self, *args, **kwargs):
         # Soma automática dos aportes
-        self.valor_global = (
-            self.aporte_empresa +
-            self.aporte_embrapii +
-            self.aporte_sebrae +
-            self.aporte_contrapartida
-        )
+        from decimal import Decimal
+        v_empresa = self.aporte_empresa or Decimal('0.00')
+        v_embrapii = self.aporte_embrapii or Decimal('0.00')
+        v_sebrae = self.aporte_sebrae or Decimal('0.00')
+        v_contrapartida = self.aporte_contrapartida or Decimal('0.00')
+        self.valor_global = v_empresa + v_embrapii + v_sebrae + v_contrapartida
         super().save(*args, **kwargs)
 
     def clean(self):
@@ -271,6 +271,15 @@ class PlanoDeTrabalho(models.Model):
     @property
     def total_bruto(self):
         return self.total_i_vi + self.total_vii
+
+    @property
+    def esta_congelado(self):
+        """Retorna True se o plano pertence a um projeto em fase de execução ou superior."""
+        if hasattr(self, 'projeto') and self.projeto:
+            return self.projeto.fase in ['EXECUCAO', 'PRESTACAO_CONTAS', 'ENCERRADO']
+        if hasattr(self, 'termo_homologador') and self.termo_homologador and hasattr(self.termo_homologador, 'projeto') and self.termo_homologador.projeto:
+            return self.termo_homologador.projeto.fase in ['EXECUCAO', 'PRESTACAO_CONTAS', 'ENCERRADO']
+        return False
 
     def __str__(self):
         return f"Plano V{self.versao} - Projeto {self.projeto.nome if self.projeto else 'Desconhecido'}"
@@ -1197,6 +1206,71 @@ class Macroentrega(models.Model):
         verbose_name = "Macroentrega"
         verbose_name_plural = "Macroentregas"
         ordering = ['numero']
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if not hasattr(self, 'plano_trabalho') or not self.plano_trabalho:
+            return
+        # 1. Trava RN-10: Congelamento de Escopo na Execução
+        if self.plano_trabalho.esta_congelado:
+            if not self.pk:
+                raise ValidationError(
+                    "RN-10: O Plano de Trabalho está vinculado a um projeto em execução e seu escopo "
+                    "encontra-se congelado. Não é permitido adicionar novas macroentregas diretamente."
+                )
+            else:
+                original = Macroentrega.objects.filter(pk=self.pk).first()
+                if original:
+                    campos_congelados = ['numero', 'nome', 'trl', 'data_inicio', 'data_fim']
+                    alterados = [c for c in campos_congelados if getattr(self, c) != getattr(original, c)]
+                    if alterados:
+                        raise ValidationError(
+                            f"RN-10: O escopo técnico deste plano está congelado (fase de Execução). "
+                            f"Não é permitido alterar os campos: {', '.join(alterados)} sem Termo Aditivo."
+                        )
+        # 2. Validação básica de cronologia individual
+        if self.data_inicio and self.data_fim:
+            if self.data_fim < self.data_inicio:
+                raise ValidationError({
+                    'data_fim': "A data final da macroentrega não pode ser anterior à data inicial."
+                })
+        # 3. Trava RN-07: Sequenciamento Estrito de Macroentregas (sem sobreposição)
+        if self.data_inicio and self.data_fim and self.numero:
+            outras = Macroentrega.objects.filter(
+                plano_trabalho=self.plano_trabalho
+            )
+            if self.pk:
+                outras = outras.exclude(pk=self.pk)
+            for outra in outras:
+                if not outra.data_inicio or not outra.data_fim or not outra.numero:
+                    continue
+                # Macroentrega anterior (número menor) deve terminar antes ou no mesmo dia do início desta
+                if outra.numero < self.numero and self.data_inicio < outra.data_fim:
+                    raise ValidationError({
+                        'data_inicio': (
+                            f"RN-07: Violação de sequenciamento temporal: a Macroentrega {self.numero} "
+                            f"inicia em {self.data_inicio.strftime('%d/%m/%Y')}, antes do término da "
+                            f"Macroentrega {outra.numero} ({outra.data_fim.strftime('%d/%m/%Y')})."
+                        )
+                    })
+                # Macroentrega posterior (número maior) não pode iniciar antes do término desta
+                if outra.numero > self.numero and self.data_fim > outra.data_inicio:
+                    raise ValidationError({
+                        'data_fim': (
+                            f"RN-07: Violação de sequenciamento temporal: a Macroentrega {self.numero} "
+                            f"termina em {self.data_fim.strftime('%d/%m/%Y')}, após o início da "
+                            f"Macroentrega {outra.numero} ({outra.data_inicio.strftime('%d/%m/%Y')})."
+                        )
+                    })
+
+    def delete(self, *args, **kwargs):
+        from django.core.exceptions import ValidationError
+        if hasattr(self, 'plano_trabalho') and self.plano_trabalho and self.plano_trabalho.esta_congelado:
+            raise ValidationError(
+                "RN-10: Não é permitido excluir macroentregas de um Plano de Trabalho em execução (escopo congelado)."
+            )
+        return super().delete(*args, **kwargs)
 
     def __str__(self):
         trl_str = f" [TRL {self.trl}]" if self.trl else ""

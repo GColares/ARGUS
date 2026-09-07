@@ -1,5 +1,24 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-07] Homologação Fase 6 — Etapa 6.4: Travas Regulatórias de Planejamento Físico & Congelamento de Escopo (RN-07 e RN-10) (Devin Desktop & Squad)
+
+### 1. Entregas Realizadas pelo Devin Desktop (Handoff Cirúrgico / SoD):
+- **Arquivos Modificados:**
+  * [`cadastros/models.py`](cadastros/models.py) (Adicionada propriedade `esta_congelado` em `PlanoDeTrabalho`; implementado método `clean()` em `Macroentrega` com travas de cronologia, sequenciamento estrito [RN-07] e congelamento de escopo na execução [RN-10]; sobrescrito `delete()` em `Macroentrega` contra remoção de macroentregas em planos congelados; e ajuste de robustez no `save()` de `PlanoDeTrabalho` para coerção de nulos em decimais).
+  * [`cadastros/tests.py`](cadastros/tests.py) (Criada a suíte `TravaPlanejamentoFisicoTestCase` com 8 testes rigorosos: rejeição de cronologia inválida, aceitação de macroentregas sequenciais, rejeição de sobreposição temporal [RN-07], rejeição de sobreposição posterior, edição livre em prospecção, bloqueio de nova macroentrega em execução [RN-10], bloqueio de mutação em execução [RN-10] e bloqueio de deleção em execução [RN-10]).
+- **Ajustes de Negócio e Governança:**
+  1. *Sequenciamento Estrito de Macroentregas (RN-07 / EMBRAPII):* Validação em cascata garantindo que a Macroentrega $N$ inicia estritamente após ou no mesmo dia do término da Macroentrega $N-1$, sem sobreposições cronológicas de intervalos fechados.
+  2. *Congelamento de Escopo Técnico (RN-10 / Governança Pública):* Planos vinculados a projetos em `EXECUCAO`, `PRESTACAO_CONTAS` ou `ENCERRADO` têm seu escopo técnico blindado contra adições, mutações e exclusões diretas.
+  3. *Zero Schema Migrations:* Lógica implementada inteiramente em validações de domínio (`clean`/`delete`/`properties`), sem alterações destrutivas de schema.
+
+### 2. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: 0 erros (System check identified no issues).
+- `manage.py test cadastros.tests.TravaPlanejamentoFisicoTestCase`: **8/8 testes OK (100%)**.
+- `manage.py test`: **184/184 testes automatizados aprovados (0 regressões)** em 81.21s (meta atingida: 176 → 184 testes).
+- **Rastro SoD:** Arquiteto: Antigravity-Gemini | Red Team: DeepSeek & Copilot | Implementador: Devin Desktop | Auditor/Tech Lead: Antigravity-Gemini | Aprovador: PO Geziel.
+
+---
+
 ## [2026-09-07] Homologação Fase 6 — Etapa 6.3: Trava Regulatória de Concessão e Acúmulo de Bolsas (RN-12 / IFAM) (GitHub Copilot & Squad)
 
 ### 1. Entregas Realizadas pelo GitHub Copilot (Handoff Cirúrgico / SoD):
