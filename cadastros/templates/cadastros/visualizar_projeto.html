@@ -141,8 +141,19 @@
                     <p class="fs-5">{{ projeto.nome }}</p>
                 </div>
                 <div class="col-md-3">
-                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Termo de Parceria</h6>
-                    <p class="fs-5 fw-bold text-primary">{{ projeto.termo_parceria.numero|default:"Sem Termo" }}</p>
+                    <h6 class="fw-bold text-muted mb-1 text-uppercase small">Instrumento Jurídico</h6>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        {% if projeto.termo_parceria %}
+                            <span class="badge {% if projeto.termo_parceria.tipo_instrumento == 'ACORDO_PARCERIA' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                {{ projeto.termo_parceria.get_tipo_instrumento_display }}
+                            </span>
+                            <a href="{% url 'cadastros:visualizar_termo_parceria' projeto.termo_parceria.id %}" class="fs-6 fw-bold text-decoration-none text-primary" title="Ver detalhes do termo">
+                                {{ projeto.termo_parceria.numero }} <i class="fas fa-external-link-alt small ms-1"></i>
+                            </a>
+                        {% else %}
+                            <span class="text-muted fst-italic">Sem Termo Vinculado</span>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <h6 class="fw-bold text-muted mb-1 text-uppercase small">Interveniente</h6>

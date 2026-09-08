@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 {% regroup termos by ativo as termos_por_status %}
+{% regroup termos by tipo_instrumento as termos_por_tipo %}
 <div class="container-fluid px-4 mt-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
@@ -71,6 +72,40 @@
                 <span class="text-muted text-xs">Acordos encerrados ou suspensos</span>
             </div>
         </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Acordos de Parceria</span>
+                </div>
+                <h3 class="fw-bold text-primary mb-0">
+                    {% for grupo in termos_por_tipo %}
+                        {% if grupo.grouper == 'ACORDO_PARCERIA' %}{{ grupo.list|length }}{% endif %}
+                    {% endfor %}
+                </h3>
+                <span class="text-muted text-xs">Instrumentos AP (P&D&I)</span>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-secondary bg-opacity-10 text-secondary rounded p-2 me-2">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Convênios</span>
+                </div>
+                <h3 class="fw-bold text-secondary mb-0">
+                    {% for grupo in termos_por_tipo %}
+                        {% if grupo.grouper == 'CONVENIO' %}{{ grupo.list|length }}{% endif %}
+                    {% endfor %}
+                </h3>
+                <span class="text-muted text-xs">Instrumentos CV (legado)</span>
+            </div>
+        </div>
     </div>
 
     <div class="card border-0 shadow-sm rounded-3 mb-4">
@@ -82,11 +117,19 @@
         <div class="collapse" id="filtrosAvancadosTermos">
             <div class="card-body border-top">
                 <form method="get" class="row g-3 align-items-end">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label for="filtroNumero" class="form-label fw-semibold">Número do Termo</label>
                         <input type="search" id="filtroNumero" name="numero" value="{{ request.GET.numero }}" class="form-control" placeholder="Digite parte do número">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label for="filtroTipo" class="form-label fw-semibold">Tipo</label>
+                        <select id="filtroTipo" name="tipo" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="ACORDO_PARCERIA" {% if request.GET.tipo == 'ACORDO_PARCERIA' %}selected{% endif %}>Acordo de Parceria (AP)</option>
+                            <option value="CONVENIO" {% if request.GET.tipo == 'CONVENIO' %}selected{% endif %}>Convênio (CV)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
                         <label for="filtroStatus" class="form-label fw-semibold">Status</label>
                         <select id="filtroStatus" name="ativo" class="form-select">
                             <option value="">Todos</option>
@@ -94,7 +137,7 @@
                             <option value="false" {% if request.GET.ativo == 'false' %}selected{% endif %}>Inativo</option>
                         </select>
                     </div>
-                    <div class="col-md-3 d-flex gap-2">
+                    <div class="col-md-2 d-flex gap-2">
                         <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-search me-1"></i>Filtrar</button>
                         <a href="{% url 'cadastros:listar_termos_parceria' %}" class="btn btn-outline-secondary">Limpar</a>
                     </div>
@@ -110,6 +153,7 @@
                     <thead class="thead-argus">
                         <tr>
                             <th class="text-center">Nº do Termo</th>
+                            <th class="text-center">Tipo</th>
                             <th class="text-center">Concedente (Empresa)</th>
                             <th class="text-center">Convenente (ICT)</th>
                             <th class="text-center">Data de Assinatura</th>
@@ -120,6 +164,15 @@
                         {% for t in termos %}
                         <tr>
                             <td class="fw-bold text-center">{{ t.numero|default:"S/N" }}</td>
+                            <td class="text-center">
+                                {% if t.tipo_instrumento == 'ACORDO_PARCERIA' %}
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">AP</span>
+                                {% elif t.tipo_instrumento == 'CONVENIO' %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle">CV</span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">{{ t.get_tipo_instrumento_display }}</span>
+                                {% endif %}
+                            </td>
                             <td>{{ t.concedente.nome }}</td>
                             <td>{{ t.convenente.nome }}</td>
                             <td class="text-center">{{ t.data_assinatura|date:"d/m/Y"|default:"-" }}</td>

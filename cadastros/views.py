@@ -248,9 +248,10 @@ def api_termos_por_empresa(request, empresa_id):
     data = []
     for termo in termos:
         objeto_texto = termo.objeto or ''
-        display = f"Termo {termo.numero} - {objeto_texto}" if termo.numero else f"Termo s/n - {objeto_texto}"
+        sigla = "AP" if termo.tipo_instrumento == 'ACORDO_PARCERIA' else "CV"
+        display = f"[{sigla}] {termo.numero or 's/n'} - {objeto_texto}"
         data.append({'id': termo.id, 'display_name': display})
-    
+
     return JsonResponse({'termos': data})
 
 @login_required
@@ -1252,11 +1253,20 @@ class TermoDeParceriaListView(ListView):
         queryset = super().get_queryset()
         numero = self.request.GET.get('numero', '').strip()
         ativo = self.request.GET.get('ativo', '').strip()
+        tipo = self.request.GET.get('tipo', '').strip()
         if numero:
             queryset = queryset.filter(numero__icontains=numero)
         if ativo in {'true', 'false'}:
             queryset = queryset.filter(ativo=(ativo == 'true'))
+        if tipo:
+            queryset = queryset.filter(tipo_instrumento=tipo)
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_acordos'] = TermoDeParceria.objects.filter(tipo_instrumento='ACORDO_PARCERIA').count()
+        context['total_convenios'] = TermoDeParceria.objects.filter(tipo_instrumento='CONVENIO').count()
+        return context
 
 class TermoDeParceriaDetailView(LoginRequiredMixin, DetailView):
     model = TermoDeParceria
