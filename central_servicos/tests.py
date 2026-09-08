@@ -167,3 +167,66 @@ class CentralServicosOSTestCase(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['ordens']), 1)
+
+from django.test import TestCase
+from django.contrib.auth.models import User, Group
+from django.core.exceptions import ValidationError, PermissionDenied
+from django.db.models import ProtectedError
+from .models import Predio, Ambiente, AtivoPredial, TipoAmbiente, TipoAtivo
+
+class AmbienteEspacosFisicosTestCase(TestCase):
+    def setUp(self):
+        self.admin_group = Group.objects.create(name='Administrador do Sistema')
+        self.gestor_group = Group.objects.create(name='Gestão de Infraestrutura')
+        self.operador_group = Group.objects.create(name='Operador de Infraestrutura')
+        
+        self.admin = User.objects.create_user(username='admin', password='123')
+        self.admin.groups.add(self.admin_group)
+        
+        self.gestor = User.objects.create_user(username='gestor', password='123')
+        self.gestor.groups.add(self.gestor_group)
+        
+        self.comum = User.objects.create_user(username='comum', password='123')
+        
+        self.tipo_amb = TipoAmbiente.objects.create(nome='Sala')
+        self.tipo_ativo = TipoAtivo.objects.create(nome='Ar Condicionado')
+        self.predio = Predio.objects.create(nome='Predio 1')
+        
+        self.amb_pai = Ambiente.objects.create(predio=self.predio, tipo=self.tipo_amb, nome='Pai')
+        self.amb_filho = Ambiente.objects.create(predio=self.predio, tipo=self.tipo_amb, nome='Filho', ambiente_pai=self.amb_pai)
+
+    def test_exclusao_fisica_pai_com_filho_dispara_protect(self):
+        with self.assertRaises(ProtectedError):
+            self.amb_pai.delete(hard_delete=True, user=self.admin)
+
+    def test_inativacao_pai_inativa_subarvore_transacional(self):
+        self.amb_pai.delete(user=self.admin, motivo='Reforma')
+        self.amb_pai.refresh_from_db()
+        self.amb_filho.refresh_from_db()
+        self.assertFalse(self.amb_pai.ativo)
+        self.assertFalse(self.amb_filho.ativo)
+
+    def test_ambiente_inativo_rejeitado_em_novos_ativos(self):
+        self.amb_filho.delete(user=self.admin, motivo='Teste')
+        ativo = AtivoPredial(ambiente=self.amb_filho, tipo=self.tipo_ativo)
+        with self.assertRaises(ValidationError):
+            ativo.clean()
+
+    def test_ativo_vinculado_a_macro_ambiente_rejeitado(self):
+        ativo = AtivoPredial(ambiente=self.amb_pai, tipo=self.tipo_ativo)
+        with self.assertRaises(ValidationError):
+            ativo.clean()
+
+    def test_rbac_usuario_comum_bloqueado_hard_delete(self):
+        with self.assertRaises(PermissionDenied):
+            self.amb_filho.delete(hard_delete=True, user=self.comum)
+
+    def test_delete_sem_motivo_rejeitado(self):
+        with self.assertRaises(ValidationError):
+            self.amb_filho.delete(user=self.admin)
+
+    def test_reativacao_nao_reativa_filho_automaticamente(self):
+        self.amb_pai.delete(user=self.admin, motivo='Teste')
+        self.amb_pai.reativar(motivo='Fim teste', usuario=self.admin)
+        self.amb_filho.refresh_from_db()
+        self.assertFalse(self.amb_filho.ativo)

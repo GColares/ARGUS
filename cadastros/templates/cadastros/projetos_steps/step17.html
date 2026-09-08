@@ -1,0 +1,19 @@
+<!-- 17. Orçamento -->
+<div class="wizard-step flex-grow-1" id="step17">
+    <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">17. Orçamento e Aportes Globais</h4>
+    <div class="alert alert-warning shadow-sm mb-4"><h5 class="fw-bold"><i class="fas fa-balance-scale me-2"></i>Travas Financeiras</h5><ul class="mb-0 small"><li><strong>Projetos Padrão:</strong> Mínimo de 10% de aporte da Empresa e 10% da EMBRAPII.</li><li><strong>Projetos PDC (Capacitação):</strong> A Empresa não aporta (0%). O Concedente deve ser obrigatoriamente a EMBRAPII (Agência de Fomento).</li></ul></div>
+    <div class="row g-4 mb-4">
+        <div class="col-md-3"><label class="form-label fw-bold text-muted text-uppercase small">Aporte Empresa (R$)</label>{{ form_plano.aporte_empresa }}<div class="text-danger small"></div></div>
+        <div class="col-md-3"><label class="form-label fw-bold text-muted text-uppercase small">Aporte EMBRAPII (R$)</label>{{ form_plano.aporte_embrapii }}<div class="text-danger small"></div></div>
+        <div class="col-md-3"><label class="form-label fw-bold text-muted text-uppercase small">Aporte SEBRAE (R$)</label>{{ form_plano.aporte_sebrae }}</div>
+        <div class="col-md-3"><label class="form-label fw-bold text-muted text-uppercase small">Contrapartida (R$)</label>{{ form_plano.aporte_contrapartida }}</div>
+    </div>
+    <div class="row g-4 mb-4"><div class="col-md-12"><label class="form-label fw-bold text-muted text-uppercase small">Descrição Geral do Orçamento</label>{{ form_plano.orcamento_descricao }}</div></div>
+    <div id="orcamento-container"></div>
+    <div class="text-center mt-3 mb-5"><button type="button" class="btn btn-outline-success fw-bold" id="btn-add-rubrica"><i class="fas fa-plus me-2"></i> Adicionar Nova Rubrica Orçamentária</button></div>
+    <div class="alert alert-secondary shadow-sm"><h5 class="fw-bold"><i class="fas fa-calculator me-2"></i>Resumo do Orçamento</h5><p class="mb-0 small text-muted">A soma total das rubricas será processada no backend após o salvamento.</p></div>
+    <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top sticky-actions-bar">
+        <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step16"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+        <div class="d-flex gap-2"><button type="submit" name="action" value="salvar" class="btn btn-outline-success px-4 shadow-sm fw-bold"><i class="fas fa-save me-2"></i> Salvar Alterações</button><button type="submit" name="action" value="publicar" class="btn btn-primary px-4 shadow-sm fw-bold"><i class="fas fa-paper-plane me-2"></i> Publicar Projeto</button></div>
+    </div>
+</div>

@@ -6,6 +6,7 @@ protocolo nem as regras de negócio.
 | Documento | Para que serve |
 |---|---|
 | `PROTOCOLO_COLABORACAO_IA.md` | Papéis, precedência, uma IA por arquivo, rotinas |
+| `FRONTEND_ARCHITECTURE.md` | Padrão-ouro canônico de HTML5, CSS3, Glassmorphism, BEM Híbrido e WCAG 2.1 AA |
 | `.agents/AGENTS.md` | Regras de domínio, UX, CRUD, migrações, RBAC (catálogo) |
 | `.agents/rules/CONTEXTO_ARGUS.md` | O que o sistema é e como os módulos se ligam |
 | `diario_de_bordo.md` | O que foi feito ontem e o que está quebrado agora |
@@ -40,11 +41,12 @@ Nesta ordem:
 
 1. `git status` e `git log --oneline -8`.
 2. Últimas entradas de `diario_de_bordo.md`.
-3. Se existir `HANDOFF_*.md` recente, leia.
-4. Confirme que o projeto aberto é a raiz **`C:\ARGUS`** (não um worktree antigo
+3. Se a tarefa envolver interface, templates ou CSS: leia e siga obrigatoriamente `FRONTEND_ARCHITECTURE.md`.
+4. Se existir `HANDOFF_*.md` recente, leia.
+5. Confirme que o projeto aberto é a raiz **`C:\ARGUS`** (não um worktree antigo
    em `C:\ARGUS.worktrees\...`). O servidor que o usuário testa no navegador
    precisa ser o mesmo diretório que você edita.
-5. Se `git status` mostrar alterações que você não fez: **pare**, descreva o
+6. Se `git status` mostrar alterações que você não fez: **pare**, descreva o
    diff e pergunte. Não misture o seu patch no trabalho de outra IA.
 
 ---

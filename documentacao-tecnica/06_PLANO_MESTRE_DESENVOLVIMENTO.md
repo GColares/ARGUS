@@ -154,7 +154,35 @@ flowchart LR
 
 ---
 
-## 4. Matriz de Distribuição e Segregação da Squad de IA (Protocolo SoD)
+### 🟡 FASE 5: Refinamentos de Domínio e RBAC Universal
+**Foco:** Garantir consistência nas permissões baseadas em papéis e integridade referencial dos dados.
+- Módulos `cadastros` e parâmetros baseados na governança do sistema.
+- Controle de acesso granular baseado nos mixins (Gestor, Operador e Administrador).
+> **Status da Fase 5:** 🎉 **100% CONCLUÍDA E HOMOLOGADA**.
+
+---
+
+### 🟢 FASE 6: Máquina de Estados, Governança de Infraestrutura e Espaços Físicos
+**Foco:** Refatoração de ciclo de vida (Projetos) e arquitetura de infraestrutura com *soft-delete*.
+- Implementação rigorosa do RF-05/RF-06 (Máquina de Estados) com controle transacional e impedimento de *bypass* de fase.
+- Implementação do RF-14 (Opção 2) na `central_servicos` com arquitetura *Composite Pattern*, `is_folha`, e bloqueios de exclusão (`CASCADE` para `PROTECT`).
+- Fechamento total dos Mixins de permissão e chamadas `objects.create()` em massa (Atomic + Full Clean).
+> **Status da Fase 6:** 🎉 **100% CONCLUÍDA E HOMOLOGADA**.
+
+---
+
+### 🔵 FASE 7: Fechamento do Ciclo Patrimonial & Doação SUAP
+**Foco:** Integração e Desmobilização de Bens vinculados a Projetos e sua Doação Patrimonial para o IFAM via SUAP.
+- **Módulos impactados:** `incorporacao`, `patrimonio`, `gestao_projetos`.
+- **Status Atual:** Em fase de *Discovery* e especificação técnica. Os requisitos funcionais e de integração (API vs Exportação) estão pendentes de definição.
+- **Objetivos de Alto Nível (TBD):**
+  1. Fluxo de desmobilização: Alteração de status dos bens após o encerramento do projeto.
+  2. Geração/Consolidação: Integração do Termo de Doação gerado pelo ARGUS com o inventário público SUAP.
+  3. Validações e Conformidade Patrimonial.
+
+---
+
+## 5. Matriz de Distribuição e Segregação da Squad de IA (Protocolo SoD)
 
 Para garantir produtividade extrema com zero conflitos de concorrência, o trabalho será fatiado de acordo com o [Protocolo de Colaboração da Squad](file:///C:/Projetos/ARGUS/documentacao-tecnica/governanca_squad_ia/PROTOCOLO_COLABORACAO_IA.md):
 

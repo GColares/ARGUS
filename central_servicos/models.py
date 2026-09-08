@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from cadastros.models import Fornecedor
 from almoxarifado.models import ProdutoAlmoxarifado
 import uuid
+from django.utils import timezone
 
 class Finalidade(models.Model):
     nome = models.CharField(max_length=50, unique=True)
@@ -119,14 +120,23 @@ class TipoAmbiente(models.Model):
         verbose_name_plural = "Tipos de Ambiente"
         ordering = ['nome']
 
+class AmbienteQuerySet(models.QuerySet):
+    def delete(self):
+        raise ValidationError("Deleção em massa não é permitida para Ambientes. Inative ou exclua um a um.")
+
+class AmbienteManager(models.Manager):
+    def get_queryset(self):
+        return AmbienteQuerySet(self.model, using=self._db)
+
 class Ambiente(models.Model):
+    objects = AmbienteManager()
     LOCALIZACAO_CHOICES = [
         ('INTERNO', 'Área Interna'),
         ('EXTERNO', 'Área Externa'),
     ]
     predio = models.ForeignKey(Predio, on_delete=models.CASCADE, related_name='ambientes')
     andar = models.ForeignKey(Andar, on_delete=models.SET_NULL, null=True, blank=True, related_name='ambientes', help_text="Deixe em branco para áreas externas")
-    ambiente_pai = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='sub_ambientes', verbose_name="Ambiente Pai (Laboratório/Setor Maior)")
+    ambiente_pai = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, related_name='sub_ambientes', verbose_name="Ambiente Pai (Laboratório/Setor Maior)")
     nome = models.CharField(max_length=100)
     tipo = models.ForeignKey(TipoAmbiente, on_delete=models.PROTECT, related_name='ambientes')
     localizacao = models.CharField(max_length=10, choices=LOCALIZACAO_CHOICES, default='INTERNO')
@@ -140,6 +150,11 @@ class Ambiente(models.Model):
     
     ordem = models.PositiveIntegerField(default=0, verbose_name="Ordem")
     ativo = models.BooleanField(default=True, verbose_name="Ambiente Ativo?")
+    
+    # Auditoria de Inativação (Soft-Delete)
+    motivo_inativacao = models.TextField(blank=True, null=True, verbose_name="Motivo da Inativação / Mutação")
+    inativado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='ambientes_inativados')
+    data_inativacao = models.DateTimeField(blank=True, null=True, verbose_name="Data de Inativação")
     history = HistoricalRecords()
 
     class Meta:
@@ -170,6 +185,55 @@ class Ambiente(models.Model):
                 raise ValidationError({'ambiente_pai': "Um ambiente não pode ser pai de si mesmo."})
             if self.ambiente_pai.ambiente_pai:
                 raise ValidationError({'ambiente_pai': "Para manter a performance e clareza, é permitido apenas 1 nível de sub-ambiente (Macro -> Micro)."})
+
+    @property
+    def is_folha(self):
+        return not self.sub_ambientes.filter(ativo=True).exists()
+
+    def inativar(self, motivo, usuario):
+        if not motivo:
+            raise ValidationError({'motivo_inativacao': "O motivo da inativação é obrigatório."})
+        if not getattr(usuario, 'is_authenticated', False):
+            raise ValidationError("Um usuário válido e autenticado é obrigatório para inativar o ambiente.")
+            
+        with transaction.atomic():
+            self.ativo = False
+            self.motivo_inativacao = motivo
+            self.inativado_por = usuario
+            self.data_inativacao = timezone.now()
+            self.save()
+            
+            # Inativa recursivamente a subárvore ativa
+            for filho in self.sub_ambientes.filter(ativo=True):
+                filho.inativar(f"Inativado em cascata pelo ambiente pai. Motivo original: {motivo}", usuario)
+
+    def reativar(self, motivo, usuario):
+        if not motivo:
+            raise ValidationError("O motivo para reativação é obrigatório.")
+        if not getattr(usuario, 'is_authenticated', False):
+            raise ValidationError("Um usuário válido e autenticado é obrigatório para reativar o ambiente.")
+            
+        self.ativo = True
+        self.motivo_inativacao = f"Reativado em {timezone.now().strftime('%d/%m/%Y %H:%M')} por {usuario.username}. Motivo: {motivo}"
+        self.data_inativacao = None
+        self.save()
+
+    def delete(self, using=None, keep_parents=False, hard_delete=False, user=None, motivo=None):
+        if not hard_delete:
+            if not motivo:
+                raise ValidationError({'motivo_inativacao': "Um motivo explícito é obrigatório para inativar (soft-delete) o ambiente."})
+            if not user:
+                raise ValidationError("Usuário é obrigatório para realizar inativação.")
+            self.inativar(motivo=motivo, usuario=user)
+            # Retorno fake no formato do Django para soft-delete
+            return (1, {'central_servicos.Ambiente': 1})
+        else:
+            from central_servicos.permissions import is_administrador
+            from django.core.exceptions import PermissionDenied
+            if not user or not is_administrador(user):
+                raise PermissionDenied("Apenas Administradores do Sistema podem realizar o expurgo físico (hard delete) de ambientes.")
+            # Expurgo físico. O PROTECT cuidará de rejeitar se houver filhos.
+            return super().delete(using=using, keep_parents=keep_parents)
 
     def __str__(self):
         nome_completo = self.nome
@@ -208,7 +272,7 @@ class TipoElemento(models.Model):
         ordering = ['categoria__nome', 'nome']
 
 class ElementoConstrutivo(models.Model):
-    ambiente = models.ForeignKey(Ambiente, on_delete=models.CASCADE, related_name='elementos_construtivos')
+    ambiente = models.ForeignKey(Ambiente, on_delete=models.PROTECT, related_name='elementos_construtivos')
     tipo = models.ForeignKey(TipoElemento, on_delete=models.PROTECT)
     area_m2 = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Área (m²)")
     detalhes = models.TextField(blank=True, null=True, help_text="Especificações ou detalhes para cálculo da IN 05/2017")
@@ -241,6 +305,23 @@ class AtivoPredial(models.Model):
 
     def __str__(self):
         return f"{self.nome_apelido or self.tipo} ({self.ambiente})"
+
+    def clean(self):
+        super().clean()
+        if self.ambiente:
+            validar_folha = False
+            if not self.pk:
+                validar_folha = True
+            else:
+                original = AtivoPredial.objects.filter(pk=self.pk).values('ambiente_id').first()
+                if original and original['ambiente_id'] != self.ambiente_id:
+                    validar_folha = True
+            
+            if validar_folha:
+                if not self.ambiente.ativo:
+                    raise ValidationError({'ambiente': "Não é possível vincular ativos a ambientes inativos."})
+                if not getattr(self.ambiente, 'is_folha', True):
+                    raise ValidationError({'ambiente': "O ativo deve ser alocado em um sub-ambiente específico (nível folha), pois este espaço possui divisões ativas."})
 
 class CategoriaServico(models.Model):
     nome = models.CharField(max_length=100, unique=True)
@@ -295,6 +376,31 @@ class OrdemServico(models.Model):
     servidor_responsavel = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='os_manutencao_interna')
     
     estoque_baixado = models.BooleanField(default=False, editable=False)
+
+    def clean(self):
+        super().clean()
+        validar_ambiente = False
+        validar_ativo = False
+        if not self.pk:
+            validar_ambiente = True
+            validar_ativo = True
+        else:
+            original = OrdemServico.objects.filter(pk=self.pk).values('ambiente_id', 'ativo_predial_id').first()
+            if original:
+                if original['ambiente_id'] != self.ambiente_id:
+                    validar_ambiente = True
+                if original['ativo_predial_id'] != self.ativo_predial_id or validar_ambiente:
+                    validar_ativo = True
+
+        if self.ambiente and validar_ambiente:
+            if not self.ambiente.ativo:
+                raise ValidationError({'ambiente': "Não é possível abrir OS para ambientes inativos."})
+            if not getattr(self.ambiente, 'is_folha', True):
+                raise ValidationError({'ambiente': "A OS deve ser aberta em um sub-ambiente específico (nível folha), pois este espaço possui divisões ativas."})
+        
+        if self.ativo_predial and self.ambiente and validar_ativo:
+            if self.ativo_predial.ambiente_id != self.ambiente_id:
+                raise ValidationError({'ativo_predial': f"Incompatibilidade: O ativo pertence ao ambiente '{self.ativo_predial.ambiente}' mas a OS está vinculada a '{self.ambiente}'."})
 
     def save(self, *args, **kwargs):
         if not self.numero:

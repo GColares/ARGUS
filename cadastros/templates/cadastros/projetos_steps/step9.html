@@ -1,0 +1,19 @@
+<!-- 9. Plano de Ação -->
+<div class="wizard-step flex-grow-1" id="step9">
+    <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">9. Plano de Ação</h4>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 text-muted">Lista de Atividades e Entregáveis</h6>
+        <button type="button" class="btn btn-primary fw-bold btn-sm" id="btn-open-modal-atividade"><i class="fas fa-plus me-1"></i> Adicionar Atividade</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered bg-white shadow-sm" id="tabela-atividades">
+            <thead class="table-light"><tr><th class="text-center" width="8%">Item</th><th class="text-center">Nome da Atividade</th><th class="text-center" width="30%">Entregáveis</th><th class="text-center" width="12%">Mês Início</th><th class="text-center" width="12%">Mês Fim</th><th class="text-center" width="12%">Ações</th></tr></thead>
+            <tbody><tr id="row-empty-atividade"><td colspan="6" class="text-center text-muted py-4">Nenhuma atividade cadastrada. Clique em "Adicionar Atividade".</td></tr></tbody>
+        </table>
+    </div>
+    <div id="atividades-hidden-inputs"></div>
+    <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top sticky-actions-bar">
+        <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step8"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
+        <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step10">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
+    </div>
+</div>

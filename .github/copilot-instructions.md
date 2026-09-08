@@ -17,8 +17,9 @@ Você deve antes responder fazendo uma análise crítica (Red Team) contendo:
 - Riscos, fragilidades, risco de perda de dados legado e quebra de banco.
 - Sugestão de uma solução melhor ou Híbrida.
 
-## 2. Padrões de Interface (UX)
-- **Princípio ATM (Caixa Eletrônico):** O sistema ARGUS odeia barras de rolagem globais. O conteúdo deve caber na tela. Telas longas devem ser fatiadas em abas/Wizards (ex: 17 passos).
+## 2. Padrões de Interface (UX e Front-End)
+- **Manual Canônico:** Siga rigorosamente o [`FRONTEND_ARCHITECTURE.md`](../FRONTEND_ARCHITECTURE.md) para qualquer criação ou edição de templates HTML, CSS e componentes de interface (BEM Híbrido, Glassmorphism e WCAG 2.1 AA).
+- **Sem travas de altura:** Fica proibido `height: 100vh` ou travas no body que impeçam o scroll natural do navegador. Formulários longos devem ser fatiados em includes modulares.
 - **Sem inline warnings:** Todos os alertas e comunicações de erro devem usar o sistema de Toasts do Django (`messages`), nunca divs estáticas no meio da tela que empurram o conteúdo para baixo.
 - **Voltar Inteligente:** Botões de voltar devem sempre usar `javascript:history.back()`.
 

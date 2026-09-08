@@ -1,5 +1,70 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-07] Homologação das Fases 6.7 (Infraestrutura RF-14) e Revolução UI/UX do Wizard de Projetos (RF-02) (Gemini, Copilot, DeepSeek & Claude Sonnet 5)
+
+### 1. Entregas de Infraestrutura & Espaços Físicos (Opção 2 / RF-14) — `central_servicos`:
+- **Refatoração de Modelos e Banco de Dados:**
+  * [`central_servicos/models.py`](central_servicos/models.py): Alteradas ForeignKeys `ambiente_pai` e `ElementoConstrutivo.ambiente` para `on_delete=models.PROTECT`.
+  * Adicionados campos de auditoria em `Ambiente`: `motivo_inativacao`, `inativado_por` e `data_inativacao`.
+  * Implementadas transações de ciclo de vida com soft-delete no domínio: `inativar(motivo, usuario)` propaga em cascata atômica para subambientes ativos; `reativar(motivo, usuario)` restaura apenas o nó selecionado (sem auto-reativação de filhos).
+  * Sobrescrito `delete()` bloqueando exclusão física sem motivo e restringindo `hard_delete=True` estritamente a administradores (`is_administrador(user)`). Bloqueado bypass de exclusão em lote via `AmbienteQuerySet.delete()`.
+  * Tolerância a dados legados: detecção de dirty-field via banco (`values('ambiente_id')`) nos métodos `clean()` de `AtivoPredial` e `OrdemServico`.
+  * Migração aplicada: `central_servicos: 0017_ambiente_data_inativacao_ambiente_inativado_por_and_more.py`.
+- **Governança e RBAC Granular:**
+  * [`central_servicos/permissions.py`](central_servicos/permissions.py): Criados 4 tiers de permissão (`AdministradorRequiredMixin`, `GestorInfraRequiredMixin`, `OperadorInfraRequiredMixin`).
+  * [`central_servicos/views.py`](central_servicos/views.py): Aplicados os mixins correspondentes em todas as views de Prédios, Andares, Ambientes, Ativos Prediais e cadastros paramétricos (`TipoAmbiente`, `CategoriaElemento`, etc.).
+  * Criadas as views `AmbienteInativarView` e `AmbienteReativarView`.
+  * Bloqueio de bypass em criações em lote: injeção de `full_clean()` e `transaction.atomic()` em `OrdemServicoCreateView`, `AtivoPredialCreateView` (lote) e `AtivoPredialRapidoCreateView`.
+  * [`central_servicos/urls.py`](central_servicos/urls.py): Rotas atualizadas para `ambiente_excluir` (inativação) e `ambiente_reativar`.
+- **Testes Automatizados:**
+  * [`central_servicos/tests.py`](central_servicos/tests.py): Criada a suíte `AmbienteEspacosFisicosTestCase` cobrindo PROTECT em pai com filho, inativação transacional de subárvore, rejeição de novos ativos em ambientes inativos, rejeição de ativos em macroambientes não-folha, RBAC de hard-delete e reativação pontual.
+  * Resultado: **15/15 testes aprovados em `central_servicos`**.
+
+---
+
+### 2. Entregas da Revolução UI/UX do Wizard de Projetos & Design System (RF-02):
+- **Governança & Design System Centralizado:**
+  * [`documentacao-tecnica/05_DESIGN_SYSTEM_ARGUS.md`](documentacao-tecnica/05_DESIGN_SYSTEM_ARGUS.md): Atualizada documentação oficial adicionando Seção 7 (Padrão Glassmorphism) e Seção 8 (Regra Anti-Trava para Layouts Fluidos).
+  * [`static/css/argus-design-system.css`](static/css/argus-design-system.css): Criado CSS canônico global com tokens de design (`--argus-*`), classes `.cs-card`, `.glass-card`, `.sticky-actions-bar`, `.wizard-sidebar-nav`, `.wizard-content-panel`, estilo fluido para Quill e fallback `@supports not (backdrop-filter)`.
+  * [`templates/base.html`](templates/base.html): Vinculado `argus-design-system.css` globalmente no `<head>`.
+- **Fatiamento e Modularização de `form_projeto.html` (102 KB):**
+  * Extinção da trava artificial de viewport (`html, body { height: 100% }`, `overflow: hidden` e `calc(100vh - 290px)`). A rolagem agora é natural e fluida no navegador.
+  * Criada a pasta [`cadastros/templates/cadastros/projetos_steps/`](cadastros/templates/cadastros/projetos_steps/) contendo 17 fragmentos modulares:
+    - `step1.html` a `step17.html` cobrindo todos os passos do Wizard (Dados Cadastrais, Termo, Plano, Vigência, Metodologia, Macroentregas, Indicadores, Orçamento, etc.).
+  * [`cadastros/templates/cadastros/form_projeto.html`](cadastros/templates/cadastros/form_projeto.html): Transformado em orquestrador limpo chamando os 17 fragmentos via `{% include 'cadastros/projetos_steps/stepN.html' %}` com `.sticky-actions-bar` no rodapé e sidebar com `.wizard-sidebar-nav` sticky.
+  * Preservação integral de contratos: 100% dos IDs `step1` a `step17`, names dos inputs e o JavaScript de orquestração do Wizard (linhas 1482-1791) mantidos intactos.
+
+---
+
+### 3. Rastro SoD e Homologação Multimodelo (Squad IA):
+- **Arquiteto & Lead:** Antigravity-Gemini (Master RFC, Handoff e suíte de testes de Infraestrutura).
+- **Implementador Frontend:** GitHub Copilot (Execução do Handoff: CSS canônico, atualização de Design System e fatiamento dos 17 passos).
+- **Red Team & Auditoria Independente:**
+  * Claude Sonnet 5: Identificou distinção crítica entre travas de viewport e truncamento legítimo de células (`text-overflow: ellipsis`), e necessidade de centralizar Glassmorphism em CSS único antes da replicação.
+  * DeepSeek-v4-pro: Auditoria factual confirmando 17 fragmentos íntegros, zero duplicações de IDs no DOM, scripts preservados e parecer final: **HOMOLOGADO!**
+- **Suíte de Testes Automatizados:**
+  * `python manage.py check`: 0 erros / 0 avisos.
+  * `python manage.py test`: **207/207 testes aprovados (100% verdes, 0 regressões)**.
+
+---
+
+### 4. 🚀 Missão Programada para a Próxima Sessão (Amanhã):
+**Varredura Global e Harmonização UI/UX de Todas as Telas do ARGUS (`FRONTEND_ARCHITECTURE.md`):**
+- **Objetivo:** Auditar e aplicar o padrão canônico do `FRONTEND_ARCHITECTURE.md` nos ~96 templates do sistema, divididos em sprints modulares:
+  1. **Módulo `cadastros`:** Telas de listagem, detalhes (Master-Detail em abas) e formulários de Pessoas Físicas, Jurídicas e Termos.
+  2. **Módulo `central_servicos`:** Ordens de Serviço, Gestão de Ambientes, Prédios e Ativos Prediais.
+  3. **Módulo `almoxarifado`:** Entradas, saídas e controle de estoque de materiais.
+  4. **Módulo `gestao_projetos`:** Painel de Indicadores EMBRAPII, trilha de auditoria e relatórios de atividade.
+  5. **Módulos `patrimonio` e `incorporacao`:** Termos de doação, conferência de bens e telas de inventário.
+- **Metas de Limpeza Técnica:**
+  * Higienizar os ~401 `style="..."` inline, migrando para classes utilitárias e tokens de Glassmorphism (`.cs-card`, `.glass-card`).
+  * Padronizar links de retorno exclusivamente para `<a href="javascript:history.back()">`.
+  * Eliminar `{% empty %}` de dentro de `<tbody>` de tabelas processadas por DataTables.
+  * Injetar landmarks semânticos (`<main>`, `<article>`, `<header>`) a partir do `base.html`.
+  * Garantir contraste cromático 4.5:1 e navegabilidade acessível com `:focus-visible`.
+
+---
+
 ## [2026-09-07] Homologação Fase 6 — Etapa 6.6: Máquina de Estados e Governança do Ciclo de Vida de Projetos PDI (RF-05, RF-06 e Gateways SoD) (Claude Desktop, GitHub Copilot & Squad)
 
 ### 1. Entregas Realizadas pelo Claude Desktop (Handoff Cirúrgico / SoD):

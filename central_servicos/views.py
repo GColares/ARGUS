@@ -10,7 +10,9 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, V
 from django.urls import reverse_lazy
 from .models import OrdemServico, Predio, Andar, Ambiente, TipoAmbiente, CategoriaElemento, TipoElemento, ElementoConstrutivo, TipoAtivo, AtivoPredial, CategoriaServico, MaterialUtilizado, Finalidade
 from .forms import OrdemServicoForm, OrdemServicoCancelamentoForm, PredioForm, AndarForm, AmbienteForm, TipoAmbienteForm, CategoriaElementoForm, ElementoConstrutivoForm, TipoElementoForm, TipoAtivoForm, AtivoPredialForm, AtivoPredialLoteForm, CategoriaServicoForm, FinalidadeForm
-from django.core.exceptions import PermissionDenied
+from .permissions import AdministradorRequiredMixin, GestorInfraRequiredMixin, OperadorInfraRequiredMixin
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.contrib import messages
 from django.http import JsonResponse
 
@@ -71,18 +73,30 @@ class OrdemServicoCreateView(LoginRequiredMixin, CreateView):
             ativo_predial = None
 
         os_criadas = 0
-        for ambiente in ambientes:
-            OrdemServico.objects.create(
-                ambiente=ambiente,
-                categoria=categoria,
-                descricao_problema=descricao_problema,
-                ativo_predial=ativo_predial,
-                solicitante=solicitante
-            )
-            os_criadas += 1
+        try:
+            with transaction.atomic():
+                for ambiente in ambientes:
+                    nova_os = OrdemServico(
+                        ambiente=ambiente,
+                        categoria=categoria,
+                        descricao_problema=descricao_problema,
+                        ativo_predial=ativo_predial,
+                        solicitante=solicitante
+                    )
+                    nova_os.full_clean()
+                    nova_os.save()
+                    os_criadas += 1
+        except ValidationError as e:
+            for field, errors in getattr(e, 'message_dict', {}).items():
+                for erro in errors:
+                    form.add_error(field, erro)
+            if hasattr(e, 'messages') and not getattr(e, 'message_dict', None):
+                for erro in e.messages:
+                    form.add_error(None, erro)
+            return self.form_invalid(form)
 
         messages.success(self.request, f'{os_criadas} Ordem(ns) de Serviço gerada(s) com sucesso.')
-        from django.http import JsonResponse, HttpResponseRedirect
+        from django.http import HttpResponseRedirect
         return HttpResponseRedirect(self.success_url)
 
 class RelatorioOSView(LoginRequiredMixin, ListView):
@@ -148,7 +162,7 @@ class OrdemServicoCancelarView(LoginRequiredMixin, UpdateView):
 # ==========================================
 # GESTÃO DE PRÉDIOS
 # ==========================================
-class PredioListView(LoginRequiredMixin, ListView):
+class PredioListView(GestorInfraRequiredMixin, ListView):
     model = Predio
     template_name = 'central_servicos/predio_list.html'
     context_object_name = 'predios'
@@ -157,7 +171,7 @@ class PredioListView(LoginRequiredMixin, ListView):
         # pyrefly: ignore [missing-attribute]
         return Predio.objects.all().order_by('nome')
 
-class PredioCreateView(LoginRequiredMixin, CreateView):
+class PredioCreateView(GestorInfraRequiredMixin, CreateView):
     model = Predio
     form_class = PredioForm
     template_name = 'central_servicos/predio_form.html'
@@ -167,7 +181,7 @@ class PredioCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, 'Prédio cadastrado com sucesso.')
         return super().form_valid(form)
 
-class PredioUpdateView(LoginRequiredMixin, UpdateView):
+class PredioUpdateView(GestorInfraRequiredMixin, UpdateView):
     model = Predio
     form_class = PredioForm
     template_name = 'central_servicos/predio_form.html'
@@ -177,7 +191,7 @@ class PredioUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Prédio atualizado com sucesso.')
         return super().form_valid(form)
 
-class PredioDeleteView(LoginRequiredMixin, DeleteView):
+class PredioDeleteView(GestorInfraRequiredMixin, DeleteView):
     model = Predio
     template_name = 'central_servicos/predio_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:predio_list')
@@ -189,12 +203,12 @@ class PredioDeleteView(LoginRequiredMixin, DeleteView):
 # ==========================================
 # GESTÃO DE ANDARES
 # ==========================================
-class AndarListView(LoginRequiredMixin, ListView):
+class AndarListView(GestorInfraRequiredMixin, ListView):
     model = Andar
     template_name = 'central_servicos/andar_list.html'
     context_object_name = 'andares'
 
-class AndarCreateView(LoginRequiredMixin, CreateView):
+class AndarCreateView(GestorInfraRequiredMixin, CreateView):
     model = Andar
     form_class = AndarForm
     template_name = 'central_servicos/andar_form.html'
@@ -203,7 +217,7 @@ class AndarCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, 'Andar cadastrado com sucesso.')
         return super().form_valid(form)
 
-class AndarUpdateView(LoginRequiredMixin, UpdateView):
+class AndarUpdateView(GestorInfraRequiredMixin, UpdateView):
     model = Andar
     form_class = AndarForm
     template_name = 'central_servicos/andar_form.html'
@@ -212,7 +226,7 @@ class AndarUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Andar atualizado com sucesso.')
         return super().form_valid(form)
 
-class AndarDeleteView(LoginRequiredMixin, DeleteView):
+class AndarDeleteView(GestorInfraRequiredMixin, DeleteView):
     model = Andar
     template_name = 'central_servicos/andar_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:andar_list')
@@ -223,7 +237,7 @@ class AndarDeleteView(LoginRequiredMixin, DeleteView):
 # ==========================================
 # GESTÃO DE AMBIENTES
 # ==========================================
-class AmbienteListView(LoginRequiredMixin, ListView):
+class AmbienteListView(GestorInfraRequiredMixin, ListView):
     model = Ambiente
     template_name = 'central_servicos/ambiente_list.html'
     context_object_name = 'ambientes'
@@ -231,7 +245,7 @@ class AmbienteListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return Ambiente.objects.filter(ativo=True)
 
-class AmbienteCreateView(LoginRequiredMixin, CreateView):
+class AmbienteCreateView(GestorInfraRequiredMixin, CreateView):
     model = Ambiente
     form_class = AmbienteForm
     template_name = 'central_servicos/ambiente_form.html'
@@ -258,7 +272,7 @@ class AmbienteCreateView(LoginRequiredMixin, CreateView):
             return HttpResponseRedirect(url + query)
         return super().form_valid(form)
 
-class AmbienteUpdateView(LoginRequiredMixin, UpdateView):
+class AmbienteUpdateView(GestorInfraRequiredMixin, UpdateView):
     model = Ambiente
     form_class = AmbienteForm
     template_name = 'central_servicos/ambiente_form.html'
@@ -274,18 +288,40 @@ class AmbienteUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Ambiente atualizado com sucesso.')
         return super().form_valid(form)
 
-class AmbienteDeleteView(LoginRequiredMixin, DeleteView):
+class AmbienteInativarView(GestorInfraRequiredMixin, DeleteView):
     model = Ambiente
-    template_name = 'central_servicos/ambiente_confirm_delete.html'
+    template_name = 'central_servicos/ambiente_inativar.html'
     success_url = reverse_lazy('central_servicos:ambiente_list')
+    
     def delete(self, request, *args, **kwargs):
-        messages.success(self.request, 'Sala excluída com sucesso.')
-        return super().delete(request, *args, **kwargs)
+        self.object = self.get_object()
+        motivo = request.POST.get('motivo_inativacao', '').strip()
+        try:
+            self.object.inativar(motivo=motivo, usuario=request.user)
+            messages.success(request, 'Ambiente inativado (soft-delete) com sucesso.')
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect(self.success_url)
+        except ValidationError as e:
+            messages.error(request, e.message if hasattr(e, 'message') else str(e))
+            return self.render_to_response(self.get_context_data())
+
+class AmbienteReativarView(AdministradorRequiredMixin, View):
+    def post(self, request, pk):
+        from django.shortcuts import get_object_or_404
+        from django.http import HttpResponseRedirect
+        ambiente = get_object_or_404(Ambiente, pk=pk)
+        motivo = request.POST.get('motivo_reativacao', '').strip()
+        try:
+            ambiente.reativar(motivo=motivo, usuario=request.user)
+            messages.success(request, 'Ambiente reativado com sucesso.')
+        except ValidationError as e:
+            messages.error(request, e.message if hasattr(e, 'message') else str(e))
+        return HttpResponseRedirect(reverse_lazy('central_servicos:ambiente_list'))
 
 # ==========================================
 # GESTÃO DE ATIVOS PREDIAIS
 # ==========================================
-class AtivoPredialListView(LoginRequiredMixin, ListView):
+class AtivoPredialListView(OperadorInfraRequiredMixin, ListView):
     model = AtivoPredial
     template_name = 'central_servicos/ativopredial_list.html'
     context_object_name = 'ativos'
@@ -346,7 +382,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.urls import reverse
 
-class AmbienteAtivosOffcanvasView(LoginRequiredMixin, TemplateView):
+class AmbienteAtivosOffcanvasView(OperadorInfraRequiredMixin, TemplateView):
     template_name = 'central_servicos/_ambiente_ativos_offcanvas.html'
 
     def get_context_data(self, **kwargs):
@@ -358,7 +394,7 @@ class AmbienteAtivosOffcanvasView(LoginRequiredMixin, TemplateView):
         context['tipos_ativos'] = TipoAtivo.objects.all()
         return context
 
-class AtivoPredialRapidoCreateView(LoginRequiredMixin, View):
+class AtivoPredialRapidoCreateView(OperadorInfraRequiredMixin, View):
     def post(self, request, ambiente_id):
         ambiente = get_object_or_404(Ambiente, pk=ambiente_id)
         tipo_id = request.POST.get('tipo')
@@ -367,19 +403,29 @@ class AtivoPredialRapidoCreateView(LoginRequiredMixin, View):
         
         if tipo_id:
             tipo = get_object_or_404(TipoAtivo, pk=tipo_id)
-            AtivoPredial.objects.create(
-                ambiente=ambiente,
-                tipo=tipo,
-                nome_apelido=nome_apelido,
-                patrimonio=patrimonio
-            )
-            messages.success(request, 'Ativo adicionado com sucesso!')
+            try:
+                with transaction.atomic():
+                    novo_ativo = AtivoPredial(
+                        ambiente=ambiente,
+                        tipo=tipo,
+                        nome_apelido=nome_apelido,
+                        patrimonio=patrimonio
+                    )
+                    novo_ativo.full_clean()
+                    novo_ativo.save()
+                messages.success(request, 'Ativo adicionado com sucesso!')
+            except ValidationError as e:
+                # Tratamento simplificado de erros para a view rápida
+                erro_msg = " | ".join([f"{k}: {v[0]}" for k, v in getattr(e, 'message_dict', {}).items()])
+                if not erro_msg and hasattr(e, 'messages'):
+                    erro_msg = " | ".join(e.messages)
+                messages.error(request, f'Erro na validação do ativo: {erro_msg}')
         else:
             messages.error(request, 'Erro: Tipo de ativo não informado.')
             
         return redirect('central_servicos:ativopredial_list')
 
-class AtivoPredialCreateView(LoginRequiredMixin, CreateView):
+class AtivoPredialCreateView(OperadorInfraRequiredMixin, CreateView):
     model = AtivoPredial
     form_class = AtivoPredialLoteForm
     template_name = 'central_servicos/ativopredial_form.html'
@@ -397,32 +443,42 @@ class AtivoPredialCreateView(LoginRequiredMixin, CreateView):
         nome_apelido = form.cleaned_data.get('nome_apelido')
         descricao = form.cleaned_data.get('descricao')
         
-        # Cria os ativos considerando a quantidade por sala
         ativos_criados = 0
-        for ambiente in ambientes:
-            qtd_str = self.request.POST.get(f'quantidade_ambiente_{ambiente.id}')
-            try:
-                qtd = int(qtd_str) if qtd_str else 1
-            except ValueError:
-                qtd = 1
-                
-            for _ in range(qtd):
-                AtivoPredial.objects.create(
-                    ambiente=ambiente,
-                    tipo=tipo,
-                    nome_apelido=nome_apelido,
-                    descricao=descricao,
-                    patrimonio='', # Em branco no lote
-                    numero_serie='' # Em branco no lote
-                )
-                ativos_criados += 1
+        try:
+            with transaction.atomic():
+                for ambiente in ambientes:
+                    qtd_str = self.request.POST.get(f'quantidade_ambiente_{ambiente.id}')
+                    try:
+                        qtd = int(qtd_str) if qtd_str else 1
+                    except ValueError:
+                        qtd = 1
+                        
+                    for _ in range(qtd):
+                        novo_ativo = AtivoPredial(
+                            ambiente=ambiente,
+                            tipo=tipo,
+                            nome_apelido=nome_apelido,
+                            descricao=descricao,
+                            patrimonio='',
+                            numero_serie=''
+                        )
+                        novo_ativo.full_clean()
+                        novo_ativo.save()
+                        ativos_criados += 1
+        except ValidationError as e:
+            for field, errors in getattr(e, 'message_dict', {}).items():
+                for erro in errors:
+                    form.add_error(field, erro)
+            if hasattr(e, 'messages') and not getattr(e, 'message_dict', None):
+                for erro in e.messages:
+                    form.add_error(None, erro)
+            return self.form_invalid(form)
             
         messages.success(self.request, f'{ativos_criados} Ativo(s) Predial(is) cadastrado(s) com sucesso.')
-        # Redireciona manualmente pois não estamos usando form.save() padrão
-        from django.http import JsonResponse, HttpResponseRedirect
+        from django.http import HttpResponseRedirect
         return HttpResponseRedirect(self.success_url)
 
-class AtivoPredialUpdateView(LoginRequiredMixin, UpdateView):
+class AtivoPredialUpdateView(OperadorInfraRequiredMixin, UpdateView):
     model = AtivoPredial
     form_class = AtivoPredialForm
     template_name = 'central_servicos/ativopredial_form.html'
@@ -431,7 +487,7 @@ class AtivoPredialUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Ativo Predial atualizado com sucesso.')
         return super().form_valid(form)
 
-class AtivoPredialDeleteView(LoginRequiredMixin, DeleteView):
+class AtivoPredialDeleteView(OperadorInfraRequiredMixin, DeleteView):
     model = AtivoPredial
     template_name = 'central_servicos/ativopredial_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:ativopredial_list')
@@ -442,12 +498,12 @@ class AtivoPredialDeleteView(LoginRequiredMixin, DeleteView):
 # ==========================================
 # GESTÃO DE CATEGORIAS DE SERVIÇO
 # ==========================================
-class CategoriaServicoListView(LoginRequiredMixin, ListView):
+class CategoriaServicoListView(GestorInfraRequiredMixin, ListView):
     model = CategoriaServico
     template_name = 'central_servicos/categoriaservico_list.html'
     context_object_name = 'categorias'
 
-class CategoriaServicoCreateView(LoginRequiredMixin, CreateView):
+class CategoriaServicoCreateView(GestorInfraRequiredMixin, CreateView):
     model = CategoriaServico
     form_class = CategoriaServicoForm
     template_name = 'central_servicos/categoriaservico_form.html'
@@ -456,7 +512,7 @@ class CategoriaServicoCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, 'Categoria cadastrada com sucesso.')
         return super().form_valid(form)
 
-class CategoriaServicoUpdateView(LoginRequiredMixin, UpdateView):
+class CategoriaServicoUpdateView(GestorInfraRequiredMixin, UpdateView):
     model = CategoriaServico
     form_class = CategoriaServicoForm
     template_name = 'central_servicos/categoriaservico_form.html'
@@ -465,7 +521,7 @@ class CategoriaServicoUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Categoria atualizada com sucesso.')
         return super().form_valid(form)
 
-class CategoriaServicoDeleteView(LoginRequiredMixin, DeleteView):
+class CategoriaServicoDeleteView(GestorInfraRequiredMixin, DeleteView):
     model = CategoriaServico
     template_name = 'central_servicos/categoriaservico_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:categoriaservico_list')
@@ -476,12 +532,12 @@ class CategoriaServicoDeleteView(LoginRequiredMixin, DeleteView):
 # ==========================================
 # GESTÃO DE FINALIDADES
 # ==========================================
-class FinalidadeListView(LoginRequiredMixin, ListView):
+class FinalidadeListView(GestorInfraRequiredMixin, ListView):
     model = Finalidade
     template_name = 'central_servicos/finalidade_list.html'
     context_object_name = 'finalidades'
 
-class FinalidadeCreateView(LoginRequiredMixin, CreateView):
+class FinalidadeCreateView(GestorInfraRequiredMixin, CreateView):
     model = Finalidade
     form_class = FinalidadeForm
     template_name = 'central_servicos/finalidade_form.html'
@@ -490,7 +546,7 @@ class FinalidadeCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, 'Finalidade cadastrada com sucesso.')
         return super().form_valid(form)
 
-class FinalidadeUpdateView(LoginRequiredMixin, UpdateView):
+class FinalidadeUpdateView(GestorInfraRequiredMixin, UpdateView):
     model = Finalidade
     form_class = FinalidadeForm
     template_name = 'central_servicos/finalidade_form.html'
@@ -499,7 +555,7 @@ class FinalidadeUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Finalidade atualizada com sucesso.')
         return super().form_valid(form)
 
-class FinalidadeDeleteView(LoginRequiredMixin, DeleteView):
+class FinalidadeDeleteView(GestorInfraRequiredMixin, DeleteView):
     model = Finalidade
     template_name = 'central_servicos/finalidade_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:finalidade_list')
@@ -507,11 +563,11 @@ class FinalidadeDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(self.request, 'Finalidade excluída com sucesso.')
         return super().delete(request, *args, **kwargs)
 
-class TipoAtivoListView(LoginRequiredMixin, ListView):
+class TipoAtivoListView(GestorInfraRequiredMixin, ListView):
     model = TipoAtivo
     template_name = 'central_servicos/tipoativo_list.html'
 
-class TipoAtivoCreateView(LoginRequiredMixin, CreateView):
+class TipoAtivoCreateView(GestorInfraRequiredMixin, CreateView):
     model = TipoAtivo
     form_class = TipoAtivoForm
     template_name = 'central_servicos/tipoativo_form.html'
@@ -520,7 +576,7 @@ class TipoAtivoCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, 'Tipo de Ativo cadastrado com sucesso.')
         return super().form_valid(form)
 
-class TipoAtivoUpdateView(LoginRequiredMixin, UpdateView):
+class TipoAtivoUpdateView(GestorInfraRequiredMixin, UpdateView):
     model = TipoAtivo
     form_class = TipoAtivoForm
     template_name = 'central_servicos/tipoativo_form.html'
@@ -529,7 +585,7 @@ class TipoAtivoUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, 'Tipo de Ativo atualizado com sucesso.')
         return super().form_valid(form)
 
-class TipoAtivoDeleteView(LoginRequiredMixin, DeleteView):
+class TipoAtivoDeleteView(GestorInfraRequiredMixin, DeleteView):
     model = TipoAtivo
     template_name = 'central_servicos/tipoativo_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:tipoativo_list')
@@ -537,24 +593,24 @@ class TipoAtivoDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(self.request, 'Tipo de Ativo excluído com sucesso.')
         return super().delete(request, *args, **kwargs)
 
-class TipoAmbienteListView(LoginRequiredMixin, ListView):
+class TipoAmbienteListView(GestorInfraRequiredMixin, ListView):
     model = TipoAmbiente
     template_name = 'central_servicos/tipoambiente_list.html'
     context_object_name = 'tiposambiente'
 
-class TipoAmbienteCreateView(LoginRequiredMixin, CreateView):
+class TipoAmbienteCreateView(GestorInfraRequiredMixin, CreateView):
     model = TipoAmbiente
     form_class = TipoAmbienteForm
     template_name = 'central_servicos/tipoambiente_form.html'
     success_url = reverse_lazy('central_servicos:tipoambiente_list')
 
-class TipoAmbienteUpdateView(LoginRequiredMixin, UpdateView):
+class TipoAmbienteUpdateView(GestorInfraRequiredMixin, UpdateView):
     model = TipoAmbiente
     form_class = TipoAmbienteForm
     template_name = 'central_servicos/tipoambiente_form.html'
     success_url = reverse_lazy('central_servicos:tipoambiente_list')
 
-class TipoAmbienteDeleteView(LoginRequiredMixin, DeleteView):
+class TipoAmbienteDeleteView(GestorInfraRequiredMixin, DeleteView):
     model = TipoAmbiente
     template_name = 'central_servicos/tipoambiente_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:tipoambiente_list')
@@ -562,24 +618,24 @@ class TipoAmbienteDeleteView(LoginRequiredMixin, DeleteView):
 # ==========================================
 # GESTÃO DE CATEGORIAS DE ELEMENTO CONSTRUTIVO
 # ==========================================
-class CategoriaElementoListView(LoginRequiredMixin, ListView):
+class CategoriaElementoListView(GestorInfraRequiredMixin, ListView):
     model = CategoriaElemento
     template_name = 'central_servicos/categoriaelemento_list.html'
     context_object_name = 'categoriaselemento'
 
-class CategoriaElementoCreateView(LoginRequiredMixin, CreateView):
+class CategoriaElementoCreateView(GestorInfraRequiredMixin, CreateView):
     model = CategoriaElemento
     form_class = CategoriaElementoForm
     template_name = 'central_servicos/categoriaelemento_form.html'
     success_url = reverse_lazy('central_servicos:categoriaelemento_list')
 
-class CategoriaElementoUpdateView(LoginRequiredMixin, UpdateView):
+class CategoriaElementoUpdateView(GestorInfraRequiredMixin, UpdateView):
     model = CategoriaElemento
     form_class = CategoriaElementoForm
     template_name = 'central_servicos/categoriaelemento_form.html'
     success_url = reverse_lazy('central_servicos:categoriaelemento_list')
 
-class CategoriaElementoDeleteView(LoginRequiredMixin, DeleteView):
+class CategoriaElementoDeleteView(GestorInfraRequiredMixin, DeleteView):
     model = CategoriaElemento
     template_name = 'central_servicos/categoriaelemento_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:categoriaelemento_list')
@@ -587,24 +643,24 @@ class CategoriaElementoDeleteView(LoginRequiredMixin, DeleteView):
 # ==========================================
 # GESTÃO DE TIPOS DE ELEMENTO CONSTRUTIVO
 # ==========================================
-class TipoElementoListView(LoginRequiredMixin, ListView):
+class TipoElementoListView(GestorInfraRequiredMixin, ListView):
     model = TipoElemento
     template_name = 'central_servicos/tipoelemento_list.html'
     context_object_name = 'tiposelemento'
 
-class TipoElementoCreateView(LoginRequiredMixin, CreateView):
+class TipoElementoCreateView(GestorInfraRequiredMixin, CreateView):
     model = TipoElemento
     form_class = TipoElementoForm
     template_name = 'central_servicos/tipoelemento_form.html'
     success_url = reverse_lazy('central_servicos:tipoelemento_list')
 
-class TipoElementoUpdateView(LoginRequiredMixin, UpdateView):
+class TipoElementoUpdateView(GestorInfraRequiredMixin, UpdateView):
     model = TipoElemento
     form_class = TipoElementoForm
     template_name = 'central_servicos/tipoelemento_form.html'
     success_url = reverse_lazy('central_servicos:tipoelemento_list')
 
-class TipoElementoDeleteView(LoginRequiredMixin, DeleteView):
+class TipoElementoDeleteView(GestorInfraRequiredMixin, DeleteView):
     model = TipoElemento
     template_name = 'central_servicos/tipoelemento_confirm_delete.html'
     success_url = reverse_lazy('central_servicos:tipoelemento_list')

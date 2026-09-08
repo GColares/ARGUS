@@ -13,8 +13,9 @@ Sempre que o usuário enviar o comando "bom dia" (ex: "bom dia", "pode começar"
 
 Siga os passos rigorosamente nesta ordem:
 
-1. **Ler o Diário de Bordo:**
+1. **Ler o Diário de Bordo e Arquitetura Front-End:**
    - OBRIGATORIAMENTE leia o arquivo `.\diario_de_bordo.md` na raiz do projeto para se contextualizar sobre o status atual e as pendências.
+   - OBRIGATORIAMENTE observe as diretrizes do `.\FRONTEND_ARCHITECTURE.md` para qualquer intervenção, análise ou refatoração em templates HTML, CSS e componentes de interface.
 2. **Executar a rotina:** oriente o usuário a executar `.\scripts\bom_dia.ps1`.
 3. O script faz pull, instala dependências, aplica migrações e identifica o maior
    backup global em `backups/sql/` e `backups/json/`.

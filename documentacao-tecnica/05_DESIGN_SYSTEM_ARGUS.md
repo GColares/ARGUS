@@ -151,9 +151,25 @@ Substitui definições locais por classe padronizada:
 
 ---
 
-## 7. Proibições Absolutas de Frontend
+## 7. Padrão Glassmorphism (Cards & Painéis Premium)
 
-1. 🚫 **Estilos Inline (`style="..."`):** Todo estilo deve estar encapsulado em classes utilitárias no `style.css`.
+Para manter coerência com o Dashboard (`home_geral.html`), painéis e formulários complexos devem utilizar:
+- **Classe canônica:** `.cs-card` ou `.glass-card`.
+- **Fundo:** `rgba(255, 255, 255, 0.85)` com `backdrop-filter: blur(10px)`.
+- **Borda:** `1px solid rgba(var(--bs-primary-rgb), 0.12)`.
+- **Sombra:** `box-shadow: 0 0.5rem 1.5rem rgba(var(--bs-dark-rgb), 0.08)`.
+- **Fallback:** `@supports not (backdrop-filter: blur(10px))` deve aplicar `background: #ffffff`.
+
+## 8. Regra Anti-Trava (Layouts Fluidos)
+
+- Formulários extensos devem sempre utilizar `.container-fluid.px-4.mt-4`.
+- É estritamente proibido aplicar `height: 100vh` ou `overflow: hidden` no `body` ou contêineres principais de formulários.
+- Ações globais (Salvar, Avançar, Voltar) devem utilizar `.sticky-actions-bar`.
+
+## 9. Proibições Absolutas de Frontend
+
+1. 🚫 **Estilos Inline (`style="..."`):** Todo estilo deve estar encapsulado em classes utilitárias no `style.css` e no design system centralizado `argus-design-system.css`.
 2. 🚫 **Eventos de Estilo Inline (`onmouseover`, `onmouseout`):** Animações de hover devem ser exclusivamente via CSS (`:hover`, `transform: translateY(-2px)`).
 3. 🚫 **`{% empty %}` em DataTables:** Viola o ciclo de vida do plugin e quebra paginação.
 4. 🚫 **Cores Hexadecimais Hardcoded em Templates:** Sempre usar variáveis CSS `--argus-*`, classes Bootstrap ou classes semânticas de status.
+5. 🚫 **Travas de viewport no wizard:** `body`, `html`, `#v-pills-tab`, `.custom-scrollbar` e `height: calc(100vh - ...)` não podem impedir scroll natural do navegador.

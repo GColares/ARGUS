@@ -29,7 +29,8 @@ urlpatterns = [
     path('ambientes/', views.AmbienteListView.as_view(), name='ambiente_list'),
     path('ambientes/novo/', views.AmbienteCreateView.as_view(), name='ambiente_novo'),
     path('ambientes/<int:pk>/editar/', views.AmbienteUpdateView.as_view(), name='ambiente_editar'),
-    path('ambientes/<int:pk>/excluir/', views.AmbienteDeleteView.as_view(), name='ambiente_excluir'),
+    path('ambientes/<int:pk>/excluir/', views.AmbienteInativarView.as_view(), name='ambiente_excluir'),
+    path('ambientes/<int:pk>/reativar/', views.AmbienteReativarView.as_view(), name='ambiente_reativar'),
 
 
     # Gestão de Tipos de Ambiente
