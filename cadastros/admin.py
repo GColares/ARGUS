@@ -45,6 +45,14 @@ class TermoDeParceriaAdmin(admin.ModelAdmin):
     search_fields = ('numero',)
     inlines = [PlanoDeTrabalhoInline]
 
+    def formfield_for_choice_field(self, db_field, request, **kwargs):
+        if db_field.name == "tipo_instrumento":
+            kwargs['choices'] = [
+                ('CONVENIO', 'Convênio de P&D&I (Legado)'),
+                ('ACORDO_PARCERIA', 'Acordo de Parceria para P&D&I (Marco Legal CT&I)'),
+            ]
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
+
 @admin.register(ProjetoPDI)
 class ProjetoPDIAdmin(admin.ModelAdmin):
     list_display = ('fase', 'projeto', 'nome', 'data_cadastro')

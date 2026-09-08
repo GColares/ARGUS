@@ -99,9 +99,10 @@ class ProjetoPDIForm(forms.ModelForm):
 class TermoDeParceriaForm(forms.ModelForm):
     class Meta:
         model = TermoDeParceria
-        fields = ['numero', 'objeto', 'concedente', 'convenente', 'interveniente', 'data_assinatura']
+        fields = ['tipo_instrumento', 'numero', 'objeto', 'concedente', 'convenente', 'interveniente', 'data_assinatura']
         widgets = {
-            'numero': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Ex: 0001/2026'}),
+            'tipo_instrumento': forms.Select(attrs={'class': 'form-select form-select-lg'}),
+            'numero': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Opcional (Ex: AP nº 001/2026)'}),
             'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Objeto do Termo de Parceria...'}),
             'concedente': forms.Select(attrs={'class': 'form-select form-select-lg'}),
             'convenente': forms.Select(attrs={'class': 'form-select form-select-lg'}),
@@ -112,6 +113,11 @@ class TermoDeParceriaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from .models import PessoaJuridica, ICT
+        self.fields['numero'].required = False
+        self.fields['tipo_instrumento'].choices = [
+            ('CONVENIO', 'Convênio de P&D&I (Legado)'),
+            ('ACORDO_PARCERIA', 'Acordo de Parceria para P&D&I (Marco Legal CT&I)'),
+        ]
         # Excluir a ICT Executora (Sede/Polo) da lista de possíveis Concedentes/Parceiros
         executoras_ids = ICT.objects.filter(is_executora=True).values_list('pessoajuridica_ptr_id', flat=True)
         self.fields['concedente'].queryset = PessoaJuridica.objects.exclude(id__in=executoras_ids).order_by('nome')

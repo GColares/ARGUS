@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from simple_history.models import HistoricalRecords
 
@@ -117,25 +118,95 @@ class AgenciaFomento(PessoaJuridica):
         verbose_name_plural = "Agências de Fomento"
 
 
-class TermoDeParceria(models.Model):
+class InstrumentoJuridicoBase(models.Model):
+    TIPO_INSTRUMENTO_CHOICES = [
+        ('CONVENIO', 'Convênio de P&D&I (Legado)'),
+        ('ACORDO_PARCERIA', 'Acordo de Parceria para P&D&I (Marco Legal CT&I)'),
+        ('TERMO_COOPERACAO', 'Termo de Cooperação / Acordo Guarda-Chuva'),
+        ('NDA', 'Acordo de Confidencialidade e Sigilo'),
+        ('STE', 'Prestação de Serviços Técnicos Especializados'),
+        ('LICENCIAMENTO', 'Contrato de Licenciamento / Transferência de Tecnologia'),
+        ('COMPARTILHAMENTO', 'Termo de Compartilhamento de Infraestrutura/Laboratório'),
+    ]
+    tipo_instrumento = models.CharField(
+        max_length=30, choices=TIPO_INSTRUMENTO_CHOICES, default='ACORDO_PARCERIA', verbose_name="Tipo de Instrumento"
+    )
+    sequencial = models.PositiveIntegerField(null=True, blank=True, verbose_name="Número Sequencial")
+    ano = models.PositiveIntegerField(null=True, blank=True, verbose_name="Ano de Emissão")
+    numero = models.CharField(max_length=50, unique=True, blank=True, null=True, verbose_name="Número do Instrumento")
+    objeto = models.TextField(blank=True, null=True, verbose_name="Objeto / Descrição")
+    data_assinatura = models.DateField(blank=True, null=True, verbose_name="Data de Assinatura")
+    ativo = models.BooleanField(default=True, verbose_name="Ativo")
+
+    class Meta:
+        abstract = True
+
+class TermoDeParceria(InstrumentoJuridicoBase):
     """Entidade macro jurídica que rege a parceria e união de interesses."""
     projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='termos_parceria', null=True, blank=True, verbose_name="Projeto Mestre")
-    numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo")
-    objeto = models.TextField(blank=True, null=True, verbose_name="Objeto / Descrição")
-    
     concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_concedidos', verbose_name="Concedente (Empresa/Agência)")
-    convenente = models.ForeignKey(ICT, on_delete=models.PROTECT, related_name='convenente_em', verbose_name="Convenente")
+    convenente = models.ForeignKey('ICT', on_delete=models.PROTECT, related_name='convenente_em', verbose_name="Convenente")
     interveniente = models.ForeignKey(FundacaoApoio, on_delete=models.PROTECT, related_name='interveniente_em', verbose_name="Interveniente")
-    
-    data_assinatura = models.DateField(blank=True, null=True, verbose_name="Data de Assinatura")
-    ativo = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Termo de Parceria"
         verbose_name_plural = "Termos de Parceria"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tipo_instrumento', 'sequencial', 'ano'],
+                condition=models.Q(sequencial__isnull=False, ano__isnull=False),
+                name='unique_sequencial_ano_por_tipo'
+            )
+        ]
 
     def __str__(self):
-        return f"{self.numero} ({self.concedente.nome})"
+        return f"{self.numero or 'Sem Número'} ({self.concedente.sigla or self.concedente.nome_fantasia or self.concedente.nome})"
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.tipo_instrumento not in ['CONVENIO', 'ACORDO_PARCERIA']:
+            raise ValidationError({'tipo_instrumento': 'Para Parcerias de P&D&I, o instrumento deve ser Convênio ou Acordo de Parceria.'})
+
+    def save(self, *args, **kwargs):
+        from django.db import transaction, IntegrityError
+        if not self.ano:
+            self.ano = self.data_assinatura.year if self.data_assinatura else timezone.now().year
+        if self.numero and not self.sequencial:
+            match = re.search(r'(\d+)/(\d{4})', self.numero)
+            if match:
+                self.sequencial = int(match.group(1))
+                self.ano = int(match.group(2))
+        if not self.sequencial:
+            MAX_TENTATIVAS = 3
+            for tentativa in range(MAX_TENTATIVAS):
+                try:
+                    with transaction.atomic():
+                        ultimo = (
+                            TermoDeParceria.objects
+                            .select_for_update()
+                            .filter(tipo_instrumento=self.tipo_instrumento, ano=self.ano)
+                            .order_by('-sequencial')
+                            .first()
+                        )
+                        self.sequencial = (ultimo.sequencial + 1) if (ultimo and ultimo.sequencial) else 1
+                        if not self.numero:
+                            prefixos = {
+                                'CONVENIO': 'CV',
+                                'ACORDO_PARCERIA': 'AP',
+                                'TERMO_COOPERACAO': 'TC',
+                            }
+                            prefixo = prefixos.get(self.tipo_instrumento, 'DOC')
+                            self.numero = f"{prefixo} nº {self.sequencial:03d}/{self.ano}"
+                        super().save(*args, **kwargs)
+                        return
+                except IntegrityError:
+                    if tentativa == MAX_TENTATIVAS - 1:
+                        raise
+                    self.sequencial = None
+                    self.numero = None
+        else:
+            super().save(*args, **kwargs)
 
 
 class IndicadorResultado(models.Model):

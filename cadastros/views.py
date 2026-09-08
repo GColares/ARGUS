@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Q
 from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa
 from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
@@ -1270,12 +1270,26 @@ class TermoDeParceriaCreateView(SuccessMessageMixin, CreateView):
     success_url = reverse_lazy('cadastros:listar_termos_parceria')
     success_message = 'Termo de parceria criado com sucesso.'
 
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except IntegrityError:
+            messages.error(self.request, "Erro de concorrência ao gerar o número do termo. Por favor, tente novamente.")
+            return self.form_invalid(form)
+
 class TermoDeParceriaUpdateView(SuccessMessageMixin, UpdateView):
     model = TermoDeParceria
     form_class = TermoDeParceriaForm
     template_name = 'cadastros/termo_parceria_form.html'
     success_url = reverse_lazy('cadastros:listar_termos_parceria')
     success_message = 'Termo de parceria atualizado com sucesso.'
+
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except IntegrityError:
+            messages.error(self.request, "Erro de concorrência ao gerar o número do termo. Por favor, tente novamente.")
+            return self.form_invalid(form)
 
 class TermoDeParceriaDeleteView(SuccessMessageMixin, DeleteView):
     model = TermoDeParceria
