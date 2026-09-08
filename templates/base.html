@@ -50,8 +50,12 @@
 </head>
 
 <body class="{% if 'almoxarifado' in request.path %}theme-danger{% elif 'cadastros' in request.path %}theme-success{% elif 'central_servicos' in request.path %}theme-info{% elif 'gestao_projetos' in request.path %}theme-primary{% elif 'incorporacao' in request.path %}theme-warning{% elif 'patrimonio' in request.path %}theme-dark{% else %}theme-default{% endif %}">
-
-    <nav class="navbar navbar-expand-lg navbar-institucional shadow-sm sticky-top">
+    <!-- Skip Link Acessível (WCAG 2.1 AA) -->
+    <a href="#main-content" class="visually-hidden-focusable btn btn-primary position-absolute top-0 start-0 m-2 z-3">
+        Pular para o conteúdo principal
+    </a>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-institucional shadow-sm sticky-top" aria-label="Navegação Principal do Sistema">
         <div class="container-fluid px-4 py-1">
 
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home_geral' %}">
@@ -149,10 +153,10 @@
             </div>
         </div>
     </nav>
+    </header>
 
 
-
-    <main class="content-wrapper">
+    <main id="main-content" class="content-wrapper" tabindex="-1">
         <div class="container-fluid px-4 mt-4">
             {% block content %}{% endblock %}
         </div>
@@ -164,7 +168,7 @@
         <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
 
             <div class="mb-3 mb-md-0 text-center text-md-start">
-                <span class="fw-bold fs-5" style="color: var(--inova-verde);">Sistema ARGUS</span> &copy; 2026<br>
+                <span class="fw-bold fs-5 text-success">Sistema ARGUS</span> &copy; 2026<br>
                 <small class="text-muted fw-semibold">Polo de Inovação | Instituto Federal do Amazonas (IFAM)</small>
             </div>
 
@@ -206,7 +210,7 @@
     {% block extra_js %}{% endblock %}
 
     <!-- Global Toasts Container (Popout) -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+    <div class="toast-container position-fixed top-0 end-0 p-3 z-3">
         {% if messages %}
             {% for message in messages %}
             <div class="toast align-items-center text-bg-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} border-0 shadow-lg fade show mb-2" role="alert" aria-live="assertive" aria-atomic="true">

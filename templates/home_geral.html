@@ -3,8 +3,8 @@
 <style>
     .argus-home {
         background:
-            linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.08), transparent 45%),
-            linear-gradient(315deg, rgba(var(--bs-info-rgb), 0.08), transparent 55%);
+            linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.06), transparent 50%),
+            linear-gradient(315deg, rgba(var(--bs-info-rgb), 0.06), transparent 50%);
     }
 
     .argus-hero {
@@ -46,37 +46,37 @@
         min-height: 3.25rem;
     }
 </style>
-
-<main class="argus-home min-vh-100 py-5">
+<div class="argus-home py-4">
     <div class="container">
         <header class="argus-hero rounded-4 p-4 p-md-5 mb-5 text-center">
-            <span class="badge text-bg-primary rounded-pill px-3 py-2 mb-3">Portal Integrado</span>
+            <span class="badge text-bg-primary rounded-pill px-3 py-2 mb-3 shadow-sm">Portal Integrado</span>
             <h1 class="display-5 fw-bold text-primary mb-3">Sistema ARGUS</h1>
             <p class="lead text-body-secondary mb-0">
                 Gestão Integrada e Incorporação Tecnológica - Polo de Inovação IFAM
             </p>
         </header>
-
-        <div class="row g-4 justify-content-center">
-            {% for modulo in modulos %}
-            <div class="col-sm-6 col-xl-4">
-                <article class="modulo-card rounded-4 h-100">
-                    <div class="card-body p-4 p-lg-5 text-center d-flex flex-column h-100">
-                        <div class="modulo-icon rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-4">
-                            <i class="fas {{ modulo.icone }} fa-2x"></i>
+        <section aria-label="Módulos do Sistema">
+            <div class="row g-4 justify-content-center">
+                {% for modulo in modulos %}
+                <div class="col-sm-6 col-xl-4">
+                    <article class="modulo-card rounded-4 h-100">
+                        <div class="card-body p-4 p-lg-5 text-center d-flex flex-column h-100">
+                            <div class="modulo-icon rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-4">
+                                <i class="fas {{ modulo.icone }} fa-2x"></i>
+                            </div>
+                            <h2 class="h4 fw-bold text-body mb-3">{{ modulo.nome }}</h2>
+                            <p class="modulo-description text-body-secondary mb-4">
+                                {{ modulo.descricao|default:"Acesse este módulo para consultar e gerenciar os recursos do ARGUS." }}
+                            </p>
+                            <a href="{% url modulo.url %}" class="btn btn-outline-primary rounded-pill fw-semibold mt-auto" aria-label="Acessar módulo {{ modulo.nome }}">
+                                Acessar módulo <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
                         </div>
-                        <h2 class="h4 fw-bold text-body mb-3">{{ modulo.nome }}</h2>
-                        <p class="modulo-description text-body-secondary mb-4">
-                            {{ modulo.descricao|default:"Acesse este módulo para consultar e gerenciar os recursos do ARGUS." }}
-                        </p>
-                        <a href="{% url modulo.url %}" class="btn btn-outline-primary rounded-pill fw-semibold mt-auto">
-                            Acessar módulo <i class="fas fa-arrow-right ms-2"></i>
-                        </a>
-                    </div>
-                </article>
+                    </article>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
+        </section>
     </div>
-</main>
+</div>
 {% endblock %}
