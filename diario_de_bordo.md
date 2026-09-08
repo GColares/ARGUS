@@ -1,5 +1,31 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-08] Transição para InstrumentoJuridicoBase, Governança de Acordos de Parceria e Refinamento Visual (Gemini, Claude, DeepSeek, Qwen & Devin)
+
+### 1. Modelagem e Governança Jurídica (Marco Legal CT&I - Lei 10.973/04):
+- **Abstração sem Herança Multi-Tabela (MTI):**
+  * Criada a classe base abstrata `InstrumentoJuridicoBase` (`abstract = True`) em [`cadastros/models.py`](cadastros/models.py) contendo campos de auditoria e numeração (`tipo_instrumento`, `sequencial`, `ano`, `numero`, `objeto`, `data_assinatura`, `ativo`).
+  * `TermoDeParceria` refatorado para herdar de `InstrumentoJuridicoBase`, preservando integralmente a tabela concreta `cadastros_termodeparceria` e o `related_name='termos_parceria'` em `ProjetoPDI`.
+  * Tratamento de concorrência atômica no `save()` com `select_for_update()` pessimista e retry automático (3 tentativas) para mitigar colisões em viradas de ano.
+  * Validação no `clean()` e `admin.py` restringindo `tipo_instrumento` a `CONVENIO` e `ACORDO_PARCERIA` (princípio YAGNI).
+  * Migrações aplicadas: `0070` (Schema Migration) e `0071` (Data Migration com classificação retroativa via regex `^\s*AP\b` e adição de `UniqueConstraint` parcial).
+
+### 2. Refinamento Visual e Fidelidade de Atributos:
+- **Telas e Templates Atualizados:**
+  * [`cadastros/templates/cadastros/termo_parceria_form.html`](cadastros/templates/cadastros/termo_parceria_form.html): Inclusão do campo `tipo_instrumento` obrigatório e indicação de numeração automática opcional.
+  * [`cadastros/templates/cadastros/termo_parceria_list.html`](cadastros/templates/cadastros/termo_parceria_list.html): Coluna "Tipo" adicionada com badges semânticos, filtro de tipo na gaveta avançada e KPIs divididos por AP vs CV.
+  * [`cadastros/templates/cadastros/termo_parceria_detail.html`](cadastros/templates/cadastros/termo_parceria_detail.html): Exibição do tipo com badge em Dados Gerais.
+  * [`cadastros/templates/cadastros/visualizar_projeto.html`](cadastros/templates/cadastros/visualizar_projeto.html): Aba 1 atualizada para exibir o Instrumento Jurídico com badge e link direto clicável para os detalhes do termo.
+  * [`cadastros/views.py`](cadastros/views.py): Endpoint AJAX `api_termos_por_empresa` formatado com prefixos compactos `[AP]` e `[CV]`, e `TermoDeParceriaListView` com suporte a filtro por tipo.
+
+### 3. Governança do Squad IA & Testes Automatizados:
+- **Nova Regra Canônica em `.agents/AGENTS.md`:** "Execução Condicionada (Consentimento Explícito)" formalizada para blindar alterações de código sem autorização expressa do usuário.
+- **Auditoria e Revisão SoD:** Claude Sonnet (Red Team arquitetural e lógico), Gemini (Tech Lead e DDL PostgreSQL), Devin e Qwen/Continue (Executores de código no editor).
+- **Resultado dos Testes:** `python manage.py test` aprovado com **207/207 testes verdes (100% OK, zero regressões)**.
+
+---
+
+
 ## [2026-09-07] Homologação das Fases 6.7 (Infraestrutura RF-14) e Revolução UI/UX do Wizard de Projetos (RF-02) (Gemini, Copilot, DeepSeek & Claude Sonnet 5)
 
 ### 1. Entregas de Infraestrutura & Espaços Físicos (Opção 2 / RF-14) — `central_servicos`:
