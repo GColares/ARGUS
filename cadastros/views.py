@@ -194,8 +194,36 @@ class PessoaFisicaDetailView(LoginRequiredMixin, DetailView):
 
 @login_required
 def listar_processos_global(request):
-    processos = Processo.objects.select_related('projeto').all().order_by('-id')
-    return render(request, 'cadastros/listar_processos_global.html', {'processos': processos})
+    queryset = Processo.objects.select_related('projeto', 'tipo').all().order_by('-id')
+    
+    # Filtros Avançados
+    numero = request.GET.get('numero', '').strip()
+    descricao = request.GET.get('descricao', '').strip()
+    origem = request.GET.get('origem', '').strip()
+    tipo = request.GET.get('tipo', '').strip()
+    
+    if numero:
+        queryset = queryset.filter(numero__icontains=numero)
+    if descricao:
+        queryset = queryset.filter(descricao__icontains=descricao)
+    if origem:
+        queryset = queryset.filter(origem=origem)
+    if tipo:
+        queryset = queryset.filter(tipo_id=tipo)
+    
+    # KPIs de Governança
+    total_processos = Processo.objects.count()
+    processos_compras = Processo.objects.filter(tipo__nome__icontains='compra').count()
+    total_projetos_atendidos = Processo.objects.values('projeto_id').distinct().count()
+    
+    contexto = {
+        'processos': queryset,
+        'total_processos': total_processos,
+        'processos_compras': processos_compras,
+        'total_projetos_atendidos': total_projetos_atendidos,
+        'tipos_processo': TipoProcesso.objects.all().order_by('nome'),
+    }
+    return render(request, 'cadastros/listar_processos_global.html', contexto)
 
 @login_required
 def novo_projeto(request):
@@ -864,8 +892,27 @@ def editar_cota(request, cota_id):
 
 @login_required
 def listar_fontes_recurso(request):
-    fontes = FonteDeRecurso.objects.all()
-    return render(request, 'cadastros/listar_fontes_recurso.html', {'fontes': fontes})
+    queryset = FonteDeRecurso.objects.all().order_by('nome')
+
+    # Filtros Avançados
+    nome = request.GET.get('nome', '').strip()
+    descricao = request.GET.get('descricao', '').strip()
+
+    if nome:
+        queryset = queryset.filter(nome__icontains=nome)
+    if descricao:
+        queryset = queryset.filter(descricao__icontains=descricao)
+
+    # KPIs de Governança
+    total_fontes = FonteDeRecurso.objects.count()
+    fontes_vinculadas = FonteDeRecurso.objects.filter(contabancaria__isnull=False).distinct().count()
+
+    contexto = {
+        'fontes': queryset,
+        'total_fontes': total_fontes,
+        'fontes_vinculadas': fontes_vinculadas,
+    }
+    return render(request, 'cadastros/listar_fontes_recurso.html', contexto)
 
 @login_required
 def nova_fonte_recurso(request):

@@ -1,76 +1,170 @@
 {% extends 'base.html' %}
+{% block title %}Processos Globais - ARGUS{% endblock %}
 {% block content %}
 <div class="container-fluid px-4 mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Processos Globais</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
-                <i class="fas fa-arrow-left me-1"></i> Voltar
-            </a>
-            <h3 class="fw-bold text-secondary"><i class="fas fa-file-signature me-2"></i> Processos Globais</h3>
-            <p class="text-muted small mb-0">Visão geral de todos os processos cadastrados no sistema</p>
+            <h4 class="fw-bold m-0 text-dark"><i class="fas fa-file-signature text-primary me-2"></i> Processos Globais <span class="badge bg-secondary fs-6 ms-2">{{ processos.count }} listados</span></h4>
+            <p class="text-muted small mb-0 mt-1">Visão geral de todos os processos cadastrados no sistema</p>
         </div>
-        <a href="{% url 'cadastros:cadastrar_processo' %}" class="btn btn-secondary text-white fw-bold shadow-sm">
-            <i class="fas fa-plus me-2"></i> NOVO PROCESSO
-        </a>
+        <div>
+            <a href="{% url 'cadastros:cadastrar_processo' %}" class="btn btn-primary fw-bold shadow-sm">
+                <i class="fas fa-plus me-2"></i> Novo Processo
+            </a>
+        </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3">
-            <h6 class="mb-0 fw-bold">LISTA DE PROCESSOS</h6>
+    <div class="row g-3 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Total de Processos</span>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">{{ total_processos }}</h3>
+                <span class="text-muted text-xs">Processos cadastrados</span>
+            </div>
         </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-center">
-                    <tr>
-                        <th class="text-center">Processo / Objeto</th>
-                        <th class="text-center">Tipo</th>
-                        <th class="text-center">Origem</th>
-                        <th class="text-center">Projeto Vinculado</th>
-                        <th class="text-center" style="width: 150px;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in processos %}
-                    <tr>
-                        <td>
-                            <div class="fw-bold text-dark">{{ p.numero }}</div>
-                            <small class="text-muted">{{ p.descricao|default:"Sem descrição"|truncatechars:50 }}</small>
-                        </td>
-                        <td class="text-center">{{ p.tipo.nome }}</td>
-                        <td class="text-center">
-                            <span class="badge bg-secondary">{{ p.origem }}</span>
-                        </td>
-                        <td class="text-center">
-                            <a href="{% url 'cadastros:gerenciar_processos' p.projeto.id %}" class="text-decoration-none">
-                                <div class="fw-bold">{{ p.projeto.termo_parceria.numero|default:"Sem Termo" }}</div>
-                                <small class="text-muted">{{ p.projeto.nome|truncatechars:30 }}</small>
-                            </a>
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                <a href="{% url 'cadastros:visualizar_processo' p.id %}" class="btn btn-sm btn-outline-info" title="Visualizar Detalhes">
-                                    <i class="fas fa-eye"></i>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Processos de Compras</span>
+                </div>
+                <h3 class="fw-bold text-success mb-0">{{ processos_compras }}</h3>
+                <span class="text-muted text-xs">Processos de compras</span>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-info bg-opacity-10 text-info rounded p-2 me-2">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Projetos Atendidos</span>
+                </div>
+                <h3 class="fw-bold text-info mb-0">{{ total_projetos_atendidos }}</h3>
+                <span class="text-muted text-xs">Projetos com processos vinculados</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <button class="btn btn-outline-secondary fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosAvancadosProcessos" aria-expanded="false" aria-controls="filtrosAvancadosProcessos">
+                <i class="fas fa-filter me-2"></i>Filtros Avançados
+            </button>
+        </div>
+        <div class="collapse" id="filtrosAvancadosProcessos">
+            <div class="card-body border-top">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="filtroNumero" class="form-label fw-semibold">Número do Processo</label>
+                        <input type="search" id="filtroNumero" name="numero" value="{{ request.GET.numero }}" class="form-control" placeholder="Digite parte do número">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroDescricao" class="form-label fw-semibold">Descrição</label>
+                        <input type="search" id="filtroDescricao" name="descricao" value="{{ request.GET.descricao }}" class="form-control" placeholder="Digite parte da descrição">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroOrigem" class="form-label fw-semibold">Origem</label>
+                        <select id="filtroOrigem" name="origem" class="form-select">
+                            <option value="">Todas</option>
+                            <option value="IFAM Reitoria" {% if request.GET.origem == 'IFAM Reitoria' %}selected{% endif %}>IFAM Reitoria</option>
+                            <option value="FAEPI" {% if request.GET.origem == 'FAEPI' %}selected{% endif %}>FAEPI</option>
+                            <option value="OUTRA" {% if request.GET.origem == 'OUTRA' %}selected{% endif %}>Outra Pessoa Jurídica</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroTipo" class="form-label fw-semibold">Tipo</label>
+                        <select id="filtroTipo" name="tipo" class="form-select">
+                            <option value="">Todos</option>
+                            {% for tipo in tipos_processo %}
+                                <option value="{{ tipo.id }}" {% if request.GET.tipo == tipo.id|stringformat:"s" %}selected{% endif %}>{{ tipo.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-search me-1"></i>Filtrar</button>
+                        <a href="{% url 'cadastros:listar_processos_global' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tabelaProcessosGlobais">
+                    <thead class="thead-argus">
+                        <tr>
+                            <th class="text-center">Processo / Objeto</th>
+                            <th class="text-center">Tipo</th>
+                            <th class="text-center">Origem</th>
+                            <th class="text-center">Projeto Vinculado</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in processos %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">{{ p.numero }}</div>
+                                <small class="text-muted">{{ p.descricao|default:"Sem descrição"|truncatechars:50 }}</small>
+                            </td>
+                            <td class="text-center">{{ p.tipo.nome }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">{{ p.origem }}</span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'cadastros:gerenciar_processos' p.projeto.id %}" class="text-decoration-none">
+                                    <div class="fw-bold">{{ p.projeto.termos_parceria.first.numero|default:"Sem Termo" }}</div>
+                                    <small class="text-muted">{{ p.projeto.nome|truncatechars:30 }}</small>
                                 </a>
-                                <a href="{% url 'cadastros:editar_processo' p.id %}" class="btn btn-sm btn-outline-warning" title="Editar Processo">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'cadastros:excluir_processo' p.id %}" class="btn btn-sm btn-outline-danger" title="Excluir Processo">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
-                            <p class="mb-0">Nenhum processo cadastrado.</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'cadastros:visualizar_processo' p.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
+                                <a href="{% url 'cadastros:editar_processo' p.id %}" class="btn btn-sm btn-outline-warning me-1" title="Editar"><i class="fas fa-edit"></i></a>
+                                <a href="{% url 'cadastros:excluir_processo' p.id %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#tabelaProcessosGlobais').DataTable({
+            language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json' },
+            order: [[0, 'desc']],
+            pageLength: 25,
+            dom: '<"row p-3"<"col-md-6"l><"col-md-6"f>>rt<"row p-3"<"col-md-6"i><"col-md-6"p>>'
+        });
+    });
+</script>
 {% endblock %}
