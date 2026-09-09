@@ -1,27 +1,36 @@
 {% extends 'base.html' %}
+{% block title %}Programas (Guarda-Chuva) - ARGUS{% endblock %}
+
 {% block content %}
-{% regroup programas by ativo as programas_por_status %}
 <div class="container-fluid px-4 mt-4">
+    <!-- Breadcrumbs e Voltar Dinâmico -->
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros Base</a></li>
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
             <li class="breadcrumb-item active" aria-current="page">Programas</li>
         </ol>
     </nav>
-    <a href="javascript:history.back()" class="text-muted small fw-bold mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Voltar</a>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
 
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <!-- Topo: Título + Badge + Ação Novo Programa -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h4 class="fw-bold m-0 text-dark"><i class="fas fa-sitemap text-primary me-2"></i> Programas (Guarda-Chuva) <span class="badge bg-secondary fs-6 ms-2">{{ programas.count }} cadastrados</span></h4>
-            <p class="text-muted small mb-0 mt-1">Gerenciamento das linhas de fomento/programas de um Termo.</p>
+            <h4 class="fw-bold m-0 text-success">
+                <i class="fas fa-sitemap me-2"></i> Programas (Guarda-Chuva)
+                <span class="badge bg-secondary fs-6 ms-2 align-middle">{{ programas.count }} listados</span>
+            </h4>
+            <p class="text-muted small mb-0 mt-1">Gerenciamento das linhas temáticas de fomento vinculadas a Termos de Cooperação.</p>
         </div>
         <div>
-            <a href="{% url 'cadastros:cadastrar_programa' %}" class="btn btn-primary fw-bold shadow-sm">
-                <i class="fas fa-plus me-2"></i> Novo Programa
+            <a href="{% url 'cadastros:cadastrar_programa' %}" class="btn btn-success fw-bold shadow-sm">
+                <i class="fas fa-plus me-1"></i> Novo Programa
             </a>
         </div>
     </div>
 
+    <!-- Cards de KPIs (Padrão Almoxarifado) -->
     <div class="row g-3 mb-4">
         <div class="col-xl-4 col-md-6">
             <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
@@ -31,7 +40,7 @@
                     </div>
                     <span class="fw-bold text-dark small text-uppercase">Total de Programas</span>
                 </div>
-                <h3 class="fw-bold text-dark mb-0">{{ programas.count }}</h3>
+                <h3 class="fw-bold text-primary mb-0">{{ total_programas }}</h3>
                 <span class="text-muted text-xs">Linhas de fomento cadastradas</span>
             </div>
         </div>
@@ -44,11 +53,7 @@
                     </div>
                     <span class="fw-bold text-dark small text-uppercase">Programas Ativos</span>
                 </div>
-                <h3 class="fw-bold text-success mb-0">
-                    {% for grupo in programas_por_status %}
-                        {% if grupo.grouper %}{{ grupo.list|length }}{% endif %}
-                    {% endfor %}
-                </h3>
+                <h3 class="fw-bold text-success mb-0">{{ programas_ativos }}</h3>
                 <span class="text-muted text-xs">Linhas de fomento vigentes</span>
             </div>
         </div>
@@ -61,44 +66,80 @@
                     </div>
                     <span class="fw-bold text-dark small text-uppercase">Programas Inativos</span>
                 </div>
-                <h3 class="fw-bold text-secondary mb-0">
-                    {% for grupo in programas_por_status %}
-                        {% if not grupo.grouper %}{{ grupo.list|length }}{% endif %}
-                    {% endfor %}
-                </h3>
+                <h3 class="fw-bold text-secondary mb-0">{{ programas_inativos }}</h3>
                 <span class="text-muted text-xs">Linhas de fomento encerradas</span>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <!-- Gaveta de Filtros Avançados -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <button class="btn btn-outline-secondary fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosAvancadosProgramas" aria-expanded="false" aria-controls="filtrosAvancadosProgramas">
+                <i class="fas fa-filter me-2"></i>Filtros Avançados
+            </button>
+        </div>
+        <div class="collapse {% if request.GET.nome or request.GET.ativo %}show{% endif %}" id="filtrosAvancadosProgramas">
+            <div class="card-body border-top">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="filtroNome" class="form-label fw-semibold">Nome do Programa</label>
+                        <input type="search" id="filtroNome" name="nome" value="{{ request.GET.nome }}" class="form-control" placeholder="Buscar por nome do programa">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtroAtivo" class="form-label fw-semibold">Status</label>
+                        <select id="filtroAtivo" name="ativo" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="true" {% if request.GET.ativo == 'true' %}selected{% endif %}>Ativo</option>
+                            <option value="false" {% if request.GET.ativo == 'false' %}selected{% endif %}>Inativo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-search me-1"></i>Filtrar</button>
+                        <a href="{% url 'cadastros:listar_programas' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela com DataTables -->
+    <div class="card shadow-sm border-0 rounded-3 mb-5">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0">
+                <table class="table table-hover align-middle mb-0" id="tabelaProgramas">
                     <thead class="thead-argus">
                         <tr>
-                            <th class="text-center">Nome do Programa</th>
+                            <th class="ps-4 text-center">Nome do Programa</th>
                             <th class="text-center">Termo de Cooperação Vinculado</th>
                             <th class="text-center">Status</th>
-                            <th class="text-center" style="width: 150px;">Ações</th>
+                            <th class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for p in programas %}
                         <tr>
-                            <td class="fw-bold">{{ p.nome }}</td>
-                            <td>{{ p.termo_cooperacao.numero }}</td>
-                            <td>
-                                {% if p.ativo %}
-                                    <span class="badge badge-status-success px-2 py-1">Ativo</span>
+                            <td class="ps-4 fw-bold">{{ p.nome }}</td>
+                            <td class="text-center">
+                                {% if p.termo_cooperacao %}
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">
+                                        {{ p.termo_cooperacao.numero }}
+                                    </span>
                                 {% else %}
-                                    <span class="badge badge-status-danger px-2 py-1">Inativo</span>
+                                    <span class="text-muted small">Sem Termo</span>
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                <a href="{% url 'cadastros:visualizar_programa' p.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
+                                {% if p.ativo %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle">Ativo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'cadastros:visualizar_programa' p.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar Detalhes"><i class="fas fa-eye"></i></a>
                                 <a href="{% url 'cadastros:editar_programa' p.id %}" class="btn btn-sm btn-outline-warning me-1" title="Editar"><i class="fas fa-edit"></i></a>
-                                <a href="{% url 'cadastros:excluir_programa' p.id %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
+                                <a href="{% url 'cadastros:excluir_programa' p.id %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash-alt"></i></a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -108,4 +149,20 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#tabelaProgramas').DataTable({
+            language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json' },
+            order: [[0, 'asc']],
+            pageLength: 25,
+            dom: '<"row p-3"<"col-md-6"l><"col-md-6"f>>rt<"row p-3"<"col-md-6"i><"col-md-6"p>>'
+        });
+    });
+</script>
 {% endblock %}

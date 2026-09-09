@@ -1313,10 +1313,29 @@ class TermoCooperacaoDeleteView(DeleteView):
 # ==============================================================================
 # CRUD PROGRAMA
 # ==============================================================================
-class ProgramaListView(ListView):
+class ProgramaListView(LoginRequiredMixin, ListView):
     model = Programa
     template_name = 'cadastros/programa_list.html'
     context_object_name = 'programas'
+
+    def get_queryset(self):
+        queryset = Programa.objects.select_related('termo_cooperacao').all().order_by('nome')
+        nome = self.request.GET.get('nome', '').strip()
+        ativo = self.request.GET.get('ativo', '').strip()
+        if nome:
+            queryset = queryset.filter(nome__icontains=nome)
+        if ativo in ['true', 'True', '1']:
+            queryset = queryset.filter(ativo=True)
+        elif ativo in ['false', 'False', '0']:
+            queryset = queryset.filter(ativo=False)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_programas'] = Programa.objects.count()
+        context['programas_ativos'] = Programa.objects.filter(ativo=True).count()
+        context['programas_inativos'] = Programa.objects.filter(ativo=False).count()
+        return context
 
 class ProgramaDetailView(LoginRequiredMixin, DetailView):
     model = Programa
