@@ -1283,11 +1283,44 @@ def excluir_pessoa_fisica(request, id):
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 
-class TermoCooperacaoListView(ListView):
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.list import ListView
+from .models import TermoCooperacao
+
+class TermoCooperacaoListView(LoginRequiredMixin, ListView):
     model = TermoCooperacao
     template_name = 'cadastros/termocooperacao_list.html'
     context_object_name = 'termos'
 
+    def get_queryset(self):
+        queryset = TermoCooperacao.objects.select_related('concedente', 'convenente').all().order_by('-vigencia_inicio')
+        
+        numero = self.request.GET.get('numero', '').strip()
+        parceiro = self.request.GET.get('parceiro', '').strip()
+        ativo = self.request.GET.get('ativo', '').strip()
+
+        if numero:
+            queryset = queryset.filter(numero__icontains=numero)
+        if parceiro:
+            queryset = queryset.filter(
+                Q(concedente__razao_social__icontains=parceiro) | 
+                Q(concedente__nome_fantasia__icontains=parceiro)
+            )
+        if ativo in ['true', 'True', '1']:
+            queryset = queryset.filter(ativo=True)
+        elif ativo in ['false', 'False', '0']:
+            queryset = queryset.filter(ativo=False)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from django.db.models import Sum
+        context['total_termos'] = TermoCooperacao.objects.count()
+        context['termos_ativos'] = TermoCooperacao.objects.filter(ativo=True).count()
+        context['termos_inativos'] = TermoCooperacao.objects.filter(ativo=False).count()
+        context['valor_global_total'] = TermoCooperacao.objects.aggregate(total=Sum('valor_global'))['total'] or 0
+        return context
 class TermoCooperacaoDetailView(LoginRequiredMixin, DetailView):
     model = TermoCooperacao
     template_name = 'cadastros/termocooperacao_detail.html'

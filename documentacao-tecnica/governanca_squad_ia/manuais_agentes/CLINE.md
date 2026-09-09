@@ -43,7 +43,42 @@ Toda vez que você for acionado para iniciar trabalhos no projeto ARGUS, siga ri
 
 ---
 
-## 3. Regras de Ouro de Execução
+## 3. Formato Estrito de Ferramentas (Tags XML do Cline)
+
+O Cline opera através de tags XML pré-configuradas. **NÃO invente tags customizadas como `<run_commands>`, `<commands>` ou blocos JSON soltos.** O sistema do Cline não as interpretará.
+
+Use exclusivamente as tags oficiais:
+- **Executar comando no terminal:**
+  ```xml
+  <execute_command>
+  <command>python manage.py check</command>
+  </execute_command>
+  ```
+  *(Se precisar rodar múltiplos comandos, encadeie com `;` no PowerShell ou dispare um `<execute_command>` por vez)*:
+  ```xml
+  <execute_command>
+  <command>python manage.py check; python manage.py test cadastros</command>
+  </execute_command>
+  ```
+- **Ler arquivo:**
+  ```xml
+  <read_file>
+  <path>caminho/do/arquivo</path>
+  </read_file>
+  ```
+- **Escrever/Modificar arquivo:**
+  ```xml
+  <write_to_file>
+  <path>caminho/do/arquivo</path>
+  <content>
+  conteudo
+  </content>
+  </write_to_file>
+  ```
+
+---
+
+## 4. Regras de Ouro de Execução
 
 1. **Execução Condicionada:** Altere única e exclusivamente os arquivos designados na tarefa / Handoff atual.
 2. **Zero Regressões:** O ARGUS possui uma suíte com **207 testes automatizados**. Nenhuma modificação sua pode quebrar os testes existentes. Sempre valide com `python manage.py test [app]`.

@@ -13,25 +13,46 @@ Antes de iniciar qualquer intervenção ou responder a tarefas complexas, observ
 
 Responda e interaja sempre em **Português do Brasil (pt-BR)**.
 
-## 2. Formato de Ferramentas no Cline (OBRIGATÓRIO)
-O Cline interpreta ferramentas através de tags XML específicas. NUNCA gere blocos de código JSON como `{"name": "run_commands"}`. Quando você quiser executar uma ação, utilize SEMPRE a respectiva tag XML:
-- **Executar comando no terminal:**
+## 2. Formato de Ferramentas no Cline (OBRIGATÓRIO E ESTRITO)
+O Cline interpreta ferramentas através de tags XML pré-definidas. 
+**ATENÇÃO CRÍTICA:**
+- É **TERMINANTEMENTE PROIBIDO** inventar tags fictícias como `<run_commands>`, `<commands>` ou formatar blocos de comando em lote. O Cline **NÃO** reconhece essas tags e seu comando será exibido como mero texto inativo na tela, travando a automação!
+- NUNCA gere blocos JSON no texto como `{"name": "run_commands"}`.
+
+As únicas tags XML operacionais do Cline são:
+- **Executar comando no terminal (UMA ferramenta por vez):**
+  ```xml
   <execute_command>
-  <command>comando aqui</command>
+  <command>python manage.py check</command>
   </execute_command>
+  ```
+  *(Se precisar rodar comandos em sequência, encadeie no PowerShell com `;` ou dispare um comando, aguarde a resposta do terminal e dispare o seguinte)*:
+  ```xml
+  <execute_command>
+  <command>python manage.py check; python manage.py test cadastros</command>
+  </execute_command>
+  ```
 - **Ler arquivo:**
+  ```xml
   <read_file>
   <path>caminho_do_arquivo</path>
   </read_file>
-- **Criar/Sobrescrever arquivo:**
+  ```
+- **Criar ou Sobrescrever arquivo:**
+  ```xml
   <write_to_file>
   <path>caminho_do_arquivo</path>
-  <content>conteudo_aqui</content>
+  <content>
+  conteudo_completo_aqui
+  </content>
   </write_to_file>
+  ```
 - **Fazer pergunta ao usuário:**
+  ```xml
   <ask_followup_question>
   <question>sua pergunta aqui</question>
   </ask_followup_question>
+  ```
 
 ## 3. Princípio da Execução Condicionada
 

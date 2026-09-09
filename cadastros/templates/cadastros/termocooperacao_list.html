@@ -1,65 +1,192 @@
 {% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Termos de Cooperação - ARGUS{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-4 mt-4">
+    <!-- Breadcrumbs e Voltar Dinâmico -->
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros Base</a></li>
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
             <li class="breadcrumb-item active" aria-current="page">Termos de Cooperação</li>
         </ol>
     </nav>
-    <a href="javascript:history.back()" class="text-muted small fw-bold mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Voltar</a>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
 
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <!-- Topo: Título + Badge + Ação Novo Termo -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-handshake text-success me-2"></i> Termos de Cooperação (Guarda-Chuva) <span class="badge bg-secondary fs-6 ms-2">{{ termos.count }}</span></h2>
-            <p class="text-muted small mb-0 mt-1">Gerenciamento dos acordos jurídicos matrizes.</p>
+            <h4 class="fw-bold m-0 text-success">
+                <i class="fas fa-handshake me-2"></i> Termos de Cooperação (Guarda-Chuva)
+                <span class="badge bg-secondary fs-6 ms-2 align-middle">{{ termos.count }} listados</span>
+            </h4>
+            <p class="text-muted small mb-0 mt-1">Gerenciamento dos acordos jurídicos matrizes e parcerias estratégicas.</p>
         </div>
         <div>
-            <a href="{% url 'cadastros:cadastrar_termo' %}" class="btn btn-primary fw-bold shadow-sm">
-                <i class="fas fa-plus me-2"></i> Novo Termo
+            <a href="{% url 'cadastros:cadastrar_termo' %}" class="btn btn-success fw-bold shadow-sm">
+                <i class="fas fa-plus me-1"></i> Novo Termo
             </a>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <!-- Cards de KPIs (Padrão Almoxarifado) -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Total de Acordos</span>
+                </div>
+                <h3 class="fw-bold text-primary mb-0">{{ total_termos }}</h3>
+                <span class="text-muted text-xs">Acordos matriz cadastrados</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Termos Vigentes</span>
+                </div>
+                <h3 class="fw-bold text-success mb-0">{{ termos_ativos }}</h3>
+                <span class="text-muted text-xs">Parcerias em vigência plena</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-secondary bg-opacity-10 text-secondary rounded p-2 me-2">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Encerrados / Inativos</span>
+                </div>
+                <h3 class="fw-bold text-secondary mb-0">{{ termos_inativos }}</h3>
+                <span class="text-muted text-xs">Acordos concluídos ou suspensos</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-info bg-opacity-10 text-info rounded p-2 me-2">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Valor Global Total</span>
+                </div>
+                <h3 class="fw-bold text-info mb-0">R$ {{ valor_global_total|floatformat:2|intcomma }}</h3>
+                <span class="text-muted text-xs">Volume de fomento acordado</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gaveta de Filtros Avançados -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <button class="btn btn-outline-secondary fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosAvancadosTermos" aria-expanded="false" aria-controls="filtrosAvancadosTermos">
+                <i class="fas fa-filter me-2"></i>Filtros Avançados
+            </button>
+        </div>
+        <div class="collapse {% if request.GET.numero or request.GET.parceiro or request.GET.ativo %}show{% endif %}" id="filtrosAvancadosTermos">
+            <div class="card-body border-top">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="filtroNumero" class="form-label fw-semibold">Número do Termo</label>
+                        <input type="search" id="filtroNumero" name="numero" value="{{ request.GET.numero }}" class="form-control" placeholder="Ex: 01/2025">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtroParceiro" class="form-label fw-semibold">Parceiro / Concedente</label>
+                        <input type="search" id="filtroParceiro" name="parceiro" value="{{ request.GET.parceiro }}" class="form-control" placeholder="Buscar por razão social ou fantasia">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="filtroAtivo" class="form-label fw-semibold">Status</label>
+                        <select id="filtroAtivo" name="ativo" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="true" {% if request.GET.ativo == 'true' %}selected{% endif %}>Vigente / Ativo</option>
+                            <option value="false" {% if request.GET.ativo == 'false' %}selected{% endif %}>Encerrado / Inativo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-search me-1"></i>Filtrar</button>
+                        <a href="{% url 'cadastros:listar_termos' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela com DataTables -->
+    <div class="card shadow-sm border-0 rounded-3 mb-5">
         <div class="card-body p-0">
-            <table class="table table-hover table-striped mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-center">Número</th>
-                        <th class="text-center">Parceiro</th>
-                        <th class="text-center">ICT</th>
-                        <th class="text-center">Início</th>
-                        <th class="text-center">Fim</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center" style="width: 150px;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for termo in termos %}
-                    <tr>
-                        <td class="fw-bold">{{ termo.numero }}</td>
-                        <td>{{ termo.concedente }}</td>
-                        <td>{{ termo.convenente }}</td>
-                        <td>{{ termo.vigencia_inicio|date:"d/m/Y" }}</td>
-                        <td>{{ termo.vigencia_fim|date:"d/m/Y" }}</td>
-                        <td>
-                            {% if termo.ativo %}
-                                <span class="badge bg-success">Ativo</span>
-                            {% else %}
-                                <span class="badge bg-danger">Inativo</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <a href="{% url 'cadastros:visualizar_termo' termo.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar"><i class="fas fa-eye"></i></a>
-                            <a href="{% url 'cadastros:editar_termo' termo.id %}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="fas fa-edit"></i></a>
-                            <a href="{% url 'cadastros:excluir_termo' termo.id %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash"></i></a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tabelaTermos">
+                    <thead class="thead-argus">
+                        <tr>
+                            <th class="ps-4 text-center">Número</th>
+                            <th class="text-center">Parceiro (Concedente)</th>
+                            <th class="text-center">ICT (Convenente)</th>
+                            <th class="text-center">Início</th>
+                            <th class="text-center">Fim</th>
+                            <th class="text-center">Valor Global</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for termo in termos %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-nowrap">{{ termo.numero }}</td>
+                            <td>{{ termo.concedente.nome_exibicao|default:termo.concedente }}</td>
+                            <td>{{ termo.convenente.nome_exibicao|default:termo.convenente }}</td>
+                            <td class="text-center text-nowrap">{{ termo.vigencia_inicio|date:"d/m/Y" }}</td>
+                            <td class="text-center text-nowrap">{{ termo.vigencia_fim|date:"d/m/Y" }}</td>
+                            <td class="text-end text-nowrap">
+                                {% if termo.valor_global %}
+                                    R$ {{ termo.valor_global|floatformat:2|intcomma }}
+                                {% else %}
+                                    <span class="text-muted small">Não informado</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if termo.ativo %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle">Vigente</span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle">Encerrado</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center text-nowrap">
+                                <a href="{% url 'cadastros:visualizar_termo' termo.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar Detalhes"><i class="fas fa-eye"></i></a>
+                                <a href="{% url 'cadastros:editar_termo' termo.id %}" class="btn btn-sm btn-outline-warning me-1" title="Editar"><i class="fas fa-edit"></i></a>
+                                <a href="{% url 'cadastros:excluir_termo' termo.id %}" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="fas fa-trash-alt"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#tabelaTermos').DataTable({
+            language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json' },
+            order: [[0, 'desc']],
+            pageLength: 25,
+            dom: '<"row p-3"<"col-md-6"l><"col-md-6"f>>rt<"row p-3"<"col-md-6"i><"col-md-6"p>>'
+        });
+    });
+</script>
 {% endblock %}
