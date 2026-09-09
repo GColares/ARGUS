@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-{% regroup termos by ativo as termos_por_status %}
-{% regroup termos by tipo_instrumento as termos_por_tipo %}
 <div class="container-fluid px-4 mt-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
@@ -15,7 +13,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold m-0 text-dark"><i class="fas fa-file-contract text-danger me-2"></i> Termos de Parceria <span class="badge bg-secondary fs-6 ms-2">{{ termos.count }} cadastrados</span></h4>
+            <h4 class="fw-bold m-0 text-dark"><i class="fas fa-file-contract text-danger me-2"></i> Termos de Parceria <span class="badge bg-secondary fs-6 ms-2">{{ total_termos }} cadastrados</span></h4>
             <p class="text-muted small mb-0 mt-1">Gerenciamento dos acordos/convênios vinculados a projetos de PDI.</p>
         </div>
         <div>
@@ -34,7 +32,7 @@
                     </div>
                     <span class="fw-bold text-dark small text-uppercase">Total de Termos</span>
                 </div>
-                <h3 class="fw-bold text-dark mb-0">{{ termos.count }}</h3>
+                <h3 class="fw-bold text-dark mb-0">{{ total_termos }}</h3>
                 <span class="text-muted text-xs">Acordos cadastrados</span>
             </div>
         </div>
@@ -47,11 +45,7 @@
                     </div>
                     <span class="fw-bold text-dark small text-uppercase">Termos Ativos</span>
                 </div>
-                <h3 class="fw-bold text-success mb-0">
-                    {% for grupo in termos_por_status %}
-                        {% if grupo.grouper %}{{ grupo.list|length }}{% endif %}
-                    {% endfor %}
-                </h3>
+                <h3 class="fw-bold text-success mb-0">{{ termos_ativos }}</h3>
                 <span class="text-muted text-xs">Acordos vigentes</span>
             </div>
         </div>
@@ -64,11 +58,7 @@
                     </div>
                     <span class="fw-bold text-dark small text-uppercase">Termos Inativos</span>
                 </div>
-                <h3 class="fw-bold text-secondary mb-0">
-                    {% for grupo in termos_por_status %}
-                        {% if not grupo.grouper %}{{ grupo.list|length }}{% endif %}
-                    {% endfor %}
-                </h3>
+                <h3 class="fw-bold text-secondary mb-0">{{ termos_inativos }}</h3>
                 <span class="text-muted text-xs">Acordos encerrados ou suspensos</span>
             </div>
         </div>
@@ -81,11 +71,7 @@
                     </div>
                     <span class="fw-bold text-dark small text-uppercase">Acordos de Parceria</span>
                 </div>
-                <h3 class="fw-bold text-primary mb-0">
-                    {% for grupo in termos_por_tipo %}
-                        {% if grupo.grouper == 'ACORDO_PARCERIA' %}{{ grupo.list|length }}{% endif %}
-                    {% endfor %}
-                </h3>
+                <h3 class="fw-bold text-primary mb-0">{{ total_acordos }}</h3>
                 <span class="text-muted text-xs">Instrumentos AP (P&D&I)</span>
             </div>
         </div>
@@ -98,11 +84,7 @@
                     </div>
                     <span class="fw-bold text-dark small text-uppercase">Convênios</span>
                 </div>
-                <h3 class="fw-bold text-secondary mb-0">
-                    {% for grupo in termos_por_tipo %}
-                        {% if grupo.grouper == 'CONVENIO' %}{{ grupo.list|length }}{% endif %}
-                    {% endfor %}
-                </h3>
+                <h3 class="fw-bold text-secondary mb-0">{{ total_convenios }}</h3>
                 <span class="text-muted text-xs">Instrumentos CV (legado)</span>
             </div>
         </div>

@@ -1393,14 +1393,16 @@ class ProgramaDeleteView(DeleteView):
     success_url = reverse_lazy('cadastros:listar_programas')
 
 # CRUD TERMO DE PARCERIA
-class TermoDeParceriaListView(ListView):
+class TermoDeParceriaListView(LoginRequiredMixin, ListView):
     model = TermoDeParceria
     template_name = 'cadastros/termo_parceria_list.html'
     context_object_name = 'termos'
     ordering = ['-id']
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().select_related(
+            'concedente', 'convenente', 'interveniente'
+        )
         numero = self.request.GET.get('numero', '').strip()
         ativo = self.request.GET.get('ativo', '').strip()
         tipo = self.request.GET.get('tipo', '').strip()
@@ -1414,8 +1416,11 @@ class TermoDeParceriaListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['total_termos'] = TermoDeParceria.objects.count()
         context['total_acordos'] = TermoDeParceria.objects.filter(tipo_instrumento='ACORDO_PARCERIA').count()
         context['total_convenios'] = TermoDeParceria.objects.filter(tipo_instrumento='CONVENIO').count()
+        context['termos_ativos'] = TermoDeParceria.objects.filter(ativo=True).count()
+        context['termos_inativos'] = TermoDeParceria.objects.filter(ativo=False).count()
         return context
 
 class TermoDeParceriaDetailView(LoginRequiredMixin, DetailView):
