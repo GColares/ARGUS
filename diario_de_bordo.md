@@ -1,6 +1,30 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-09] Conclusão da Sprint 1 (Módulo Cadastros - 8/8 Telas), Entrada do Kiro no Squad e Instituição do "Padrão de Certeza" (Gemini, Devin, Kiro, Cline & Copilot)
+
+### 1. Conclusão Integral da Sprint 1 — Harmonização Front-End (`cadastros`):
+- **Cobertura Concluída (8 de 8 Telas Mestras):**
+  * **Passo 1.1:** `listar_pessoas_fisicas.html` (Party-Role, LGPD, KPIs, DataTables).
+  * **Passo 1.2:** `listar_pessoas_juridicas.html` (Hélice Tríplice, abas, gaveta de filtros, KPIs).
+  * **Passo 1.3:** `listar_projetos.html` (Ciclo de vida, KPIs, DataTables pt-BR).
+  * **Passo 1.4:** `programa_list.html` (Programas guarda-chuva, KPIs, filtros GET).
+  * **Passo 1.5:** `termocooperacao_list.html` (Acordos matriz, KPIs, filtros GET).
+  * **Passo 1.6:** `termo_parceria_list.html` (Implementado por Devin, `.select_related`, eliminação de `{% regroup %}`, KPIs).
+  * **Passo 1.7:** `listar_processos_global.html` (Implementado por Devin, `.select_related('projeto', 'tipo')`, filtros GET).
+  * **Passo 1.8:** `listar_fontes_recurso.html` (Implementado por Kiro no front-end, finalizado com KPIs e filtros no backend, e suite de 3 testes unitários).
+- **Qualidade de Testes:** Suíte do app `cadastros` expandida para **75/75 testes automatizados verdes (100% OK, 0 regressões)**.
+
+### 2. Governança Multi-Agente e Instituição do "Padrão de Certeza":
+- **Instituição do Padrão de Certeza (/learn):**
+  * Proibição expressa de "stream-of-consciousness" (monólogos e pensamentos soltos desestruturados) para todos os agentes (Devin, Kiro, Gemini, Copilot, Cline).
+  * Todo contato, entrega ou handoff inicia obrigatoriamente com o envelope canônico com campos auditáveis: Agente Emissor, Papel Desempenhado, Tarefa/Passo, Branch, Arquivos Modificados, Checklist de Regras, Resultado dos Testes Locais e Riscos/Débitos Técnicos.
+  * Formalizado em `.agents/AGENTS.md`, `documentacao-tecnica/governanca_squad_ia/PROTOCOLO_COLABORACAO_IA.md` e nos manuais táticos individuais: `DEVIN.md`, `KIRO.md`, `CLINE.md` e `COPILOT.md`.
+- **Validação:** `python manage.py check` (0 erros) e `python manage.py test cadastros` (75 testes em ~24.7s).
+
+---
+
 ## [2026-09-08] Sessão Noturna — Harmonização do Front-End (Sprint 1: Passos 1.1, 1.2 e 1.3) e Governança Multi-Agente (Gemini, Devin & Squad NIM)
+
 
 ### 1. Entregas de Harmonização Visual e Front-End (FRONTEND_ARCHITECTURE.md):
 - **Passo 1.1: Pessoas Físicas:**

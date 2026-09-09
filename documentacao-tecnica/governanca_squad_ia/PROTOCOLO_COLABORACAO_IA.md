@@ -43,9 +43,26 @@ Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Claude 3.5 Sonnet, C
 6. **Checar a posse de arquivos (Regra de Ouro):**
    * Verificar se o arquivo no qual você vai trabalhar foi liberado no Handoff.
    * **Uma IA por arquivo por sessão**. Nunca edite um arquivo que outra IA já estiver editando.
-7. **Cabeçalho Canônico Obrigatório (Bidirecional):**
-   * **Toda tarefa recebida** deve conter o envelope Outbound (Papel, Sprint/Passo, Branch, Arquivos Exclusivos e Validações).
-   * **Toda entrega/análise devolvida** pela IA executora deve abrir compulsoriamente com o envelope Inbound (Agente, Papel, Branch, Arquivos Modificados, Checklist de Regras, Testes e Alertas/Débitos Técnicos).
+7. **O "Padrão de Certeza" Obrigatório (Proibição de Monólogos):**
+   * É estritamente proibido emitir pensamentos intermediários soltos ou monólogos no chat.
+   * **Toda entrega/análise devolvida** pela IA executora deve abrir compulsoriamente com o bloco executivo:
+     ```markdown
+     ### 🚀 Relatório de Entrega ([Papel do Agente])
+
+     **Submissão:** [Nome do Agente] — [Sprint X / Passo Y: Nome da Tarefa]  
+     **Branch:** [nome-da-branch]  
+     **Arquivo Modificado:** [caminho/do/arquivo] (Classe/Função: [Nome])  
+     **Validação Local:** python manage.py test [app] ([X] de [X] testes aprovados - 100% OK em [Y]s).
+     ```
+   * **Todo parecer do Arquiteto (Gemini)** deve espelhar esse padrão abrindo com:
+     ```markdown
+     ### 🛡️ Parecer Técnico do Arquiteto (Red Team Code Review)
+
+     **Submissão:** [Nome do Agente] — [Sprint X / Passo Y: Nome da Tarefa]  
+     **Branch:** [nome-da-branch]  
+     **Arquivo Auditado:** [caminho/do/arquivo] (Classe/Função: [Nome])  
+     **Validação Local:** python manage.py test [app] ([X] de [X] testes aprovados - 100% OK em [Y]s).
+     ```
 
 
 ---

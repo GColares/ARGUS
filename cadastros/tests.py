@@ -1861,3 +1861,149 @@ class CicloVidaProjetoTestCase(TestCase):
         resp = self.client.post(url, {'nova_fase': 'EXECUCAO'})
         self.assertEqual(resp.status_code, 302)
 
+
+
+# ==============================================================================
+# Sprint 1 / Passo 1.8 — Blindagem da View: Listagem de Fontes de Recurso
+# Responsável: Kiro (Engenheiro de QA)
+# Branch: kiro/sprint1-passo1.8-fontes-recurso
+# Cobertura: login_obrigatorio, filtros server-side, KPIs de governança
+# ==============================================================================
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class FonteDeRecursoListViewTests(TestCase):
+    """
+    Testa a view listar_fontes_recurso:
+      - Redirecionamento de usuário anônimo (RBAC mínimo)
+      - Filtros server-side por nome e descrição
+      - KPIs total_fontes e fontes_vinculadas no contexto
+    """
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from django.urls import reverse
+        from cadastros.models import FonteDeRecurso, EmpresaParceira, ProjetoPDI, ContaBancaria
+
+        self.user = User.objects.create_user(
+            username='qa_fontes',
+            password='qa_pass_123'
+        )
+        self.url = reverse('cadastros:listar_fontes_recurso')
+
+        # --- Fixtures de Fontes de Recurso ---
+        self.fonte_embrapii = FonteDeRecurso.objects.create(
+            nome="EMBRAPII",
+            descricao="Empresa Brasileira de Pesquisa e Inovação Industrial"
+        )
+        self.fonte_sebrae = FonteDeRecurso.objects.create(
+            nome="SEBRAE",
+            descricao="Apoio a micro e pequenas empresas"
+        )
+        self.fonte_fapeam = FonteDeRecurso.objects.create(
+            nome="FAPEAM",
+            descricao="Fundação de Amparo à Pesquisa do Estado do Amazonas"
+        )
+
+        # --- Fixture para KPI fontes_vinculadas ---
+        # Cria um ProjetoPDI mínimo e vincula ContaBancaria à fonte_embrapii
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa KPI Teste LTDA",
+            cnpj="11.222.333/0001-44",
+            natureza_juridica="LTDA",
+            representante_legal="Rep KPI",
+            cargo_representante="Diretor"
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto KPI Fontes",
+            fase="PROSPECCAO",
+            concedente=self.empresa
+        )
+        ContaBancaria.objects.create(
+            projeto=self.projeto,
+            fonte_recurso=self.fonte_embrapii,
+            conta="12345-6",
+            dv="6"
+        )
+
+    # ------------------------------------------------------------------
+    # Teste 1: Usuário anônimo deve ser redirecionado para a tela de login
+    # ------------------------------------------------------------------
+    def test_login_obrigatorio(self):
+        """Usuário anônimo recebe redirecionamento 302 para o login."""
+        from django.test import Client as AnonClient
+        client_anonimo = AnonClient()
+        response = client_anonimo.get(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login', response['Location'])
+
+    # ------------------------------------------------------------------
+    # Teste 2: Filtros server-side por nome e por descrição
+    # ------------------------------------------------------------------
+    def test_listagem_e_filtros(self):
+        """Filtro por nome e por descrição retornam apenas os registros esperados."""
+        self.client.login(username='qa_fontes', password='qa_pass_123')
+
+        # 2a) Sem filtros: todas as 3 fontes listadas
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        fontes_ctx = response.context['fontes']
+        self.assertEqual(fontes_ctx.count(), 3)
+
+        # 2b) Filtro por nome exato (case-insensitive)
+        response = self.client.get(self.url, {'nome': 'embrapii'})
+        self.assertEqual(response.status_code, 200)
+        fontes_ctx = response.context['fontes']
+        self.assertEqual(fontes_ctx.count(), 1)
+        self.assertEqual(fontes_ctx.first().nome, "EMBRAPII")
+
+        # 2c) Filtro por nome parcial retorna subconjunto correto
+        response = self.client.get(self.url, {'nome': 'SE'})
+        self.assertEqual(response.status_code, 200)
+        nomes = list(response.context['fontes'].values_list('nome', flat=True))
+        self.assertIn("SEBRAE", nomes)
+        self.assertNotIn("EMBRAPII", nomes)
+        self.assertNotIn("FAPEAM", nomes)
+
+        # 2d) Filtro por descrição retorna fonte correta
+        response = self.client.get(self.url, {'descricao': 'Amazonas'})
+        self.assertEqual(response.status_code, 200)
+        fontes_ctx = response.context['fontes']
+        self.assertEqual(fontes_ctx.count(), 1)
+        self.assertEqual(fontes_ctx.first().nome, "FAPEAM")
+
+        # 2e) Filtro sem correspondência retorna queryset vazio
+        response = self.client.get(self.url, {'nome': 'FONTE_INEXISTENTE_XYZ'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['fontes'].count(), 0)
+
+    # ------------------------------------------------------------------
+    # Teste 3: KPIs total_fontes e fontes_vinculadas no contexto
+    # ------------------------------------------------------------------
+    def test_kpis_fontes(self):
+        """KPIs refletem corretamente total cadastrado e fontes com contas vinculadas."""
+        self.client.login(username='qa_fontes', password='qa_pass_123')
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+
+        # total_fontes deve refletir todas as fontes do banco (3 criadas no setUp)
+        self.assertEqual(response.context['total_fontes'], 3)
+
+        # fontes_vinculadas: apenas EMBRAPII tem ContaBancaria associada
+        self.assertEqual(response.context['fontes_vinculadas'], 1)
+
+        # Cria segunda vinculação (SEBRAE) e revalida o KPI
+        from cadastros.models import ContaBancaria
+        ContaBancaria.objects.create(
+            projeto=self.projeto,
+            fonte_recurso=self.fonte_sebrae,
+            conta="99999-0",
+            dv="0"
+        )
+        response2 = self.client.get(self.url)
+        self.assertEqual(response2.context['fontes_vinculadas'], 2)

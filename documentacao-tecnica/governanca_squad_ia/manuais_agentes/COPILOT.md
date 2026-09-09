@@ -180,20 +180,28 @@ Restore (`flush` / `DROP SCHEMA`) exige confirmação explícita dele.
 
 ---
 
-## 8. Handoff para outra IA (cole no diário)
+## 8. Comunicação Executiva e Handoff: O "Padrão de Certeza" (OBRIGATÓRIO)
 
-```
-## [AAAA-MM-DD] Handoff Copilot → (Gemini|Devin)
+É expressamente proibido despejar pensamentos soltos, devaneios ("stream-of-consciousness"), monólogos internos ou tentativas parciais de código no chat ("Lendo arquivo X...", "Testando Y..."). Toda comunicação, entrega ou handoff emitido pelo Copilot DEVE iniciar obrigatoriamente com o envelope canônico do Padrão de Certeza:
 
-Objetivo:
-Escopo incluído / excluído:
-Arquivos modificados:
-Arquivos que NÃO devem ser tocados agora:
-Comportamento esperado:
-Riscos / dados legados:
-Verificação rodada (comando + resultado):
-Pendência para a próxima IA:
-Decisão que falta ao usuário:
+```markdown
+══════════════════════════════════════════════════════════════════════════════
+✅ SQUAD ARGUS — RELATÓRIO DE ENTREGA & AUDITORIA (INBOUND)
+══════════════════════════════════════════════════════════════════════════════
+• Agente Emissor: GitHub Copilot
+• Papel Desempenhado: [Implementador no Worktree / Fullstack]
+• Tarefa / Passo Concluído: [Ex: Sprint X / Passo Y]
+• Branch Utilizada: [nome-da-branch]
+• Arquivos Efetivamente Modificados:
+  - [caminho/do/arquivo.py] -> [Resumo das alterações]
+  - [caminho/do/template.html] -> [Resumo das alterações]
+• Checklist de Regras Atendidas:
+  - [x] Padrão Almoxarifado / WCAG 2.1 AA / BEM Híbrido
+  - [x] Zero consultas N+1
+  - [x] DataTables pt-BR sem {% empty %} no <tbody>
+• Resultado dos Testes Locais: [check: 0 erros | test: X/X testes verdes em Ys]
+• Alertas, Riscos ou Débitos Técnicos: [Nenhum / Observações para o Arquiteto]
+══════════════════════════════════════════════════════════════════════════════
 ```
 
 ---
@@ -210,5 +218,6 @@ estiver livre.
 
 Feature nova (Aba 3 financeira, Quill, OS) **não** mistura com faxina no
 mesmo arquivo no mesmo dia.
+
 
 

@@ -41,24 +41,17 @@ Sua missão abrange:
 
 ## 3. Como Trabalhar com o Arquiteto Gemini e PO
 
-1. **Entrada de Tarefas (Cabeçalho Outbound):** Você recebe missões estruturadas contendo o envelope de Onboarding com papel, branch e arquivos exclusivos.
-2. **Entrega de Resultados (Cabeçalho Inbound Obrigatório):** Ao submeter qualquer código, análise técnica ou relatório, abra obrigatoriamente sua resposta com o envelope:
+1. **Entrada de Tarefas (Cabeçalho Outbound):** Você recebe missões estruturadas contendo papel, branch e arquivos exclusivos.
+2. **Proibição de Monólogos Internos:** É **terminantemente proibido** emitir pensamentos intermediários soltos (*"Lendo o final de tests.py...", "Agora verifico como outro test..."*) no chat de resposta. Formule sua resposta com autoridade, clareza e certeza.
+3. **Entrega de Resultados no "Padrão de Certeza" (OBRIGATÓRIO):** Ao submeter qualquer código, análise técnica ou relatório, abra **obrigatoriamente** sua resposta com o bloco de certeza:
    ```markdown
-   ══════════════════════════════════════════════════════════════════════════════
-   ✅ SQUAD ARGUS — RELATÓRIO DE ENTREGA & AUDITORIA (INBOUND)
-   ══════════════════════════════════════════════════════════════════════════════
-   • Agente Emissor: Kiro
-   • Papel Desempenhado: [Engenheiro Fullstack / QA]
-   • Tarefa / Passo Concluído: [Ex: Sprint X / Passo Y]
-   • Branch Utilizada: [nome-da-branch]
-   • Arquivos Efetivamente Modificados:
-     - [caminho/do/arquivo.py] -> [Resumo backend]
-     - [caminho/do/template.html] -> [Resumo frontend]
-   • Checklist de Regras Atendidas:
-     - [x] Padrão Almoxarifado / WCAG 2.1 AA / BEM Híbrido
-     - [x] Zero consultas N+1
-     - [x] DataTables pt-BR sem {% empty %} no <tbody>
-   • Resultado dos Testes Locais: [check: 0 erros | test: X/X testes verdes]
-   • Alertas, Riscos ou Débitos Técnicos: [Nenhum / Observações]
-   ══════════════════════════════════════════════════════════════════════════════
+   ### 🚀 Relatório de Entrega (Engenheiro de QA / Fullstack)
+
+   **Submissão:** Kiro — [Sprint X / Passo Y: Nome da Tarefa]  
+   **Branch:** [nome-da-branch]  
+   **Arquivo Modificado:** [caminho/do/arquivo] (Classe/Função: [Nome])  
+   **Validação Local:** python manage.py test [app] ([X] de [X] testes aprovados - 100% OK em [Y]s).
+
+   ---
+   [Resumo executivo objetivo das alterações técnicas e testes implementados]
    ```

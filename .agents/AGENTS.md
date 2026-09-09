@@ -256,22 +256,32 @@ O Agente está terminantemente proibido de alterar arquivos de código, aplicar 
 3. **Restrição de Domínio (YAGNI):** Embora a base abstrata conheça os 7 tipos de instrumentos da AGU, o formulário, model e admin concretos (`TermoDeParceria`) devem restringir rigorosamente as escolhas (choices) apenas aos instrumentos válidos para o seu contexto (ex: `CONVENIO` e `ACORDO_PARCERIA`), impedindo poluição do banco com tipos incompatíveis.
 4. **Geração Atômica de Numeração:** A geração de números sequenciais (ex: `AP nº 001/2026`) deve ser obrigatoriamente envelopada em `transaction.atomic()` englobando o `super().save()`, utilizando `select_for_update()` para bloqueio pessimista, além de tratar `IntegrityError` com retry na própria camada do model para mitigar colisões de concorrência na virada de ano.
 
-## Protocolo de Comunicação Bidirecional do Squad (Cabeçalho Canônico Obrigatório)
-Toda interação operacional entre o Arquiteto/PO e as IAs executoras (Devin, Kiro, Cline, Copilot, Bob) deve obrigatoriamente adotar o envelope padronizado nos dois sentidos de comunicação:
+## Protocolo de Comunicação Bidirecional: O "Padrão de Certeza" (Obrigatório para TODAS as IAs)
+É **TERMINANTEMENTE PROIBIDO** para qualquer IA do Squad (Devin, Kiro, Gemini, Copilot, Cline, Bob) emitir monólogos internos, pensamentos intermediários soltos (*stream-of-consciousness*) ou textos não estruturados no chat de entrega.
+Toda e qualquer manifestação de entrega técnica, análise ou auditoria deve obrigatoriamente abrir com o **Bloco do Padrão de Certeza**, com visual limpo e dados irrefutáveis:
 
-1. **Cabeçalho Outbound (Envio de Handoff/Desafio pelo Arquiteto):**
-   Deve abrir obrigatoriamente com:
-   - Agente Destinatário e Papel Atribuído nesta Missão (ex: Engenheiro Fullstack, QA, Refatorador).
-   - Sprint e Passo do Roadmap.
-   - Branch Dedicada de trabalho.
-   - Lista exata de Arquivos com Posse Exclusiva (Target Files e intervalos de linhas).
-   - Restrições Invioláveis e Comandos de Validação (`check` e `test <app>`).
+### 1. Padrão de Certeza para Relatório de Entrega do Executor (Devin, Kiro, Copilot, Cline):
+```markdown
+### 🚀 Relatório de Entrega ([Papel do Agente])
 
-2. **Cabeçalho Inbound (Devolução de Entrega e Auditoria pelo Executor):**
-   Toda IA executora deve obrigatoriamente abrir sua resposta/submissão com:
-   - Agente Emissor e Papel Desempenhado.
-   - Tarefa e Branch Utilizada.
-   - Arquivos Efetivamente Modificados (com resumo da camada afetada: backend e/ou frontend).
-   - Checklist explícito de Regras Atendidas (Padrão Almoxarifado, Anti-N+1, DataTables sem `{% empty %}`, etc.).
-   - Resultado dos Testes Locais executados.
-   - Seção obrigatória de Alertas, Riscos ou Débitos Técnicos Identificados.
+**Submissão:** [Nome do Agente] — [Sprint X / Passo Y: Nome da Tarefa]  
+**Branch:** [nome-da-branch]  
+**Arquivo Modificado:** [caminho/do/arquivo] (Classe/Função: [Nome])  
+**Validação Local:** python manage.py test [app] ([X] de [X] testes aprovados - 100% OK em [Y]s).
+
+---
+[Resumo executivo objetivo das alterações técnicas e checklist de regras]
+```
+
+### 2. Padrão de Certeza para Auditoria / Parecer do Arquiteto (Gemini):
+```markdown
+### 🛡️ Parecer Técnico do Arquiteto (Red Team Code Review)
+
+**Submissão:** [Nome do Agente] — [Sprint X / Passo Y: Nome da Tarefa]  
+**Branch:** [nome-da-branch]  
+**Arquivo Auditado:** [caminho/do/arquivo] (Classe/Função: [Nome])  
+**Validação Local:** python manage.py test [app] ([X] de [X] testes aprovados - 100% OK em [Y]s).
+
+---
+[Análise crítica: Pontos Fortes, Observações/Refinamentos e Veredito formal de Homologação]
+```
