@@ -64,10 +64,29 @@ Toda vez que você iniciar uma sessão ou receber uma tarefa, siga esta ordem:
 
 ---
 
-## 5. Como entregar o trabalho (Finalização)
+## 5. Como entregar o trabalho (Finalização com Cabeçalho Inbound Obrigatório)
 
-Ao concluir uma tarefa:
-1. Rode `manage.py check` para garantir que não há erros de sintaxe ou modelo.
-2. Rode os testes relevantes.
-3. Mostre um resumo honesto do diff ao usuário.
-4. Registre no topo do `diario_de_bordo.md` o que foi modificado e se ficou alguma pendência.
+Ao concluir qualquer tarefa ou submeter análise técnica, você deve:
+1. Rodar `python manage.py check` (0 erros).
+2. Rodar a suíte de testes correspondente (`python manage.py test <app>`).
+3. Abrir **obrigatoriamente** o seu relatório de entrega com o envelope canônico Inbound:
+   ```markdown
+   ══════════════════════════════════════════════════════════════════════════════
+   ✅ SQUAD ARGUS — RELATÓRIO DE ENTREGA & AUDITORIA (INBOUND)
+   ══════════════════════════════════════════════════════════════════════════════
+   • Agente Emissor: Devin
+   • Papel Desempenhado: [Ex: Engenheiro Fullstack / Refatorador]
+   • Tarefa / Passo Concluído: [Ex: Sprint X / Passo Y]
+   • Branch Utilizada: [nome-da-branch]
+   • Arquivos Efetivamente Modificados:
+     - [caminho/do/arquivo.py] -> [Resumo backend]
+     - [caminho/do/template.html] -> [Resumo frontend]
+   • Checklist de Regras Atendidas:
+     - [x] Padrão Almoxarifado / WCAG 2.1 AA / BEM Híbrido
+     - [x] Zero consultas N+1 (select_related aplicado)
+     - [x] DataTables pt-BR sem {% empty %} no <tbody>
+   • Resultado dos Testes Locais: [check: 0 erros | test: X/X testes verdes]
+   • Alertas, Riscos ou Débitos Técnicos: [Nenhum / Observações para o Arquiteto]
+   ══════════════════════════════════════════════════════════════════════════════
+   ```
+4. Apresentar o resumo do diff gerado para auditoria do Tech Lead (Gemini).

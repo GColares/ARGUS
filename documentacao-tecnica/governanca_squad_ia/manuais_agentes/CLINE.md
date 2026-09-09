@@ -87,9 +87,29 @@ Use exclusivamente as tags oficiais:
 
 ---
 
-## 4. Finalização de Tarefa
+## 5. Finalização de Tarefa (Cabeçalho Inbound Obrigatório)
 
 Ao concluir o que foi solicitado no Handoff:
-1. Execute `python manage.py check`.
+1. Execute `python manage.py check` (0 erros).
 2. Execute os testes do módulo afetado (ex: `python manage.py test cadastros`).
-3. Apresente ao usuário o resumo das alterações e declare a tarefa pronta para auditoria do Tech Lead (Gemini).
+3. Abra **obrigatoriamente** o seu relatório de entrega no chat com o envelope canônico Inbound:
+   ```markdown
+   ══════════════════════════════════════════════════════════════════════════════
+   ✅ SQUAD ARGUS — RELATÓRIO DE ENTREGA & AUDITORIA (INBOUND)
+   ══════════════════════════════════════════════════════════════════════════════
+   • Agente Emissor: Cline
+   • Papel Desempenhado: [Engenheiro Fullstack Local]
+   • Tarefa / Passo Concluído: [Ex: Sprint X / Passo Y]
+   • Branch Utilizada: [nome-da-branch]
+   • Arquivos Efetivamente Modificados:
+     - [caminho/do/arquivo.py] -> [Resumo backend]
+     - [caminho/do/template.html] -> [Resumo frontend]
+   • Checklist de Regras Atendidas:
+     - [x] Padrão Almoxarifado / WCAG 2.1 AA / BEM Híbrido
+     - [x] Zero consultas N+1
+     - [x] DataTables pt-BR sem {% empty %} no <tbody>
+   • Resultado dos Testes Locais: [check: 0 erros | test: X/X testes verdes]
+   • Alertas, Riscos ou Débitos Técnicos: [Nenhum / Observações para o Arquiteto]
+   ══════════════════════════════════════════════════════════════════════════════
+   ```
+4. Apresente ao usuário o resumo das alterações para auditoria do Tech Lead (Gemini).

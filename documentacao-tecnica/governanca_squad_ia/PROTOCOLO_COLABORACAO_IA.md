@@ -33,17 +33,19 @@ Toda IA que iniciar uma sessão no projeto ARGUS (**Gemini, Claude 3.5 Sonnet, C
    * Devin $\rightarrow$ `documentacao-tecnica/governanca_squad_ia/manuais_agentes/DEVIN.md`
    * Kiro $\rightarrow$ `documentacao-tecnica/governanca_squad_ia/manuais_agentes/KIRO.md`
    * Bob $\rightarrow$ `documentacao-tecnica/governanca_squad_ia/manuais_agentes/BOB.md`
+   * Cline $\rightarrow$ `documentacao-tecnica/governanca_squad_ia/manuais_agentes/CLINE.md`
 2. **Ler este protocolo:** `documentacao-tecnica/governanca_squad_ia/PROTOCOLO_COLABORACAO_IA.md` (para relembrar quem é você e quem são os outros no Squad).
 3. **Ler as regras de arquitetura e UI:** `.agents/AGENTS.md` (Padrão Almoxarifado, Glassmorphism, DataTables sem `{% empty %}`).
-4. **Ler o topo de `diario_de_bordo.md`:** Entender o status atual, o que foi feito na última sessão e o que está homologado (atualmente 87/87 testes OK).
+4. **Ler o topo de `diario_de_bordo.md`:** Entender o status atual, o que foi feito na última sessão e o que está homologado (207 testes globais OK).
 5. **Executar `git status`:**
    * Confirmar que está na raiz do projeto (`C:\ARGUS` ou `C:\Projetos\ARGUS`).
    * Se houver arquivos modificados por outra IA, **NÃO sobrescrever nem apagar**. Perguntar ao usuário antes de tocar.
 6. **Checar a posse de arquivos (Regra de Ouro):**
    * Verificar se o arquivo no qual você vai trabalhar foi liberado no Handoff.
    * **Uma IA por arquivo por sessão**. Nunca edite um arquivo que outra IA já estiver editando.
-7. **Confirmação Formal de Papel:**
-   - O membro deve emitir ao Product Owner sua confirmação de leitura e entendimento do escopo antes de iniciar qualquer alteração.
+7. **Cabeçalho Canônico Obrigatório (Bidirecional):**
+   * **Toda tarefa recebida** deve conter o envelope Outbound (Papel, Sprint/Passo, Branch, Arquivos Exclusivos e Validações).
+   * **Toda entrega/análise devolvida** pela IA executora deve abrir compulsoriamente com o envelope Inbound (Agente, Papel, Branch, Arquivos Modificados, Checklist de Regras, Testes e Alertas/Débitos Técnicos).
 
 
 ---
