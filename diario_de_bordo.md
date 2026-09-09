@@ -1,6 +1,28 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-09] Sprint 2: Passo 2.1 — Harmonização Canônica de Detalhes do Projeto (`visualizar_projeto.html`), Segregação entre Orçamento e Financeiro (MCASP / Lei 4.320/64) e Otimização ORM
+
+### 1. Entregas de Arquitetura e Front-End:
+- **Separação Canônica de Orçamento vs. Financeiro:**
+  * [`cadastros/templates/cadastros/visualizar_projeto.html`](cadastros/templates/cadastros/visualizar_projeto.html): Reestruturada a Aba 3 em dois subsistemas estritos:
+    - *Subsistema Orçamentário (Lei 4.320/64 & MCASP):* Cards Glassmorphism com valores aprovados (Empresa, EMBRAPII, SEBRAE, Contrapartida), painel de balanço orçamentário (Total em Rubricas vs Saldo a Alocar) e tabela de Rubricas Orçamentárias Aprovadas com badges de categoria e fonte.
+    - *Divisor Dogmático:* Alerta formal de compliance sobre a **Regra Pétrea da Conta Bancária Específica** (Art. 3º, § 1º da Lei 8.958/94 e Acórdãos 2.731/2008 e 1.178/2018-TCU-Plenário).
+    - *Subsistema Financeiro (Decreto 93.872/86):* Contas bancárias específicas vinculadas ao projeto e cronograma de desembolso financeiro com atalho para o Extrato e Conciliação Bancária (`gestao_projetos:extrato_financeiro_projeto`).
+  * **Aba 4 (Cotas):** Adicionados cards de KPIs de RH (Vagas Totais Autorizadas vs. Bolsistas Vinculados) e alinhamento centralizado de cabeçalhos.
+- **Backend e Otimização ORM:**
+  * [`cadastros/views.py`](cadastros/views.py): Na view `visualizar_projeto`, implementado `select_related` para `coordenador` e `programa__termo_cooperacao`, além de `prefetch_related` para partícipes do termo (`concedente`, `convenente`, `interveniente`), contas bancárias (`contas__fonte_recurso`), histórico de fases, equipe, rubricas e desembolsos.
+  * Injeção de métricas orçamentárias (`total_rubricas`, `saldo_orcamentario`), financeiras (`total_desembolsos`) e de bolsas (`total_vagas_cotas`, `total_bolsistas_vinculados`).
+
+### 2. Validação e Controle de Qualidade:
+- `manage.py check`: **0 erros / 0 avisos**.
+- `manage.py test cadastros`: **75/75 testes verdes em 24.544s (100% OK)**.
+- `manage.py test gestao_projetos`: **93/93 testes verdes em 56.246s (100% OK)**.
+- **Total acumulado verificado:** **168 testes aprovados / zero regressões**.
+
+---
+
 ## [2026-09-09] Conclusão da Sprint 1 (Módulo Cadastros - 8/8 Telas), Entrada do Kiro no Squad e Instituição do "Padrão de Certeza" (Gemini, Devin, Kiro, Cline & Copilot)
+
 
 ### 1. Conclusão Integral da Sprint 1 — Harmonização Front-End (`cadastros`):
 - **Cobertura Concluída (8 de 8 Telas Mestras):**

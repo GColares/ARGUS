@@ -350,17 +350,52 @@ def api_termos_por_empresa(request, empresa_id):
 @login_required
 def visualizar_projeto(request, projeto_id):
     from cadastros.models import CotaBolsaPT
-    projeto = get_object_or_404(ProjetoPDI, id=projeto_id)
-    processos = projeto.processos.all().order_by('-id')
-    cotas = CotaBolsaPT.objects.filter(projeto=projeto).order_by('perfil_funcao')
-    termo = projeto.termos_parceria.first() # Pega o termo principal (ou o mais recente)
-    plano_ativo = projeto.planos_trabalho.filter(ativo=True).first()
+    from django.db.models import Sum
+    from decimal import Decimal
+
+    projeto = get_object_or_404(
+        ProjetoPDI.objects.select_related('coordenador', 'programa__termo_cooperacao')
+        .prefetch_related(
+            'termos_parceria__concedente',
+            'termos_parceria__convenente',
+            'termos_parceria__interveniente',
+            'contas__fonte_recurso',
+            'historico_fases__usuario'
+        ),
+        id=projeto_id
+    )
+    processos = projeto.processos.select_related('tipo').order_by('-id')
+    cotas = CotaBolsaPT.objects.filter(projeto=projeto).prefetch_related('termos_vinculados').order_by('perfil_funcao')
+    plano_ativo = projeto.planos_trabalho.filter(ativo=True).prefetch_related(
+        'equipe', 'rubricas', 'desembolsos'
+    ).first()
+
+    # Métricas agregadas de Orçamento (Autorização para Gastar / MCASP & Lei 4.320/64)
+    total_rubricas = Decimal('0.00')
+    saldo_orcamentario = Decimal('0.00')
+    if plano_ativo:
+        total_rubricas = plano_ativo.rubricas.aggregate(s=Sum('valor_previsto'))['s'] or Decimal('0.00')
+        saldo_orcamentario = (plano_ativo.valor_global or Decimal('0.00')) - total_rubricas
+
+    # Métricas agregadas de Financeiro (Disponibilidade e Cronograma de Desembolso)
+    total_desembolsos = Decimal('0.00')
+    if plano_ativo:
+        total_desembolsos = plano_ativo.desembolsos.aggregate(s=Sum('valor_parcela'))['s'] or Decimal('0.00')
+
+    # Métricas de Recursos Humanos / Bolsistas
+    total_vagas_cotas = sum(c.quantidade_vagas for c in cotas)
+    total_bolsistas_vinculados = sum(c.termos_vinculados.count() for c in cotas)
 
     contexto = {
         'projeto': projeto,
         'plano_ativo': plano_ativo,
         'processos': processos,
-        'cotas': cotas
+        'cotas': cotas,
+        'total_rubricas': total_rubricas,
+        'saldo_orcamentario': saldo_orcamentario,
+        'total_desembolsos': total_desembolsos,
+        'total_vagas_cotas': total_vagas_cotas,
+        'total_bolsistas_vinculados': total_bolsistas_vinculados,
     }
     return render(request, 'cadastros/visualizar_projeto.html', contexto)
 

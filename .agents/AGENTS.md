@@ -129,6 +129,34 @@ Sua resposta deve estruturar-se identificando:
 Jamais aceite uma ideia complexa passivamente sem submetê-la a esse crivo analítico.
 
 
+## Distinção Canônica entre Orçamento e Financeiro & Ciclo da Despesa Pública (Lei 4.320/64, MCASP e Marco Legal de CT&I)
+
+Nas modelagens de dados, formulários, views, relatórios, dashboards e templates HTML do ARGUS, é **TERMINANTEMENTE PROIBIDO** tratar "Orçamento" e "Financeiro" como sinônimos ou fundi-los em um único conceito indistinto. O sistema adota como premissa dogmática de arquitetura a aplicação subsidiária e ampla do **MCASP** (Manual de Contabilidade Aplicada ao Setor Público - STN), da **Lei Federal nº 4.320/1964**, do **Decreto nº 93.872/1986**, da **Lei nº 8.958/1994** e do **Decreto nº 9.283/2018**:
+
+1. **Distinção Ontológica Estrita:**
+   - **Orçamento (Crédito Orçamentário / Poder de Gastar):** É a **autorização jurídica e programática para gastar**. Define os limites e tetos legais máximos de comprometimento de recursos públicos por categoria econômica e finalidade (Rubricas do Plano de Trabalho, Fontes de Recursos e Dotações). Ato de planejamento e limite regulatório (Subsistema Orçamentário). *Orçamento não é dinheiro em caixa*; é a permissão de absorção de encargos (Arts. 59 e 73 da Lei 4.320/64).
+   - **Financeiro (Disponibilidade Monetária / Liquidez de Caixa):** É o **crédito efetivamente disponível e depositado em conta bancária** para a realização de desembolsos e quitações financeiras. Ato de solvência e fluxo de tesouraria (Subsistema Financeiro/Patrimonial). Trata da capacidade de pagamento (Decreto nº 93.872/1986 e Art. 8º da LRF).
+
+2. **Ciclo Canônico da Despesa Pública (Macrofluxo Sequencial):**
+   Toda despesa executada no ecossistema do Polo de Inovação (bolsas, compras de materiais, serviços de terceiros, diárias, equipamentos) deve respeitar a esteira ontológica dos 4 estágios da despesa pública:
+   - **1. Fixação / Dotação (Planejamento Orçamentário):** Existência prévia de Rubrica Orçamentária no Plano de Trabalho aprovado, com teto fixado e fonte de recurso definida.
+   - **2. Empenho / Reserva (Comprometimento da Dotação - Art. 58 da Lei 4.320/64):** Ato da autoridade competente que cria para o Estado/Projeto a obrigação de pagamento pendente ou não de implemento de condição. Deduz o saldo disponível da rubrica orçamentária (ex: assinatura do Termo de Concessão de Bolsa, emissão de Ordem de Compra ou Contrato de Serviço). É proibido empenhar sem saldo de rubrica (Art. 59).
+   - **3. Liquidação / Atesto Técnico (Verificação do Direito Adquirido - Art. 63 da Lei 4.320/64):** Verificação comprobatória do adimplemento da contraprestação: prestação do serviço ou entrega do bem. No ARGUS, materializa-se pelo **Relatório de Atividades (RA) com Atesto SIAPE do Coordenador do Projeto**, ou pelo **Termo de Recebimento Definitivo/Atesto de Nota Fiscal** pelo fiscal técnico/almoxarifado.
+   - **4. Pagamento / Baixa Financeira (Desembolso - Arts. 64 e 65 da Lei 4.320/64):** Despacho da autoridade competente ordenando que a despesa devidamente liquidada seja paga. Só pode ocorrer após a regular liquidação (Art. 62) e mediante suficiência de saldo financeiro na conta. Débito efetivo da conta bancária específica do projeto via ordem bancária/PIX oficial (ex: Liquidação em Lote da folha de pagamento, emissão de Ofício Conveniar/FAEPI, emissão do Recibo Quitado).
+
+3. **Regra Pétrea da Conta Bancária Específica (Lei 8.958/94 e Compliance TCU):**
+   - Conforme o **Art. 3º, § 1º da Lei nº 8.958/1994**, o **Art. 5º do Decreto nº 7.423/2010**, o **Art. 40 do Decreto nº 9.283/2018** e os **Acórdãos 2.731/2008-Plenário, 1.178/2018-Plenário e 2.066/2006-Plenário do TCU**:
+     - Toda movimentação financeira de projeto deve ocorrer **obrigatoriamente em conta bancária específica e individualizada** por projeto/termo em instituição financeira oficial.
+     - É **expressamente vedada a utilização de "conta pool"**, trânsito por contas gerais da Fundação de Apoio ou empréstimos entre projetos.
+     - O sistema deve assegurar o **nexo de causalidade direto e ininterrupto**: cada débito no extrato financeiro deve espelhar exatamente a liquidação aprovada para o respectivo credor.
+
+4. **Diretrizes de Interface de Usuário (UI/UX) e Nomenclatura:**
+   - É proibido criar títulos ou botões híbridos confusos como "Orçamento Financeiro".
+   - As telas e abas devem segregar categoricamente:
+     - **Painel de Orçamento:** Aportes Previstos, Rubricas Orçamentárias, Saldo Orçamentário da Rubrica, Limites SUFRAMA/EMBRAPII e Tetos Contratuais.
+     - **Painel Financeiro:** Contas Bancárias Específicas, Desembolsos/Parcelas Recebidas, Extrato Bancário Real, Conciliação e Comprovantes de Pagamento.
+
+
 ## Orçamento e Cronograma de Projetos (Regras SUFRAMA e EMBRAPII)
 Sempre que você modelar, refatorar ou desenvolver o escopo Financeiro (Rubricas) e o Cronograma (Plano de Ação) de um Projeto, você deve aplicar as seguintes travas e regras de negócio extraídas da Portaria SUFRAMA 9835/2022 e do Manual de Operações EMBRAPII:
 

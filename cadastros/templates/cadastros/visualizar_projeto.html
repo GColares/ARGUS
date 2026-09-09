@@ -116,7 +116,7 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link text-warning" id="orcamento-tab" data-bs-toggle="tab" data-bs-target="#orcamento" type="button" role="tab">
-                <i class="fas fa-hand-holding-usd me-1"></i> Orçamento
+                <i class="fas fa-coins me-1"></i> Orçamento & Financeiro
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -314,149 +314,296 @@
             {% endif %}
         </div>
 
-        <!-- ABA 3: Orçamento / Financeiro -->
+        <!-- ABA 3: Orçamento & Financeiro (Segregação Canônica MCASP / Lei 4.320/64) -->
         <div class="tab-pane fade" id="orcamento" role="tabpanel" tabindex="0">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold text-warning mb-0"><i class="fas fa-university me-2"></i> Gestão Financeira</h5>
-                <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-warning fw-bold shadow-sm text-dark">
-                    <i class="fas fa-cog me-1"></i> Gerenciar Contas
-                </a>
+            <!-- Cabeçalho da Aba e Ações Globais -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">
+                        <i class="fas fa-coins text-warning me-2"></i> Orçamento & Gestão Financeira
+                    </h5>
+                    <p class="text-muted small mb-0">
+                        Segregação canônica entre a <strong>autorização jurídica para gastar</strong> (Orçamento / MCASP) e as <strong>disponibilidades bancárias em caixa</strong> (Financeiro / Tesouraria).
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'gestao_projetos:extrato_financeiro_projeto' projeto.id %}" class="btn btn-outline-info btn-sm fw-semibold shadow-sm" title="Acessar conciliação bancária e extrato do projeto">
+                        <i class="fas fa-balance-scale me-1"></i> Extrato Financeiro
+                    </a>
+                    <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-warning btn-sm fw-bold shadow-sm text-dark" title="Gerenciar contas bancárias específicas">
+                        <i class="fas fa-university me-1"></i> Gerenciar Contas
+                    </a>
+                </div>
             </div>
-            
-            {% if plano_ativo %}
-            <!-- Cards de Aportes (Glassmorphism) -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <div class="glass-card bg-glass-primary h-100 p-3">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">Valor Global do Projeto</h6>
-                                <h3 class="mb-0 fw-bold">R$ {{ plano_ativo.valor_global }}</h3>
+
+            <!-- ============================================================ -->
+            <!-- 1. SUBSISTEMA ORÇAMENTÁRIO (Poder de Gastar / Lei 4.320/64)   -->
+            <!-- ============================================================ -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4 bg-light">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary px-3 py-2 rounded-pill">
+                                <i class="fas fa-file-invoice-dollar me-1"></i> Subsistema Orçamentário
+                            </span>
+                            <span class="text-muted small fw-bold text-uppercase">Fixação e Tetos Autorizados do Plano de Trabalho</span>
+                        </div>
+                        <span class="text-muted small">
+                            Art. 59 da Lei Federal nº 4.320/1964
+                        </span>
+                    </div>
+
+                    {% if plano_ativo %}
+                    <!-- Cards de Aportes Globais (Glassmorphism) -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-lg-4 col-md-12">
+                            <div class="glass-card bg-glass-primary h-100 p-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">Valor Global Aprovado (Dotação)</h6>
+                                        <h3 class="mb-0 fw-bold">R$ {{ plano_ativo.valor_global }}</h3>
+                                        <small class="opacity-75">Teto máximo autorizado no Plano de Trabalho</small>
+                                    </div>
+                                    <div class="p-2 bg-white rounded-circle shadow-sm" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-award fs-5 text-primary"></i>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="p-2 bg-white rounded-circle shadow-sm" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-coins fs-5 text-primary"></i>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="glass-card bg-glass-info h-100 p-3">
+                                <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">Empresa (Concedente)</h6>
+                                <h5 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_empresa }}</h5>
+                                <small class="text-muted">Aporte Privado PDI</small>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="glass-card bg-glass-success h-100 p-3">
+                                <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">EMBRAPII</h6>
+                                <h5 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_embrapii }}</h5>
+                                <small class="text-muted">Fomento Público</small>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="glass-card bg-glass-warning h-100 p-3 text-dark">
+                                <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">SEBRAE</h6>
+                                <h5 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_sebrae }}</h5>
+                                <small class="text-muted">Aporte Parceiro</small>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <div class="glass-card bg-glass-secondary h-100 p-3">
+                                <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">Contrapartida ICT</h6>
+                                <h5 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_contrapartida }}</h5>
+                                <small class="text-muted">Recursos Próprios</small>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="glass-card bg-glass-success h-100 p-3">
-                        <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">EMBRAPII</h6>
-                        <h5 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_embrapii }}</h5>
+
+                    <!-- Balanço Orçamentário: Alocado vs Disponível -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white rounded border shadow-sm d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-muted small fw-bold text-uppercase d-block">Total Alocado em Rubricas</span>
+                                    <h5 class="mb-0 fw-bold text-primary">R$ {{ total_rubricas }}</h5>
+                                </div>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                                    <i class="fas fa-layer-group me-1"></i> {{ plano_ativo.rubricas.count }} Rubricas
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white rounded border shadow-sm d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-muted small fw-bold text-uppercase d-block">Saldo Orçamentário a Alocar</span>
+                                    <h5 class="mb-0 fw-bold {% if saldo_orcamentario < 0 %}text-danger{% else %}text-success{% endif %}">
+                                        R$ {{ saldo_orcamentario }}
+                                    </h5>
+                                </div>
+                                <span class="badge {% if saldo_orcamentario < 0 %}bg-danger{% else %}bg-success-subtle text-success border border-success-subtle{% endif %} px-3 py-2 rounded-pill">
+                                    <i class="fas {% if saldo_orcamentario < 0 %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %} me-1"></i>
+                                    {% if saldo_orcamentario < 0 %}Excedente{% else %}Equilibrado{% endif %}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="glass-card bg-glass-info h-100 p-3">
-                        <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">Empresa</h6>
-                        <h5 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_empresa }}</h5>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="glass-card bg-glass-warning h-100 p-3 text-dark">
-                        <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">SEBRAE</h6>
-                        <h5 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_sebrae }}</h5>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="glass-card bg-glass-secondary h-100 p-3">
-                        <h6 class="text-uppercase small mb-1 opacity-75 fw-bold">Contrapartida</h6>
-                        <h5 class="mb-0 fw-bold">R$ {{ plano_ativo.aporte_contrapartida }}</h5>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row g-4">
-                <!-- Rubricas Orçamentárias -->
-                <div class="col-md-6">
-                    <h6 class="fw-bold text-muted text-uppercase small mb-3"><i class="fas fa-list-ol me-2"></i> Rubricas Orçamentárias</h6>
+
+                    <!-- Tabela de Rubricas Orçamentárias -->
+                    <h6 class="fw-bold text-dark small text-uppercase mb-2">
+                        <i class="fas fa-list-ol text-primary me-2"></i> Rubricas Orçamentárias Aprovadas
+                    </h6>
                     {% if plano_ativo.rubricas.exists %}
-                    <div class="table-responsive bg-white rounded shadow-sm border p-2">
+                    <div class="table-responsive bg-white rounded shadow-sm border mb-2">
                         <table class="table table-hover align-middle table-sm mb-0">
                             <thead class="table-light text-center">
                                 <tr>
-                                    <th class="text-start">Categoria</th>
-                                    <th>Fonte</th>
-                                    <th class="text-end">Valor (R$)</th>
+                                    <th class="text-start ps-3">Categoria / Dispêndio</th>
+                                    <th>Fonte Financiadora</th>
+                                    <th class="text-start">Descrição do Item</th>
+                                    <th class="text-end pe-3">Valor Previsto (R$)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for rubrica in plano_ativo.rubricas.all %}
                                 <tr>
-                                    <td><span class="badge bg-secondary">{{ rubrica.categoria }}</span> <small>{{ rubrica.descricao|truncatechars:30 }}</small></td>
-                                    <td class="text-center">{{ rubrica.get_fonte_recurso_display }}</td>
-                                    <td class="text-end fw-bold">R$ {{ rubrica.valor_previsto }}</td>
+                                    <td class="ps-3">
+                                        <span class="badge bg-secondary-subtle text-dark border fw-bold">{{ rubrica.get_categoria_display }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge {% if rubrica.fonte_recurso == 'EMPRESA' %}bg-info text-dark{% elif rubrica.fonte_recurso == 'EMBRAPII' %}bg-success{% elif rubrica.fonte_recurso == 'SEBRAE' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                            {{ rubrica.get_fonte_recurso_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-start small text-muted">{{ rubrica.descricao|default:"-" }}</td>
+                                    <td class="text-end pe-3 fw-bold text-dark">R$ {{ rubrica.valor_previsto }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                     {% else %}
-                    <div class="p-3 bg-light rounded text-muted text-center small">Nenhuma rubrica cadastrada.</div>
+                    <div class="p-3 bg-white rounded border text-muted text-center small mb-2">
+                        Nenhuma rubrica orçamentária cadastrada para este plano de trabalho.
+                    </div>
                     {% endif %}
-                </div>
-
-                <!-- Cronograma de Desembolso -->
-                <div class="col-md-6">
-                    <h6 class="fw-bold text-muted text-uppercase small mb-3"><i class="fas fa-calendar-check me-2"></i> Cronograma de Desembolso</h6>
-                    {% if plano_ativo.desembolsos.exists %}
-                    <div class="table-responsive bg-white rounded shadow-sm border p-2">
-                        <table class="table table-hover align-middle table-sm mb-0">
-                            <thead class="table-light text-center">
-                                <tr>
-                                    <th>Parcela</th>
-                                    <th>Mês Previsto</th>
-                                    <th class="text-end">Valor (R$)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for parcela in plano_ativo.desembolsos.all %}
-                                <tr>
-                                    <td class="text-center fw-bold">{{ parcela.parcela }}</td>
-                                    <td class="text-center">{{ parcela.mes_previsto }}</td>
-                                    <td class="text-end fw-bold text-success">R$ {{ parcela.valor_parcela }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
                     {% else %}
-                    <div class="p-3 bg-light rounded text-muted text-center small">Nenhum cronograma de desembolso cadastrado.</div>
+                    <div class="p-4 bg-white rounded border text-center text-muted">
+                        <i class="fas fa-exclamation-circle text-warning fs-3 mb-2"></i>
+                        <p class="mb-0">Nenhum Plano de Trabalho ativo vinculado para exibição do subsistema orçamentário.</p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
-            <hr class="my-4">
-            {% endif %}
 
-            <div class="row g-4">
-                <!-- Sumário de Contas Bancárias (Apenas informacional rápido) -->
-                <div class="col-md-12">
-                    <h6 class="fw-bold text-muted text-uppercase small mb-3"><i class="fas fa-money-check-alt me-2"></i> Contas Bancárias do Projeto ({{ projeto.contas.count }})</h6>
-                    {% if projeto.contas.exists %}
-                        <div class="table-responsive">
-                            <table class="table table-bordered align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Banco</th>
-                                        <th>Agência</th>
-                                        <th>Conta</th>
-                                        <th>Natureza</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for conta in projeto.contas.all %}
-                                        <tr>
-                                            <td>{{ conta.banco }}</td>
-                                            <td>{{ conta.agencia }}</td>
-                                            <td class="fw-bold">{{ conta.conta }}</td>
-                                            <td><span class="badge bg-secondary">{{ conta.get_natureza_conta_display }}</span></td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+            <!-- Divisor Dogmático com Alerta TCU / Marco Legal de CT&I -->
+            <div class="alert alert-info border-start border-4 border-info shadow-sm rounded-3 mb-4 p-3 bg-white">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-shield-alt text-info fs-3 me-3"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1 text-dark">
+                            Regra Pétrea da Conta Bancária Específica (Lei nº 8.958/1994 & Compliance TCU)
+                        </h6>
+                        <p class="small text-muted mb-0">
+                            Os recursos recebidos para a consecução de projetos PDI devem ser mantidos e movimentados obrigatoriamente em <strong>conta corrente específica e individualizada</strong> em instituição financeira oficial. É terminantemente vedada a utilização de "conta pool", empréstimos entre projetos ou trânsito por contas gerais da Fundação de Apoio (Acórdãos 2.731/2008 e 1.178/2018-TCU-Plenário).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 2. SUBSISTEMA FINANCEIRO (Disponibilidade de Caixa / Repasse) -->
+            <!-- ============================================================ -->
+            <div class="card border-0 shadow-sm rounded-3 mb-3 bg-light">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success px-3 py-2 rounded-pill">
+                                <i class="fas fa-university me-1"></i> Subsistema Financeiro
+                            </span>
+                            <span class="text-muted small fw-bold text-uppercase">Contas Bancárias Específicas e Cronograma de Desembolso</span>
                         </div>
-                    {% else %}
-                        <div class="p-3 bg-light rounded text-muted text-center">Nenhuma conta bancária vinculada.</div>
-                    {% endif %}
+                        <span class="text-muted small">
+                            Art. 3º, § 1º da Lei 8.958/94 & Decreto 93.872/86
+                        </span>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Contas Bancárias Específicas -->
+                        <div class="col-lg-6 col-md-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-dark small text-uppercase mb-0">
+                                    <i class="fas fa-money-check-alt text-success me-2"></i> Contas Bancárias do Projeto ({{ projeto.contas.count }})
+                                </h6>
+                                <a href="{% url 'cadastros:gerenciar_contas' projeto.id %}" class="btn btn-outline-secondary btn-sm py-0 px-2 small">
+                                    <i class="fas fa-plus me-1"></i> Vincular Conta
+                                </a>
+                            </div>
+
+                            {% if projeto.contas.exists %}
+                            <div class="table-responsive bg-white rounded shadow-sm border">
+                                <table class="table table-hover align-middle table-sm mb-0">
+                                    <thead class="table-light text-center">
+                                        <tr>
+                                            <th class="text-start ps-3">Banco / Agência</th>
+                                            <th>Conta Corrente</th>
+                                            <th>Fonte Vinculada</th>
+                                            <th>Natureza</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for conta in projeto.contas.all %}
+                                        <tr>
+                                            <td class="ps-3">
+                                                <span class="fw-bold text-dark">{{ conta.banco }}</span>
+                                                <span class="d-block small text-muted">Ag: {{ conta.agencia|default:"-" }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-light text-dark border font-monospace fs-6">
+                                                    {{ conta.conta }}-{{ conta.dv }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-secondary-subtle text-dark border">
+                                                    {{ conta.fonte_recurso.nome|default:"Geral" }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                    {{ conta.get_natureza_conta_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="p-3 bg-white rounded border text-muted text-center small">
+                                <i class="fas fa-exclamation-circle text-warning me-1"></i> Nenhuma conta bancária específica vinculada a este projeto.
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Cronograma de Desembolso Financeiro -->
+                        <div class="col-lg-6 col-md-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-dark small text-uppercase mb-0">
+                                    <i class="fas fa-calendar-check text-info me-2"></i> Cronograma de Desembolso (Fluxo de Parcelas)
+                                </h6>
+                                <span class="badge bg-info-subtle text-info border border-info-subtle">
+                                    Total Previsto: R$ {{ total_desembolsos }}
+                                </span>
+                            </div>
+
+                            {% if plano_ativo and plano_ativo.desembolsos.exists %}
+                            <div class="table-responsive bg-white rounded shadow-sm border">
+                                <table class="table table-hover align-middle table-sm mb-0">
+                                    <thead class="table-light text-center">
+                                        <tr>
+                                            <th>Parcela</th>
+                                            <th>Mês Previsto</th>
+                                            <th class="text-end pe-3">Valor da Parcela (R$)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for parcela in plano_ativo.desembolsos.all %}
+                                        <tr>
+                                            <td class="text-center fw-bold">Parcela {{ parcela.parcela }}</td>
+                                            <td class="text-center text-muted">{{ parcela.mes_previsto }}</td>
+                                            <td class="text-end pe-3 fw-bold text-success">R$ {{ parcela.valor_parcela }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="p-3 bg-white rounded border text-muted text-center small">
+                                Nenhum cronograma de desembolso financeiro cadastrado no plano de trabalho.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -464,28 +611,59 @@
         <!-- ABA 4: Cotas -->
         <div class="tab-pane fade" id="cotas" role="tabpanel" tabindex="0">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold mb-0 text-success">Cotas de Bolsas Vinculadas</h6>
+                <div>
+                    <h6 class="fw-bold mb-1 text-success">
+                        <i class="fas fa-users text-success me-2"></i> Cotas de Bolsas Vinculadas ao Plano
+                    </h6>
+                    <p class="text-muted small mb-0">Controle de vagas e bolsas do projeto.</p>
+                </div>
                 <a href="{% url 'cadastros:gerenciar_cotas' projeto.id %}" class="btn btn-sm btn-success fw-bold shadow-sm">
                     <i class="fas fa-cog me-1"></i> Gerenciar Cotas
                 </a>
             </div>
+
+            <!-- KPIs de Cotas -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded border shadow-sm d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small fw-bold text-uppercase d-block">Vagas Totais Autorizadas</span>
+                            <h4 class="mb-0 fw-bold text-success">{{ total_vagas_cotas }}</h4>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                            <i class="fas fa-user-check me-1"></i> {{ cotas.count }} Perfis
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded border shadow-sm d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small fw-bold text-uppercase d-block">Bolsistas Vinculados</span>
+                            <h4 class="mb-0 fw-bold text-primary">{{ total_bolsistas_vinculados }}</h4>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                            <i class="fas fa-id-badge me-1"></i> Termos Ativos
+                        </span>
+                    </div>
+                </div>
+            </div>
             
-            <div class="table-responsive">
+            <div class="table-responsive bg-white rounded border shadow-sm">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-center">
                         <tr>
-                            <th class="text-start">Perfil / Função</th>
-                            <th class="text-center">Vagas Totais</th>
+                            <th class="text-start ps-3">Perfil / Função da Cota</th>
+                            <th class="text-center">Vagas Autorizadas</th>
                             <th class="text-center">Termos Vinculados</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for cota in cotas %}
                         <tr>
-                            <td class="text-start fw-bold">{{ cota.perfil_funcao }}</td>
+                            <td class="text-start ps-3 fw-bold">{{ cota.perfil_funcao }}</td>
                             <td class="text-center">{{ cota.quantidade_vagas }}</td>
                             <td class="text-center">
-                                <span class="badge bg-primary rounded-pill">{{ cota.termos_vinculados.count }}</span>
+                                <span class="badge bg-primary rounded-pill px-3">{{ cota.termos_vinculados.count }}</span>
                             </td>
                         </tr>
                         {% empty %}
