@@ -157,6 +157,40 @@ Nas modelagens de dados, formulários, views, relatórios, dashboards e template
      - **Painel Financeiro:** Contas Bancárias Específicas, Desembolsos/Parcelas Recebidas, Extrato Bancário Real, Conciliação e Comprovantes de Pagamento.
 
 
+## Ontologia Canônica dos Instrumentos Jurídicos (Gênero vs. Espécies)
+
+No sistema ARGUS, nas modelagens de banco de dados, formulários, relatórios, views e templates, é **OBRIGATÓRIO** respeitar a hierarquia ontológica do Direito das Obrigações e dos Contratos:
+
+1. **O Gênero — Instrumento Jurídico:**
+   - **Definição:** É o gênero documental e formal que materializa o ajuste de vontades, estabelecendo direitos, deveres, encargos e regras vinculantes de uma relação jurídica entre pessoas (físicas ou jurídicas).
+   - **Aplicação no Sistema:** Quando a interface ou o modelo referir-se genericamente ao documento formal que ancora um projeto ou vínculo, deve utilizar o termo canônico **"Instrumento Jurídico"** (ou `InstrumentoJuridicoBase`), jamais generalizar termos de espécies.
+
+2. **As Espécies / Tipos de Instrumentos Jurídicos:**
+   Cada espécie possui finalidade, partícipes e base normativa estrita:
+   - **Acordo de Parceria para PDI:** Instrumento específico do Marco Legal de CT&I (Art. 9º da Lei nº 10.973/2004 e Decreto nº 9.283/2018) celebrado entre ICT pública, empresa parceira e fundação de apoio como interveniente-anuente para execução de projeto com compartilhamento de riscos e ganhos tecnológicos.
+   - **Termo de Cooperação:** Instrumento guarda-chuva / acordo-matriz interinstitucional para mútua cooperação acadêmica ou científica, que ancora programas e rodadas de projetos sem necessariamente fixar transferência financeira individualizada imediata.
+   - **Convênio Administrativo:** Instrumento tradicional da Lei nº 4.320/64 e Decreto nº 6.170/2007 para transferência voluntária de recursos entre entes públicos ou com entidades sem fins lucrativos para consecução de interesse comum (não confundir com Acordo de Parceria de Inovação).
+   - **Contrato de Prestação de Serviços Técnicos Especializados:** Instrumento de contraprestação onerosa (Art. 8º da Lei nº 10.973/2004).
+   - **Termo de Concessão de Bolsa / Termo de Adesão:** Instrumento de vinculação do pesquisador/aluno ao Plano de Trabalho do projeto.
+
+3. **Regra de Interface (UI):**
+   - É estritamente proibido exibir a palavra "Convênio" como sinônimo genérico de todo projeto.
+   - Nas tabelas e formulários, exibir o tipo exato acompanhado do respectivo número oficial (ex: `[AP] 01/2026` para Acordo de Parceria, `[CV] 02/2025` para Convênio legado, `[TC] 05/2024` para Termo de Cooperação).
+
+
+## Esteira Dialética de Desenvolvimento e Verificação Cruzada (Devin + Kiro)
+
+Para assegurar a integridade do código e eliminar a auto-aprovação complacente:
+1. **Devin (Engenheiro Fullstack Autônomo):** Executa a implementação do código backend e frontend conforme o dossiê de Handoff fornecido pelo Arquiteto (Gemini). Valida localmente e emite relatório Inbound no Padrão de Certeza.
+2. **Kiro (Engenheiro de QA & Verificação Adversarial):** Assume a branch do Devin imediatamente após o relatório Inbound. É responsável por:
+   - Inspecionar criticamente o diff do Devin contra as regras do `FRONTEND_ARCHITECTURE.md` e `AGENTS.md`.
+   - Executar bateria completa de testes de regressão no terminal.
+   - Escrever testes unitários e de propriedade adicionais para blindar os novos fluxos e invariantes de negócio.
+   - Emitir o relatório Inbound de Verificação & QA com status APROVADO ou REPROVADO com apontamentos.
+3. **Gemini (Tech Lead & Arquiteto):** Valida os dois pareceres e homologa a mesclagem.
+
+
+
 ## Orçamento e Cronograma de Projetos (Regras SUFRAMA e EMBRAPII)
 Sempre que você modelar, refatorar ou desenvolver o escopo Financeiro (Rubricas) e o Cronograma (Plano de Ação) de um Projeto, você deve aplicar as seguintes travas e regras de negócio extraídas da Portaria SUFRAMA 9835/2022 e do Manual de Operações EMBRAPII:
 
@@ -313,3 +347,18 @@ Toda e qualquer manifestação de entrega técnica, análise ou auditoria deve o
 ---
 [Análise crítica: Pontos Fortes, Observações/Refinamentos e Veredito formal de Homologação]
 ```
+
+
+## Regra Pétrea Anti-Rubber-Stamping: Proibição de Gabarito Pré-Preenchido em Handoffs
+
+Para erradicar a complacência e o "teatro de conformidade" no Squad IA:
+
+1. **Veto ao Gabarito no Handoff:** É **TERMINANTEMENTE PROIBIDO** ao Arquiteto (Gemini) fornecer no Handoff Outbound envelopes de retorno com checkboxes pré-marcados (`[x]`) ou resumos de sucesso pré-redigidos. O Arquiteto deve entregar estritamente as especificações da tarefa e um **contrato de entrega com campos vazios e checkboxes desmarcados (`[ ]`)**.
+
+2. **Obrigação de Preenchimento Empírico:** O agente executor (Devin, Kiro, Copilot, Cline) é **pessoalmente e tecnicamente responsável** por preencher cada colchete com os dados reais de sua execução:
+   - Marcar o `[x]` somente após inspecionar o arquivo e atestar que a regra foi efetivamente implementada;
+   - Descrever com suas próprias palavras os arquivos que tocou e as decisões tomadas;
+   - Colar a contagem exata e o tempo de execução dos testes que rodou no seu próprio terminal (ex: `Ran 93 tests in 59.065s`).
+
+3. **Rejeição Automática por Cópia Cega:** Caso um agente devolva um relatório que seja cópia desatenta do prompt, sem evidências reais do terminal ou omitindo problemas que ocorreram durante a execução, o Tech Lead deve **rejeitar sumariamente a entrega** e exigir a auditoria empírica real.
+

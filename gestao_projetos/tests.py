@@ -2887,3 +2887,208 @@ class EsteiraPrestacaoContasTestCase(TestCase):
         # Verifica liquidação
         self.parcela.refresh_from_db()
         self.assertEqual(self.parcela.status, 'PAGO')
+
+
+# ==============================================================================
+# Sprint 2 / Passo 2.3 — Blindagem da View: Painel de Cotas & Contas Bancárias
+# Responsável: Kiro (Engenheiro de QA & Verificação Adversarial)
+# Branch auditada: refactor/sprint2-passo2.3-cotas-contas-bancarias
+# Cobertura:
+#   - RBAC: acesso autenticado vinculado vs não vinculado
+#   - KPIs de conformidade (total_cotas, total_vagas, total_parcelas_mapeadas, status_geral)
+#   - Ausência do termo "Convênio" no HTML renderizado
+# ==============================================================================
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class PainelCotasContasBancariasTests(TestCase):
+    """
+    Testa a view relatorio_orcamento_financeiro:
+      - Redirecionamento de usuário anônimo (RBAC mínimo)
+      - Acesso bloqueado para usuário sem vínculo de MembroEquipe
+      - Acesso liberado para usuário com MembroEquipe
+      - KPIs: total_cotas, total_vagas, total_parcelas_mapeadas, status_geral
+      - Ausência do termo "Convênio" no HTML (ontologia canônica)
+    """
+
+    def setUp(self):
+        from cadastros.models import (
+            EmpresaParceira, ProjetoPDI, MembroEquipe,
+            CotaBolsaPT, ContaBancaria, FonteDeRecurso, DistribuicaoContaCota,
+        )
+
+        self.url = reverse('gestao_projetos:orcamento_financeiro')
+
+        # --- Usuários ---
+        self.user_vinculado = User.objects.create_user(
+            username='membro_painel', password='senha_qa_123'
+        )
+        self.user_alheio = User.objects.create_user(
+            username='alheio_painel', password='senha_qa_123'
+        )
+
+        # --- Estrutura mínima do projeto ---
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Painel LTDA",
+            cnpj="22.333.444/0001-55",
+            natureza_juridica="LTDA",
+            representante_legal="Rep Painel",
+            cargo_representante="Diretor"
+        )
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Painel de Cotas",
+            fase="EXECUCAO",
+            concedente=self.empresa
+        )
+
+        # Vincula user_vinculado como GESTOR
+        MembroEquipe.objects.create(
+            projeto=self.projeto,
+            usuario=self.user_vinculado,
+            papel='GESTOR'
+        )
+
+        # --- Fonte de recurso e conta bancária ---
+        self.fonte = FonteDeRecurso.objects.create(nome="EMBRAPII-Painel")
+        self.conta = ContaBancaria.objects.create(
+            projeto=self.projeto,
+            fonte_recurso=self.fonte,
+            conta="77777-0",
+            dv="0"
+        )
+
+        # --- Cotas de bolsa ---
+        self.cota_1 = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao="Pesquisador Sênior",
+            quantidade_vagas=2,
+            parcelas_previstas=6,
+            valor_global_previsto=Decimal('18000.00')
+        )
+        self.cota_2 = CotaBolsaPT.objects.create(
+            projeto=self.projeto,
+            perfil_funcao="Bolsista Júnior",
+            quantidade_vagas=3,
+            parcelas_previstas=4,
+            valor_global_previsto=Decimal('6000.00')
+        )
+
+        # --- Distribuições: cota_1 totalmente mapeada, cota_2 parcialmente ---
+        DistribuicaoContaCota.objects.create(
+            cota_pt=self.cota_1,
+            conta_pagamento=self.conta,
+            parcela_inicio=1,
+            parcela_fim=6
+        )
+        # cota_2: apenas 2 das 4 parcelas mapeadas → status PENDENTE
+        DistribuicaoContaCota.objects.create(
+            cota_pt=self.cota_2,
+            conta_pagamento=self.conta,
+            parcela_inicio=1,
+            parcela_fim=2
+        )
+
+    # ------------------------------------------------------------------
+    # Teste 1: Usuário anônimo é redirecionado para o login
+    # ------------------------------------------------------------------
+    def test_login_obrigatorio(self):
+        """Usuário anônimo recebe redirecionamento 302 para o login."""
+        from django.test import Client as AnonClient
+        response = AnonClient().get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login', response['Location'])
+
+    # ------------------------------------------------------------------
+    # Teste 2: Usuário sem MembroEquipe vê lista vazia, não erro
+    # ------------------------------------------------------------------
+    def test_usuario_sem_vinculo_ve_lista_vazia(self):
+        """Usuário autenticado sem MembroEquipe acessa a view (200) mas recebe
+        lista de projetos vazia — sem acesso aos dados do projeto alheio."""
+        self.client.login(username='alheio_painel', password='senha_qa_123')
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        # A lista de projetos no contexto deve estar vazia para este usuário
+        self.assertEqual(response.context['projetos'].count(), 0)
+        # Sem projeto_selecionado, KPIs devem ser zero
+        self.assertIsNone(response.context['projeto_selecionado'])
+        self.assertEqual(response.context['total_cotas'], 0)
+
+    # ------------------------------------------------------------------
+    # Teste 3: Usuário vinculado acessa e vê seus projetos
+    # ------------------------------------------------------------------
+    def test_usuario_vinculado_acessa_view(self):
+        """Membro da equipe recebe HTTP 200 e o projeto aparece na lista."""
+        self.client.login(username='membro_painel', password='senha_qa_123')
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        ids_projetos = list(response.context['projetos'].values_list('id', flat=True))
+        self.assertIn(self.projeto.id, ids_projetos)
+
+    # ------------------------------------------------------------------
+    # Teste 4: KPIs de conformidade com projeto selecionado
+    # ------------------------------------------------------------------
+    def test_kpis_conformidade_com_projeto_selecionado(self):
+        """
+        Com projeto_id na querystring:
+          - total_cotas = 2 (duas cotas criadas)
+          - total_vagas = 5 (2 + 3)
+          - total_parcelas_mapeadas = 8 (6 + 2)
+          - status_geral = 'PENDENTE' (cota_2 incompleta)
+        """
+        self.client.login(username='membro_painel', password='senha_qa_123')
+        response = self.client.get(self.url, {'projeto_id': self.projeto.id})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['projeto_selecionado'].id, self.projeto.id)
+        self.assertEqual(response.context['total_cotas'], 2)
+        self.assertEqual(response.context['total_vagas'], 5)       # 2 + 3
+        self.assertEqual(response.context['total_parcelas_mapeadas'], 8)  # 6 + 2
+        self.assertEqual(response.context['status_geral'], 'PENDENTE')
+
+    # ------------------------------------------------------------------
+    # Teste 5: status_geral == CONFORME quando todas as cotas mapeadas
+    # ------------------------------------------------------------------
+    def test_kpi_status_geral_conforme(self):
+        """Quando todas as parcelas estão mapeadas, status_geral deve ser 'CONFORME'."""
+        from cadastros.models import DistribuicaoContaCota
+        # Completa o mapeamento da cota_2 (parcelas 3 e 4)
+        DistribuicaoContaCota.objects.create(
+            cota_pt=self.cota_2,
+            conta_pagamento=self.conta,
+            parcela_inicio=3,
+            parcela_fim=4
+        )
+
+        self.client.login(username='membro_painel', password='senha_qa_123')
+        response = self.client.get(self.url, {'projeto_id': self.projeto.id})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['total_parcelas_mapeadas'], 10)  # 6 + 4
+        self.assertEqual(response.context['status_geral'], 'CONFORME')
+
+    # ------------------------------------------------------------------
+    # Teste 6: Ontologia — ausência total do termo "Convênio" no HTML
+    # ------------------------------------------------------------------
+    def test_ausencia_termo_convenio_no_html(self):
+        """
+        O termo 'Convênio' (e variantes) não deve aparecer em nenhuma parte
+        do HTML renderizado — conformidade com a Ontologia de Instrumentos Jurídicos.
+        """
+        self.client.login(username='membro_painel', password='senha_qa_123')
+        response = self.client.get(self.url, {'projeto_id': self.projeto.id})
+
+        self.assertEqual(response.status_code, 200)
+        conteudo_html = response.content.decode('utf-8').lower()
+        self.assertNotIn(
+            'convênio', conteudo_html,
+            "O termo 'Convênio' foi encontrado no HTML — violação da Ontologia de Instrumentos Jurídicos."
+        )
+        self.assertNotIn(
+            'convenio', conteudo_html,
+            "O termo 'convenio' (sem acento) foi encontrado no HTML — violação da Ontologia."
+        )

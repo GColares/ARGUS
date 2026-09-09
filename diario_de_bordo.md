@@ -1,6 +1,57 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-09] Sprint 2: Passo 2.3 — Homologação do Painel de Cotas & Contas Bancárias (`relatorio_orcamento_financeiro.html`) (Devin, Kiro & Gemini)
+
+### 1. Entregas de Front-End e Otimização ORM (Devin):
+- **Template (`gestao_projetos/templates/gestao_projetos/relatorio_orcamento_financeiro.html`):**
+  * Expurgado 100% o termo arcaico "Convênio" em prol da ontologia canônica de Instrumento Jurídico.
+  * Injeção de 4 Cards Glassmorphism (`.cs-card`) de KPIs de conformidade financeira: Total de Cotas Aprovadas, Total de Vagas de Bolsistas, Total de Parcelas Mapeadas em Contas e Status Geral do Projeto (Conforme / Pendente).
+  * Remoção estrita de `{% empty %}` com `colspan` no `<tbody>` da tabela de cotas (em conformidade com a Regra de Renderização DataTables de `.agents/AGENTS.md`).
+  * Inclusão de badge dinâmico de status de mapeamento por cota ("Mapeamento Completo" vs "Mapeamento Parcial") e tabela de fontes de recursos com saldo.
+- **Backend (`gestao_projetos/views.py`):**
+  * Otimização ORM da view `relatorio_orcamento_financeiro` com `.prefetch_related('termos_parceria')` e `.select_related('fonte_recurso')`, mitigando N+1 queries.
+  * Cálculo dinâmico dos 4 KPIs de conformidade passados ao contexto da tela.
+
+### 2. Auditoria Adversarial & Testes Unitários de Integração (Kiro & Gemini):
+- **Criação da Suíte de Testes (`gestao_projetos/tests.py` - Kiro):**
+  * Implementação da classe `PainelCotasContasBancariasTests` contendo 6 testes unitários rigorosos:
+    1. `test_login_obrigatorio`: Autenticação e redirecionamento 302.
+    2. `test_usuario_sem_vinculo_ve_lista_vazia`: RBAC isolando projetos para usuários sem vínculo de equipe.
+    3. `test_usuario_vinculado_acessa_view`: Membro de equipe acessa e recebe HTTP 200 com seu projeto na lista.
+    4. `test_kpis_conformidade_com_projeto_selecionado`: Validação dos cálculos matemáticos de cotas, vagas e parcelas com status 'PENDENTE'.
+    5. `test_kpi_status_geral_conforme`: Transição para status 'CONFORME' ao completar distribuições.
+    6. `test_ausencia_termo_convenio_no_html`: Asserção rigorosa contra a ocorrência de "Convênio" ou "convenio" no HTML renderizado.
+- **Detecção e Correção de Bugs Críticos (Four-Eyes Principle / SoD):**
+  * *Bug de Modelo:* Identificado que `CotaBolsaPT` utiliza `valor_global_previsto` e não `valor_mensal`. Fixture corrigida.
+  * *Bug Crítico de Render (NoReverseMatch):* Detectado que o template tentava resolver `{% url 'argus_core:home_argus' %}` (namespace inexistente), o que quebrava com erro 500. Corrigido para a rota canônica `{% url 'home_geral' %}` tanto em `relatorio_orcamento_financeiro.html` quanto em `home_gestao_projetos.html`.
+- **Resultados de Validação:**
+  * `manage.py check`: **0 erros / 0 avisos**.
+  * `manage.py test gestao_projetos`: **99/99 testes verdes em 61.794s (100% OK, +6 novos testes)**.
+  * **Status:** **HOMOLOGADO**.
+
+---
+
+### 1. Entregas de Front-End e Backend Executadas por Devin:
+- **Backend (`gestao_projetos/views.py`):**
+  * Injeção de 4 KPIs operacionais dinâmicos na view `home_gestao_projetos`: `total_projetos_ativos` (fase EXECUCAO), `total_termos_ativos` (status ATIVO), `total_relatorios_pendentes` (status PENDENTE) e `total_relatorios_concluidos` (status CONCLUIDO).
+- **Frontend (`gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html`):**
+  * Reorganização completa da página sob a arquitetura **Domain-Driven UI** em 3 seções de negócio:
+    1. *Execução Técnica e Gestão de Bolsistas:* Relatórios de Atividades (com contagem de pendências) e Termos de Bolsa (com contagem de ativos).
+    2. *Gestão Orçamentária, Financeira e Folha de Pagamentos:* Orçamento & Cotas, Folha Mensal de Pagamentos e Extrato Financeiro.
+    3. *Governança Institucional e Prestação de Contas Macro:* Governança de Alçadas (Lei 8.112/90), Matrizes DOCX Conveniar/FAEPI e Indicadores Oficiais EMBRAPII.
+  * Estilização plena em **Glassmorphism** (`.cs-card`), variáveis semânticas do Bootstrap (`var(--bs-primary)`, etc.), eliminação de inline styles e travas de viewport.
+  * Breadcrumb padronizado e botão voltar dinâmico inteligente (`javascript:history.back()`).
+
+### 2. Auditoria Adversarial SoD & Qualidade (Gemini - Tech Lead):
+- **Diff:** Restrito estritamente aos 2 arquivos autorizados no handoff.
+- **Protocolo:** Resposta do Devin 100% aderente ao envelope canônico do Padrão de Certeza Inbound.
+- **Validação:** `manage.py check` (0 erros) | `test gestao_projetos` (93/93 verdes em 59.065s) | `test cadastros` (75/75 verdes em 24.072s).
+- **Status:** **HOMOLOGADO**.
+
+---
+
 ## [2026-09-09] Sprint 2: Passo 2.1 — Harmonização Canônica de Detalhes do Projeto (`visualizar_projeto.html`), Segregação entre Orçamento e Financeiro (MCASP / Lei 4.320/64) e Otimização ORM
+
 
 ### 1. Entregas de Arquitetura e Front-End:
 - **Separação Canônica de Orçamento vs. Financeiro:**

@@ -150,6 +150,10 @@ deve ser informada antes do trabalho começar.
    - Se o Arquiteto (Antigravity-Gemini) for excepcionalmente o implementador por complexidade técnica, ele **não pode auto-atestar seu trabalho**: deve nomear um parceiro do Squad (Cursor, Kiro, Bob, Copilot) como Revisor Independente, fornecendo diretrizes gerais e fronteiras de risco para que o revisor defina autonomamente as operações elementares de teste e estresse.
 5. Antes de concluir, revisar o diff e validar o comportamento.
 6. Registrar no `diario_de_bordo.md` explicitando a dupla de agentes (Implementador e Revisor/Duplo Check), alterações, testes e riscos.
+7. **Regra Pétrea Anti-Rubber-Stamping (Proibição de Gabarito no Handoff):**
+   - É terminantemente proibido ao Arquiteto enviar modelos de entrega com checkboxes pré-marcados (`[x]`) ou aprovações fictícias pré-redigidas.
+   - O contrato de entrega enviado no Handoff deve conter exclusivamente campos vazios e checkboxes desmarcados (`[ ]`), forçando o implementador a preenchê-los com os resultados empíricos reais do seu terminal e do seu código.
+   - Relatórios que sejam mera cópia do template sem saídas reais de teste serão sumariamente rejeitados.
 
 O handoff deve conter objetivo, escopo, arquivos modificados, comportamento
 esperado, comandos executados, resultados e próximos passos.

@@ -1,30 +1,39 @@
 {% extends 'base.html' %}
+{% block title %}Painel de Cotas & Contas Bancárias - ARGUS{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4 mt-4">
-    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'home_geral' %}" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'gestao_projetos:home_gestao_projetos' %}" class="text-decoration-none">Gestão de Projetos</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Painel de Cotas & Contas Bancárias</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <div class="d-flex align-items-center mb-4">
         <div class="me-3 text-success">
             <i class="fas fa-coins fs-2"></i>
         </div>
         <div>
-            <h4 class="mb-0 fw-bold">Orçamento e Financeiro</h4>
+            <h4 class="mb-0 fw-bold">Painel de Cotas & Contas Bancárias</h4>
             <p class="text-muted small mb-0">Acompanhamento e visão gerencial das distribuições financeiras das cotas.</p>
-        </div>
-        <div class="ms-auto">
-            <a href="{% url 'gestao_projetos:home_gestao_projetos' %}" class="btn btn-outline-secondary btn-sm">Voltar</a>
         </div>
     </div>
 
     <!-- Filtro -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body bg-light">
+    <div class="card cs-card mb-4">
+        <div class="card-body">
             <form method="GET" class="d-flex align-items-center gap-3">
                 <label for="projeto_id" class="fw-bold text-nowrap">Selecione o Projeto:</label>
                 <select name="projeto_id" id="projeto_id" class="form-select" onchange="this.form.submit()">
                     <option value="">-- Selecione --</option>
                     {% for p in projetos %}
                         <option value="{{ p.id }}" {% if projeto_selecionado and p.id == projeto_selecionado.id %}selected{% endif %}>
-                            {{ p.convenio }} - {{ p.nome }}
+                            {% if p.termos_parceria.first %}[{{ p.termos_parceria.first.tipo_instrumento|slice:":2" }}] {{ p.termos_parceria.first.numero }} - {% endif %}{{ p.nome }}
                         </option>
                     {% endfor %}
                 </select>
@@ -33,10 +42,74 @@
     </div>
 
     {% if projeto_selecionado %}
-    <div class="card shadow-sm border-0 mb-4">
+    <!-- Cards de KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Total de Perfis / Cotas</span>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">{{ total_cotas }}</h3>
+                <span class="text-muted text-xs">Cotas cadastradas</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Vagas Totais</span>
+                </div>
+                <h3 class="fw-bold text-success mb-0">{{ total_vagas }}</h3>
+                <span class="text-muted text-xs">Vagas autorizadas</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-info bg-opacity-10 text-info rounded p-2 me-2">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Parcelas Mapeadas</span>
+                </div>
+                <h3 class="fw-bold text-info mb-0">{{ total_parcelas_mapeadas }} / {{ total_parcelas_previstas }}</h3>
+                <span class="text-muted text-xs">Parcelas com conta definida</span>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded p-2 me-2">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Status de Conformidade</span>
+                </div>
+                <h3 class="fw-bold mb-0">
+                    {% if status_geral == 'CONFORME' %}
+                        <span class="badge bg-success">CONFORME</span>
+                    {% else %}
+                        <span class="badge bg-danger">AJUSTE NECESSÁRIO</span>
+                    {% endif %}
+                </h3>
+                <span class="text-muted text-xs">Conformidade de mapeamento</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card cs-card mb-4">
         <div class="card-header bg-white border-bottom py-3">
             <h5 class="mb-0 fw-bold">
-                Painel de Cotas (Bolsistas) - {{ projeto_selecionado.convenio }}
+                Painel de Cotas (Bolsistas) — {{ projeto_selecionado.nome }}
+                {% if projeto_selecionado.termos_parceria.first %}
+                <span class="badge bg-primary ms-2">[{{ projeto_selecionado.termos_parceria.first.tipo_instrumento|slice:":2" }}] {{ projeto_selecionado.termos_parceria.first.numero }}</span>
+                {% endif %}
             </h5>
         </div>
         <div class="card-body p-0">
@@ -44,7 +117,7 @@
                 <table class="table table-hover table-striped align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-4">Perfil / Cota</th>
+                            <th class="text-center">Perfil / Cota</th>
                             <th class="text-center">Vagas</th>
                             <th class="text-center">Parcelas Previstas</th>
                             {% for conta in contas_projeto %}
@@ -60,7 +133,7 @@
                     <tbody>
                         {% for item in cotas_dados %}
                         <tr>
-                            <td class="ps-4 fw-bold">{{ item.cota.perfil_funcao }}</td>
+                            <td class="text-center fw-bold">{{ item.cota.perfil_funcao }}</td>
                             <td class="text-center">{{ item.cota.quantidade_vagas }}</td>
                             <td class="text-center fw-bold">{{ item.cota.parcelas_previstas }}</td>
                             
@@ -83,10 +156,6 @@
                                     <small class="text-danger">Revisar Admin</small>
                                 {% endif %}
                             </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="10" class="text-center text-muted py-4">Nenhuma cota cadastrada para este projeto.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

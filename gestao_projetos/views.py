@@ -29,7 +29,24 @@ def home_gestao_projetos(request):
     Renderiza o painel central (hub) do módulo de Gestão de Projetos,
     oferecendo os atalhos operacionais para relatórios, bolsistas e entregas.
     """
-    return render(request, 'gestao_projetos/home_gestao_projetos.html')
+    # KPIs de Governança
+    total_projetos_ativos = ProjetoPDI.objects.filter(fase='EXECUCAO').count()
+    total_termos_ativos = 0
+    try:
+        from cadastros.models import TermoBolsa
+        total_termos_ativos = TermoBolsa.objects.filter(status='ATIVO').count()
+    except:
+        pass
+    total_relatorios_pendentes = RelatorioAtividade.objects.filter(status='PENDENTE').count()
+    total_relatorios_concluidos = RelatorioAtividade.objects.filter(status='CONCLUIDO').count()
+    
+    contexto = {
+        'total_projetos_ativos': total_projetos_ativos,
+        'total_termos_ativos': total_termos_ativos,
+        'total_relatorios_pendentes': total_relatorios_pendentes,
+        'total_relatorios_concluidos': total_relatorios_concluidos,
+    }
+    return render(request, 'gestao_projetos/home_gestao_projetos.html', contexto)
 
 def montar_contexto_relatorio(relatorio_id):
     """
@@ -796,17 +813,24 @@ def relatorio_orcamento_financeiro(request):
         usuario=request.user
     ).values_list('projeto_id', flat=True)
     
-    projetos = ProjetoPDI.objects.filter(id__in=projetos_permitidos)
+    projetos = ProjetoPDI.objects.filter(id__in=projetos_permitidos).prefetch_related('termos_parceria')
     
     projeto_id = request.GET.get('projeto_id')
     projeto_selecionado = None
     cotas_dados = []
     contas_projeto = []
     
+    # KPIs de Conformidade
+    total_cotas = 0
+    total_vagas = 0
+    total_parcelas_previstas = 0
+    total_parcelas_mapeadas = 0
+    status_geral = 'CONFORME'
+    
     if projeto_id:
         projeto_selecionado = get_object_or_404(ProjetoPDI, id=projeto_id, id__in=projetos_permitidos)
         # pyrefly: ignore [missing-attribute]
-        contas_projeto = projeto_selecionado.contas.all()
+        contas_projeto = projeto_selecionado.contas.select_related('fonte_recurso')
         cotas = CotaBolsaPT.objects.filter(projeto=projeto_selecionado)
         
         for cota in cotas:
@@ -831,8 +855,16 @@ def relatorio_orcamento_financeiro(request):
             status = 'OK'
             if parcelas_mapeadas < cota.parcelas_previstas:
                 status = 'ALERTA'
+                status_geral = 'PENDENTE'
             elif parcelas_mapeadas > cota.parcelas_previstas:
                 status = 'ERRO'
+                status_geral = 'PENDENTE'
+                
+            # Acumula KPIs
+            total_cotas += 1
+            total_vagas += cota.quantidade_vagas
+            total_parcelas_previstas += cota.parcelas_previstas
+            total_parcelas_mapeadas += parcelas_mapeadas
                 
             cotas_dados.append({
                 'cota': cota,
@@ -845,7 +877,12 @@ def relatorio_orcamento_financeiro(request):
         'projetos': projetos,
         'projeto_selecionado': projeto_selecionado,
         'contas_projeto': contas_projeto,
-        'cotas_dados': cotas_dados
+        'cotas_dados': cotas_dados,
+        'total_cotas': total_cotas,
+        'total_vagas': total_vagas,
+        'total_parcelas_previstas': total_parcelas_previstas,
+        'total_parcelas_mapeadas': total_parcelas_mapeadas,
+        'status_geral': status_geral,
     }
     
     return render(request, 'gestao_projetos/relatorio_orcamento_financeiro.html', context)

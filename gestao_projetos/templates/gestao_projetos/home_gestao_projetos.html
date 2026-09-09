@@ -1,24 +1,42 @@
 <!-- Template: gestao_projetos/templates/gestao_projetos/home_gestao_projetos.html -->
 {% extends 'base.html' %}
+{% block title %}Gestão de Projetos & Recursos - ARGUS{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4 mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'home_geral' %}" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Gestão de Projetos</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold m-0 text-dark"><i class="fas fa-project-diagram text-primary me-2"></i>Gestão de Projetos e Bolsistas</h2>
+            <h4 class="fw-bold m-0 text-dark"><i class="fas fa-project-diagram text-primary me-2"></i> Gestão de Projetos & Recursos <span class="badge bg-success fs-6 ms-2">{{ total_projetos_ativos }} em execução</span></h4>
             <p class="text-muted small mb-0 mt-1">Módulo de acompanhamento de entregas, parcelas e relatórios de atividades.</p>
         </div>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 g-4">
+    <!-- Seção 1: Execução Técnica e Gestão de Bolsistas -->
+    <h6 class="fw-bold text-muted mb-3 text-uppercase small">Execução Técnica e Gestão de Bolsistas</h6>
+    <div class="row row-cols-1 row-cols-md-2 g-4 mb-5">
         <!-- Card: Relatórios de Atividades -->
         <div class="col">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card cs-card h-100">
                 <div class="card-body p-4">
-                    <div class="text-warning mb-3">
-                        <i class="fas fa-file-alt fs-1"></i>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded p-3 me-3">
+                            <i class="fas fa-file-alt fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title fw-bold mb-0">Relatórios de Atividades</h5>
+                            <span class="badge bg-warning text-dark">{{ total_relatorios_pendentes }} pendentes</span>
+                        </div>
                     </div>
-                    <h5 class="card-title fw-bold">Relatórios de Atividades</h5>
                     <p class="card-text text-muted small">Gerencie, elabore e gere os documentos contratuais de prestação de contas dos bolsistas alocados.</p>
                     <div class="d-flex gap-2">
                         <a href="{% url 'gestao_projetos:listar_relatorios' %}" class="btn btn-outline-warning btn-sm">
@@ -32,29 +50,19 @@
             </div>
         </div>
 
-        <!-- Card: Orçamento e Financeiro -->
-        <div class="col">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body p-4">
-                    <div class="text-success mb-3">
-                        <i class="fas fa-coins fs-1"></i>
-                    </div>
-                    <h5 class="card-title fw-bold">Orçamento e Financeiro</h5>
-                    <p class="card-text text-muted small">Acompanhamento e visão gerencial das distribuições orçamentárias e mapeamento de contas de pagamento das bolsas.</p>
-                    <a href="{% url 'gestao_projetos:orcamento_financeiro' %}" class="btn btn-outline-success btn-sm">
-                        Acessar Painel
-                    </a>
-                </div>
-            </div>
-        </div>
         <!-- Card: Termos de Bolsa -->
         <div class="col">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card cs-card h-100">
                 <div class="card-body p-4">
-                    <div class="text-primary mb-3">
-                        <i class="fas fa-file-signature fs-1"></i>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded p-3 me-3">
+                            <i class="fas fa-file-signature fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title fw-bold mb-0">Termos de Bolsa</h5>
+                            <span class="badge bg-primary">{{ total_termos_ativos }} ativos</span>
+                        </div>
                     </div>
-                    <h5 class="card-title fw-bold">Termos de Bolsa</h5>
                     <p class="card-text text-muted small">Acompanhe os contratos ativos e inativos dos bolsistas vinculados às Cotas do Plano de Trabalho.</p>
                     <a href="{% url 'gestao_projetos:listar_termos_bolsa' %}" class="btn btn-outline-primary btn-sm">
                         Acessar Termos
@@ -62,16 +70,80 @@
                 </div>
             </div>
         </div>
+    </div>
 
+    <!-- Seção 2: Gestão Orçamentária, Financeira e Folha de Pagamentos -->
+    <h6 class="fw-bold text-muted mb-3 text-uppercase small">Gestão Orçamentária, Financeira e Folha de Pagamentos</h6>
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+        <!-- Card: Orçamento e Financeiro -->
+        <div class="col">
+            <div class="card cs-card h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success bg-opacity-10 text-success rounded p-3 me-3">
+                            <i class="fas fa-coins fs-4"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-0">Orçamento & Cotas</h5>
+                    </div>
+                    <p class="card-text text-muted small">Painel de mapeamento de contas e cotas do projeto.</p>
+                    <a href="{% url 'gestao_projetos:orcamento_financeiro' %}" class="btn btn-outline-success btn-sm">
+                        Acessar Painel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Folha Mensal de Pagamentos -->
+        <div class="col">
+            <div class="card cs-card h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-danger bg-opacity-10 text-danger rounded p-3 me-3">
+                            <i class="fas fa-money-bill-wave fs-4"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-0">Folha Mensal</h5>
+                    </div>
+                    <p class="card-text text-muted small">Conferência e atesto de pagamentos mensais por competência.</p>
+                    <a href="{% url 'gestao_projetos:folha_mensal_pagamentos' %}" class="btn btn-outline-danger btn-sm">
+                        Acessar Folha
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Extrato Financeiro -->
+        <div class="col">
+            <div class="card cs-card h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info bg-opacity-10 text-info rounded p-3 me-3">
+                            <i class="fas fa-balance-scale fs-4"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-0">Extrato Financeiro</h5>
+                    </div>
+                    <p class="card-text text-muted small">Conciliação bancária: aportes, desembolsos e saldo disponível.</p>
+                    <a href="{% url 'gestao_projetos:folha_mensal_pagamentos' %}" class="btn btn-outline-info btn-sm">
+                        Selecionar Projeto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seção 3: Governança Institucional e Prestação de Contas Macro -->
+    <h6 class="fw-bold text-muted mb-3 text-uppercase small">Governança Institucional e Prestação de Contas Macro</h6>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
         <!-- Card: Governança de Alçadas -->
         <div class="col">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card cs-card h-100">
                 <div class="card-body p-4">
-                    <div class="text-dark mb-3">
-                        <i class="fas fa-balance-scale fs-1"></i>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-dark bg-opacity-10 text-dark rounded p-3 me-3">
+                            <i class="fas fa-balance-scale fs-4"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-0">Governança de Alçadas</h5>
                     </div>
-                    <h5 class="card-title fw-bold">Governança de Alçadas</h5>
-                    <p class="card-text text-muted small">Matriz dinâmica de alçadas, responsáveis em exercício e cadeia de suplência legal (Lei 8.112/90).</p>
+                    <p class="card-text text-muted small">Matriz dinâmica de alçadas e suplência legal (Lei 8.112/90).</p>
                     <a href="{% url 'gestao_projetos:painel_governanca_alcadas' %}" class="btn btn-outline-dark btn-sm">
                         Acessar Painel
                     </a>
@@ -81,13 +153,15 @@
 
         <!-- Card: Templates Conveniar -->
         <div class="col">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card cs-card h-100">
                 <div class="card-body p-4">
-                    <div class="text-secondary mb-3">
-                        <i class="fas fa-file-word fs-1"></i>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-secondary bg-opacity-10 text-secondary rounded p-3 me-3">
+                            <i class="fas fa-file-word fs-4"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-0">Matrizes DOCX</h5>
                     </div>
-                    <h5 class="card-title fw-bold">Matrizes DOCX Conveniar</h5>
-                    <p class="card-text text-muted small">Gerencie os modelos institucionais DOCX usados na emissão de ofícios de pagamento para o Conveniar/FAEPI.</p>
+                    <p class="card-text text-muted small">Modelos institucionais para ofícios de pagamento Conveniar/FAEPI.</p>
                     <a href="{% url 'gestao_projetos:listar_templates_conveniar' %}" class="btn btn-outline-secondary btn-sm">
                         Acessar Biblioteca
                     </a>
@@ -95,47 +169,17 @@
             </div>
         </div>
 
-        <!-- Card: Folha Mensal de Pagamentos -->
+        <!-- Card: Indicadores Oficiais EMBRAPII -->
         <div class="col">
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card cs-card h-100">
                 <div class="card-body p-4">
-                    <div class="text-danger mb-3">
-                        <i class="fas fa-money-bill-wave fs-1"></i>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded p-3 me-3">
+                            <i class="fas fa-chart-line fs-4"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-0">Indicadores EMBRAPII</h5>
                     </div>
-                    <h5 class="card-title fw-bold">Folha Mensal de Pagamentos</h5>
-                    <p class="card-text text-muted small">Confira os dados bancários, o atesto dos RAs e confirme o pagamento mensal de cada parcela por projeto e competência.</p>
-                    <a href="{% url 'gestao_projetos:folha_mensal_pagamentos' %}" class="btn btn-outline-danger btn-sm">
-                        Acessar Folha
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card: Extrato Financeiro (Passo 9) -->
-        <div class="col">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body p-4">
-                    <div class="text-info mb-3">
-                        <i class="fas fa-balance-scale fs-1"></i>
-                    </div>
-                    <h5 class="card-title fw-bold">Extrato Financeiro</h5>
-                    <p class="card-text text-muted small">Conciliação bancária por projeto: KPIs de aportes, desembolsos, saldo disponível e movimentações cronológicas com links para recibos.</p>
-                    <a href="{% url 'gestao_projetos:folha_mensal_pagamentos' %}" class="btn btn-outline-info btn-sm">
-                        Selecionar Projeto
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card: Indicadores Oficiais EMBRAPII (Fase 4) -->
-        <div class="col">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body p-4">
-                    <div class="text-primary mb-3">
-                        <i class="fas fa-chart-line fs-1"></i>
-                    </div>
-                    <h5 class="card-title fw-bold">Indicadores Oficiais EMBRAPII</h5>
-                    <p class="card-text text-muted small">Dashboard executivo de alavancagem privada, composição orçamentária, Fundo de Reserva e maturidade tecnológica (TRL).</p>
+                    <p class="card-text text-muted small">Dashboard de alavancagem privada, orçamento e TRL.</p>
                     <a href="{% url 'gestao_projetos:painel_indicadores_embrapii' %}" class="btn btn-outline-primary btn-sm">
                         Acessar Indicadores
                     </a>
