@@ -1,5 +1,35 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-08] Sessão Noturna — Harmonização do Front-End (Sprint 1: Passos 1.1, 1.2 e 1.3) e Governança Multi-Agente (Gemini, Devin & Squad NIM)
+
+### 1. Entregas de Harmonização Visual e Front-End (FRONTEND_ARCHITECTURE.md):
+- **Passo 1.1: Pessoas Físicas:**
+  * [`cadastros/views.py`](cadastros/views.py): Injeção de `@login_required`, filtros avançados GET (nome, CPF com/sem máscara, papel institucional) e KPIs calculados no backend (`total_pessoas`, `total_servidores`, `total_bolsistas`).
+  * [`cadastros/templates/cadastros/listar_pessoas_fisicas.html`](cadastros/templates/cadastros/listar_pessoas_fisicas.html): Anatomia plena do Padrão Almoxarifado, breadcrumbs, link Voltar dinâmico (`javascript:history.back()`), 3 cards de KPIs, gaveta colapsável de filtros avançados (`collapse`), DataTables pt-BR seguro eliminando `{% empty %}` de `<tbody>`, e mascaramento de CPF (`mask_cpf`) para LGPD.
+- **Passo 1.2: Pessoas Jurídicas e Hélice Tríplice:**
+  * [`cadastros/views.py`](cadastros/views.py): Injeção de `@login_required`, filtros avançados GET por nome e CNPJ aplicados em todos os querysets, e KPIs no backend (`total_pessoas`, `total_empresas`, `total_icts`, `total_fundacoes`, `total_fornecedores`, `total_agencias`).
+  * [`cadastros/templates/cadastros/listar_pessoas_juridicas.html`](cadastros/templates/cadastros/listar_pessoas_juridicas.html): Padrão Almoxarifado, 4 cards de KPIs, gaveta colapsável de filtros avançados, eliminação de inline styles `style="width:100%"` para classes utilitárias `w-100`, abas da Hélice Tríplice e ajuste de colunas do DataTables (`columns.adjust()`).
+- **Passo 1.3: Listagem de Projetos PDI:**
+  * [`cadastros/views.py`](cadastros/views.py): Otimização de querysets com `select_related('coordenador')` e `prefetch_related('termos_parceria__concedente')`, filtros avançados GET por nome e fase do ciclo de vida, e KPIs do ciclo de vida (`total_projetos`, `total_execucao`, `total_prospeccao`, `total_prestacao`, `total_encerrados`).
+  * [`cadastros/templates/cadastros/listar_projetos.html`](cadastros/templates/cadastros/listar_projetos.html): Padrão Almoxarifado, link Voltar dinâmico (`javascript:history.back()`), 4 cards de KPIs de ciclo de vida, gaveta colapsável de filtros avançados, e inicialização segura de DataTables pt-BR com `.thead-argus`.
+
+### 2. Governança do Squad IA, Incidentes e Aprendizados (/learn):
+- **Gestão de Incidentes (Devin Desktop):**
+  * *Causa:* Esgotamento da cota de uso semanal do Devin Desktop durante o Sprint 1.
+  * *Ação:* Acionamento da redundância do Squad e mapeamento do arsenal de modelos NVIDIA NIM (`build.nvidia.com`), incluindo `Mistral Large 2 Instruct` (123B), `Codestral 22B` e `Llama 3.1 Nemotron 70B` como novos executores autônomos.
+  * *Consequência:* Transição suave sem bloqueio do projeto; Gemini assumiu o fechamento e as verificações finais.
+- **Ferramental de Apoio:**
+  * Criado `.clinerules` e `documentacao-tecnica/governanca_squad_ia/manuais_agentes/CLINE.md` para integração com agentes de editor.
+  * Criado `.continue/prompts/check.prompt` para permitir auditoria rápida de front-end com comando `/check` via Continue.
+  * Registrada a regra de delegação de testes locais ao implementador, reduzindo atrito no terminal do Arquiteto.
+
+### 3. Validação e Controle de Qualidade (Antigravity-Gemini / Tech Lead):
+- `manage.py check`: **0 erros / 0 avisos (System check identified no issues)**.
+- `manage.py test cadastros`: **72/72 testes automatizados aprovados (100% verdes, 0 regressões)** em 21.53s.
+- **Rastro SoD:** Arquiteto: Antigravity-Gemini | Implementador: Devin Desktop / Gemini | Auditor/Tech Lead: Antigravity-Gemini | PO: Geziel.
+
+---
+
 ## [2026-09-08] Transição para InstrumentoJuridicoBase, Governança de Acordos de Parceria e Refinamento Visual (Gemini, Claude, DeepSeek, Qwen & Devin)
 
 ### 1. Modelagem e Governança Jurídica (Marco Legal CT&I - Lei 10.973/04):

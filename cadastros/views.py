@@ -24,8 +24,35 @@ def home_cadastros(request):
 
 @login_required
 def listar_projetos(request):
-    projetos = ProjetoPDI.objects.all().order_by('-data_cadastro')
-    return render(request, 'cadastros/listar_projetos.html', {'projetos': projetos})
+    from .models import ProjetoPDI
+
+    queryset = ProjetoPDI.objects.select_related('coordenador').prefetch_related('termos_parceria__concedente').all().order_by('-data_cadastro')
+
+    # Filtros Avançados
+    nome = request.GET.get('nome', '').strip()
+    fase = request.GET.get('fase', '').strip()
+
+    if nome:
+        queryset = queryset.filter(nome__icontains=nome)
+    if fase:
+        queryset = queryset.filter(fase=fase)
+
+    # KPIs de Governança do Ciclo de Vida
+    total_projetos = ProjetoPDI.objects.count()
+    total_execucao = ProjetoPDI.objects.filter(fase='EXECUCAO').count()
+    total_prospeccao = ProjetoPDI.objects.filter(fase__in=['PROPOSTA', 'PROSPECCAO']).count()
+    total_prestacao = ProjetoPDI.objects.filter(fase='PRESTACAO_CONTAS').count()
+    total_encerrados = ProjetoPDI.objects.filter(fase='ENCERRADO').count()
+
+    contexto = {
+        'projetos': queryset,
+        'total_projetos': total_projetos,
+        'total_execucao': total_execucao,
+        'total_prospeccao': total_prospeccao,
+        'total_prestacao': total_prestacao,
+        'total_encerrados': total_encerrados,
+    }
+    return render(request, 'cadastros/listar_projetos.html', contexto)
 
 @login_required
 def listar_pessoas_juridicas(request):
