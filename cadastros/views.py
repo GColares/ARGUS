@@ -30,20 +30,58 @@ def listar_projetos(request):
 @login_required
 def listar_pessoas_juridicas(request):
     from .models import PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, Fornecedor, AgenciaFomento
+
+    # Querysets base
     pessoas = PessoaJuridica.objects.all().order_by('nome')
-    icts = ICT.objects.all().order_by('nome')
     empresas = EmpresaParceira.objects.all().order_by('nome')
+    icts = ICT.objects.all().order_by('nome')
     fundacoes = FundacaoApoio.objects.all().order_by('nome')
     fornecedores = Fornecedor.objects.all().order_by('nome')
     agencias = AgenciaFomento.objects.all().order_by('nome')
-    
+
+    # Filtros Avançados
+    nome = request.GET.get('nome', '').strip()
+    cnpj = request.GET.get('cnpj', '').strip()
+    tipo = request.GET.get('tipo', '').strip()
+
+    if nome:
+        pessoas = pessoas.filter(nome__icontains=nome)
+        empresas = empresas.filter(nome__icontains=nome)
+        icts = icts.filter(nome__icontains=nome)
+        fundacoes = fundacoes.filter(nome__icontains=nome)
+        fornecedores = fornecedores.filter(nome__icontains=nome)
+        agencias = agencias.filter(nome__icontains=nome)
+
+    if cnpj:
+        cnpj_limpo = ''.join(filter(str.isdigit, cnpj))
+        pessoas = pessoas.filter(cnpj__icontains=cnpj_limpo or cnpj)
+        empresas = empresas.filter(cnpj__icontains=cnpj_limpo or cnpj)
+        icts = icts.filter(cnpj__icontains=cnpj_limpo or cnpj)
+        fundacoes = fundacoes.filter(cnpj__icontains=cnpj_limpo or cnpj)
+        fornecedores = fornecedores.filter(cnpj__icontains=cnpj_limpo or cnpj)
+        agencias = agencias.filter(cnpj__icontains=cnpj_limpo or cnpj)
+
+    # KPIs de Governança
+    total_pessoas = PessoaJuridica.objects.count()
+    total_empresas = EmpresaParceira.objects.count()
+    total_icts = ICT.objects.count()
+    total_fundacoes = FundacaoApoio.objects.count()
+    total_fornecedores = Fornecedor.objects.count()
+    total_agencias = AgenciaFomento.objects.count()
+
     context = {
         'pessoas': pessoas,
-        'icts': icts,
         'empresas': empresas,
+        'icts': icts,
         'fundacoes': fundacoes,
         'fornecedores': fornecedores,
         'agencias': agencias,
+        'total_pessoas': total_pessoas,
+        'total_empresas': total_empresas,
+        'total_icts': total_icts,
+        'total_fundacoes': total_fundacoes,
+        'total_fornecedores': total_fornecedores,
+        'total_agencias': total_agencias,
     }
     return render(request, 'cadastros/listar_pessoas_juridicas.html', context)
 
