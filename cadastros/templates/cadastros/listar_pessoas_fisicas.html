@@ -1,73 +1,176 @@
 {% extends "base.html" %}
-
+{% load cadastros_extras %}
+{% block title %}Pessoas Físicas - ARGUS{% endblock %}
 {% block content %}
 <div class="container-fluid px-4 mt-4">
+    <!-- Breadcrumbs -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
-            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros Base</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
             <li class="breadcrumb-item active" aria-current="page">Pessoas Físicas</li>
         </ol>
     </nav>
-    <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
+    <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-3 d-inline-block">
         <i class="fas fa-arrow-left me-1"></i> Voltar
     </a>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Topo: Título + Badge + Ação Novo Cadastro -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h4 class="fw-bold text-success"><i class="fas fa-users me-2"></i> Pessoas Físicas</h4>
-            <p class="text-muted mb-0">Gestão de Servidores, Alunos e Colaboradores.</p>
+            <h4 class="fw-bold m-0 text-success">
+                <i class="fas fa-users me-2"></i> Pessoas Físicas
+                <span class="badge bg-secondary fs-6 ms-2">{{ pessoas.count }} listadas</span>
+            </h4>
+            <p class="text-muted small mb-0 mt-1">Identidades centrais e perfis institucionais (Servidores, Bolsistas, Alunos e Colaboradores).</p>
         </div>
         <div>
-            <a href="{% url 'cadastros:cadastrar_pessoa_fisica' %}" class="btn btn-success fw-bold shadow-sm rounded-pill">
+            <a href="{% url 'cadastros:cadastrar_pessoa_fisica' %}" class="btn btn-success fw-bold shadow-sm">
                 <i class="fas fa-plus me-1"></i> Nova Pessoa
             </a>
         </div>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Cards de KPIs (Padrão Almoxarifado) -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Total de Cadastros</span>
+                </div>
+                <h3 class="fw-bold text-success mb-0">{{ total_pessoas }}</h3>
+                <span class="text-muted text-xs">Pessoas Físicas registradas</span>
             </div>
-        {% endfor %}
-    {% endif %}
+        </div>
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Servidores Públicos</span>
+                </div>
+                <h3 class="fw-bold text-primary mb-0">{{ total_servidores }}</h3>
+                <span class="text-muted text-xs">Com matrícula SIAPE ativa</span>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6">
+            <div class="card card-kpi-argus border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-info bg-opacity-10 text-info rounded p-2 me-2">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Bolsistas Ativos</span>
+                </div>
+                <h3 class="fw-bold text-info mb-0">{{ total_bolsistas }}</h3>
+                <span class="text-muted text-xs">Com termos de bolsa vigentes</span>
+            </div>
+        </div>
+    </div>
 
-    <div class="card shadow-sm border-0">
+    <!-- Gaveta de Filtros Avançados -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <button class="btn btn-outline-secondary fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosAvancadosPF" aria-expanded="false" aria-controls="filtrosAvancadosPF">
+                <i class="fas fa-filter me-2"></i>Filtros Avançados
+            </button>
+        </div>
+        <div class="collapse {% if request.GET.nome or request.GET.cpf or request.GET.papel %}show{% endif %}" id="filtrosAvancadosPF">
+            <div class="card-body border-top">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="filtroNome" class="form-label fw-semibold">Nome</label>
+                        <input type="search" id="filtroNome" name="nome" value="{{ request.GET.nome }}" class="form-control" placeholder="Buscar por nome">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroCpf" class="form-label fw-semibold">CPF</label>
+                        <input type="search" id="filtroCpf" name="cpf" value="{{ request.GET.cpf }}" class="form-control" placeholder="Buscar por CPF">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroPapel" class="form-label fw-semibold">Papel Institucional</label>
+                        <select id="filtroPapel" name="papel" class="form-select">
+                            <option value="">Todos os papéis</option>
+                            <option value="servidor" {% if request.GET.papel == 'servidor' %}selected{% endif %}>Servidor Público (SIAPE)</option>
+                            <option value="bolsista" {% if request.GET.papel == 'bolsista' %}selected{% endif %}>Bolsista de Projeto</option>
+                            <option value="aluno" {% if request.GET.papel == 'aluno' %}selected{% endif %}>Aluno</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-success fw-bold"><i class="fas fa-search me-1"></i>Filtrar</button>
+                        <a href="{% url 'cadastros:listar_pessoas_fisicas' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Listagem com DataTables -->
+    <div class="card border-0 shadow-sm rounded-3">
         <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-4 text-center">Nome</th>
-                        <th class="text-center">CPF</th>
-                        <th class="text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pessoa in pessoas %}
-                    <tr>
-                        <td class="ps-4 fw-bold">{{ pessoa.nome }}</td>
-                        <td>{{ pessoa.cpf }}</td>
-                        <td class="text-center">
-                            <a href="{% url 'cadastros:visualizar_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-primary" title="Visualizar">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{% url 'cadastros:editar_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-warning" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{% url 'cadastros:excluir_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-danger" title="Excluir">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-center py-4 text-muted">Nenhuma pessoa física cadastrada.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tabelaPessoasFisicas">
+                    <thead class="thead-argus">
+                        <tr>
+                            <th class="ps-4 text-center">Nome Completo</th>
+                            <th class="text-center">CPF</th>
+                            <th class="text-center">Papéis Vinculados</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pessoa in pessoas %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ pessoa.nome }}</td>
+                            <td class="text-center">{{ pessoa.cpf|mask_cpf }}</td>
+                            <td class="text-center">
+                                {% if pessoa.perfil_servidor %}
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle me-1">Servidor</span>
+                                {% endif %}
+                                {% if pessoa.termos_bolsa.exists %}
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle me-1">Bolsista</span>
+                                {% endif %}
+                                {% if pessoa.perfil_aluno %}
+                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning-subtle me-1">Aluno</span>
+                                {% endif %}
+                                {% if not pessoa.perfil_servidor and not pessoa.termos_bolsa.exists and not pessoa.perfil_aluno %}
+                                    <span class="text-muted small">Cidadão</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'cadastros:visualizar_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-info me-1" title="Visualizar Detalhes">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'cadastros:editar_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-warning me-1" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'cadastros:excluir_pessoa_fisica' pessoa.id %}" class="btn btn-sm btn-outline-danger" title="Excluir / Anonimizar">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#tabelaPessoasFisicas').DataTable({
+            language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json' },
+            order: [[0, 'asc']],
+            pageLength: 25,
+            dom: '<"row p-3"<"col-md-6"l><"col-md-6"f>>rt<"row p-3"<"col-md-6"i><"col-md-6"p>>'
+        });
+    });
+</script>
 {% endblock %}

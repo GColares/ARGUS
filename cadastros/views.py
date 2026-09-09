@@ -872,8 +872,41 @@ def usuario_pode_gerenciar_pessoas(user) -> bool:
 
 @login_required
 def listar_pessoas_fisicas(request):
-    pessoas = PessoaFisica.objects.all().order_by('nome')
-    return render(request, 'cadastros/listar_pessoas_fisicas.html', {'pessoas': pessoas})
+
+    from .models import PessoaFisica, PerfilServidor, TermoBolsa
+
+    queryset = PessoaFisica.objects.all().order_by('nome')
+
+    # Filtros Avançados
+    nome = request.GET.get('nome', '').strip()
+    cpf = request.GET.get('cpf', '').strip()
+    papel = request.GET.get('papel', '').strip()
+
+    if nome:
+        queryset = queryset.filter(nome__icontains=nome)
+    if cpf:
+        # Permite busca com ou sem pontuação
+        cpf_limpo = ''.join(filter(str.isdigit, cpf))
+        queryset = queryset.filter(cpf__icontains=cpf_limpo or cpf)
+    if papel == 'servidor':
+        queryset = queryset.filter(perfil_servidor__isnull=False)
+    elif papel == 'bolsista':
+        queryset = queryset.filter(termos_bolsa__ativo=True).distinct()
+    elif papel == 'aluno':
+        queryset = queryset.filter(perfil_aluno__isnull=False)
+
+    # KPIs de Governança e Party-Role
+    total_pessoas = PessoaFisica.objects.count()
+    total_servidores = PerfilServidor.objects.filter(ativo=True).count()
+    total_bolsistas = TermoBolsa.objects.filter(status='ATIVO').values('pessoa_id').distinct().count()
+
+    contexto = {
+        'pessoas': queryset,
+        'total_pessoas': total_pessoas,
+        'total_servidores': total_servidores,
+        'total_bolsistas': total_bolsistas,
+    }
+    return render(request, 'cadastros/listar_pessoas_fisicas.html', contexto)
 
 
 @login_required
