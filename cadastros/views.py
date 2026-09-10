@@ -382,7 +382,7 @@ def visualizar_projeto(request, projeto_id):
     primeira_parcela = None
     if plano_ativo:
         total_desembolsos = plano_ativo.desembolsos.aggregate(s=Sum('valor_parcela'))['s'] or Decimal('0.00')
-        primeira_parcela = plano_ativo.desembolsos.order_by('numero_parcela').first()
+        primeira_parcela = plano_ativo.desembolsos.order_by('parcela').first()
 
     # Métricas de Recursos Humanos / Bolsistas
     total_vagas_cotas = sum(c.quantidade_vagas for c in cotas)

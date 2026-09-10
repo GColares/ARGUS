@@ -2007,3 +2007,113 @@ class FonteDeRecursoListViewTests(TestCase):
         )
         response2 = self.client.get(self.url)
         self.assertEqual(response2.context['fontes_vinculadas'], 2)
+
+
+# =====================================================================
+# TESTES DO DOSSIER PROCESSUAL DO PROJETO PDI (VISUALIZAR_PROJETO)
+# =====================================================================
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class VisualizarProjetoDossierTestCase(TestCase):
+    """Garante a integridade do Dossier Processual em 4 abas do Projeto PDI."""
+
+    def setUp(self):
+        from django.urls import reverse
+        from cadastros.models import EmpresaParceira, ICT, FundacaoApoio, CronogramaDesembolso
+        self.user = User.objects.create_user(username='dossier_qa', password='password123')
+        self.client.login(username='dossier_qa', password='password123')
+
+        self.pj_empresa = EmpresaParceira.objects.create(
+            nome="Empresa Teste Dossier",
+            cnpj="11.222.333/0001-44",
+            natureza_juridica="LTDA",
+            endereco="Rua Teste",
+            representante_legal="Representante Teste",
+            cargo_representante="Diretor"
+        )
+        self.ict = ICT.objects.create(
+            nome="IFAM Teste",
+            cnpj="10.792.928/0001-00",
+            natureza_juridica="Autarquia",
+            endereco="Av. 7 de Setembro",
+            representante_legal="Reitor Teste",
+            cargo_representante="Reitor"
+        )
+        self.fundacao = FundacaoApoio.objects.create(
+            nome="FAEPI Teste",
+            cnpj="04.981.332/0001-70",
+            natureza_juridica="Fundação",
+            endereco="Rua da Fundação",
+            representante_legal="Diretor FAEPI",
+            cargo_representante="Diretor"
+        )
+
+        self.projeto = ProjetoPDI.objects.create(
+            nome="Projeto Dossier Teste",
+            fase="EXECUCAO",
+            concedente=self.pj_empresa,
+            convenente=self.ict,
+            interveniente=self.fundacao,
+            vigencia_inicio=date(2026, 3, 1),
+            vigencia_fim=date(2026, 11, 30),
+            vigencia_meses=9
+        )
+
+        self.plano = PlanoDeTrabalho.objects.create(
+            projeto=self.projeto,
+            versao=1,
+            valor_global=Decimal("100000.00"),
+            aporte_empresa=Decimal("50000.00"),
+            aporte_embrapii=Decimal("30000.00"),
+            aporte_sebrae=Decimal("10000.00"),
+            aporte_contrapartida=Decimal("10000.00"),
+            ativo=True
+        )
+
+        # Macroentrega com TRL
+        self.macro = Macroentrega.objects.create(
+            plano_trabalho=self.plano,
+            numero=1,
+            nome="Macroentrega Teste 1",
+            trl=4,
+            data_inicio=date(2026, 3, 1),
+            data_fim=date(2026, 5, 31)
+        )
+
+        # Cronograma de Desembolso com campo parcela (IntegerField)
+        from cadastros.models import CronogramaDesembolso
+        self.desembolso = CronogramaDesembolso.objects.create(
+            plano_trabalho=self.plano,
+            parcela=1,
+            mes_previsto="Mês 1",
+            valor_parcela=Decimal("50000.00")
+        )
+
+        self.url = reverse('cadastros:visualizar_projeto', kwargs={'projeto_id': self.projeto.id})
+
+    def test_visualizar_projeto_dossier_renderiza_com_sucesso(self):
+        """Dossier renderiza status 200, calcula TRL e aportes sem FieldError."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        # Contexto das 4 Abas
+        self.assertEqual(response.context['projeto'], self.projeto)
+        self.assertEqual(response.context['plano_ativo'], self.plano)
+        self.assertEqual(response.context['trl_inicial'], 4)
+        self.assertEqual(response.context['trl_final'], 4)
+        self.assertIsNotNone(response.context['primeira_parcela'])
+        self.assertEqual(response.context['primeira_parcela'].valor_parcela, Decimal("50000.00"))
+        self.assertEqual(response.context['pct_empresa'], Decimal("50.0"))
+        self.assertEqual(response.context['pct_embrapii'], Decimal("30.0"))
+
+        # Presença de elementos visuais do Padrão-Ouro no HTML
+        self.assertContains(response, "Dossier Processual")
+        self.assertContains(response, "Instrumento")
+        self.assertContains(response, "Plano de Trabalho")
+        self.assertContains(response, "FAEPI")
+        self.assertContains(response, "Governan")
+

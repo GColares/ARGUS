@@ -433,7 +433,7 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <span class="text-muted small d-block">Data de Celebração</span>
-                                    <span class="fw-semibold">{{ projeto.termo_parceria.data_assinatura|date:"d/m/Y"|default:"27/02/2026" }}</span>
+                                    <span class="fw-semibold">{% if projeto.termo_parceria and projeto.termo_parceria.data_assinatura %}{{ projeto.termo_parceria.data_assinatura|date:"d/m/Y" }}{% else %}27/02/2026{% endif %}</span>
                                 </div>
                                 <div class="col-sm-6">
                                     <span class="text-muted small d-block">Prazo de Vigência Contratual</span>
@@ -494,17 +494,38 @@
                                     <div>
                                         <span class="badge bg-primary text-white" style="font-size: 0.68rem;">ICT Executora</span>
                                         <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 0.9rem;">
-                                            {{ projeto.convenente.nome|default:projeto.termo_parceria.convenente.nome|default:"Instituto Federal do Amazonas (IFAM)" }}
+                                            {% if projeto.convenente %}
+                                                {{ projeto.convenente.nome }}
+                                            {% elif projeto.termo_parceria and projeto.termo_parceria.convenente %}
+                                                {{ projeto.termo_parceria.convenente.nome }}
+                                            {% else %}
+                                                Instituto Federal do Amazonas (IFAM)
+                                            {% endif %}
                                         </h6>
                                         <span class="text-muted small d-block">
-                                            CNPJ: {{ projeto.convenente.cnpj|default:projeto.termo_parceria.convenente.cnpj|default:"10.792.928/0001-00" }}
+                                            CNPJ: 
+                                            {% if projeto.convenente %}
+                                                {{ projeto.convenente.cnpj }}
+                                            {% elif projeto.termo_parceria and projeto.termo_parceria.convenente %}
+                                                {{ projeto.termo_parceria.convenente.cnpj }}
+                                            {% else %}
+                                                10.792.928/0001-00
+                                            {% endif %}
                                         </span>
                                     </div>
                                     <i class="fas fa-building-columns text-primary fs-4 opacity-50"></i>
                                 </div>
                                 <div class="mt-2 pt-2 border-top small">
                                     <span class="text-muted">Representante Legal:</span>
-                                    <span class="fw-semibold text-dark"> {{ projeto.convenente.representante_legal|default:projeto.termo_parceria.convenente.representante_legal|default:"Jaime Cavalcante Alves (Reitor)" }}</span>
+                                    <span class="fw-semibold text-dark">
+                                        {% if projeto.convenente %}
+                                            {{ projeto.convenente.representante_legal }}
+                                        {% elif projeto.termo_parceria and projeto.termo_parceria.convenente %}
+                                            {{ projeto.termo_parceria.convenente.representante_legal }}
+                                        {% else %}
+                                            Jaime Cavalcante Alves (Reitor)
+                                        {% endif %}
+                                    </span>
                                     <br>
                                     <span class="text-muted">Coordenador do Projeto:</span>
                                     <span class="fw-semibold text-dark"> {{ projeto.coordenador.nome_completo|default:"Dr. Paulo Henrique Rocha Aride" }}</span>
@@ -517,17 +538,38 @@
                                     <div>
                                         <span class="badge bg-secondary text-white" style="font-size: 0.68rem;">Empresa Parceira</span>
                                         <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 0.9rem;">
-                                            {{ projeto.concedente.nome|default:projeto.termo_parceria.concedente.nome|default:"Smart Service Tecnologia e Inovação Ltda." }}
+                                            {% if projeto.concedente %}
+                                                {{ projeto.concedente.nome }}
+                                            {% elif projeto.termo_parceria and projeto.termo_parceria.concedente %}
+                                                {{ projeto.termo_parceria.concedente.nome }}
+                                            {% else %}
+                                                Smart Service Tecnologia e Inovação Ltda.
+                                            {% endif %}
                                         </h6>
                                         <span class="text-muted small d-block">
-                                            CNPJ: {{ projeto.concedente.cnpj|default:projeto.termo_parceria.concedente.cnpj|default:"18.342.912/0001-44" }}
+                                            CNPJ: 
+                                            {% if projeto.concedente %}
+                                                {{ projeto.concedente.cnpj }}
+                                            {% elif projeto.termo_parceria and projeto.termo_parceria.concedente %}
+                                                {{ projeto.termo_parceria.concedente.cnpj }}
+                                            {% else %}
+                                                18.342.912/0001-44
+                                            {% endif %}
                                         </span>
                                     </div>
                                     <i class="fas fa-building text-secondary fs-4 opacity-50"></i>
                                 </div>
                                 <div class="mt-2 pt-2 border-top small">
                                     <span class="text-muted">Representante Legal:</span>
-                                    <span class="fw-semibold text-dark"> {{ projeto.concedente.representante_legal|default:projeto.termo_parceria.concedente.representante_legal|default:"Rodrigo de Castro Mendes (Sócio-Diretor)" }}</span>
+                                    <span class="fw-semibold text-dark">
+                                        {% if projeto.concedente %}
+                                            {{ projeto.concedente.representante_legal }}
+                                        {% elif projeto.termo_parceria and projeto.termo_parceria.concedente %}
+                                            {{ projeto.termo_parceria.concedente.representante_legal }}
+                                        {% else %}
+                                            Rodrigo de Castro Mendes (Sócio-Diretor)
+                                        {% endif %}
+                                    </span>
                                 </div>
                             </div>
 
@@ -537,17 +579,38 @@
                                     <div>
                                         <span class="badge bg-success text-white" style="font-size: 0.68rem;">Interveniente-Gestora</span>
                                         <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 0.9rem;">
-                                            {{ projeto.interveniente.nome|default:projeto.termo_parceria.interveniente.nome|default:"Fundação de Apoio ao Ensino, Pesquisa e Extensão (FAEPI)" }}
+                                            {% if projeto.interveniente %}
+                                                {{ projeto.interveniente.nome }}
+                                            {% elif projeto.termo_parceria and projeto.termo_parceria.interveniente %}
+                                                {{ projeto.termo_parceria.interveniente.nome }}
+                                            {% else %}
+                                                Fundação de Apoio ao Ensino, Pesquisa e Extensão (FAEPI)
+                                            {% endif %}
                                         </h6>
                                         <span class="text-muted small d-block">
-                                            CNPJ: {{ projeto.interveniente.cnpj|default:projeto.termo_parceria.interveniente.cnpj|default:"04.981.332/0001-70" }}
+                                            CNPJ: 
+                                            {% if projeto.interveniente %}
+                                                {{ projeto.interveniente.cnpj }}
+                                            {% elif projeto.termo_parceria and projeto.termo_parceria.interveniente %}
+                                                {{ projeto.termo_parceria.interveniente.cnpj }}
+                                            {% else %}
+                                                04.981.332/0001-70
+                                            {% endif %}
                                         </span>
                                     </div>
                                     <i class="fas fa-handshake-angle text-success fs-4 opacity-50"></i>
                                 </div>
                                 <div class="mt-2 pt-2 border-top small">
                                     <span class="text-muted">Representante Legal:</span>
-                                    <span class="fw-semibold text-dark"> {{ projeto.interveniente.representante_legal|default:projeto.termo_parceria.interveniente.representante_legal|default:"Marco Aurélio da Silva (Diretor-Presidente)" }}</span>
+                                    <span class="fw-semibold text-dark">
+                                        {% if projeto.interveniente %}
+                                            {{ projeto.interveniente.representante_legal }}
+                                        {% elif projeto.termo_parceria and projeto.termo_parceria.interveniente %}
+                                            {{ projeto.termo_parceria.interveniente.representante_legal }}
+                                        {% else %}
+                                            Marco Aurélio da Silva (Diretor-Presidente)
+                                        {% endif %}
+                                    </span>
                                     <br>
                                     <span class="text-muted">Base Legal:</span>
                                     <span class="fw-semibold text-dark"> Lei Federal nº 8.958/94</span>
@@ -579,7 +642,13 @@
                         <div class="col-12">
                             <span class="text-muted small d-block">Objeto do Plano de Trabalho</span>
                             <p class="fw-semibold text-dark mb-2 small">
-                                {{ plano_ativo.objetivo_geral|default:projeto.termo_parceria.objeto|default:"Desenvolvimento de soluções aplicadas e transferência tecnológica."|linebreaksbr }}
+                                {% if plano_ativo and plano_ativo.objetivo_geral %}
+                                    {{ plano_ativo.objetivo_geral|linebreaksbr }}
+                                {% elif projeto.termo_parceria and projeto.termo_parceria.objeto %}
+                                    {{ projeto.termo_parceria.objeto|linebreaksbr }}
+                                {% else %}
+                                    Desenvolvimento de soluções aplicadas e transferência tecnológica.
+                                {% endif %}
                             </p>
                         </div>
                         {% if plano_ativo.motivacao %}
