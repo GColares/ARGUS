@@ -79,6 +79,8 @@ if (-not (git diff --cached --quiet)) {
     Invoke-CheckedCommand "Criando commit..." { git commit -m $msg }
 } else {
     Write-Host "Nenhuma alteração para commitar." -ForegroundColor DarkYellow
+}
+
 $currentBranch = (git branch --show-current).Trim()
 $hasUpstream = (git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null)
 
