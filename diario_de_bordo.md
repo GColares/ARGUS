@@ -1,5 +1,37 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-09] Sprint 2: Passo 2.7 — Homologação da Modernização da Visualização e Atesto do Relatório de Atividades (`visualizar_relatorio.html`) (Kiro & Gemini)
+
+### 1. Entregas de Front-End e Conformidade Regulatória (Kiro - Construtor Designado):
+- **Template (`gestao_projetos/templates/gestao_projetos/visualizar_relatorio.html`):**
+  * **Padrão Almoxarifado Completo:**
+    - Container padrão `container-fluid px-4 mt-4`.
+    - Breadcrumb semântico de 4 níveis: `Home` (`home_geral`) > `Gestão de Projetos` (`gestao_projetos:home_gestao_projetos`) > `Relatórios de Atividades` (`gestao_projetos:listar_relatorios`) > `Visualizar RA`.
+    - Link Voltar dinâmico padronizado sob o breadcrumb com `javascript:history.back()`.
+  * **Ontologia Canônica de Instrumentos Jurídicos:**
+    - Veto total ao termo "Convênio": rótulo substituído por `Instrumento Jurídico / Processo:` no espelho; zero ocorrências remanescentes no HTML.
+  * **Cards de Status & Carimbo Digital Glassmorphism (`.cs-card`):**
+    - Cards de status (CONCLUIDO com carimbo digital e matrícula SIAPE, EM_ANALISE aguardando homologação e PENDENTE/Rascunho) modernizados com `.cs-card`.
+    - Eliminação de atributos `style=` inline desnecessários com transição para classes Bootstrap 5.3 nativas.
+  * **Espelho Documental & Tabela de Atividades:**
+    - Cabeçalho `<thead class="thead-argus">` com `text-center` em todas as colunas `<th>`.
+    - Preservação integral de todas as seções comprobatórias: Identificação, Bolsista, Período, Atividades Desenvolvidas, Ocorrências, Parecer e Linhas de Assinatura.
+  * **Modal de Atesto SIAPE & Governança da Despesa Pública (Art. 63 da Lei 4.320/64):**
+    - Alerta formal mantido e destacado, registrando irreversivelmente a matrícula SIAPE do servidor no estágio de liquidação.
+  * **Acessibilidade WCAG 2.1 AA:**
+    - `{% block title %}Relatório de Atividades - {{ bolsista_nome }} - ARGUS{% endblock %}` inserido.
+    - `aria-label`, `role="dialog"`, `aria-modal="true"`, `aria-describedby` e `fieldset` + `legend` implementados rigorosamente.
+
+### 2. Auditoria Adversarial & Homologação SoD (Gemini - Tech Lead):
+- **Validação de Código & Regressão:**
+  * `manage.py check`: **0 erros / 0 avisos (System check identified no issues)**.
+  * `manage.py test gestao_projetos`: **99/99 testes verdes em 55.134s (100% OK)**.
+  * `manage.py test cadastros`: **75/75 testes verdes em 22.735s (100% OK)**.
+  * **Total acumulado:** **174 testes automatizados verdes / 0 regressões**.
+- **Status:** **HOMOLOGADO**.
+
+---
+
 ## [2026-09-09] Sprint 2: Passo 2.6 — Homologação da Modernização da Lista Mestra de Relatórios de Atividades (`listar_relatorios.html`) (Kiro & Gemini)
 
 ### 1. Entregas de Front-End e Conformidade Regulatória (Kiro - Construtor Designado):

@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protótipo Interativo — Novo Cadastro de Projeto PDI — ARGUS</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Identidade Primária ARGUS (Software Identity) */
+            --argus-azul: #0D3B66;          /* Primária: Ações estruturais, headers, links */
+            --argus-teal: #1AA3A8;          /* Secundária/Acento: Destaques, badges de fluxo */
+            
+            /* Identidade Institucional INOVA / IFAM */
+            --inova-verde: #7EC247;         /* Sucesso: Conclusões, aprovações */
+            --inova-vermelho: #B72D25;      /* Perigo/Crítico: Cancelamentos, rejeições */
+            --inova-ouro: #D48806;          /* Alerta/Pendente: Atenção, rascunhos */
+            --inova-grafite: #1A1A1A;       /* Texto base */
+            --inova-cinza-claro: #F1F1F2;   /* Fundos sutis */
+            
+            /* Overrides Bootstrap 5.3 com tokens canônicos */
+            --bs-primary: #0D3B66;
+            --bs-primary-rgb: 13, 59, 102;
+            --bs-secondary: #1AA3A8;
+            --bs-secondary-rgb: 26, 163, 168;
+            --bs-success: #7EC247;
+            --bs-success-rgb: 126, 194, 71;
+            --bs-warning: #D48806;
+            --bs-warning-rgb: 212, 136, 6;
+            --bs-danger: #B72D25;
+            --bs-danger-rgb: 183, 45, 37;
+            --bs-info: #1AA3A8;
+            --bs-info-rgb: 26, 163, 168;
+
+            --bs-body-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            --bs-body-bg: #f8fafc;
+        }
+
+        body {
+            font-family: var(--bs-body-font-family);
+            background-color: var(--bs-body-bg);
+            color: #2c3e50;
+            padding-bottom: 80px;
+        }
+
+        /* Glassmorphism Cards */
+        .cs-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 1rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            transition: all 0.25s ease;
+        }
+
+        .cs-card:hover {
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.07);
+        }
+
+        /* Top Progress Stepper */
+        .stepper-wrapper {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .stepper-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .stepper-progress-bar {
+            position: absolute;
+            top: 24px;
+            left: 5%;
+            height: 3px;
+            background: var(--bs-primary);
+            z-index: 2;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .step-item {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #64748b;
+            margin: 0 auto 0.5rem auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .step-item.active .step-circle {
+            border-color: var(--bs-primary);
+            background: var(--bs-primary);
+            color: #ffffff;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 6px rgba(var(--bs-primary-rgb), 0.18);
+        }
+
+        .step-item.completed .step-circle {
+            border-color: var(--bs-success);
+            background: var(--bs-success);
+            color: #ffffff;
+        }
+
+        .step-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            transition: color 0.3s;
+        }
+
+        .step-item.active .step-title {
+            color: var(--bs-primary);
+            font-weight: 700;
+        }
+
+        .step-item.completed .step-title {
+            color: var(--bs-success);
+        }
+
+        /* Form Controls */
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label {
+            color: var(--bs-primary);
+            font-weight: 600;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.6rem;
+            border: 1px solid #cbd5e1;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.15);
+        }
+
+        /* Section Dividers */
+        .section-badge {
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: 0.35rem 0.75rem;
+            border-radius: 2rem;
+        }
+
+        /* Sticky Action Bar */
+        .wizard-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            z-index: 1040;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Pulse indicator */
+        .pulse-live {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--bs-success);
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0.7);
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(var(--bs-success-rgb), 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0); }
+        }
+
+        /* Subtle badges */
+        .badge-soft-primary { background: rgba(var(--bs-primary-rgb), 0.12); color: var(--bs-primary); }
+        .badge-soft-success { background: rgba(var(--bs-success-rgb), 0.12); color: var(--bs-success); }
+        .badge-soft-warning { background: rgba(var(--bs-warning-rgb), 0.15); color: #b45309; }
+        .badge-soft-info { background: rgba(var(--bs-info-rgb), 0.12); color: #0369a1; }
+    </style>
+</head>
+<body>
+
+    <!-- Faixa Institucional Governamental / IFAM -->
+    <div style="height: 4px; background: linear-gradient(90deg, #7EC247 0%, #0D3B66 50%, #1AA3A8 100%);"></div>
+
+    <!-- Header Superior -->
+    <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm sticky-top py-2">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center gap-3">
+                <!-- Logotipos Oficiais -->
+                <div class="d-flex align-items-center gap-2 border-end pe-3">
+                    <img src="../static/img/logo%20ifam.png" alt="IFAM" style="height: 38px; object-fit: contain;" onerror="this.style.display='none'">
+                    <img src="../static/img/logo-inova-para-fundo-branco-editado.png" alt="Polo de Inovação" style="height: 34px; object-fit: contain;" onerror="this.style.display='none'">
+                </div>
+                <a class="navbar-brand d-flex align-items-center fw-bold text-primary gap-2 m-0" href="#">
+                    <img src="../static/img/ARGUS1-LOGO-editado.png" alt="ARGUS" style="height: 36px; object-fit: contain;" onerror="this.onerror=null; this.src='../static/img/nova_identidade/argus_logo_modern_1785634824378.jpg'">
+                    <div>
+                        <span class="fs-4 tracking-tight fw-bolder" style="color: var(--argus-azul); letter-spacing: -0.5px;">ARGUS</span>
+                        <span class="badge rounded-pill small ms-1" style="background-color: rgba(13, 59, 102, 0.1); color: var(--argus-azul); border: 1px solid rgba(13, 59, 102, 0.2);">Polo de Inovação</span>
+                    </div>
+                </a>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-light text-muted border px-3 py-2 d-none d-md-inline-block">
+                    <i class="fas fa-shield-alt me-1 text-primary"></i> Polo de Inovação • IFAM
+                </span>
+                <span class="badge bg-light text-muted border px-3 py-2">
+                    <i class="fas fa-cloud-upload-alt me-1 text-success"></i> Salvamento Ativo
+                </span>
+                <button class="btn btn-outline-secondary btn-sm" onclick="alert('Rascunho salvo localmente com sucesso!')">
+                    <i class="fas fa-save me-1"></i> Salvar Rascunho
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Container Principal Fluido -->
+    <div class="container-fluid px-4 mt-4">
+
+        <!-- Breadcrumb & Botão Voltar -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Gestão de Projetos</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Novo Projeto PDI</li>
+            </ol>
+        </nav>
+        <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+
+        <!-- Título do Formulário -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="fw-bold mb-0 text-dark">
+                    <i class="fas fa-folder-plus text-primary me-2"></i> Cadastro de Projeto de PDI
+                </h3>
+                <p class="text-muted small mb-0 mt-1">
+                    Preencha as 5 etapas estruturadas da proposta. Todos os dados técnicos e orçamentários serão consolidados no Plano de Trabalho.
+                </p>
+            </div>
+            <div>
+                <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle px-3 py-2 rounded-pill fw-semibold">
+                    <i class="fas fa-info-circle me-1"></i> Modo Criação — Fase: Intenção / Proposta
+                </span>
+            </div>
+        </div>
+
+        <!-- Stepper Horizontal com 5 Macrogrupos Semânticos -->
+        <div class="stepper-wrapper my-4">
+            <div class="stepper-progress-bar" id="stepperProgressBar"></div>
+
+            <div class="step-item active" id="stepIndicator1" onclick="irParaEtapa(1)">
+                <div class="step-circle"><i class="fas fa-id-card"></i></div>
+                <div class="step-title">1. Qualificação & Matriz</div>
+            </div>
+
+            <div class="step-item" id="stepIndicator2" onclick="irParaEtapa(2)">
+                <div class="step-circle"><i class="fas fa-lightbulb"></i></div>
+                <div class="step-title">2. Estratégia & Inovação</div>
+            </div>
+
+            <div class="step-item" id="stepIndicator3" onclick="irParaEtapa(3)">
+                <div class="step-circle"><i class="fas fa-tasks"></i></div>
+                <div class="step-title">3. Escopo & Entregas</div>
+            </div>
+
+            <div class="step-item" id="stepIndicator4" onclick="irParaEtapa(4)">
+                <div class="step-circle"><i class="fas fa-shield-alt"></i></div>
+                <div class="step-title">4. Riscos & Indicadores</div>
+            </div>
+
+            <div class="step-item" id="stepIndicator5" onclick="irParaEtapa(5)">
+                <div class="step-circle"><i class="fas fa-coins"></i></div>
+                <div class="step-title">5. Orçamento & Bolsas</div>
+            </div>
+        </div>
+
+        <!-- Layout em 2 Colunas: Formulário (Col 8) + Resumo Executivo Dinâmico (Col 4) -->
+        <div class="row g-4">
+
+            <!-- Coluna Principal do Formulário -->
+            <div class="col-lg-8">
+
+                <!-- ═════════════════════════════════════════════════════════════
+                     ETAPA 1: QUALIFICAÇÃO & MATRIZ INSTITUCIONAL
+                ══════════════════════════════════════════════════════════════ -->
+                <div class="card cs-card p-4 mb-4 step-content" id="stepContent1">
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+                        <div>
+                            <span class="badge section-badge badge-soft-primary mb-1">Passo 1 de 5</span>
+                            <h4 class="fw-bold mb-0">Qualificação & Matriz Institucional</h4>
+                        </div>
+                        <i class="fas fa-id-card fs-2 text-primary opacity-25"></i>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">Código Interno</label>
+                            <input type="text" class="form-control" placeholder="Ex: PDI-2026-04" value="PDI-2026-001" id="inputCodigo">
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label fw-semibold small">Título Oficial da Pesquisa / Projeto <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control fw-bold" placeholder="Digite o nome completo do projeto" id="inputTitulo" oninput="atualizarResumo()">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Empresa Concedente (Financiadora) <span class="text-danger">*</span></label>
+                            <select class="form-select" id="selectEmpresa" onchange="atualizarResumo()">
+                                <option value="">-- Selecione a Empresa Parceira --</option>
+                                <option value="Samsung Eletrônica da Amazônia Ltda" selected>Samsung Eletrônica da Amazônia Ltda (CNPJ: 00.280.273/0001-37)</option>
+                                <option value="Cal-Comp Eletrônica e Informática Ltda">Cal-Comp Eletrônica e Informática Ltda</option>
+                                <option value="Flextronics International Tecnologia">Flextronics International Tecnologia</option>
+                            </select>
+                            <div class="form-text small">Concedente na Hélice Tríplice da Lei 10.973/04.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Programa de Fomento (Guarda-Chuva)</label>
+                            <select class="form-select" id="selectPrograma">
+                                <option value="">Nenhum (Projeto Standalone)</option>
+                                <option value="PDC 2026 - Polo Digital de Celulares" selected>PDC 2026 — Polo Digital de Celulares (Termo de Cooperação 01/2025)</option>
+                                <option value="PRO-AMAZÔNIA Bioeconomia">PRO-AMAZÔNIA Bioeconomia (Termo de Cooperação 03/2024)</option>
+                            </select>
+                            <div class="form-text small">Hierarquia Macro: Termo de Cooperação &gt; Programa &gt; Projeto PDI.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Coordenador do Projeto (Pesquisador Líder) <span class="text-danger">*</span></label>
+                            <select class="form-select" id="selectCoordenador">
+                                <option value="">-- Selecione o Coordenador --</option>
+                                <option value="Dr. Roberto Silva (SIAPE 1827364)" selected>Dr. Roberto Silva (SIAPE 1827364 — IFAM Campus Manaus Centro)</option>
+                                <option value="Dra. Mariana Santos (SIAPE 2938471)">Dra. Mariana Santos (SIAPE 2938471 — Polo de Inovação)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Fundação de Apoio (Interveniente-Gestora)</label>
+                            <input type="text" class="form-control" value="FAEPI — Fundação de Apoio ao IFAM" readonly>
+                            <div class="form-text small">Gestão Financeira e Contas Bancárias Específicas (Lei 8.958/94).</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Data Prevista de Início <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" value="2026-10-01" id="inputDataInicio" onchange="atualizarResumo()">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Data Prevista de Término <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" value="2027-09-30" id="inputDataFim" onchange="atualizarResumo()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════════════════
+                     ETAPA 2: ESTRATÉGIA, INOVAÇÃO & JUSTIFICATIVA
+                ══════════════════════════════════════════════════════════════ -->
+                <div class="card cs-card p-4 mb-4 step-content d-none" id="stepContent2">
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+                        <div>
+                            <span class="badge section-badge badge-soft-info mb-1">Passo 2 de 5</span>
+                            <h4 class="fw-bold mb-0">Estratégia, Inovação & Justificativa</h4>
+                        </div>
+                        <i class="fas fa-lightbulb fs-2 text-info opacity-25"></i>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Motivação & Contexto de Negócio <span class="text-danger">*</span></label>
+                            <textarea class="form-control" rows="3" placeholder="Por que este projeto é estratégico para a empresa e para o IFAM?"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Objetivo Geral da Pesquisa <span class="text-danger">*</span></label>
+                            <textarea class="form-control" rows="3" placeholder="Qual o propósito científico e tecnológico central?"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Solução Proposta</label>
+                            <textarea class="form-control" rows="3" placeholder="Qual artefato, software, hardware ou método será criado?"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Nível de Maturidade Tecnológica (TRL Inicial &rarr; Final)</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <select class="form-select">
+                                    <option>TRL 3 (Prova de Conceito)</option>
+                                    <option selected>TRL 4 (Validação em Laboratório)</option>
+                                    <option>TRL 5 (Validação em Ambiente Relevante)</option>
+                                </select>
+                                <i class="fas fa-arrow-right text-muted"></i>
+                                <select class="form-select">
+                                    <option>TRL 6 (Demonstração em Ambiente Relevante)</option>
+                                    <option selected>TRL 7 (Demonstração em Ambiente Operacional)</option>
+                                    <option>TRL 8 (Sistema Completo e Qualificado)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Grau de Inovação da Solução</label>
+                            <select class="form-select">
+                                <option>Inovação Incremental no Processo</option>
+                                <option selected>Inovação Radical / Produto Inédito no Mercado Nacional</option>
+                                <option>Inovação Disruptiva Global</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Desafios Tecnológicos a Superar</label>
+                            <textarea class="form-control" rows="2" placeholder="Quais as barreiras de engenharia ou ciência que justificam o PDI?"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════════════════
+                     ETAPA 3: ESCOPO TÉCNICO, MACROENTREGAS & CRONOGRAMA
+                ══════════════════════════════════════════════════════════════ -->
+                <div class="card cs-card p-4 mb-4 step-content d-none" id="stepContent3">
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+                        <div>
+                            <span class="badge section-badge badge-soft-warning mb-1">Passo 3 de 5</span>
+                            <h4 class="fw-bold mb-0">Escopo Técnico & Macroentregas (WBS)</h4>
+                        </div>
+                        <i class="fas fa-tasks fs-2 text-warning opacity-25"></i>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-cubes text-warning me-1"></i> Macroentregas Contratuais do Projeto</h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="adicionarMacroentrega()">
+                                <i class="fas fa-plus me-1"></i> Adicionar Macroentrega
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="tabelaMacroentregas">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-center" style="width: 80px;">Nº</th>
+                                        <th>Título da Macroentrega</th>
+                                        <th class="text-center" style="width: 140px;">Mês Previsto</th>
+                                        <th class="text-center" style="width: 80px;">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-center fw-bold">M1</td>
+                                        <td>Arquitetura de Hardware e Especificação de Requisitos</td>
+                                        <td class="text-center"><span class="badge bg-secondary">Mês 3</span></td>
+                                        <td class="text-center">
+                                            <button class="btn btn-outline-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center fw-bold">M2</td>
+                                        <td>Protótipo Alfa em Laboratório e Testes de Firmware</td>
+                                        <td class="text-center"><span class="badge bg-secondary">Mês 7</span></td>
+                                        <td class="text-center">
+                                            <button class="btn btn-outline-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center fw-bold">M3</td>
+                                        <td>Protótipo Beta Operacional, Relatório Final e Transferência</td>
+                                        <td class="text-center"><span class="badge bg-secondary">Mês 12</span></td>
+                                        <td class="text-center">
+                                            <button class="btn btn-outline-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Escopo Técnico Detalhado (WBS)</label>
+                            <textarea class="form-control" rows="4" placeholder="Descreva os pacotes de trabalho (work packages) e a metodologia ágil/cascata adotada."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════════════════
+                     ETAPA 4: GOVERNANÇA DE RISCOS & INDICADORES EMBRAPII
+                ══════════════════════════════════════════════════════════════ -->
+                <div class="card cs-card p-4 mb-4 step-content d-none" id="stepContent4">
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+                        <div>
+                            <span class="badge section-badge badge-soft-danger mb-1">Passo 4 de 5</span>
+                            <h4 class="fw-bold mb-0">Governança de Riscos & Indicadores EMBRAPII</h4>
+                        </div>
+                        <i class="fas fa-shield-alt fs-2 text-danger opacity-25"></i>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Patentes / Registros de Software Previstos</label>
+                            <input type="number" class="form-control" value="1" min="0">
+                            <div class="form-text small">Meta de Propriedade Intelectual (INPI).</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Publicações Científicas Previstas</label>
+                            <input type="number" class="form-control" value="2" min="0">
+                            <div class="form-text small">Artigos em periódicos Qualis A/B.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Bolsistas Graduação / Pós Formados</label>
+                            <input type="number" class="form-control" value="4" min="0">
+                            <div class="form-text small">Formação de Recursos Humanos.</div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-exclamation-triangle text-danger me-1"></i> Matriz de Riscos e Planos de Contingência</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Risco Mapeado</th>
+                                    <th class="text-center" style="width: 140px;">Probabilidade / Impacto</th>
+                                    <th>Ação de Mitigação / Contingência</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Atraso no desembaraço aduaneiro de insumos importados</td>
+                                    <td class="text-center"><span class="badge bg-warning text-dark">Média / Alto</span></td>
+                                    <td>Abertura de processos de importação via FAEPI logo no Mês 1 com canal prioritário.</td>
+                                </tr>
+                                <tr>
+                                    <td>Evasão de pesquisadores especialistas em IA</td>
+                                    <td class="text-center"><span class="badge bg-secondary">Baixa / Médio</span></td>
+                                    <td>Política atrativa de bolsas complementares e banco de talentos de reserva.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════════════════
+                     ETAPA 5: ORÇAMENTO DO PROJETO & PLANO DE BOLSAS
+                ══════════════════════════════════════════════════════════════ -->
+                <div class="card cs-card p-4 mb-4 step-content d-none" id="stepContent5">
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+                        <div>
+                            <span class="badge section-badge badge-soft-success mb-1">Passo 5 de 5</span>
+                            <h4 class="fw-bold mb-0">Planejamento Orçamentário & Cotas de Bolsas</h4>
+                        </div>
+                        <i class="fas fa-coins fs-2 text-success opacity-25"></i>
+                    </div>
+
+                    <!-- Alerta Dogmático de Segregação (Lei 4.320/64 & MCASP) -->
+                    <div class="alert alert-info border-0 shadow-sm mb-4 d-flex align-items-start gap-3">
+                        <i class="fas fa-balance-scale fs-4 text-info mt-1"></i>
+                        <div class="small">
+                            <strong>Subsistema Orçamentário (Art. 59 Lei 4.320/64):</strong> Os valores aqui registrados representam a <em>autorização e o limite máximo para gastar</em>. A liquidação e o pagamento financeiro ocorrerão estritamente através das contas bancárias específicas vinculadas pela FAEPI.
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-dark mb-3"><i class="fas fa-wallet text-success me-1"></i> Fontes e Aportes Previstos (R$)</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">Aporte Empresa Concedente</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control fw-bold text-end" id="valEmpresa" value="500000" oninput="calcularTotalOrcamento()">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">Aporte EMBRAPII</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control fw-bold text-end" id="valEmbrapii" value="330000" oninput="calcularTotalOrcamento()">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">Aporte SEBRAE</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control fw-bold text-end" id="valSebrae" value="100000" oninput="calcularTotalOrcamento()">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">Contrapartida da Unidade</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control fw-bold text-end" id="valContrapartida" value="70000" oninput="calcularTotalOrcamento()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3 p-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-muted small fw-semibold text-uppercase">Valor Global Total do Projeto</span>
+                                <h3 class="fw-bold text-success mb-0" id="displayValorGlobal">R$ 1.000.000,00</h3>
+                            </div>
+                            <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">100% Equilibrado</span>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-user-graduate text-success me-1"></i> Previsão de Cotas de Bolsas do Projeto</h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Perfil / Função</th>
+                                    <th class="text-center" style="width: 100px;">Vagas</th>
+                                    <th class="text-center" style="width: 100px;">Parcelas</th>
+                                    <th class="text-end" style="width: 160px;">Valor Previsto (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Pesquisador Sênior (Líder IA)</strong></td>
+                                    <td class="text-center">1</td>
+                                    <td class="text-center">12</td>
+                                    <td class="text-end fw-bold">R$ 72.000,00</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Desenvolvedor Fullstack (Pós-Graduando)</strong></td>
+                                    <td class="text-center">2</td>
+                                    <td class="text-center">12</td>
+                                    <td class="text-end fw-bold">R$ 96.000,00</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Bolsista de Iniciação Tecnológica</strong></td>
+                                    <td class="text-center">2</td>
+                                    <td class="text-center">10</td>
+                                    <td class="text-end fw-bold">R$ 30.000,00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Coluna Lateral: Resumo Executivo & Validação em Tempo Real -->
+            <div class="col-lg-4">
+                <div class="card cs-card p-4 sticky-top" style="top: 80px;">
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="fas fa-clipboard-check text-success me-1"></i> Resumo da Proposta
+                        </h6>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
+                            <span class="pulse-live me-1"></span> Interativo
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-muted small d-block">Título do Projeto:</span>
+                        <strong class="text-dark d-block" id="resumoTitulo">Plataforma Cognitiva de Inspeção Visual com Edge AI</strong>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-muted small d-block">Empresa Financiadora:</span>
+                        <span class="fw-semibold text-dark" id="resumoEmpresa">Samsung Eletrônica da Amazônia Ltda</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-muted small d-block">Duração Estimada:</span>
+                        <span class="badge bg-light text-dark border fw-semibold" id="resumoDuracao">12 meses (01/10/2026 a 30/09/2027)</span>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div class="mb-3">
+                        <span class="text-muted small d-block mb-1">Status de Preenchimento das Etapas:</span>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 20%;" id="progressoGeral"></div>
+                        </div>
+                        <small class="text-muted mt-1 d-block" id="textoProgresso">Etapa 1 de 5 concluída (20%)</small>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Aporte Empresa:</span>
+                            <strong id="resumoValEmpresa">R$ 500.000</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Aporte EMBRAPII:</span>
+                            <strong id="resumoValEmbrapii">R$ 330.000</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Aporte SEBRAE:</span>
+                            <strong id="resumoValSebrae">R$ 100.000</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Contrapartida:</span>
+                            <strong id="resumoValContrapartida">R$ 70.000</strong>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between fw-bold text-dark">
+                            <span>Total Geral:</span>
+                            <span class="text-success fs-6" id="resumoTotalGeral">R$ 1.000.000,00</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning border-0 small py-2 mb-0">
+                        <i class="fas fa-lock me-1"></i> <strong>Alçada de Submissão:</strong> Somente Coordenadores e Gestores de PDI podem submeter este formulário.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Barra de Navegação Inferior Fixa (Sticky Footer) -->
+    <div class="wizard-footer d-flex justify-content-between align-items-center">
+        <div>
+            <button type="button" class="btn btn-outline-secondary px-4 fw-semibold" id="btnVoltarEtapa" onclick="etapaAnterior()" disabled>
+                <i class="fas fa-arrow-left me-2"></i> Anterior
+            </button>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-success px-4 fw-semibold" onclick="alert('Rascunho gravado com sucesso!')">
+                <i class="fas fa-save me-2"></i> Salvar Rascunho
+            </button>
+            <button type="button" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnProximaEtapa" onclick="proximaEtapa()">
+                Próximo <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+            <button type="button" class="btn btn-success px-5 fw-bold shadow-sm d-none" id="btnFinalizar" onclick="alert('Parabéns! Projeto PDI cadastrado com sucesso!')">
+                <i class="fas fa-check-circle me-2"></i> Finalizar & Publicar
+            </button>
+        </div>
+    </div>
+
+    <!-- Script de Interatividade do Protótipo -->
+    <script>
+        let etapaAtual = 1;
+        const totalEtapas = 5;
+
+        function irParaEtapa(etapa) {
+            if (etapa < 1 || etapa > totalEtapas) return;
+
+            // Esconde todas as etapas
+            for (let i = 1; i <= totalEtapas; i++) {
+                document.getElementById(`stepContent${i}`).classList.add('d-none');
+                const indicator = document.getElementById(`stepIndicator${i}`);
+                indicator.classList.remove('active');
+                if (i < etapa) {
+                    indicator.classList.add('completed');
+                } else {
+                    indicator.classList.remove('completed');
+                }
+            }
+
+            // Ativa etapa selecionada
+            document.getElementById(`stepContent${etapa}`).classList.remove('d-none');
+            document.getElementById(`stepIndicator${etapa}`).classList.add('active');
+            etapaAtual = etapa;
+
+            // Atualiza barra de progresso do stepper
+            const progressoPorcentagem = ((etapa - 1) / (totalEtapas - 1)) * 90;
+            document.getElementById('stepperProgressBar').style.width = `${progressoPorcentagem}%`;
+
+            // Atualiza botões
+            document.getElementById('btnVoltarEtapa').disabled = (etapa === 1);
+            if (etapa === totalEtapas) {
+                document.getElementById('btnProximaEtapa').classList.add('d-none');
+                document.getElementById('btnFinalizar').classList.remove('d-none');
+            } else {
+                document.getElementById('btnProximaEtapa').classList.remove('d-none');
+                document.getElementById('btnFinalizar').classList.add('d-none');
+            }
+
+            // Atualiza progresso geral no resumo lateral
+            const progressoCards = (etapa / totalEtapas) * 100;
+            document.getElementById('progressoGeral').style.width = `${progressoCards}%`;
+            document.getElementById('textoProgresso').innerText = `Etapa ${etapa} de ${totalEtapas} (${progressoCards}%)`;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function proximaEtapa() {
+            irParaEtapa(etapaAtual + 1);
+        }
+
+        function etapaAnterior() {
+            irParaEtapa(etapaAtual - 1);
+        }
+
+        function atualizarResumo() {
+            const titulo = document.getElementById('inputTitulo').value.trim();
+            if (titulo) {
+                document.getElementById('resumoTitulo').innerText = titulo;
+            } else {
+                document.getElementById('resumoTitulo').innerText = "Plataforma Cognitiva de Inspeção Visual com Edge AI";
+            }
+
+            const empresa = document.getElementById('selectEmpresa').value;
+            if (empresa) {
+                document.getElementById('resumoEmpresa').innerText = empresa;
+            }
+
+            const dIni = document.getElementById('inputDataInicio').value;
+            const dFim = document.getElementById('inputDataFim').value;
+            if (dIni && dFim) {
+                document.getElementById('resumoDuracao').innerText = `De ${dIni} até ${dFim}`;
+            }
+        }
+
+        function calcularTotalOrcamento() {
+            const emp = parseFloat(document.getElementById('valEmpresa').value) || 0;
+            const emb = parseFloat(document.getElementById('valEmbrapii').value) || 0;
+            const seb = parseFloat(document.getElementById('valSebrae').value) || 0;
+            const cnp = parseFloat(document.getElementById('valContrapartida').value) || 0;
+
+            const total = emp + emb + seb + cnp;
+            const formatado = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            document.getElementById('displayValorGlobal').innerText = formatado;
+            document.getElementById('resumoTotalGeral').innerText = formatado;
+
+            document.getElementById('resumoValEmpresa').innerText = emp.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('resumoValEmbrapii').innerText = emb.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('resumoValSebrae').innerText = seb.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('resumoValContrapartida').innerText = cnp.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function adicionarMacroentrega() {
+            const tbody = document.querySelector('#tabelaMacroentregas tbody');
+            const qtd = tbody.querySelectorAll('tr').length + 1;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center fw-bold">M${qtd}</td>
+                <td><input type="text" class="form-control form-control-sm" placeholder="Nova entrega ou pacote de trabalho"></td>
+                <td class="text-center"><input type="number" class="form-control form-control-sm text-center" value="${qtd * 3}" min="1" max="60"></td>
+                <td class="text-center">
+                    <button class="btn btn-outline-danger btn-sm" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // Inicializa dados no resumo
+        atualizarResumo();
+        calcularTotalOrcamento();
+    </script>
+</body>
+</html>
