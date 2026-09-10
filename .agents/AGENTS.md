@@ -178,6 +178,26 @@ No sistema ARGUS, nas modelagens de banco de dados, formulários, relatórios, v
    - Nas tabelas e formulários, exibir o tipo exato acompanhado do respectivo número oficial (ex: `[AP] 01/2026` para Acordo de Parceria, `[CV] 02/2025` para Convênio legado, `[TC] 05/2024` para Termo de Cooperação).
 
 
+## Ontologia Documental do Projeto PDI e Segregação de Artefatos (Macro-Dossier)
+
+Nas modelagens de dados, formulários e telas do ARGUS, é **TERMINANTEMENTE VEDADO** tratar o Projeto PDI como um formulário plano monolítico. O Projeto PDI é uma macro-entidade agregadora (Dossier de Governança) composta organicamente pelos seguintes artefatos ontológicos:
+
+1. **Instrumento Jurídico (Acordo de Parceria - Espécie Típica):** 
+   - Entidade vinculada ao Projeto que formaliza o ajuste com base nas minutas padronizadas da AGU.
+   - Tramita no SIPAC e só transita o Projeto para o modo de `EXECUÇÃO` após estar formalmente assinado e com publicação comprovada no **Diário Oficial da União (DOU)**. Sem o Instrumento Jurídico publicado, o projeto permanece estritamente em fase de `PROSPECÇÃO`.
+2. **Plano de Trabalho & Orçamento (Relação 1:1 Estrita):**
+   - O `PlanoDeTrabalho` reúne os atributos técnicos da pesquisa (Motivação, Objetivos, Escopo, WBS, Entregas, Cronograma M1..Mn e Metas).
+   - O `Orcamento` é uma entidade modelar autônoma no MER que se relaciona de forma **1 e somente 1** com a versão ativa do Plano de Trabalho (`OneToOneField(PlanoDeTrabalho)`). Ambos sofrem aditivos/mudanças sincronizadas durante a execução.
+3. **Proposta Comercial da Fundação de Apoio (Interveniente):**
+   - Documento/entidade externa necessária para a consolidação dos custos administrativos (DOAS) e finalização do Orçamento do projeto.
+4. **Instrução de Pareceres Institucionais (Hélice Quádrupla de Governança):**
+   - O sistema deve contemplar os pareceres formais de instrução: **Parecer da Coordenação de RH do Polo** (alçadas/bolsas Lei 8.112/90), **Parecer da Coordenação de Projetos** (viabilidade técnico-orçamentária), **Parecer Técnico do NIT** (propriedade intelectual/sigilo/minuta AGU) e **Parecer PPGI** (mérito acadêmico/institucional).
+5. **Princípio da Fidelidade Integral dos Modelos nas Telas:**
+   - Toda tela, modal ou aba dedicada a um artefato documental deve contemplar **a totalidade dos atributos definidos no `models.py`**, sendo proibida a omissão de campos de negócio.
+6. **Edição Granular Contextual por Artefato (Domain-Driven Edit):**
+   - A edição das informações do Projeto PDI deve ocorrer de forma modular através de modais ou subtelas especializadas para cada artefato (ex: modal de Atualização da Publicação no DOU, modal de Gestão da Equipe, modal de Contas Bancárias FAEPI), respeitando o perfil e a alçada de cada ator e evitando a sobrecarga de recarregar todo o projeto em um formulário monolítico.
+
+
 ## Esteira Dialética de Desenvolvimento e Verificação Cruzada (Devin + Kiro)
 
 Para assegurar a integridade do código e eliminar a auto-aprovação complacente:

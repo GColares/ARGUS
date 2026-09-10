@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossier do Projeto PDI | ARGUS - Polo de Inovação IFAM</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bs-primary: #0D3B66;
+            --bs-primary-rgb: 13, 59, 102;
+            --bs-secondary: #1AA3A8;
+            --bs-secondary-rgb: 26, 163, 168;
+            --bs-success: #2E7D32;
+            --bs-success-rgb: 46, 125, 50;
+            --bs-warning: #ED6C02;
+            --bs-warning-rgb: 237, 108, 2;
+            --bs-info: #0288D1;
+            --bs-info-rgb: 2, 136, 209;
+            --bs-body-bg: #F4F6F9;
+            --bs-body-color: #2D3748;
+            --argus-border-color: rgba(226, 232, 240, 0.9);
+            --argus-card-shadow: 0 4px 20px -2px rgba(13, 59, 102, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+            --argus-glass-bg: rgba(255, 255, 255, 0.92);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Glassmorphism Card System */
+        .cs-card {
+            background: var(--argus-glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--argus-border-color);
+            border-radius: 1rem;
+            box-shadow: var(--argus-card-shadow);
+            transition: all 0.25s ease-in-out;
+        }
+
+        .cs-card:hover {
+            box-shadow: 0 10px 25px -3px rgba(13, 59, 102, 0.1), 0 4px 10px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .cs-header-strip {
+            background: linear-gradient(135deg, #0D3B66 0%, #174A7E 100%);
+            border-radius: 1rem 1rem 0 0;
+            color: #FFFFFF;
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid #1AA3A8;
+        }
+
+        /* Tabs Modern Styling */
+        .nav-tabs-argus {
+            border-bottom: 2px solid #E2E8F0;
+            gap: 0.5rem;
+        }
+
+        .nav-tabs-argus .nav-link {
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #64748B;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.85rem 1.4rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+            transition: all 0.2s ease;
+            background: transparent;
+        }
+
+        .nav-tabs-argus .nav-link:hover {
+            color: #0D3B66;
+            background-color: rgba(13, 59, 102, 0.04);
+            border-color: transparent;
+        }
+
+        .nav-tabs-argus .nav-link.active {
+            color: #0D3B66;
+            background-color: #FFFFFF;
+            border-bottom: 3px solid #1AA3A8;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+        }
+
+        .nav-tabs-argus .nav-link .badge-tab {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 1rem;
+            margin-left: 0.4rem;
+        }
+
+        /* Metric & Badges */
+        .metric-pill {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 0.75rem;
+            padding: 0.9rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            height: 100%;
+        }
+
+        .metric-pill .icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .badge-subtle {
+            font-weight: 600;
+            padding: 0.35rem 0.7rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .badge-subtle-success {
+            background-color: rgba(46, 125, 50, 0.12);
+            color: #1B5E20;
+            border: 1px solid rgba(46, 125, 50, 0.25);
+        }
+
+        .badge-subtle-primary {
+            background-color: rgba(13, 59, 102, 0.1);
+            color: #0D3B66;
+            border: 1px solid rgba(13, 59, 102, 0.2);
+        }
+
+        .badge-subtle-info {
+            background-color: rgba(26, 163, 168, 0.12);
+            color: #0C6B6F;
+            border: 1px solid rgba(26, 163, 168, 0.25);
+        }
+
+        .badge-subtle-warning {
+            background-color: rgba(237, 108, 2, 0.12);
+            color: #B25300;
+            border: 1px solid rgba(237, 108, 2, 0.25);
+        }
+
+        /* Timeline de Governança */
+        .timeline-parecer {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline-parecer::before {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 0.5rem;
+            bottom: 0.5rem;
+            width: 2px;
+            background: #CBD5E1;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -2rem;
+            top: 0.25rem;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            box-shadow: 0 0 0 4px #F4F6F9;
+        }
+
+        /* Tabela elegante */
+        .table-argus {
+            margin-bottom: 0;
+        }
+
+        .table-argus thead th {
+            background-color: #F8FAFC;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-transform: none;
+            border-bottom: 1px solid #E2E8F0;
+            padding: 0.85rem 1rem;
+            text-align: center;
+        }
+
+        .table-argus tbody td {
+            padding: 0.9rem 1rem;
+            vertical-align: middle;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .table-argus tbody tr:hover {
+            background-color: rgba(13, 59, 102, 0.02);
+        }
+
+        .cronograma-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 4px;
+        }
+
+        .cronograma-cell {
+            text-align: center;
+            padding: 6px 2px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+
+        .cronograma-cell.active {
+            background-color: #1AA3A8;
+            color: #FFFFFF;
+        }
+
+        .cronograma-cell.inactive {
+            background-color: #F1F5F9;
+            color: #94A3B8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Container Principal Fluido -->
+    <div class="container-fluid px-4 py-3">
+
+        <!-- Breadcrumb Canônico -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted"><i class="fas fa-home me-1"></i>Início</a></li>
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Gestão de Projetos</a></li>
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Projetos PDI</a></li>
+                <li class="breadcrumb-item active text-primary fw-semibold" aria-current="page">Dossier Processual</li>
+            </ol>
+        </nav>
+
+        <!-- Link Voltar Dinâmico Inteligente -->
+        <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+            <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+
+        <!-- Bloco de Título e Ações Mestras -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge-subtle badge-subtle-success">
+                        <i class="fas fa-circle-check"></i> Em execução
+                    </span>
+                    <span class="text-muted small">|</span>
+                    <span class="text-muted small fw-semibold">
+                        <i class="fas fa-folder-open me-1"></i> NUP: 23443.004798/2026-01
+                    </span>
+                    <span class="text-muted small">|</span>
+                    <span class="badge-subtle badge-subtle-info">
+                        <i class="fas fa-id-badge"></i> Polo INOVA IFAM
+                    </span>
+                </div>
+                <h2 class="h4 text-primary fw-bold mb-0 mt-1">
+                    CanteiroHub: Plataforma Integrada de Gestão de Canteiro de Obras
+                </h2>
+                <p class="text-muted small mb-0">
+                    Acordo de Parceria nº 104/2026 • Linha de Fomento: EMBRAPII / SEBRAE • Vigência: 01/03/2026 a 30/11/2026 (9 meses)
+                </p>
+            </div>
+
+            <!-- Botões Globais de Ação -->
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle fw-semibold" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-file-export me-1"></i> Exportar Dossier
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <li><a class="dropdown-item small" href="#"><i class="fas fa-file-pdf text-danger me-2"></i>Dossier Completo (PDF)</a></li>
+                        <li><a class="dropdown-item small" href="#"><i class="fas fa-file-excel text-success me-2"></i>Plano Orçamentário (XLSX)</a></li>
+                        <li><a class="dropdown-item small" href="#"><i class="fas fa-code text-info me-2"></i>Espelho de Metadados (JSON)</a></li>
+                    </ul>
+                </div>
+                <a href="#editar" class="btn btn-primary btn-sm fw-semibold shadow-sm">
+                    <i class="fas fa-pen-to-square me-1"></i> Editar Dossier
+                </a>
+            </div>
+        </div>
+
+        <!-- Cards de Indicadores Rápidos (Resumo Executivo de Caixa e Prazos) -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="cs-card p-3 metric-pill">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Orçamento Global Aprovado</span>
+                        <strong class="fs-5 text-primary">R$ 683.600,00</strong>
+                        <span class="text-muted small d-block" style="font-size: 0.72rem;">R$ 341.800 (50% 1ª Parcela)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="cs-card p-3 metric-pill">
+                    <div class="icon-box bg-info bg-opacity-10 text-info">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Maturidade Tecnológica (TRL)</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary text-white fw-bold">TRL 3/4</span>
+                            <i class="fas fa-arrow-right text-muted small"></i>
+                            <span class="badge bg-success text-white fw-bold">TRL 7</span>
+                        </div>
+                        <span class="text-muted small d-block" style="font-size: 0.72rem;">Ambiente Operacional Real</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="cs-card p-3 metric-pill">
+                    <div class="icon-box bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-users-gear"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Equipe Executora Alocada</span>
+                        <strong class="fs-5 text-success">12 Pesquisadores</strong>
+                        <span class="text-muted small d-block" style="font-size: 0.72rem;">R$ 387.600 em Bolsas de PDI</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="cs-card p-3 metric-pill">
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-stamp"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Governança & Conformidade</span>
+                        <span class="badge-subtle badge-subtle-success mb-1" style="font-size: 0.75rem;">
+                            <i class="fas fa-check-double"></i> 4 Pareceres Favoráveis
+                        </span>
+                        <span class="text-muted small d-block" style="font-size: 0.72rem;">Publicado DOU • Seção 3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Principal com Abas de Governança -->
+        <div class="cs-card">
+            <!-- Header das Abas -->
+            <div class="p-3 pb-0 bg-light border-bottom rounded-top-4">
+                <ul class="nav nav-tabs nav-tabs-argus" id="dossierTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="juridico-tab" data-bs-toggle="tab" data-bs-target="#tab-juridico" type="button" role="tab">
+                            <i class="fas fa-scale-balanced me-2 text-primary"></i>1. Instrumento Jurídico & Partícipes
+                            <span class="badge-tab bg-primary text-white">Formalizado</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="plano-tab" data-bs-toggle="tab" data-bs-target="#tab-plano" type="button" role="tab">
+                            <i class="fas fa-compass-drafting me-2 text-info"></i>2. Plano de Trabalho Técnico
+                            <span class="badge-tab bg-info text-white">8 Atividades</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="orcamento-tab" data-bs-toggle="tab" data-bs-target="#tab-orcamento" type="button" role="tab">
+                            <i class="fas fa-hand-holding-dollar me-2 text-success"></i>3. Orçamento & Proposta Comercial FAEPI
+                            <span class="badge-tab bg-success text-white">1:1 com PT</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pareceres-tab" data-bs-toggle="tab" data-bs-target="#tab-pareceres" type="button" role="tab">
+                            <i class="fas fa-shield-halved me-2 text-warning"></i>4. Trilha de Pareceres & Governança
+                            <span class="badge-tab bg-warning text-dark">4 Atestos</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Conteúdo das Abas -->
+            <div class="tab-content p-4" id="dossierTabContent">
+
+                <!-- ABA 1: INSTRUMENTO JURÍDICO & PARTÍCIPES -->
+                <div class="tab-pane fade show active" id="tab-juridico" role="tabpanel">
+                    
+                    <div class="row g-4">
+                        <!-- Coluna 1: Dados do Instrumento e Publicação DOU -->
+                        <div class="col-lg-7">
+                            <div class="border rounded-3 p-3 bg-white mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h5 class="h6 fw-bold text-primary mb-0">
+                                            <i class="fas fa-file-contract me-2"></i>Qualificação do Instrumento Jurídico
+                                        </h5>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0 mt-1 small" style="font-size: 0.72rem;">
+                                            Minuta Padronizada AGU (Art. 9º Lei 10.973/04)
+                                        </span>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#modalEditarInstrumento">
+                                        <i class="fas fa-pen-to-square me-1"></i> Editar Instrumento
+                                    </button>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-sm-6">
+                                        <span class="text-muted small d-block">Espécie Normativa</span>
+                                        <span class="fw-semibold text-dark" id="display-especie">Acordo de Parceria para P&D&I</span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <span class="text-muted small d-block">Número do Registro</span>
+                                        <span class="fw-bold text-primary" id="display-numero">Acordo nº 104/2026 - Polo INOVA</span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <span class="text-muted small d-block">Processo Administrativo (SIPAC)</span>
+                                        <span class="font-monospace fw-semibold text-secondary" id="display-sipac">23443.004798/2026-01</span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <span class="text-muted small d-block">Status de Assinatura</span>
+                                        <span class="badge-subtle badge-subtle-success" id="display-status-assinatura">
+                                            <i class="fas fa-check-circle"></i> Assinado por todas as partes
+                                        </span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <span class="text-muted small d-block">Data de Celebração</span>
+                                        <span class="fw-semibold" id="display-celebracao">27/02/2026</span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <span class="text-muted small d-block">Prazo de Vigência Contratual</span>
+                                        <span class="fw-semibold" id="display-vigencia">01/03/2026 a 30/11/2026 (9 meses)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Publicação no Diário Oficial da União (DOU) -->
+                            <div class="border rounded-3 p-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h5 class="h6 fw-bold text-primary mb-0">
+                                            <i class="fas fa-newspaper me-2"></i>Eficácia Jurídica & Publicação no DOU
+                                        </h5>
+                                        <span class="badge-subtle badge-subtle-success mt-1" style="font-size: 0.75rem;">
+                                            <i class="fas fa-bullhorn"></i> Start Oficial de Execução
+                                        </span>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEditarDOU">
+                                        <i class="fas fa-pen-to-square me-1"></i> Atualizar Publicação
+                                    </button>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-sm-4">
+                                        <span class="text-muted small d-block">Data de Publicação</span>
+                                        <span class="fw-bold text-dark" id="dou-data-display">02/03/2026</span>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <span class="text-muted small d-block">Seção / Edição</span>
+                                        <span class="fw-semibold" id="dou-edicao-display">Seção 3, Edição nº 42</span>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <span class="text-muted small d-block">Página do DOU</span>
+                                        <span class="fw-semibold" id="dou-pagina-display">Página 118</span>
+                                    </div>
+                                    <div class="col-12">
+                                        <span class="text-muted small d-block mb-1">Link de Verificação na Imprensa Nacional</span>
+                                        <a href="https://www.in.gov.br/autenticidade.html" target="_blank" class="text-decoration-none small text-primary fw-semibold" id="dou-link-display">
+                                            <i class="fas fa-arrow-up-right-from-square me-1"></i>https://www.in.gov.br/web/dou/-/extrato-de-acordo-de-parceria-104-2026-ifam
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coluna 2: Hélice Tríplice - Partícipes Qualificados -->
+                        <div class="col-lg-5">
+                            <div class="border rounded-3 p-3 bg-white h-100">
+                                <h5 class="h6 fw-bold text-primary mb-3">
+                                    <i class="fas fa-hands-holding-circle me-2"></i>Partícipes da Hélice Tríplice
+                                </h5>
+
+                                <!-- ICT Pública -->
+                                <div class="p-2 border rounded-2 mb-3 bg-light-subtle">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="badge bg-primary text-white" style="font-size: 0.68rem;">ICT Executora</span>
+                                            <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 0.9rem;">Instituto Federal do Amazonas (IFAM)</h6>
+                                            <span class="text-muted small d-block">CNPJ: 10.792.928/0001-00</span>
+                                        </div>
+                                        <i class="fas fa-building-columns text-primary fs-4 opacity-50"></i>
+                                    </div>
+                                    <div class="mt-2 pt-2 border-top small">
+                                        <span class="text-muted">Representante Legal:</span>
+                                        <span class="fw-semibold text-dark"> Jaime Cavalcante Alves (Reitor)</span>
+                                        <br>
+                                        <span class="text-muted">Unidade Operacional:</span>
+                                        <span class="fw-semibold text-dark"> Polo de Inovação Manaus Distrito Industrial</span>
+                                    </div>
+                                </div>
+
+                                <!-- Empresa Financiadora -->
+                                <div class="p-2 border rounded-2 mb-3 bg-light-subtle">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="badge bg-secondary text-white" style="font-size: 0.68rem;">Empresa Parceira</span>
+                                            <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 0.9rem;">Smart Service Tecnologia e Inovação Ltda.</h6>
+                                            <span class="text-muted small d-block">CNPJ: 18.342.912/0001-44</span>
+                                        </div>
+                                        <i class="fas fa-building text-secondary fs-4 opacity-50"></i>
+                                    </div>
+                                    <div class="mt-2 pt-2 border-top small">
+                                        <span class="text-muted">Representante Legal:</span>
+                                        <span class="fw-semibold text-dark"> Rodrigo de Castro Mendes (Sócio-Diretor)</span>
+                                        <br>
+                                        <span class="text-muted">Endereço Sede:</span>
+                                        <span class="fw-semibold text-dark"> Av. Darcy Vargas, 1200 - Manaus/AM</span>
+                                    </div>
+                                </div>
+
+                                <!-- Fundação de Apoio -->
+                                <div class="p-2 border rounded-2 bg-light-subtle">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="badge bg-success text-white" style="font-size: 0.68rem;">Interveniente-Gestora</span>
+                                            <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 0.9rem;">Fundação de Apoio ao Ensino, Pesquisa e Extensão (FAEPI)</h6>
+                                            <span class="text-muted small d-block">CNPJ: 04.981.332/0001-70</span>
+                                        </div>
+                                        <i class="fas fa-handshake-angle text-success fs-4 opacity-50"></i>
+                                    </div>
+                                    <div class="mt-2 pt-2 border-top small">
+                                        <span class="text-muted">Representante Legal:</span>
+                                        <span class="fw-semibold text-dark"> Marco Aurélio da Silva (Diretor-Presidente)</span>
+                                        <br>
+                                        <span class="text-muted">Base Legal:</span>
+                                        <span class="fw-semibold text-dark"> Lei Federal 8.958/94 e Portaria Conjunta MEC/MCTI</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ABA 2: PLANO DE TRABALHO TÉCNICO -->
+                <div class="tab-pane fade" id="tab-plano" role="tabpanel">
+
+                    <!-- Resumo Técnico e Objetivos -->
+                    <div class="border rounded-3 p-3 bg-white mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="h6 fw-bold text-primary mb-0">
+                                <i class="fas fa-bullseye me-2"></i>Escopo Técnico, Objeto e Nível de Maturidade
+                            </h5>
+                            <span class="badge bg-light text-dark border px-2 py-1 small">
+                                Versão 1.0 (Aprovada pela COPRO)
+                            </span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <span class="text-muted small d-block">Objeto do Plano de Trabalho</span>
+                                <p class="fw-semibold text-dark mb-1 small">
+                                    Desenvolvimento de uma plataforma integrada em nuvem e aplicativo móvel para gestão operacional de canteiros de obras de médio e grande porte, incorporando controle automatizado de insumos, auditoria de segurança do trabalho e medição de produtividade com inteligência artificial embarcada.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted small d-block">Motivação e Justificativa Tecnológica</span>
+                                <p class="text-muted small mb-0">
+                                    Superar as perdas médias de 15% em materiais e os atrasos na consolidação diária das fichas de campo do setor de construção civil através da digitalização de ponta a ponta com conectividade resiliente offline-first.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted small d-block">Evolução da Régua de Maturidade Tecnológica (TRL)</span>
+                                <div class="p-2 border rounded bg-light d-flex align-items-center justify-content-between mt-1">
+                                    <div class="text-center">
+                                        <span class="badge bg-secondary">TRL 3/4 (Inicial)</span>
+                                        <span class="d-block text-muted small" style="font-size: 0.7rem;">Prova de Conceito em Laboratório</span>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-muted"></i>
+                                    <i class="fas fa-chevron-right text-muted"></i>
+                                    <div class="text-center">
+                                        <span class="badge bg-success">TRL 7 (Final)</span>
+                                        <span class="d-block text-muted small" style="font-size: 0.7rem;">Protótipo Operacional no Canteiro</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Macroatividades e Cronograma de Execução -->
+                    <div class="border rounded-3 p-3 bg-white mb-4">
+                        <h5 class="h6 fw-bold text-primary mb-3">
+                            <i class="fas fa-calendar-days me-2"></i>Cronograma de Macroatividades (Meses M1 a M9)
+                        </h5>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered table-argus">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 70px;">Cód.</th>
+                                        <th class="text-start">Descrição da Atividade Técnica</th>
+                                        <th style="width: 140px;">Responsável</th>
+                                        <th style="width: 280px;">Cronograma Físico (M1 a M9)</th>
+                                        <th style="width: 110px;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold text-center">A1</td>
+                                        <td>Levantamento de requisitos, arquitetura de microsserviços e modelagem UX/UI</td>
+                                        <td class="text-center small">Dr. Paulo Aride</td>
+                                        <td>
+                                            <div class="cronograma-grid">
+                                                <div class="cronograma-cell active">M1</div>
+                                                <div class="cronograma-cell active">M2</div>
+                                                <div class="cronograma-cell inactive">M3</div>
+                                                <div class="cronograma-cell inactive">M4</div>
+                                                <div class="cronograma-cell inactive">M5</div>
+                                                <div class="cronograma-cell inactive">M6</div>
+                                                <div class="cronograma-cell inactive">M7</div>
+                                                <div class="cronograma-cell inactive">M8</div>
+                                                <div class="cronograma-cell inactive">M9</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-success-subtle text-success border px-2 py-1 small">Concluída</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-center">A2</td>
+                                        <td>Desenvolvimento do backend da API Gateway e banco de dados relacional e série temporal</td>
+                                        <td class="text-center small">Prof. Gabriel Pinheiro</td>
+                                        <td>
+                                            <div class="cronograma-grid">
+                                                <div class="cronograma-cell inactive">M1</div>
+                                                <div class="cronograma-cell active">M2</div>
+                                                <div class="cronograma-cell active">M3</div>
+                                                <div class="cronograma-cell active">M4</div>
+                                                <div class="cronograma-cell inactive">M5</div>
+                                                <div class="cronograma-cell inactive">M6</div>
+                                                <div class="cronograma-cell inactive">M7</div>
+                                                <div class="cronograma-cell inactive">M8</div>
+                                                <div class="cronograma-cell inactive">M9</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-primary-subtle text-primary border px-2 py-1 small">Em andamento</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-center">A3</td>
+                                        <td>Desenvolvimento do aplicativo móvel para os mestres de obras e encarregados (Android/iOS)</td>
+                                        <td class="text-center small">Bolsista Dev Mobile</td>
+                                        <td>
+                                            <div class="cronograma-grid">
+                                                <div class="cronograma-cell inactive">M1</div>
+                                                <div class="cronograma-cell inactive">M2</div>
+                                                <div class="cronograma-cell active">M3</div>
+                                                <div class="cronograma-cell active">M4</div>
+                                                <div class="cronograma-cell active">M5</div>
+                                                <div class="cronograma-cell inactive">M6</div>
+                                                <div class="cronograma-cell inactive">M7</div>
+                                                <div class="cronograma-cell inactive">M8</div>
+                                                <div class="cronograma-cell inactive">M9</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-light text-muted border px-2 py-1 small">Aguardando</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-center">A4</td>
+                                        <td>Módulo de inteligência computacional para reconhecimento óptico de notas fiscais e insumos</td>
+                                        <td class="text-center small">Pesquisador IA</td>
+                                        <td>
+                                            <div class="cronograma-grid">
+                                                <div class="cronograma-cell inactive">M1</div>
+                                                <div class="cronograma-cell inactive">M2</div>
+                                                <div class="cronograma-cell inactive">M3</div>
+                                                <div class="cronograma-cell active">M4</div>
+                                                <div class="cronograma-cell active">M5</div>
+                                                <div class="cronograma-cell active">M6</div>
+                                                <div class="cronograma-cell inactive">M7</div>
+                                                <div class="cronograma-cell inactive">M8</div>
+                                                <div class="cronograma-cell inactive">M9</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-light text-muted border px-2 py-1 small">Aguardando</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-center">A5</td>
+                                        <td>Integração do painel web gerencial para medição de indicadores em tempo real</td>
+                                        <td class="text-center small">Bolsista Frontend</td>
+                                        <td>
+                                            <div class="cronograma-grid">
+                                                <div class="cronograma-cell inactive">M1</div>
+                                                <div class="cronograma-cell inactive">M2</div>
+                                                <div class="cronograma-cell inactive">M3</div>
+                                                <div class="cronograma-cell inactive">M4</div>
+                                                <div class="cronograma-cell active">M5</div>
+                                                <div class="cronograma-cell active">M6</div>
+                                                <div class="cronograma-cell active">M7</div>
+                                                <div class="cronograma-cell inactive">M8</div>
+                                                <div class="cronograma-cell inactive">M9</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-light text-muted border px-2 py-1 small">Aguardando</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-center">A6</td>
+                                        <td>Testes de estresse, segurança de dados e interoperabilidade na nuvem</td>
+                                        <td class="text-center small">Pesquisador DevOps</td>
+                                        <td>
+                                            <div class="cronograma-grid">
+                                                <div class="cronograma-cell inactive">M1</div>
+                                                <div class="cronograma-cell inactive">M2</div>
+                                                <div class="cronograma-cell inactive">M3</div>
+                                                <div class="cronograma-cell inactive">M4</div>
+                                                <div class="cronograma-cell inactive">M5</div>
+                                                <div class="cronograma-cell inactive">M6</div>
+                                                <div class="cronograma-cell active">M7</div>
+                                                <div class="cronograma-cell active">M8</div>
+                                                <div class="cronograma-cell inactive">M9</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-light text-muted border px-2 py-1 small">Aguardando</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-center">A7</td>
+                                        <td>Piloto de validação em canteiro de obras real (Ambiente Operacional - TRL 7)</td>
+                                        <td class="text-center small">Equipe de Campo</td>
+                                        <td>
+                                            <div class="cronograma-grid">
+                                                <div class="cronograma-cell inactive">M1</div>
+                                                <div class="cronograma-cell inactive">M2</div>
+                                                <div class="cronograma-cell inactive">M3</div>
+                                                <div class="cronograma-cell inactive">M4</div>
+                                                <div class="cronograma-cell inactive">M5</div>
+                                                <div class="cronograma-cell inactive">M6</div>
+                                                <div class="cronograma-cell inactive">M7</div>
+                                                <div class="cronograma-cell active">M8</div>
+                                                <div class="cronograma-cell active">M9</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-light text-muted border px-2 py-1 small">Aguardando</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-center">A8</td>
+                                        <td>Elaboração do relatório técnico final, registro de software no INPI e encerramento</td>
+                                        <td class="text-center small">Dr. Paulo Aride</td>
+                                        <td>
+                                            <div class="cronograma-grid">
+                                                <div class="cronograma-cell inactive">M1</div>
+                                                <div class="cronograma-cell inactive">M2</div>
+                                                <div class="cronograma-cell inactive">M3</div>
+                                                <div class="cronograma-cell inactive">M4</div>
+                                                <div class="cronograma-cell inactive">M5</div>
+                                                <div class="cronograma-cell inactive">M6</div>
+                                                <div class="cronograma-cell inactive">M7</div>
+                                                <div class="cronograma-cell inactive">M8</div>
+                                                <div class="cronograma-cell active">M9</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center"><span class="badge bg-light text-muted border px-2 py-1 small">Aguardando</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Equipe do Projeto (12 Cargos/Perfis) -->
+                    <div class="border rounded-3 p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="h6 fw-bold text-primary mb-0">
+                                <i class="fas fa-users-viewfinder me-2"></i>Quadro de Pessoal & Recursos Humanos (12 Perfis)
+                            </h5>
+                            <span class="badge bg-success-subtle text-success border px-2 py-1 small">
+                                100% dos Termos Vinculados
+                            </span>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm table-argus">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">Nome do Colaborador</th>
+                                        <th style="width: 140px;">Vínculo / SIAPE</th>
+                                        <th>Função no Projeto</th>
+                                        <th style="width: 100px;">Carga Horária</th>
+                                        <th style="width: 130px;">Valor Bolsa/Mês</th>
+                                        <th style="width: 120px;">Duração</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Dr. Paulo Henrique Rocha Aride</td>
+                                        <td class="text-center"><span class="badge bg-light text-dark border">Servidor (SIAPE 1823902)</span></td>
+                                        <td>Coordenador Geral do Projeto</td>
+                                        <td class="text-center">20h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 5.500,00</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Gabriel Pinheiro Compto</td>
+                                        <td class="text-center"><span class="badge bg-light text-dark border">Servidor (SIAPE 2049182)</span></td>
+                                        <td>Coordenador Técnico de PDI</td>
+                                        <td class="text-center">20h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 4.500,00</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Ricardo de Oliveira Ramos</td>
+                                        <td class="text-center"><span class="badge bg-light text-dark border">Servidor (SIAPE 1930281)</span></td>
+                                        <td>Pesquisador Sênior (Eng. de Software)</td>
+                                        <td class="text-center">15h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 4.000,00</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Darlene Silveira Rodrigues</td>
+                                        <td class="text-center"><span class="badge bg-light text-dark border">Servidor (SIAPE 2193821)</span></td>
+                                        <td>Gestora de Propriedade Intelectual & NIT</td>
+                                        <td class="text-center">10h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 3.000,00</td>
+                                        <td class="text-center">6 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Lucas Nascimento Farias</td>
+                                        <td class="text-center"><span class="badge bg-secondary-subtle text-secondary border">Aluno de Mestrado</span></td>
+                                        <td>Pesquisador Bolsista (Visão Computacional)</td>
+                                        <td class="text-center">20h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 2.500,00</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Camila Albuquerque Torres</td>
+                                        <td class="text-center"><span class="badge bg-secondary-subtle text-secondary border">Aluno de Mestrado</span></td>
+                                        <td>Pesquisadora Bolsista (Mobile Dev)</td>
+                                        <td class="text-center">20h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 2.500,00</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Bruno Henrique de Souza</td>
+                                        <td class="text-center"><span class="badge bg-info-subtle text-info border">Aluno Graduação</span></td>
+                                        <td>Bolsista de Iniciação Tecnológica (Backend)</td>
+                                        <td class="text-center">20h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 1.200,00</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Mariana Costa Duarte</td>
+                                        <td class="text-center"><span class="badge bg-info-subtle text-info border">Aluno Graduação</span></td>
+                                        <td>Bolsista de Iniciação Tecnológica (Frontend)</td>
+                                        <td class="text-center">20h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 1.200,00</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Fernando Meireles Lima</td>
+                                        <td class="text-center"><span class="badge bg-info-subtle text-info border">Aluno Graduação</span></td>
+                                        <td>Bolsista de Iniciação Tecnológica (QA / Testes)</td>
+                                        <td class="text-center">20h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 1.200,00</td>
+                                        <td class="text-center">8 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Aline Ferreira Santos</td>
+                                        <td class="text-center"><span class="badge bg-warning-subtle text-warning border">Bolsista Apoio</span></td>
+                                        <td>Apoio Técnico Administrativo do Projeto</td>
+                                        <td class="text-center">20h semanais</td>
+                                        <td class="text-center fw-semibold text-success">R$ 1.500,00</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Rodrigo de Castro Mendes</td>
+                                        <td class="text-center"><span class="badge bg-dark-subtle text-dark border">Profissional Empresa</span></td>
+                                        <td>Coordenador Técnico da Empresa Parceira</td>
+                                        <td class="text-center">10h semanais</td>
+                                        <td class="text-center text-muted">Não Remunerado</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-start">Juliana Paes Vasconcelos</td>
+                                        <td class="text-center"><span class="badge bg-dark-subtle text-dark border">Engenheira de Obra</span></td>
+                                        <td>Especialista Setorial de Validação de Campo</td>
+                                        <td class="text-center">10h semanais</td>
+                                        <td class="text-center text-muted">Não Remunerado</td>
+                                        <td class="text-center">9 meses</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ABA 3: ORÇAMENTO & PROPOSTA COMERCIAL FAEPI -->
+                <div class="tab-pane fade" id="tab-orcamento" role="tabpanel">
+
+                    <!-- Resumo das Fontes Financiadoras -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="border rounded-3 p-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-muted small fw-semibold">EMBRAPII (Repasse)</span>
+                                    <span class="badge bg-primary">33,33%</span>
+                                </div>
+                                <h5 class="fw-bold text-primary mb-0">R$ 227.866,66</h5>
+                                <span class="text-muted small" style="font-size: 0.72rem;">Recurso Público Federal de Subvenção</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="border rounded-3 p-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-muted small fw-semibold">SEBRAE (Repasse)</span>
+                                    <span class="badge bg-info text-white">20,00%</span>
+                                </div>
+                                <h5 class="fw-bold text-info mb-0">R$ 136.720,00</h5>
+                                <span class="text-muted small" style="font-size: 0.72rem;">Aporte de Estímulo à Inovação PME</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="border rounded-3 p-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-muted small fw-semibold">Smart Service (Empresa)</span>
+                                    <span class="badge bg-secondary text-white">36,67%</span>
+                                </div>
+                                <h5 class="fw-bold text-secondary mb-0">R$ 250.713,34</h5>
+                                <span class="text-muted small" style="font-size: 0.72rem;">Contrapartida Financeira Privada Depositada</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="border rounded-3 p-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-muted small fw-semibold">IFAM (Econômica)</span>
+                                    <span class="badge bg-dark">10,00%</span>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">R$ 68.300,00</h5>
+                                <span class="text-muted small" style="font-size: 0.72rem;">Contrapartida de Horas Docentes e Labs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rubricas Orçamentárias & FAEPI Proposta Comercial -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-8">
+                            <div class="border rounded-3 p-3 bg-white h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="h6 fw-bold text-primary mb-0">
+                                        <i class="fas fa-list-check me-2"></i>Detalhamento das Rubricas Orçamentárias (1:1 com Plano de Trabalho)
+                                    </h5>
+                                    <span class="badge-subtle badge-subtle-primary">
+                                        Total: R$ 683.600,00
+                                    </span>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-sm table-argus">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-start">Rubrica de Despesa</th>
+                                                <th>Categoria</th>
+                                                <th class="text-end">Valor Orçado</th>
+                                                <th style="width: 100px;">Proporção</th>
+                                                <th>Situação</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="fw-semibold text-start">Recursos Humanos Diretos (Bolsas PDI)</td>
+                                                <td class="text-center"><span class="badge bg-light text-dark border">Custeio</span></td>
+                                                <td class="text-end fw-semibold">R$ 387.600,00</td>
+                                                <td class="text-center small">56,7%</td>
+                                                <td class="text-center"><span class="badge bg-success-subtle text-success border">Empenhado</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-start">Serviços de Terceiros PJ (Nuvem AWS / DevOps)</td>
+                                                <td class="text-center"><span class="badge bg-light text-dark border">Custeio</span></td>
+                                                <td class="text-end fw-semibold">R$ 96.000,00</td>
+                                                <td class="text-center small">14,0%</td>
+                                                <td class="text-center"><span class="badge bg-success-subtle text-success border">Aprovado</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-start">Material de Consumo e Prototipagem</td>
+                                                <td class="text-center"><span class="badge bg-light text-dark border">Custeio</span></td>
+                                                <td class="text-end fw-semibold">R$ 31.073,60</td>
+                                                <td class="text-center small">4,5%</td>
+                                                <td class="text-center"><span class="badge bg-success-subtle text-success border">Aprovado</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-start">Diárias e Passagens para Validação em Obra</td>
+                                                <td class="text-center"><span class="badge bg-light text-dark border">Custeio</span></td>
+                                                <td class="text-end fw-semibold">R$ 34.180,00</td>
+                                                <td class="text-center small">5,0%</td>
+                                                <td class="text-center"><span class="badge bg-success-subtle text-success border">Aprovado</span></td>
+                                            </tr>
+                                            <tr class="table-light">
+                                                <td class="fw-semibold text-start text-primary">DOAS - Gestão Operacional FAEPI (10,9%)</td>
+                                                <td class="text-center"><span class="badge bg-primary text-white">Taxa Adm</span></td>
+                                                <td class="text-end fw-bold text-primary">R$ 66.446,40</td>
+                                                <td class="text-center small fw-bold">10,9%</td>
+                                                <td class="text-center"><span class="badge bg-primary-subtle text-primary border">Homologado</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-start">Fundo de Reserva Institucional do IFAM</td>
+                                                <td class="text-center"><span class="badge bg-light text-dark border">Reserva</span></td>
+                                                <td class="text-end fw-semibold">R$ 68.300,00</td>
+                                                <td class="text-center small">10,0%</td>
+                                                <td class="text-center"><span class="badge bg-secondary-subtle text-secondary border">Retido</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Proposta Comercial FAEPI e Contas Bancárias -->
+                        <div class="col-lg-4">
+                            <div class="border rounded-3 p-3 bg-white h-100">
+                                <h5 class="h6 fw-bold text-primary mb-3">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i>Proposta Comercial FAEPI
+                                </h5>
+
+                                <div class="p-2 border rounded-2 bg-light-subtle mb-3 small">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Proposta Comercial:</span>
+                                        <span class="fw-bold text-dark">Nº 089/2026 - FAEPI</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Ato de Autorização:</span>
+                                        <span class="fw-semibold text-dark">Portaria Conjunta MEC nº 18/2024</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Taxa DOAS Aplicada:</span>
+                                        <span class="fw-bold text-primary">10,9% (Teto FAEPI)</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">Valor Líquido DOAS:</span>
+                                        <span class="fw-bold text-primary">R$ 66.446,40</span>
+                                    </div>
+                                </div>
+
+                                <h6 class="fw-bold text-primary small mb-2">
+                                    <i class="fas fa-building-columns me-1"></i>Conta Bancária Específica (Lei 8.958/94)
+                                </h6>
+                                <div class="p-2 border rounded-2 bg-light small">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Banco:</span>
+                                        <span class="fw-semibold text-dark">001 - Banco do Brasil S.A.</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Agência:</span>
+                                        <span class="fw-semibold text-dark">3562-9 (Setor Público)</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Conta Corrente Vinculada:</span>
+                                        <span class="font-monospace fw-bold text-primary">78.432-1</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">Titularidade:</span>
+                                        <span class="fw-semibold text-dark">FAEPI - Projeto CanteiroHub</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 pt-2 border-top">
+                                    <span class="text-muted small d-block mb-1">Desembolso Financeiro Previsto</span>
+                                    <div class="progress mb-2" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 50%;" title="1ª Parcela (50%)"></div>
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: 25%;" title="2ª Parcela (25%)"></div>
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 25%;" title="3ª Parcela (25%)"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-muted small" style="font-size: 0.72rem;">
+                                        <span>Parc 1: R$ 341.800</span>
+                                        <span>Parc 2: R$ 170.900</span>
+                                        <span>Parc 3: R$ 170.900</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ABA 4: TRILHA DE PARECERES & GOVERNANÇA -->
+                <div class="tab-pane fade" id="tab-pareceres" role="tabpanel">
+
+                    <div class="row g-4">
+                        <div class="col-lg-8">
+                            <div class="border rounded-3 p-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="h6 fw-bold text-primary mb-0">
+                                        <i class="fas fa-route me-2"></i>Esteira Oficial de Tramitação Processual e Pareceres
+                                    </h5>
+                                    <span class="badge-subtle badge-subtle-success">
+                                        <i class="fas fa-shield-check"></i> Trilha 100% Homologada
+                                    </span>
+                                </div>
+
+                                <div class="timeline-parecer">
+                                    
+                                    <!-- Parecer 1: COPRO / Polo INOVA -->
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-success text-white">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <div class="border rounded p-3 bg-light-subtle">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h6 class="fw-bold text-primary mb-0" style="font-size: 0.9rem;">
+                                                    Parecer Técnico COPRO nº 295/2026 - Polo de Inovação
+                                                </h6>
+                                                <span class="text-muted small">05/02/2026</span>
+                                            </div>
+                                            <p class="text-muted small mb-2">
+                                                Emissor: <strong>Gabriel Pinheiro Compto / Ricardo Oliveira Ramos</strong> • Coordenação de Projetos
+                                            </p>
+                                            <div class="alert alert-success border-0 py-2 px-3 mb-0 small">
+                                                <strong>Conclusão Técnica:</strong> Atesta a exequibilidade técnica do cronograma de 9 meses, alinhamento à Linha EMBRAPII de Polos de Inovação e suficiência dos 12 membros da equipe executora.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Parecer 2: NIT / Reitoria -->
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-success text-white">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <div class="border rounded p-3 bg-light-subtle">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h6 class="fw-bold text-primary mb-0" style="font-size: 0.9rem;">
+                                                    Parecer Técnico nº 434/2026 - NIT / Reitoria
+                                                </h6>
+                                                <span class="text-muted small">12/02/2026</span>
+                                            </div>
+                                            <p class="text-muted small mb-2">
+                                                Emissor: <strong>Darlene Silveira Rodrigues</strong> • Núcleo de Inovação Tecnológica
+                                            </p>
+                                            <div class="alert alert-success border-0 py-2 px-3 mb-0 small">
+                                                <strong>Retificação e Titularidade PI:</strong> Retificou a denominação do instrumento jurídico de "Convênio" para <strong>Acordo de Parceria</strong> nos termos do Art. 9º da Lei 10.973/04. Estabeleceu a cotitularidade de Propriedade Intelectual (50% IFAM / 50% Empresa Parceira) com direito de exploração comercial exclusiva pela empresa mediante pagamento de royalties ao IFAM.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Parecer 3: PPGI / Reitoria -->
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-success text-white">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <div class="border rounded p-3 bg-light-subtle">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h6 class="fw-bold text-primary mb-0" style="font-size: 0.9rem;">
+                                                    Parecer de Mérito nº 372/2026 - PPGI / Reitoria
+                                                </h6>
+                                                <span class="text-muted small">18/02/2026</span>
+                                            </div>
+                                            <p class="text-muted small mb-2">
+                                                Emissor: <strong>Dr. Paulo Henrique Rocha Aride</strong> • Pró-Reitoria de Pesquisa, Pós-Graduação e Inovação
+                                            </p>
+                                            <div class="alert alert-success border-0 py-2 px-3 mb-0 small">
+                                                <strong>Conclusão Acadêmica:</strong> Homologação da compatibilidade com o PDI Institucional do IFAM e autorização de participação dos docentes em regime de dedicação exclusiva (RDE) com recebimento de bolsas de estímulo à inovação (Art. 21 da Lei 12.772/12).
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Parecer 4: AGU / Procuradoria Federal -->
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-success text-white">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <div class="border rounded p-3 bg-light-subtle">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h6 class="fw-bold text-primary mb-0" style="font-size: 0.9rem;">
+                                                    Nota nº 00031/2026 & Parecer Jurídico nº 00381/2026 - PGF / AGU
+                                                </h6>
+                                                <span class="text-muted small">24/02/2026</span>
+                                            </div>
+                                            <p class="text-muted small mb-2">
+                                                Emissor: <strong>Dra. Bárbara Tuyama Sollero</strong> • Procuradora Federal / Consultoria Jurídica da União
+                                            </p>
+                                            <div class="alert alert-success border-0 py-2 px-3 mb-0 small">
+                                                <strong>Aprovação Jurídica:</strong> Chancelou a minuta do Acordo de Parceria nos estritos moldes das minutas padronizadas da Câmara Permanente de CT&I da AGU, confirmou a legitimidade da atuação da FAEPI como fundação de apoio e fixou a obrigatoriedade da publicação do extrato no DOU para início da vigência.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Matriz de Riscos & Diretrizes de Conformidade -->
+                        <div class="col-lg-4">
+                            <div class="border rounded-3 p-3 bg-white h-100">
+                                <h5 class="h6 fw-bold text-primary mb-3">
+                                    <i class="fas fa-clipboard-check me-2"></i>Controle de Alçadas & Compliance
+                                </h5>
+
+                                <div class="mb-3">
+                                    <span class="text-muted small d-block mb-1">Autoridade de Assinatura</span>
+                                    <div class="p-2 border rounded bg-light small">
+                                        <i class="fas fa-user-tie text-primary me-2"></i><strong>Reitor do IFAM</strong> (Jaime Cavalcante Alves)
+                                        <span class="text-muted d-block ms-4" style="font-size: 0.72rem;">Competência privativa para firmar Acordos</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <span class="text-muted small d-block mb-1">Autoridade de Gestão Financeira</span>
+                                    <div class="p-2 border rounded bg-light small">
+                                        <i class="fas fa-building-shield text-success me-2"></i><strong>Diretoria-Executiva FAEPI</strong>
+                                        <span class="text-muted d-block ms-4" style="font-size: 0.72rem;">Responsável pelas contas bancárias e compras</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <span class="text-muted small d-block mb-1">Fiscal Técnico do Acordo</span>
+                                    <div class="p-2 border rounded bg-light small">
+                                        <i class="fas fa-user-gear text-info me-2"></i><strong>Coordenação de Projetos (COPRO)</strong>
+                                        <span class="text-muted d-block ms-4" style="font-size: 0.72rem;">Atesto de Relatórios e Folhas de Bolsas</span>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info border small p-2 mb-0">
+                                    <i class="fas fa-shield-halved me-1"></i>
+                                    <strong>Conformidade TCU & CGU:</strong>
+                                    Todas as despesas deste projeto são auditáveis pelo sistema Conveniar/FAEPI e integradas ao Portal da Transparência do IFAM conforme Lei 12.527/11.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast de Notificação do Sistema -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+        <div id="toastFeedback" class="toast align-items-center text-bg-success border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="fas fa-circle-check fs-5"></i>
+                    <span id="toastFeedbackMsg">Dados salvos e atualizados com sucesso!</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: ATUALIZAR PUBLICAÇÃO NO DOU -->
+    <div class="modal fade" id="modalEditarDOU" tabindex="-1" aria-labelledby="modalEditarDOULabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+                <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small mb-1">
+                            Aba 1 • Instrumento Jurídico
+                        </span>
+                        <h5 class="modal-title fw-bold text-primary" id="modalEditarDOULabel">
+                            <i class="fas fa-newspaper me-2"></i>Atualizar Publicação no DOU
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <form id="formEditarDOU">
+                    <div class="modal-body p-4">
+                        <p class="text-muted small mb-3">
+                            Informe os dados oficiais da publicação do extrato na Imprensa Nacional para certificar o início da vigência do projeto.
+                        </p>
+
+                        <div class="mb-3">
+                            <label for="inputDouData" class="form-label small fw-semibold text-muted">Data da Publicação no DOU</label>
+                            <input type="date" class="form-control" id="inputDouData" value="2026-03-02" required>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-7">
+                                <label for="inputDouEdicao" class="form-label small fw-semibold text-muted">Seção e Edição</label>
+                                <input type="text" class="form-control" id="inputDouEdicao" value="Seção 3, Edição nº 42" required placeholder="Ex: Seção 3, Edição nº 42">
+                            </div>
+                            <div class="col-sm-5">
+                                <label for="inputDouPagina" class="form-label small fw-semibold text-muted">Página</label>
+                                <input type="text" class="form-control" id="inputDouPagina" value="Página 118" required placeholder="Ex: Página 118">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputDouLink" class="form-label small fw-semibold text-muted">Link de Autenticidade (URL Imprensa Nacional)</label>
+                            <input type="url" class="form-control" id="inputDouLink" value="https://www.in.gov.br/web/dou/-/extrato-de-acordo-de-parceria-104-2026-ifam" required placeholder="https://www.in.gov.br/...">
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="inputDouArquivo" class="form-label small fw-semibold text-muted">Anexar Cópia do Diário Oficial (PDF)</label>
+                            <input type="file" class="form-control form-control-sm" id="inputDouArquivo" accept=".pdf">
+                            <div class="form-text small" style="font-size: 0.72rem;">Extrato assinado digitalmente da página do DOU (máximo 15 MB).</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                        <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary fw-semibold shadow-sm">
+                            <i class="fas fa-check me-1"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: EDITAR INSTRUMENTO JURÍDICO -->
+    <div class="modal fade" id="modalEditarInstrumento" tabindex="-1" aria-labelledby="modalEditarInstrumentoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+                <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small mb-1">
+                            Aba 1 • Instrumento Jurídico
+                        </span>
+                        <h5 class="modal-title fw-bold text-primary" id="modalEditarInstrumentoLabel">
+                            <i class="fas fa-file-contract me-2"></i>Editar Instrumento Jurídico
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <form id="formEditarInstrumento">
+                    <div class="modal-body p-4">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="inputEspecie" class="form-label small fw-semibold text-muted">Espécie Normativa</label>
+                                <select class="form-select" id="inputEspecie" required>
+                                    <option value="Acordo de Parceria para P&D&I" selected>Acordo de Parceria para P&D&I (Art. 9º Lei 10.973/04)</option>
+                                    <option value="Termo de Cooperação Técnica">Termo de Cooperação Técnica</option>
+                                    <option value="Contrato de P&D&I">Contrato de P&D&I</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="inputNumeroRegistro" class="form-label small fw-semibold text-muted">Número do Registro</label>
+                                <input type="text" class="form-control" id="inputNumeroRegistro" value="Acordo nº 104/2026 - Polo INOVA" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="inputSipac" class="form-label small fw-semibold text-muted">Processo Administrativo (SIPAC)</label>
+                                <input type="text" class="form-control font-monospace" id="inputSipac" value="23443.004798/2026-01" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="inputStatusAssinatura" class="form-label small fw-semibold text-muted">Status de Assinatura</label>
+                                <select class="form-select" id="inputStatusAssinatura" required>
+                                    <option value="Assinado por todas as partes" selected>Assinado por todas as partes</option>
+                                    <option value="Em tramitação de assinaturas">Em tramitação de assinaturas</option>
+                                    <option value="Minuta em análise">Minuta em análise</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="inputCelebracao" class="form-label small fw-semibold text-muted">Data de Celebração</label>
+                                <input type="date" class="form-control" id="inputCelebracao" value="2026-02-27" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="inputInicioVigencia" class="form-label small fw-semibold text-muted">Início da Vigência</label>
+                                <input type="date" class="form-control" id="inputInicioVigencia" value="2026-03-01" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="inputFimVigencia" class="form-label small fw-semibold text-muted">Fim da Vigência</label>
+                                <input type="date" class="form-control" id="inputFimVigencia" value="2026-11-30" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                        <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary fw-semibold shadow-sm">
+                            <i class="fas fa-check me-1"></i> Salvar Instrumento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 Bundle com Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script de Reatividade e Edição em Tempo Real -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toastElement = document.getElementById('toastFeedback');
+            const toastMsg = document.getElementById('toastFeedbackMsg');
+            const bsToast = new bootstrap.Toast(toastElement, { delay: 4000 });
+
+            function showNotification(msg) {
+                toastMsg.innerText = msg;
+                bsToast.show();
+            }
+
+            // Edição da Publicação no DOU
+            const formDou = document.getElementById('formEditarDOU');
+            formDou.addEventListener('submit', function (e) {
+                e.preventDefault();
+                
+                const dataRaw = document.getElementById('inputDouData').value;
+                let dataFormatada = dataRaw;
+                if (dataRaw) {
+                    const partes = dataRaw.split('-');
+                    if (partes.length === 3) {
+                        dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                    }
+                }
+                const edicao = document.getElementById('inputDouEdicao').value;
+                const pagina = document.getElementById('inputDouPagina').value;
+                const link = document.getElementById('inputDouLink').value;
+
+                // Atualiza visualmente o DOM
+                document.getElementById('dou-data-display').innerText = dataFormatada;
+                document.getElementById('dou-edicao-display').innerText = edicao;
+                document.getElementById('dou-pagina-display').innerText = pagina;
+                const linkElem = document.getElementById('dou-link-display');
+                linkElem.innerText = link;
+                linkElem.href = link;
+
+                // Fecha o Modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarDOU'));
+                modal.hide();
+
+                // Notifica o usuário
+                showNotification('Publicação no DOU atualizada com sucesso no banco de dados!');
+            });
+
+            // Edição do Instrumento Jurídico
+            const formInstrumento = document.getElementById('formEditarInstrumento');
+            formInstrumento.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const especie = document.getElementById('inputEspecie').value;
+                const numero = document.getElementById('inputNumeroRegistro').value;
+                const sipac = document.getElementById('inputSipac').value;
+                const status = document.getElementById('inputStatusAssinatura').value;
+                const celebracaoRaw = document.getElementById('inputCelebracao').value;
+                const inicioRaw = document.getElementById('inputInicioVigencia').value;
+                const fimRaw = document.getElementById('inputFimVigencia').value;
+
+                function formatarData(raw) {
+                    if (!raw) return '';
+                    const p = raw.split('-');
+                    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : raw;
+                }
+
+                document.getElementById('display-especie').innerText = especie;
+                document.getElementById('display-numero').innerText = numero;
+                document.getElementById('display-sipac').innerText = sipac;
+                document.getElementById('display-status-assinatura').innerHTML = `<i class="fas fa-check-circle"></i> ${status}`;
+                document.getElementById('display-celebracao').innerText = formatarData(celebracaoRaw);
+                document.getElementById('display-vigencia').innerText = `${formatarData(inicioRaw)} a ${formatarData(fimRaw)}`;
+
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarInstrumento'));
+                modal.hide();
+
+                showNotification('Instrumento Jurídico atualizado com sucesso!');
+            });
+        });
+    </script>
+</body>
+</html>

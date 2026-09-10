@@ -367,7 +367,7 @@ def visualizar_projeto(request, projeto_id):
     processos = projeto.processos.select_related('tipo').order_by('-id')
     cotas = CotaBolsaPT.objects.filter(projeto=projeto).prefetch_related('termos_vinculados').order_by('perfil_funcao')
     plano_ativo = projeto.planos_trabalho.filter(ativo=True).prefetch_related(
-        'equipe', 'rubricas', 'desembolsos'
+        'equipe', 'rubricas', 'desembolsos', 'macroentregas'
     ).first()
 
     # Métricas agregadas de Orçamento (Autorização para Gastar / MCASP & Lei 4.320/64)
@@ -379,23 +379,61 @@ def visualizar_projeto(request, projeto_id):
 
     # Métricas agregadas de Financeiro (Disponibilidade e Cronograma de Desembolso)
     total_desembolsos = Decimal('0.00')
+    primeira_parcela = None
     if plano_ativo:
         total_desembolsos = plano_ativo.desembolsos.aggregate(s=Sum('valor_parcela'))['s'] or Decimal('0.00')
+        primeira_parcela = plano_ativo.desembolsos.order_by('numero_parcela').first()
 
     # Métricas de Recursos Humanos / Bolsistas
     total_vagas_cotas = sum(c.quantidade_vagas for c in cotas)
     total_bolsistas_vinculados = sum(c.termos_vinculados.count() for c in cotas)
+    equipe_membros = list(plano_ativo.equipe.all()) if plano_ativo else []
+    total_membros_equipe = len(equipe_membros)
+
+    # Métricas de Maturidade Tecnológica (TRL)
+    macroentregas = list(plano_ativo.macroentregas.all()) if plano_ativo else []
+    trls = [m.trl for m in macroentregas if m.trl is not None]
+    trl_inicial = min(trls) if trls else None
+    trl_final = max(trls) if trls else None
+
+    # Percentuais de Aportes
+    valor_global = plano_ativo.valor_global or Decimal('0.00') if plano_ativo else Decimal('0.00')
+    aporte_empresa = plano_ativo.aporte_empresa or Decimal('0.00') if plano_ativo else Decimal('0.00')
+    aporte_embrapii = plano_ativo.aporte_embrapii or Decimal('0.00') if plano_ativo else Decimal('0.00')
+    aporte_sebrae = plano_ativo.aporte_sebrae or Decimal('0.00') if plano_ativo else Decimal('0.00')
+    aporte_contrapartida = plano_ativo.aporte_contrapartida or Decimal('0.00') if plano_ativo else Decimal('0.00')
+
+    pct_empresa = (aporte_empresa / valor_global * Decimal('100.0')) if valor_global > 0 else Decimal('0.0')
+    pct_embrapii = (aporte_embrapii / valor_global * Decimal('100.0')) if valor_global > 0 else Decimal('0.0')
+    pct_sebrae = (aporte_sebrae / valor_global * Decimal('100.0')) if valor_global > 0 else Decimal('0.0')
+    pct_contrapartida = (aporte_contrapartida / valor_global * Decimal('100.0')) if valor_global > 0 else Decimal('0.0')
+
+    # Rubrica de DOAS (Taxa Administrativa FAEPI)
+    rubrica_doas = plano_ativo.rubricas.filter(categoria='SUPORTE_OPERACIONAL').first() if plano_ativo else None
+    pct_doas = (rubrica_doas.valor_previsto / valor_global * Decimal('100.0')) if (rubrica_doas and valor_global > 0) else Decimal('0.0')
 
     contexto = {
         'projeto': projeto,
         'plano_ativo': plano_ativo,
         'processos': processos,
         'cotas': cotas,
+        'equipe_membros': equipe_membros,
+        'total_membros_equipe': total_membros_equipe,
+        'macroentregas': macroentregas,
+        'trl_inicial': trl_inicial,
+        'trl_final': trl_final,
         'total_rubricas': total_rubricas,
         'saldo_orcamentario': saldo_orcamentario,
         'total_desembolsos': total_desembolsos,
+        'primeira_parcela': primeira_parcela,
         'total_vagas_cotas': total_vagas_cotas,
         'total_bolsistas_vinculados': total_bolsistas_vinculados,
+        'pct_empresa': pct_empresa,
+        'pct_embrapii': pct_embrapii,
+        'pct_sebrae': pct_sebrae,
+        'pct_contrapartida': pct_contrapartida,
+        'rubrica_doas': rubrica_doas,
+        'pct_doas': pct_doas,
     }
     return render(request, 'cadastros/visualizar_projeto.html', contexto)
 
