@@ -1,46 +1,57 @@
 {% extends 'base.html' %}
+{% block title %}Folha Mensal de Pagamentos - ARGUS{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4 mt-4">
 
-    <!-- Cabeçalho / Breadcrumb -->
-    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
-        <div class="me-3 text-primary">
-            <i class="fas fa-money-bill-wave fs-2"></i>
-        </div>
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0 small">
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'gestao_projetos:home_gestao_projetos' %}">Gestão de Projetos</a>
-                    </li>
-                    <li class="breadcrumb-item active">Folha Mensal de Pagamentos</li>
-                </ol>
-            </nav>
-            <h4 class="mb-0 fw-bold mt-1">Folha Mensal de Pagamentos de Bolsas</h4>
-            <p class="text-muted small mb-0">Acompanhamento mensal da execução financeira das parcelas por projeto e competência.</p>
-        </div>
-        <div class="ms-auto d-flex gap-2">
+    <!-- Breadcrumbs Semânticos (Padrão Almoxarifado) -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home_geral' %}" class="text-decoration-none">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'gestao_projetos:home_gestao_projetos' %}" class="text-decoration-none">Gestão de Projetos</a>
+            </li>
             {% if projeto_selecionado %}
+            <li class="breadcrumb-item">
+                <a href="{% url 'gestao_projetos:folha_mensal_pagamentos' %}?projeto_id={{ projeto_selecionado.id }}" class="text-decoration-none">{{ projeto_selecionado.nome }}</a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">Folha Mensal de Pagamentos</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <!-- Topo: Título + Ações -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold m-0 text-success">
+                <i class="fas fa-money-bill-wave me-2"></i> Folha Mensal de Pagamentos de Bolsas
+            </h4>
+            <p class="text-muted small mb-0 mt-1">Acompanhamento mensal da execução financeira das parcelas por projeto e competência.</p>
+        </div>
+        {% if projeto_selecionado %}
+        <div>
             <a href="{% url 'gestao_projetos:extrato_financeiro_projeto' projeto_selecionado.id %}"
                class="btn btn-outline-info btn-sm"
-               title="Ver Extrato Financeiro Completo do Projeto">
+               aria-label="Ver extrato financeiro completo do projeto {{ projeto_selecionado.nome }}">
                 <i class="fas fa-balance-scale me-1"></i>Extrato Financeiro
             </a>
-            {% endif %}
-            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-arrow-left me-1"></i> Voltar
-            </a>
         </div>
+        {% endif %}
     </div>
 
     <!-- Filtros -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body bg-light py-3">
-            <form method="GET" class="row g-3 align-items-end">
+    <div class="card cs-card border-0 shadow-sm mb-4">
+        <div class="card-body py-3">
+            <form method="GET" class="row g-3 align-items-end" role="search" aria-label="Filtros da folha de pagamentos">
                 <div class="col-md-6">
-                    <label for="projeto_id" class="form-label fw-semibold small mb-1">Projeto</label>
-                    <select name="projeto_id" id="projeto_id" class="form-select" onchange="this.form.submit()">
+                    <label for="projeto_id" class="form-label fw-semibold">Projeto</label>
+                    <select name="projeto_id" id="projeto_id" class="form-select"
+                            aria-label="Selecione o projeto" onchange="this.form.submit()">
                         <option value="">-- Selecione um Projeto --</option>
                         {% for p in projetos %}
                             <option value="{{ p.id }}" {% if projeto_selecionado and p.id == projeto_selecionado.id %}selected{% endif %}>
@@ -50,12 +61,13 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label for="mes_ano" class="form-label fw-semibold small mb-1">Mês de Competência</label>
-                    <input type="month" name="mes_ano" id="mes_ano" class="form-control" value="{{ mes_ano }}" onchange="this.form.submit()">
+                    <label for="mes_ano" class="form-label fw-semibold">Mês de Competência</label>
+                    <input type="month" name="mes_ano" id="mes_ano" class="form-control"
+                           value="{{ mes_ano }}" aria-label="Mês e ano de competência" onchange="this.form.submit()">
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary btn-sm w-100">
-                        <i class="fas fa-filter me-1"></i> Filtrar
+                    <button type="submit" class="btn btn-success fw-bold w-100">
+                        <i class="fas fa-filter me-1"></i>Filtrar
                     </button>
                 </div>
             </form>
@@ -64,42 +76,61 @@
 
     {% if projeto_selecionado %}
 
-    <!-- Cards de KPIs -->
+    <!-- Cards de KPIs — Ciclo da Despesa Pública (MCASP / Lei 4.320/64) -->
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100" style="background: rgba(var(--bs-primary-rgb), 0.08);">
-                <div class="card-body text-center py-3">
-                    <p class="text-muted small mb-1">Total da Folha</p>
-                    <h5 class="fw-bold text-primary mb-0">R$ {{ total_folha|floatformat:2 }}</h5>
-                    <small class="text-muted">{{ qtd_parcelas }} parcela(s)</small>
+        <!-- KPI 1: Empenho / Total da Folha -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Empenho (Total da Folha)</span>
                 </div>
+                <h3 class="fw-bold text-primary mb-0">R$ {{ total_folha|floatformat:2 }}</h3>
+                <span class="text-muted text-xs">{{ qtd_parcelas }} parcela(s) nesta competência</span>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100" style="background: rgba(var(--bs-success-rgb), 0.08);">
-                <div class="card-body text-center py-3">
-                    <p class="text-muted small mb-1">Total Liquidado</p>
-                    <h5 class="fw-bold text-success mb-0">R$ {{ total_liquidado|floatformat:2 }}</h5>
-                    <small class="text-muted">Pagamentos confirmados</small>
+
+        <!-- KPI 2: Liquidação -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Liquidado (Pago)</span>
                 </div>
+                <h3 class="fw-bold text-success mb-0">R$ {{ total_liquidado|floatformat:2 }}</h3>
+                <span class="text-muted text-xs">Pagamentos confirmados</span>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100" style="background: rgba(var(--bs-warning-rgb), 0.08);">
-                <div class="card-body text-center py-3">
-                    <p class="text-muted small mb-1">Saldo Pendente</p>
-                    <h5 class="fw-bold text-warning mb-0">R$ {{ saldo_pendente|floatformat:2 }}</h5>
-                    <small class="text-muted">Aguardando liquidação</small>
+
+        <!-- KPI 3: Saldo a Pagar -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded p-2 me-2">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Saldo a Pagar</span>
                 </div>
+                <h3 class="fw-bold text-warning mb-0">R$ {{ saldo_pendente|floatformat:2 }}</h3>
+                <span class="text-muted text-xs">Aguardando liquidação</span>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100" style="background: rgba(var(--bs-secondary-rgb), 0.08);">
-                <div class="card-body text-center py-3">
-                    <p class="text-muted small mb-1">RAs Atestados</p>
-                    <h5 class="fw-bold text-secondary mb-0">{{ qtd_ras_atestados }} / {{ qtd_parcelas }}</h5>
-                    <small class="text-muted">Aptos para pagamento</small>
+
+        <!-- KPI 4: RAs Atestados -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-info bg-opacity-10 text-info rounded p-2 me-2">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">RAs Atestados</span>
                 </div>
+                <h3 class="fw-bold text-info mb-0">{{ qtd_ras_atestados }} / {{ qtd_parcelas }}</h3>
+                <span class="text-muted text-xs">Aptos para pagamento</span>
             </div>
         </div>
     </div>
@@ -107,32 +138,26 @@
     <!-- Banner de diagnóstico de pendências -->
     {% if linhas_folha %}
     {% if qtd_ras_atestados < qtd_parcelas %}
-    <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-start gap-3" role="alert">
-        <i class="fas fa-exclamation-triangle fs-5 mt-1"></i>
+    <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-start gap-3" role="alert"
+         aria-live="polite">
+        <i class="fas fa-exclamation-triangle fs-5 mt-1" aria-hidden="true"></i>
         <div>
             <strong>Atenção — ofício parcial possível.</strong>
-            {{ qtd_parcelas|add:"-"|add:qtd_ras_atestados }} parcela(s) ainda sem RA atestado esta competência.
+            Parcela(s) ainda sem RA atestado nesta competência.
             Você pode emitir um ofício parcial agora e um ofício complementar após o atesto dos RAs pendentes.
         </div>
     </div>
     {% endif %}
     {% endif %}
 
-    {# ══════════════════════════════════════════════════════════════════
-       FORM PRINCIPAL — envolve a tabela e suporta:
-         • Gerar Ofício da Equipe (submit do formOficioEquipe interno)
-         • Liquidação em Lote (submit do formLiquidacaoLote — action diferente)
-       enctype="multipart/form-data" necessário para upload do comprovante.
-    ══════════════════════════════════════════════════════════════════ #}
-
-    <!-- Form do Ofício da Equipe (sem enctype, ação separada) -->
+    <!-- Form do Ofício da Equipe -->
     <form method="POST" action="{% url 'gestao_projetos:gerar_oficio_equipe' %}" id="formOficioEquipe">
         {% csrf_token %}
         <input type="hidden" name="projeto_id" value="{{ projeto_selecionado.id }}">
         <input type="hidden" name="mes_ano" value="{{ mes_ano }}">
     </form>
 
-    <!-- Form de Liquidação em Lote (multipart, ação do Passo 7) -->
+    <!-- Form de Liquidação em Lote -->
     <form method="POST"
           action="{% url 'gestao_projetos:liquidar_folha_lote' projeto_selecionado.id %}"
           id="formLiquidacaoLote"
@@ -140,29 +165,37 @@
         {% csrf_token %}
     </form>
 
-    <div class="card shadow-sm border-0">
+    <!-- Tabela Principal -->
+    <div class="card cs-card shadow-sm border-0 mb-5">
         <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <h5 class="mb-0 fw-bold">
                 <i class="fas fa-table me-2 text-primary"></i>
                 Folha de Pagamentos — {{ projeto_selecionado.nome }}
-                <span class="badge bg-light text-dark border ms-2 fw-normal" style="font-size: 0.8rem;">{{ mes_ano }}</span>
+                <span class="badge bg-secondary ms-2 fw-normal">{{ mes_ano }}</span>
             </h5>
             <div class="d-flex gap-2 flex-wrap">
-                {# Botão Liquidar em Lote — abre modal #}
                 <button type="button"
                         class="btn btn-sm btn-success fw-bold"
                         id="btnAbrirLote"
                         data-bs-toggle="modal"
                         data-bs-target="#modalLiquidacaoLote"
                         disabled
+                        aria-label="Liquidar parcelas selecionadas em lote"
                         title="Selecione parcelas aptas para habilitar">
                     <i class="fas fa-layer-group me-1"></i>Liquidar em Lote
-                    <span class="badge bg-white text-success ms-1 fw-bold" id="badgeQtdSelecionadas">0</span>
+                    <span class="badge bg-white text-success ms-1 fw-bold" id="badgeQtdSelecionadas"
+                          aria-live="polite">0</span>
                 </button>
-                <button type="submit" form="formOficioEquipe" class="btn btn-sm btn-primary fw-bold">
+                <button type="submit" form="formOficioEquipe"
+                        class="btn btn-sm btn-primary fw-bold"
+                        aria-label="Gerar ofício de pagamento da equipe">
                     <i class="fas fa-file-invoice me-1"></i>Gerar Ofício da Equipe
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalOficioCoordenador">
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalOficioCoordenador"
+                        aria-label="Gerar ofício de pagamento do coordenador">
                     <i class="fas fa-user-tie me-1"></i>Gerar Ofício do Coordenador
                 </button>
             </div>
@@ -170,25 +203,25 @@
 
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
-                    <thead class="table-light text-center">
+                <table class="table table-hover align-middle mb-0"
+                       aria-label="Folha de pagamentos de bolsas — {{ projeto_selecionado.nome }} — {{ mes_ano }}">
+                    <thead class="thead-argus">
                         <tr>
                             <th class="text-center" style="width:2.5rem;">
-                                {# Checkbox mestre — seleciona apenas parcelas APTAS para lote #}
                                 <input type="checkbox"
                                        id="selecionar_todos_lote"
                                        class="form-check-input"
-                                       title="Selecionar todas as parcelas aptas para liquidação em lote">
+                                       aria-label="Selecionar todas as parcelas aptas para liquidação em lote">
                             </th>
-                            <th class="text-start ps-3">Bolsista</th>
-                            <th>Cota / Perfil</th>
-                            <th>Parcela</th>
-                            <th>Valor Nominal</th>
-                            <th>Dados Bancários</th>
-                            <th>Situação RA</th>
-                            <th>Conta Pagadora</th>
-                            <th>Status / Ofício</th>
-                            <th>Ações</th>
+                            <th class="text-center">Bolsista</th>
+                            <th class="text-center">Cota / Perfil</th>
+                            <th class="text-center">Parcela</th>
+                            <th class="text-center">Valor Nominal</th>
+                            <th class="text-center">Dados Bancários</th>
+                            <th class="text-center">Situação RA</th>
+                            <th class="text-center">Conta Pagadora</th>
+                            <th class="text-center">Status / Ofício</th>
+                            <th class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -197,30 +230,27 @@
                             <!-- Checkbox de seleção para lote -->
                             <td class="text-center">
                                 {% if linha.parcela.status == 'PENDENTE' and linha.relatorio and linha.ra_status == 'CONCLUIDO' %}
-                                    {# Parcela APTA: PENDENTE + RA CONCLUIDO #}
                                     <input type="checkbox"
                                            name="parcelas_ids"
                                            value="{{ linha.parcela.id }}"
                                            class="form-check-input parcela-check-lote"
                                            data-valor="{{ linha.parcela.valor }}"
                                            form="formLiquidacaoLote"
-                                           title="{{ linha.pessoa.nome|default:'—' }} — Parcela {{ linha.parcela.numero }}">
+                                           aria-label="{{ linha.pessoa.nome|default:'Bolsista' }} — Parcela {{ linha.parcela.numero }}">
                                 {% elif linha.parcela.status == 'PAGO' %}
-                                    {# Já liquidada — checkbox bloqueado com ícone visual #}
-                                    <span title="Parcela já liquidada">
-                                        <i class="fas fa-check-circle text-success"></i>
+                                    <span title="Parcela já liquidada" aria-label="Parcela já liquidada">
+                                        <i class="fas fa-check-circle text-success" aria-hidden="true"></i>
                                     </span>
                                 {% else %}
-                                    {# Não apta (sem RA ou RA pendente) #}
                                     <input type="checkbox" class="form-check-input" disabled
-                                           title="Não apta: RA ausente ou não homologado">
+                                           aria-label="Não apta: RA ausente ou não homologado">
                                 {% endif %}
                             </td>
 
                             <!-- Bolsista -->
-                            <td class="ps-3">
-                                <strong>{{ linha.pessoa.nome|default:"—" }}</strong>
-                                <br><small class="text-muted">{{ linha.pessoa.cpf|default:"Sem CPF" }}</small>
+                            <td class="fw-bold ps-3">
+                                {{ linha.pessoa.nome|default:"—" }}
+                                <br><small class="text-muted fw-normal">{{ linha.pessoa.cpf|default:"Sem CPF" }}</small>
                             </td>
 
                             <!-- Cota -->
@@ -246,14 +276,16 @@
                                         <span class="text-muted">Ag:</span> {{ linha.dados_bancarios.agencia }}
                                         <span class="text-muted ms-1">CC:</span> {{ linha.dados_bancarios.conta }}
                                         {% if linha.dados_bancarios.chave_pix %}
-                                            <br><span class="badge bg-light text-secondary border" title="{{ linha.dados_bancarios.chave_pix }}">
-                                                <i class="fas fa-qrcode me-1"></i>PIX
+                                            <br><span class="badge bg-light text-secondary border"
+                                                       title="Chave PIX: {{ linha.dados_bancarios.chave_pix }}"
+                                                       aria-label="Chave PIX disponível">
+                                                <i class="fas fa-qrcode me-1" aria-hidden="true"></i>PIX
                                             </span>
                                         {% endif %}
                                     </small>
                                 {% else %}
-                                    <span class="badge bg-danger">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>Sem dados bancários
+                                    <span class="badge bg-danger" role="alert">
+                                        <i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>Sem dados bancários
                                     </span>
                                 {% endif %}
                             </td>
@@ -262,11 +294,12 @@
                             <td class="text-center">
                                 {% if linha.relatorio %}
                                     <a href="{% url 'gestao_projetos:visualizar_relatorio' linha.relatorio.id %}"
-                                       class="badge bg-{{ linha.ra_status_badge }} text-decoration-none">
+                                       class="badge bg-{{ linha.ra_status_badge }} text-decoration-none"
+                                       aria-label="Relatório de atividade: {{ linha.ra_status_label }}">
                                         {{ linha.ra_status_label }}
                                     </a>
                                 {% else %}
-                                    <span class="badge bg-secondary">Sem RA</span>
+                                    <span class="badge bg-secondary" aria-label="Sem relatório de atividade">Sem RA</span>
                                 {% endif %}
                             </td>
 
@@ -300,24 +333,26 @@
                                     <br>
                                     <a href="{% url 'gestao_projetos:download_oficio' linha.oficio.id %}"
                                        class="badge bg-info text-dark text-decoration-none mt-1"
-                                       title="Ofício {{ linha.oficio.numero_sequencial }}/{{ linha.oficio.ano }}">
-                                        <i class="fas fa-file-contract me-1"></i>Of. {{ linha.oficio.numero_sequencial }}/{{ linha.oficio.ano }}
+                                       aria-label="Ofício {{ linha.oficio.numero_sequencial }}/{{ linha.oficio.ano }}">
+                                        <i class="fas fa-file-contract me-1" aria-hidden="true"></i>Of. {{ linha.oficio.numero_sequencial }}/{{ linha.oficio.ano }}
                                     </a>
                                 {% endif %}
                             </td>
 
-                            <!-- Ações (confirmação individual) -->
+                            <!-- Ações -->
                             <td class="text-center">
                                 {% if linha.parcela.status != 'PAGO' and linha.parcela.status != 'CANCELADO' %}
                                     {% if not linha.tem_dados_bancarios %}
                                         <button type="button" class="btn btn-sm btn-outline-success" disabled
+                                                aria-label="Confirmar pagamento indisponível: sem dados bancários"
                                                 title="Cadastre os dados bancários antes de confirmar.">
-                                            <i class="fas fa-check-circle me-1"></i>Confirmar
+                                            <i class="fas fa-check-circle me-1" aria-hidden="true"></i>Confirmar
                                         </button>
                                     {% elif not linha.relatorio or linha.ra_status != 'CONCLUIDO' %}
                                         <button type="button" class="btn btn-sm btn-outline-success" disabled
+                                                aria-label="Confirmar pagamento indisponível: RA não atestado"
                                                 title="RA ainda não atestado — aguardando homologação SIAPE.">
-                                            <i class="fas fa-check-circle me-1"></i>Confirmar
+                                            <i class="fas fa-check-circle me-1" aria-hidden="true"></i>Confirmar
                                         </button>
                                     {% else %}
                                         <button type="button"
@@ -327,19 +362,23 @@
                                                 data-parcela-id="{{ linha.parcela.id }}"
                                                 data-parcela-num="{{ linha.parcela.numero }}"
                                                 data-bolsista="{{ linha.pessoa.nome|default:'—' }}"
-                                                data-valor="{{ linha.parcela.valor|floatformat:2 }}">
-                                            <i class="fas fa-check-circle me-1"></i>Confirmar
+                                                data-valor="{{ linha.parcela.valor|floatformat:2 }}"
+                                                aria-label="Confirmar pagamento de {{ linha.pessoa.nome|default:'bolsista' }}, parcela {{ linha.parcela.numero }}">
+                                            <i class="fas fa-check-circle me-1" aria-hidden="true"></i>Confirmar
                                         </button>
                                     {% endif %}
                                 {% elif linha.parcela.status == 'PAGO' %}
                                     <a href="{% url 'gestao_projetos:visualizar_recibo_bolsa' linha.parcela.id %}" target="_blank"
-                                       class="btn btn-sm btn-outline-secondary" title="Imprimir Recibo">
-                                        <i class="fas fa-file-invoice"></i>
+                                       class="btn btn-sm btn-outline-secondary"
+                                       aria-label="Imprimir recibo de {{ linha.pessoa.nome|default:'bolsista' }}"
+                                       title="Imprimir Recibo">
+                                        <i class="fas fa-file-invoice" aria-hidden="true"></i>
                                     </a>
                                     {% if linha.parcela.comprovante_pagamento %}
                                         <a href="{{ linha.parcela.comprovante_pagamento.url }}" target="_blank"
-                                           class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-file-pdf me-1"></i>Comprovante
+                                           class="btn btn-sm btn-outline-secondary"
+                                           aria-label="Ver comprovante de pagamento">
+                                            <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Comprovante
                                         </a>
                                     {% else %}
                                         <span class="text-muted small">—</span>
@@ -351,9 +390,9 @@
                     </tbody>
                 </table>
             </div>
-        </div>{# /card-body #}
+        </div>
 
-        {# Rodapé com resumo de seleção — visível quando há checkboxes marcados #}
+        <!-- Rodapé com resumo de seleção -->
         <div class="card-footer bg-light border-top py-2 d-none" id="footerResumoLote">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <span class="small text-muted">
@@ -363,17 +402,17 @@
                 <button type="button"
                         class="btn btn-success btn-sm fw-bold"
                         data-bs-toggle="modal"
-                        data-bs-target="#modalLiquidacaoLote">
-                    <i class="fas fa-layer-group me-1"></i>Liquidar Selecionadas em Lote
+                        data-bs-target="#modalLiquidacaoLote"
+                        aria-label="Liquidar parcelas selecionadas em lote">
+                    <i class="fas fa-layer-group me-1" aria-hidden="true"></i>Liquidar Selecionadas em Lote
                 </button>
             </div>
         </div>
-
-    </div>{# /card #}
+    </div>
 
     {% else %}
     <div class="text-center text-muted my-5 py-5">
-        <i class="fas fa-arrow-up fs-2 mb-3 opacity-50 d-block"></i>
+        <i class="fas fa-arrow-up fs-2 mb-3 opacity-50 d-block" aria-hidden="true"></i>
         <p>Selecione um projeto e o mês de competência para visualizar a folha de pagamentos.</p>
     </div>
     {% endif %}
@@ -381,61 +420,54 @@
 </div>{# /container-fluid #}
 
 {# ══════════════════════════════════════════════════════════════════════
-   MODAL — Liquidação em Lote (Passo 7)
+   MODAL — Liquidação em Lote
 ══════════════════════════════════════════════════════════════════════ #}
 <div class="modal fade" id="modalLiquidacaoLote" tabindex="-1"
-     aria-labelledby="modalLoteLabel" aria-hidden="true">
+     role="dialog"
+     aria-labelledby="modalLoteLabel" aria-modal="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title fw-bold" id="modalLoteLabel">
-                    <i class="fas fa-layer-group me-2"></i>Liquidação em Lote
+                    <i class="fas fa-layer-group me-2" aria-hidden="true"></i>Liquidação em Lote
                 </h5>
                 <button type="button" class="btn-close btn-close-white"
-                        data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        data-bs-dismiss="modal" aria-label="Fechar modal de liquidação em lote"></button>
             </div>
-
-            {# Os campos do modal são injetados no formLiquidacaoLote via target="formLiquidacaoLote" #}
             <div class="modal-body">
-
-                <div class="alert alert-info small mb-3">
-                    <i class="fas fa-info-circle me-1"></i>
+                <div class="alert alert-info small mb-3" role="note">
+                    <i class="fas fa-info-circle me-1" aria-hidden="true"></i>
                     Esta operação liquida em bloco todas as parcelas selecionadas cujos
                     <strong>Relatórios de Atividades estejam homologados (CONCLUIDO)</strong>.
-                    Um único comprovante consolidado pode ser anexado para toda a remessa.
                 </div>
-
-                {# Resumo das parcelas selecionadas #}
                 <div class="card border-success mb-3">
                     <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
                         <span class="small fw-semibold text-muted">Parcelas selecionadas</span>
-                        <span class="fw-bold text-success" id="modalResumoQtd">0 parcela(s)</span>
+                        <span class="fw-bold text-success" id="modalResumoQtd" aria-live="polite">0 parcela(s)</span>
                     </div>
                     <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center border-top">
                         <span class="small fw-semibold text-muted">Valor total a liquidar</span>
-                        <span class="fw-bold fs-5 text-success" id="modalResumoValor">R$ 0,00</span>
+                        <span class="fw-bold fs-5 text-success" id="modalResumoValor" aria-live="polite">R$ 0,00</span>
                     </div>
                 </div>
-
                 <div class="mb-3">
                     <label for="lote_data_pagamento" class="form-label fw-semibold">
-                        Data do Pagamento <span class="text-danger">*</span>
+                        Data do Pagamento <span class="text-danger" aria-label="campo obrigatório">*</span>
                     </label>
                     <input type="date"
                            name="data_pagamento"
                            id="lote_data_pagamento"
                            class="form-control"
                            required
+                           aria-required="true"
                            form="formLiquidacaoLote">
                 </div>
-
                 <div class="mb-3">
-                    <label for="lote_conta_pagamento" class="form-label fw-semibold">
-                        Conta Pagadora
-                    </label>
+                    <label for="lote_conta_pagamento" class="form-label fw-semibold">Conta Pagadora</label>
                     <select name="conta_pagamento"
                             id="lote_conta_pagamento"
                             class="form-select"
+                            aria-label="Selecione a conta pagadora"
                             form="formLiquidacaoLote">
                         <option value="">-- Nenhuma (definir depois) --</option>
                         {% if projeto_selecionado %}
@@ -448,7 +480,6 @@
                         {% endif %}
                     </select>
                 </div>
-
                 <div class="mb-3">
                     <label for="lote_comprovante" class="form-label fw-semibold">
                         Comprovante Consolidado
@@ -459,25 +490,25 @@
                            id="lote_comprovante"
                            class="form-control"
                            accept=".pdf,.png,.jpg,.jpeg"
+                           aria-describedby="lote_comprovante_help"
                            form="formLiquidacaoLote">
-                    <div class="form-text">Formatos aceitos: PDF, PNG, JPG, JPEG.</div>
+                    <div class="form-text" id="lote_comprovante_help">Formatos aceitos: PDF, PNG, JPG, JPEG.</div>
                 </div>
-
-                <div class="alert alert-warning small mb-0">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
+                <div class="alert alert-warning small mb-0" role="alert">
+                    <i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>
                     <strong>Atenção:</strong> A liquidação em lote é irreversível.
                     Parcelas com RA não homologado serão <strong>automaticamente bloqueadas</strong>
                     e a operação inteira será cancelada para preservar a integridade contábil.
                 </div>
             </div>
-
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary"
-                        data-bs-dismiss="modal">Cancelar</button>
+                        data-bs-dismiss="modal" aria-label="Cancelar liquidação em lote">Cancelar</button>
                 <button type="submit"
                         form="formLiquidacaoLote"
-                        class="btn btn-success fw-bold px-4">
-                    <i class="fas fa-layer-group me-1"></i>
+                        class="btn btn-success fw-bold px-4"
+                        aria-label="Confirmar liquidação em lote das parcelas selecionadas">
+                    <i class="fas fa-layer-group me-1" aria-hidden="true"></i>
                     Confirmar Liquidação em Lote
                 </button>
             </div>
@@ -486,34 +517,36 @@
 </div>
 
 {# ══════════════════════════════════════════════════════════════════════
-   MODAL — Confirmação de Pagamento Individual (mantido do Passo 2)
+   MODAL — Confirmação de Pagamento Individual
 ══════════════════════════════════════════════════════════════════════ #}
 <div class="modal fade" id="modalPagamento" tabindex="-1"
-     aria-labelledby="modalPagamentoLabel" aria-hidden="true"
+     role="dialog"
+     aria-labelledby="modalPagamentoLabel" aria-modal="true"
      data-url-template="{% url 'gestao_projetos:confirmar_pagamento_parcela' 0 %}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title fw-bold" id="modalPagamentoLabel">
-                    <i class="fas fa-check-circle me-2"></i>Confirmar Pagamento
+                    <i class="fas fa-check-circle me-2" aria-hidden="true"></i>Confirmar Pagamento
                 </h5>
                 <button type="button" class="btn-close btn-close-white"
-                        data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        data-bs-dismiss="modal" aria-label="Fechar modal de confirmação de pagamento"></button>
             </div>
-            <form id="formPagamento" method="POST" enctype="multipart/form-data">
+            <form id="formPagamento" method="POST" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
                 <div class="modal-body">
-                    <p class="mb-3 text-muted small" id="modalDescricao"></p>
+                    <p class="mb-3 text-muted small" id="modalDescricao" aria-live="polite"></p>
                     <div class="mb-3">
                         <label for="data_pagamento" class="form-label fw-semibold">
-                            Data do Pagamento <span class="text-danger">*</span>
+                            Data do Pagamento <span class="text-danger" aria-label="campo obrigatório">*</span>
                         </label>
                         <input type="date" name="data_pagamento" id="data_pagamento"
-                               class="form-control" required>
+                               class="form-control" required aria-required="true">
                     </div>
                     <div class="mb-3">
                         <label for="conta_pagamento_id" class="form-label fw-semibold">Conta Pagadora</label>
-                        <select name="conta_pagamento_id" id="conta_pagamento_id" class="form-select">
+                        <select name="conta_pagamento_id" id="conta_pagamento_id" class="form-select"
+                                aria-label="Selecione a conta pagadora para este pagamento">
                             <option value="">-- Nenhuma (definir depois) --</option>
                             {% for conta in contas_projeto %}
                                 <option value="{{ conta.id }}">
@@ -528,15 +561,17 @@
                             Comprovante de Pagamento
                         </label>
                         <input type="file" name="comprovante_pagamento" id="comprovante_pagamento"
-                               class="form-control" accept=".pdf,.png,.jpg,.jpeg">
-                        <div class="form-text">Formatos aceitos: PDF, PNG, JPG, JPEG.</div>
+                               class="form-control" accept=".pdf,.png,.jpg,.jpeg"
+                               aria-describedby="comprovante_help">
+                        <div class="form-text" id="comprovante_help">Formatos aceitos: PDF, PNG, JPG, JPEG.</div>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary btn-sm"
-                            data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success btn-sm fw-bold">
-                        <i class="fas fa-check me-1"></i>Confirmar Liquidação
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            data-bs-dismiss="modal" aria-label="Cancelar confirmação de pagamento">Cancelar</button>
+                    <button type="submit" class="btn btn-success btn-sm fw-bold"
+                            aria-label="Confirmar liquidação do pagamento">
+                        <i class="fas fa-check me-1" aria-hidden="true"></i>Confirmar Liquidação
                     </button>
                 </div>
             </form>
@@ -545,20 +580,21 @@
 </div>
 
 {# ══════════════════════════════════════════════════════════════════════
-   MODAL — Ofício do Coordenador (mantido do Passo 4)
+   MODAL — Ofício do Coordenador
 ══════════════════════════════════════════════════════════════════════ #}
 <div class="modal fade" id="modalOficioCoordenador" tabindex="-1"
-     aria-labelledby="modalOficioCoordenadorLabel" aria-hidden="true">
+     role="dialog"
+     aria-labelledby="modalOficioCoordenadorLabel" aria-modal="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-secondary text-white">
                 <h5 class="modal-title fw-bold" id="modalOficioCoordenadorLabel">
-                    <i class="fas fa-user-tie me-2"></i>Ofício de Pagamento do Coordenador
+                    <i class="fas fa-user-tie me-2" aria-hidden="true"></i>Ofício de Pagamento do Coordenador
                 </h5>
                 <button type="button" class="btn-close btn-close-white"
-                        data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        data-bs-dismiss="modal" aria-label="Fechar modal de ofício do coordenador"></button>
             </div>
-            <form method="POST" action="{% url 'gestao_projetos:gerar_oficio_coordenador' %}">
+            <form method="POST" action="{% url 'gestao_projetos:gerar_oficio_coordenador' %}" novalidate>
                 {% csrf_token %}
                 <input type="hidden" name="projeto_id"
                        value="{% if projeto_selecionado %}{{ projeto_selecionado.id }}{% endif %}">
@@ -566,10 +602,11 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="parcela_coordenador_id" class="form-label fw-semibold">
-                            Parcela do Coordenador <span class="text-danger">*</span>
+                            Parcela do Coordenador <span class="text-danger" aria-label="campo obrigatório">*</span>
                         </label>
                         <select name="parcela_coordenador_id" id="parcela_coordenador_id"
-                                class="form-select" required>
+                                class="form-select" required aria-required="true"
+                                aria-label="Selecione a parcela do coordenador">
                             <option value="">-- Selecione a parcela --</option>
                             {% for linha in linhas_folha %}
                                 {% if linha.relatorio and linha.ra_status == 'CONCLUIDO' and not linha.em_oficio %}
@@ -584,20 +621,22 @@
                     </div>
                     <div class="mb-3 form-check">
                         <input type="checkbox" name="coordenador_is_diretor_campus" value="1"
-                               id="coordenador_is_diretor_campus" class="form-check-input">
+                               id="coordenador_is_diretor_campus" class="form-check-input"
+                               aria-describedby="diretor_campus_help">
                         <label class="form-check-label" for="coordenador_is_diretor_campus">
                             Coordenador é <strong>Diretor-Geral de Campus</strong> do IFAM
-                            <small class="text-muted d-block">
-                                Quando marcado, o Reitor assina como Requisitante.
-                            </small>
                         </label>
+                        <div class="form-text" id="diretor_campus_help">
+                            Quando marcado, o Reitor assina como Requisitante.
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary btn-sm"
-                            data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-dark btn-sm fw-bold">
-                        <i class="fas fa-file-contract me-1"></i>Gerar Ofício
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            data-bs-dismiss="modal" aria-label="Cancelar geração do ofício do coordenador">Cancelar</button>
+                    <button type="submit" class="btn btn-dark btn-sm fw-bold"
+                            aria-label="Gerar ofício de pagamento do coordenador">
+                        <i class="fas fa-file-contract me-1" aria-hidden="true"></i>Gerar Ofício
                     </button>
                 </div>
             </form>
@@ -609,30 +648,22 @@
 (function () {
     'use strict';
 
-    // ── Helpers ──────────────────────────────────────────────────────
     function formatarReais(valor) {
         return 'R$ ' + valor.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
-    // ── Recalcula resumo de seleção para o lote ───────────────────────
     function recalcularResumoLote() {
         var checks = document.querySelectorAll('.parcela-check-lote:checked');
         var qtd = checks.length;
         var total = 0;
+        checks.forEach(function (cb) { total += parseFloat(cb.dataset.valor || '0'); });
 
-        checks.forEach(function (cb) {
-            total += parseFloat(cb.dataset.valor || '0');
-        });
-
-        // Badge no botão do cabeçalho
         var badge = document.getElementById('badgeQtdSelecionadas');
         if (badge) badge.textContent = qtd;
 
-        // Botão do cabeçalho (habilita/desabilita)
         var btnLote = document.getElementById('btnAbrirLote');
         if (btnLote) btnLote.disabled = (qtd === 0);
 
-        // Rodapé resumo
         var footer = document.getElementById('footerResumoLote');
         if (footer) footer.classList.toggle('d-none', qtd === 0);
 
@@ -642,7 +673,6 @@
         var resumoValor = document.getElementById('resumoValor');
         if (resumoValor) resumoValor.textContent = formatarReais(total);
 
-        // Resumo dentro do modal
         var modalQtd = document.getElementById('modalResumoQtd');
         if (modalQtd) modalQtd.textContent = qtd + ' parcela(s)';
 
@@ -650,7 +680,6 @@
         if (modalValor) modalValor.textContent = formatarReais(total);
     }
 
-    // ── Checkbox mestre de lote ───────────────────────────────────────
     var checkMestre = document.getElementById('selecionar_todos_lote');
     if (checkMestre) {
         checkMestre.addEventListener('change', function () {
@@ -661,11 +690,9 @@
         });
     }
 
-    // ── Checkboxes individuais de lote ────────────────────────────────
     document.querySelectorAll('.parcela-check-lote').forEach(function (cb) {
         cb.addEventListener('change', function () {
             recalcularResumoLote();
-            // Atualiza estado indeterminado do mestre
             if (checkMestre) {
                 var todos = document.querySelectorAll('.parcela-check-lote');
                 var marcados = document.querySelectorAll('.parcela-check-lote:checked');
@@ -675,7 +702,6 @@
         });
     });
 
-    // ── Modal de confirmação individual (Passo 2 — mantido) ──────────
     var modalPag = document.getElementById('modalPagamento');
     if (modalPag) {
         modalPag.addEventListener('show.bs.modal', function (event) {
@@ -685,14 +711,12 @@
             var bolsista   = btn.getAttribute('data-bolsista');
             var valor      = btn.getAttribute('data-valor');
             var urlTpl     = modalPag.getAttribute('data-url-template');
-
             document.getElementById('formPagamento').action = urlTpl.replace('0', parcelaId);
             document.getElementById('modalDescricao').textContent =
                 'Bolsista: ' + bolsista + ' | Parcela nº ' + parcelaNum + ' | Valor: R$ ' + valor;
         });
     }
 
-    // Inicializa contador (caso haja checks pré-marcados após reload parcial)
     recalcularResumoLote();
 })();
 </script>

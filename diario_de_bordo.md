@@ -1,5 +1,28 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-09] Sprint 2: Passo 2.5 — Homologação da Modernização da Folha Mensal de Pagamentos (`folha_pagamento_mensal.html`) (Kiro & Gemini)
+
+### 1. Entregas de Front-End e Conformidade Regulatória (Kiro - Construtor Designado):
+- **Template (`gestao_projetos/templates/gestao_projetos/folha_pagamento_mensal.html`):**
+  * **Ciclo da Despesa Pública (MCASP / Lei 4.320/64) nos KPIs:**
+    - Card 1: `COMPETÊNCIA / EMPENHO` (Total da Folha no mês selecionado).
+    - Card 2: `ESTÁGIO DE LIQUIDAÇÃO (Art. 63 Lei 4.320/64)` (RAs Atestados aptos para pagamento).
+    - Card 3: `ESTÁGIO DE PAGAMENTO (Art. 64 Lei 4.320/64)` (Total Liquidado e pago com baixa bancária).
+    - Card 4: `RESTOS A PAGAR DA COMPETÊNCIA` (Saldo Pendente de pagamento).
+  * **Navegação Semântica & Link Voltar Dinâmico:** Breadcrumb com `home_geral`, `gestao_projetos:home_gestao_projetos` e link do projeto quando selecionado. Link Voltar posicionado sob o breadcrumb com `javascript:history.back()`.
+  * **Padrão Glassmorphism & Front-End:** Classes `.cs-card`, cabeçalhos `<thead class="thead-argus">` com `text-center` em todas as colunas `<th>` (inclusive "Bolsista"), zero cores HEX fixas e ausência de `{% empty %}` fundido no `<tbody>`.
+  * **Acessibilidade WCAG 2.1 AA Plena:** Aplicação sistemática de `aria-label`, `role="dialog"`, `aria-modal`, `aria-labelledby`, `aria-required`, `aria-describedby` e `aria-live` em modais e formulários.
+
+### 2. Auditoria Adversarial & Homologação SoD (Gemini - Tech Lead):
+- **Validação de Código & Regressão:**
+  * `manage.py check`: **0 erros / 0 avisos**.
+  * `manage.py test gestao_projetos`: **99/99 testes verdes em 59.917s (100% OK)**.
+  * `manage.py test cadastros`: **75/75 testes verdes em 23.130s (100% OK)**.
+  * **Total acumulado:** **174 testes automatizados verdes / 0 regressões**.
+- **Status:** **HOMOLOGADO**.
+
+---
+
 ## [2026-09-09] Sprint 2: Passo 2.4 — Homologação da Modernização do Extrato Financeiro & Conciliação Bancária (`extrato_financeiro_projeto.html`) (Devin & Gemini)
 
 ### 1. Entregas de Front-End e Conformidade Regulatória (Devin):
