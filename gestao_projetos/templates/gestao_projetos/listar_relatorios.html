@@ -1,192 +1,222 @@
-<!--gestao_projetos/templates/gestao_projetos/listar_relatorios.html-->
 {% extends 'base.html' %}
+{% block title %}Relatórios de Atividades - ARGUS{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
-<!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-<style>
-    /* Ajustes finos para Select2 no Offcanvas */
-    .select2-container--bootstrap-5 .select2-selection {
-        font-size: 0.875rem;
-        min-height: calc(1.5em + 0.5rem + 2px);
-    }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <!-- Cabeçalho da Página & Estatísticas -->
-    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+<div class="container-fluid px-4 mt-4">
+
+    <!-- Breadcrumbs Semânticos (Padrão Almoxarifado) -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home_geral' %}" class="text-decoration-none">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'gestao_projetos:home_gestao_projetos' %}" class="text-decoration-none">Gestão de Projetos</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Relatórios de Atividades</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <!-- Topo: Título + Ações -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h5 class="mb-1 text-dark fw-bold">
-                <i class="fas fa-clipboard-list text-primary me-2"></i>Relatórios de Atividades
-            </h5>
-            <div class="d-flex gap-2">
-                <span class="badge bg-primary"><i class="fas fa-filter"></i> Filtrados: {{ total_relatorios }}</span>
-                <span class="badge bg-warning text-dark"><i class="fas fa-pencil-alt"></i> Rascunhos: {{ total_rascunhos }}</span>
-                <span class="badge bg-success"><i class="fas fa-check-circle"></i> Concluídos: {{ total_concluidos }}</span>
-            </div>
+            <h4 class="fw-bold m-0 text-success">
+                <i class="fas fa-clipboard-list me-2"></i> Relatórios de Atividades
+                <span class="badge bg-secondary fs-6 ms-2 align-middle">{{ total_relatorios }} listados</span>
+            </h4>
+            <p class="text-muted small mb-0 mt-1">Lista mestra de entregas — controle do ciclo de prestação de contas.</p>
         </div>
-        <div>
-            <a href="{% url 'gestao_projetos:criar_relatorio' %}" class="btn btn-primary btn-sm me-2" title="Gerar Novo Relatório de Atividades">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'gestao_projetos:criar_relatorio' %}"
+               class="btn btn-success fw-bold shadow-sm"
+               aria-label="Gerar novo Relatório de Atividades">
                 <i class="fas fa-plus me-1"></i> Gerar RA
             </a>
-            <a href="{% url 'gestao_projetos:listar_relatorios' %}?clear=1" class="btn btn-outline-danger btn-sm me-2" onclick="if(typeof table !== 'undefined'){ table.state.clear(); }" title="Limpar Filtros e Pesquisa">
+            <a href="{% url 'gestao_projetos:listar_relatorios' %}?clear=1"
+               class="btn btn-outline-danger btn-sm"
+               aria-label="Limpar todos os filtros aplicados">
                 <i class="fas fa-eraser me-1"></i> Limpar Filtros
             </a>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros">
+            <button class="btn btn-outline-secondary btn-sm"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasFiltros"
+                    aria-controls="offcanvasFiltros"
+                    aria-label="Abrir painel de filtros e ações">
                 <i class="fas fa-sliders-h me-1"></i> Filtros e Ações
             </button>
         </div>
     </div>
 
-    <!-- Offcanvas de Filtros e Ações -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFiltros" aria-labelledby="offcanvasFiltrosLabel">
-        <div class="offcanvas-header bg-light border-bottom">
-            <h6 class="offcanvas-title fw-bold text-secondary" id="offcanvasFiltrosLabel"><i class="fas fa-sliders-h me-2"></i> Filtros e Ações</h6>
-            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+    <!-- Cards de KPIs (Ciclo de Liquidação — Art. 63 Lei 4.320/64) -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Total Filtrado</span>
+                </div>
+                <h3 class="fw-bold text-primary mb-0">{{ total_relatorios }}</h3>
+                <span class="text-muted text-xs">Relatórios na seleção atual</span>
+            </div>
         </div>
-        <div class="offcanvas-body">
-            <form method="GET" class="d-flex flex-column gap-3">
-                <h6 class="fw-bold text-dark mb-0 border-bottom pb-1">Ações em Lote</h6>
-                <button type="submit" formaction="{% url 'gestao_projetos:exportar_relatorios_zip' %}" class="btn btn-success btn-sm w-100 text-start">
-                    <i class="fas fa-file-archive me-2"></i> Exportar Lote (ZIP)
-                </button>
-                
-                <h6 class="fw-bold text-dark mt-3 mb-0 border-bottom pb-1">Filtros de Busca</h6>
-                <div>
-                    <label class="form-label text-muted small mb-1 fw-bold">Bolsista (Termo)</label>
-                    <select name="termo" class="form-select form-select-sm select2-multi" multiple="multiple" data-placeholder="Todos os bolsistas">
-                        {% for termo in termos %}
-                            <option value="{{ termo.id }}" {% if termo.id|stringformat:"s" in filtro_termo %}selected{% endif %}>
-                                {{ termo.bolsista }}
-                            </option>
-                        {% endfor %}
-                    </select>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded p-2 me-2">
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Pendentes</span>
                 </div>
-                <div>
-                    <label class="form-label text-muted small mb-1 fw-bold">Parcela</label>
-                    <select name="parcela" class="form-select form-select-sm select2-multi" multiple="multiple" data-placeholder="Todas">
-                        <option value="1" {% if "1" in filtro_parcela %}selected{% endif %}>Parcela 1</option>
-                        <option value="2" {% if "2" in filtro_parcela %}selected{% endif %}>Parcela 2</option>
-                        <option value="3" {% if "3" in filtro_parcela %}selected{% endif %}>Parcela 3</option>
-                        <option value="4" {% if "4" in filtro_parcela %}selected{% endif %}>Parcela 4</option>
-                        <option value="5" {% if "5" in filtro_parcela %}selected{% endif %}>Parcela 5</option>
-                        <option value="6" {% if "6" in filtro_parcela %}selected{% endif %}>Parcela 6</option>
-                    </select>
+                <h3 class="fw-bold text-warning mb-0">{{ total_rascunhos }}</h3>
+                <span class="text-muted text-xs">Aguardando atesto SIAPE</span>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Concluídos / Atestados</span>
                 </div>
-                <div>
-                    <label class="form-label text-muted small mb-1 fw-bold">Status</label>
-                    <select name="status" class="form-select form-select-sm select2-multi" multiple="multiple" data-placeholder="Todos">
-                        <option value="PENDENTE" {% if "PENDENTE" in filtro_status %}selected{% endif %}>Pendente</option>
-                        <option value="CONCLUIDO" {% if "CONCLUIDO" in filtro_status %}selected{% endif %}>Concluído</option>
-                    </select>
-                </div>
-                <input type="hidden" name="filter_applied" value="1">
-                <div class="mt-2 d-flex gap-2">
-                    <a href="{% url 'gestao_projetos:listar_relatorios' %}?clear=1" class="btn btn-outline-secondary btn-sm w-50 text-center">
-                        <i class="fas fa-eraser"></i> Limpar
-                    </a>
-                    <button type="submit" class="btn btn-primary btn-sm w-50 text-center">
-                        <i class="fas fa-search"></i> Aplicar
-                    </button>
-                </div>
-            </form>
-            
-            <hr class="my-4">
-            
-            <h6 class="fw-bold text-danger mb-2 border-bottom pb-1 border-danger">Zona de Perigo</h6>
-            <form method="POST" action="{% url 'gestao_projetos:excluir_todos_relatorios' %}" onsubmit="return confirm('ATENÇÃO: Você tem certeza que deseja APAGAR TODOS OS RELATÓRIOS gerados do sistema? Esta ação não pode ser desfeita!');">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger btn-sm w-100 text-start">
-                    <i class="fas fa-trash-alt me-2"></i> Excluir Todos
-                </button>
-            </form>
+                <h3 class="fw-bold text-success mb-0">{{ total_concluidos }}</h3>
+                <span class="text-muted text-xs">Aptos para liquidação</span>
+            </div>
         </div>
     </div>
 
-    <!-- Tabela de Relatórios -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-light fw-bold text-secondary d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- Tabela Principal -->
+    <div class="card cs-card shadow-sm border-0 mb-5">
+        <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-3">
-                <div>
-                    <span class="text-dark me-1">Resultados da Fila</span>
-                    <span class="small text-muted d-none d-xl-inline fw-normal">| Controle de entregas</span>
-                </div>
-                <!-- Divisor e Controle de Quantidade -->
+                <span class="fw-bold text-dark">Fila de Entregas</span>
+                <span class="small text-muted d-none d-xl-inline fw-normal">| Controle de prestação de contas</span>
                 <div class="d-none d-md-flex align-items-center border-start ps-3" id="dt-length-control"></div>
             </div>
-            <!-- Controle de Pesquisa isolado -->
             <div id="dt-search-control" class="bg-white border rounded px-2 py-1 shadow-sm"></div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table id="tabela-relatorios" class="table table-hover table-striped mb-0 align-middle small w-100">
-                    <thead class="table-dark">
+                <table id="tabela-relatorios"
+                       class="table table-hover align-middle mb-0 w-100"
+                       aria-label="Lista mestra de Relatórios de Atividades">
+                    <thead class="thead-argus">
                         <tr>
-                            <th class="py-3">Convênio / Projeto</th>
-                            <th class="py-3">Bolsista</th>
-                            <th class="py-3 text-center">Parcela</th>
-                            <th class="py-3 text-center">Período de Execução</th>
-                            <th class="py-3 text-center">CH Período</th>
-                            <th class="py-3 text-center">Status</th>
-                            <th class="py-3 text-center pe-4">Ações</th>
+                            <th class="text-center">Projeto / Instrumento</th>
+                            <th class="text-center">Bolsista</th>
+                            <th class="text-center">Parcela</th>
+                            <th class="text-center">Período de Execução</th>
+                            <th class="text-center">CH Período</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for relatorio in relatorios %}
                         <tr>
-                            <td>
+                            <!-- Projeto / Instrumento (sem "Convênio") -->
+                            <td class="fw-bold ps-3">
                                 {% if relatorio.termo_bolsa %}
-                                    <span class="fw-bold text-dark">{{ relatorio.termo_bolsa.cota_pt.projeto.convenio }}</span><br>
-                                    <span class="text-muted" style="font-size: 0.8rem;">{{ relatorio.termo_bolsa.cota_pt.projeto.nome|truncatechars:40 }}</span>
+                                    {% with projeto=relatorio.termo_bolsa.cota_pt.projeto %}
+                                        {% if projeto.termos_parceria.first %}
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle small mb-1">
+                                                {{ projeto.termos_parceria.first.numero }}
+                                            </span><br>
+                                        {% endif %}
+                                        <span class="small text-dark">{{ projeto.nome|truncatechars:45 }}</span>
+                                    {% endwith %}
                                 {% else %}
-                                    <span class="fw-bold text-dark">{{ relatorio.bolsista.projeto.convenio }}</span><br>
-                                    <span class="text-muted" style="font-size: 0.8rem;">{{ relatorio.bolsista.projeto.nome|truncatechars:40 }}</span>
+                                    <span class="text-muted small">—</span>
                                 {% endif %}
                             </td>
-                            <td>
+
+                            <!-- Bolsista -->
+                            <td class="text-center">
                                 {% if relatorio.termo_bolsa %}
-                                    <div class="fw-bold">{{ relatorio.termo_bolsa.bolsista }}</div>
+                                    <div class="fw-bold">{{ relatorio.termo_bolsa.pessoa.nome|default:"—" }}</div>
                                     <small class="text-muted">Termo {{ relatorio.termo_bolsa.numero_termo }}</small>
                                 {% else %}
-                                    <div class="fw-bold">{{ relatorio.bolsista.nome_completo }}</div>
-                                    <small class="text-muted">Termo {{ relatorio.bolsista.termo_bolsa }}</small>
+                                    <span class="text-muted">—</span>
                                 {% endif %}
                             </td>
+
+                            <!-- Parcela -->
                             <td class="text-center">
-                                <span class="badge bg-secondary rounded-pill">
-                                    Parcela {{ relatorio.parcela_referencia.numero }} de {% if relatorio.termo_bolsa %}{{ relatorio.termo_bolsa.quantidade_parcelas }}{% else %}{{ relatorio.bolsista.total_parcelas_previstas|default:'?' }}{% endif %}
+                                <span class="badge bg-secondary rounded-pill"
+                                      title="Parcela {{ relatorio.parcela_referencia.numero }}">
+                                    {{ relatorio.parcela_referencia.numero }}
+                                    {% if relatorio.termo_bolsa %}/ {{ relatorio.termo_bolsa.quantidade_parcelas }}{% endif %}
                                 </span>
                             </td>
+
+                            <!-- Período de Execução -->
                             <td class="text-center">
                                 {{ relatorio.periodo_inicio|date:"d/m/Y" }} a {{ relatorio.periodo_fim|date:"d/m/Y" }}
                             </td>
-                            <td class="text-center">
+
+                            <!-- CH Período -->
+                            <td class="text-center fw-bold">
                                 {{ relatorio.carga_horaria_periodo }}h
                             </td>
+
+                            <!-- Status -->
                             <td class="text-center">
                                 {% if relatorio.status == 'PENDENTE' %}
-                                    <span class="badge bg-warning text-dark px-2 py-1">Pendente</span>
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1" aria-hidden="true"></i>Pendente
+                                    </span>
+                                {% elif relatorio.status == 'EM_ANALISE' %}
+                                    <span class="badge bg-info text-dark">
+                                        <i class="fas fa-search me-1" aria-hidden="true"></i>Em Análise
+                                    </span>
                                 {% else %}
-                                    <span class="badge bg-success px-2 py-1">Concluído</span>
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1" aria-hidden="true"></i>Concluído
+                                    </span>
                                 {% endif %}
                             </td>
-                            <td class="text-end pe-4 text-center">
-                                <a href="{% url 'gestao_projetos:visualizar_relatorio' relatorio.id %}" class="btn btn-sm btn-outline-info" title="Visualizar">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{% url 'gestao_projetos:alterar_relatorio' relatorio.id %}" class="btn btn-sm btn-outline-primary ms-1" title="Alterar/Upload">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'gestao_projetos:baixar_relatorio_docx' relatorio.id %}" class="btn btn-sm btn-outline-success ms-1" title="Baixar DOCX">
-                                    <i class="fas fa-download"></i>
-                                </a>
-                                <a href="{% url 'gestao_projetos:excluir_relatorio' relatorio.id %}" class="btn btn-sm btn-outline-danger px-2 ms-1" title="Excluir Relatório" onclick="return confirm('Tem certeza que deseja excluir este relatório específico?');">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
+
+                            <!-- Ações: CRUD Completo -->
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="{% url 'gestao_projetos:visualizar_relatorio' relatorio.id %}"
+                                       class="btn btn-sm btn-outline-info"
+                                       title="Visualizar Relatório"
+                                       aria-label="Visualizar relatório de {{ relatorio.termo_bolsa.pessoa.nome|default:'bolsista' }}">
+                                        <i class="fas fa-eye" aria-hidden="true"></i>
+                                    </a>
+                                    <a href="{% url 'gestao_projetos:alterar_relatorio' relatorio.id %}"
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="Editar / Upload"
+                                       aria-label="Editar relatório de {{ relatorio.termo_bolsa.pessoa.nome|default:'bolsista' }}">
+                                        <i class="fas fa-edit" aria-hidden="true"></i>
+                                    </a>
+                                    <a href="{% url 'gestao_projetos:baixar_relatorio_docx' relatorio.id %}"
+                                       class="btn btn-sm btn-outline-success"
+                                       title="Baixar DOCX"
+                                       aria-label="Baixar DOCX do relatório">
+                                        <i class="fas fa-file-word" aria-hidden="true"></i>
+                                    </a>
+                                    <a href="{% url 'gestao_projetos:excluir_relatorio' relatorio.id %}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       title="Excluir Relatório"
+                                       aria-label="Excluir relatório de {{ relatorio.termo_bolsa.pessoa.nome|default:'bolsista' }}"
+                                       onclick="return confirm('Tem certeza que deseja excluir este relatório?');">
+                                        <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -195,63 +225,166 @@
             </div>
         </div>
     </div>
+
+</div>{# /container-fluid #}
+
+<!-- Offcanvas de Filtros e Ações -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFiltros"
+     aria-labelledby="offcanvasFiltrosLabel">
+    <div class="offcanvas-header bg-white border-bottom">
+        <h6 class="offcanvas-title fw-bold" id="offcanvasFiltrosLabel">
+            <i class="fas fa-sliders-h me-2" aria-hidden="true"></i> Filtros e Ações
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
+                aria-label="Fechar painel de filtros"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form method="GET" class="d-flex flex-column gap-3">
+
+            <h6 class="fw-bold text-dark mb-0 border-bottom pb-1">Ações em Lote</h6>
+            <button type="submit"
+                    formaction="{% url 'gestao_projetos:exportar_relatorios_zip' %}"
+                    class="btn btn-success btn-sm w-100 text-start"
+                    aria-label="Exportar relatórios filtrados em arquivo ZIP">
+                <i class="fas fa-file-archive me-2" aria-hidden="true"></i> Exportar Lote (ZIP)
+            </button>
+
+            <h6 class="fw-bold text-dark mt-3 mb-0 border-bottom pb-1">Filtros de Busca</h6>
+
+            <div>
+                <label for="filtro-termo" class="form-label fw-semibold small mb-1">Bolsista (Termo)</label>
+                <select id="filtro-termo" name="termo"
+                        class="form-select form-select-sm select2-multi"
+                        multiple="multiple"
+                        aria-label="Filtrar por bolsista"
+                        data-placeholder="Todos os bolsistas">
+                    {% for termo in termos %}
+                        <option value="{{ termo.id }}"
+                            {% if termo.id|stringformat:"s" in filtro_termo %}selected{% endif %}>
+                            {{ termo.pessoa.nome|default:termo }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="filtro-parcela" class="form-label fw-semibold small mb-1">Parcela</label>
+                <select id="filtro-parcela" name="parcela"
+                        class="form-select form-select-sm select2-multi"
+                        multiple="multiple"
+                        aria-label="Filtrar por número de parcela"
+                        data-placeholder="Todas">
+                    {% for n in "123456" %}
+                        <option value="{{ n }}" {% if n in filtro_parcela %}selected{% endif %}>
+                            Parcela {{ n }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="filtro-status" class="form-label fw-semibold small mb-1">Status</label>
+                <select id="filtro-status" name="status"
+                        class="form-select form-select-sm select2-multi"
+                        multiple="multiple"
+                        aria-label="Filtrar por status do relatório"
+                        data-placeholder="Todos">
+                    <option value="PENDENTE"
+                        {% if "PENDENTE" in filtro_status %}selected{% endif %}>Pendente</option>
+                    <option value="EM_ANALISE"
+                        {% if "EM_ANALISE" in filtro_status %}selected{% endif %}>Em Análise</option>
+                    <option value="CONCLUIDO"
+                        {% if "CONCLUIDO" in filtro_status %}selected{% endif %}>Concluído</option>
+                </select>
+            </div>
+
+            <input type="hidden" name="filter_applied" value="1">
+            <div class="mt-2 d-flex gap-2">
+                <a href="{% url 'gestao_projetos:listar_relatorios' %}?clear=1"
+                   class="btn btn-outline-secondary btn-sm w-50 text-center"
+                   aria-label="Limpar todos os filtros">
+                    <i class="fas fa-eraser" aria-hidden="true"></i> Limpar
+                </a>
+                <button type="submit"
+                        class="btn btn-success btn-sm w-50 fw-bold text-center"
+                        aria-label="Aplicar filtros selecionados">
+                    <i class="fas fa-search" aria-hidden="true"></i> Aplicar
+                </button>
+            </div>
+        </form>
+
+        <hr class="my-4">
+
+        <h6 class="fw-bold text-danger mb-2 border-bottom pb-1 border-danger">Zona de Perigo</h6>
+        <form method="POST"
+              action="{% url 'gestao_projetos:excluir_todos_relatorios' %}"
+              onsubmit="return confirm('ATENÇÃO: Deseja APAGAR TODOS OS RELATÓRIOS? Esta ação não pode ser desfeita!');">
+            {% csrf_token %}
+            <button type="submit"
+                    class="btn btn-outline-danger btn-sm w-100 text-start"
+                    aria-label="Excluir todos os relatórios do sistema">
+                <i class="fas fa-trash-alt me-2" aria-hidden="true"></i> Excluir Todos
+            </button>
+        </form>
+    </div>
 </div>
 {% endblock %}
 
-
-
 {% block extra_js %}
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-<!-- Select2 JS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    $(document).ready(function() {
-        // Inicializar Select2 Multi-select com tema Bootstrap 5
-        $('.select2-multi').select2({
-            theme: 'bootstrap-5',
-            allowClear: true,
-            width: '100%',
-            dropdownParent: $('#offcanvasFiltros') // Evitar bugs de z-index do offcanvas
-        });
+$(document).ready(function () {
 
-        var table = $('#tabela-relatorios').DataTable({
-            "stateSave": true,
-            "language": {
-                "url": "https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json"
-            },
-            "order": [[1, "asc"]],
-            "columnDefs": [
-                { "orderable": false, "targets": [6] }
-            ],
-            "dom": "<'row d-none'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                   "<'row'<'col-sm-12'tr>>" +
-                   "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            "initComplete": function() {
-                var wrapper = $('#tabela-relatorios_wrapper');
-                
-                // Mover os controles para o cabeçalho separados
-                wrapper.find('.dataTables_length').appendTo('#dt-length-control').addClass('mb-0');
-                
-                var filter = wrapper.find('.dataTables_filter');
-                filter.appendTo('#dt-search-control').addClass('mb-0');
-                
-                // Adicionar ícone visual de lupa e limpar o label
-                var filterLabel = filter.find('label');
-                filterLabel.prepend('<i class="fas fa-search text-primary me-2"></i>');
-                
-                // Limpar estilos padrões que quebram o layout flex
-                $('#dt-length-control label, #dt-search-control label').addClass('mb-0 fw-normal small text-nowrap d-flex align-items-center');
-                
-                // Estilizar inputs
-                $('#dt-length-control select').removeClass('form-control-sm form-select-sm').addClass('form-select form-select-sm d-inline-block w-auto mx-2 bg-light');
-                $('#dt-search-control input').removeClass('form-control-sm').addClass('form-control form-control-sm border-0 shadow-none bg-transparent d-inline-block w-auto ms-1').attr('placeholder', 'Digite para buscar...');
-                
-                // Remove the empty top row created by DataTables
-                wrapper.find('.row').first().remove();
-            }
-        });
+    // Select2 dentro do offcanvas
+    $('.select2-multi').select2({
+        theme: 'bootstrap-5',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#offcanvasFiltros')
     });
+
+    var table = $('#tabela-relatorios').DataTable({
+        stateSave: true,
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json' },
+        order: [[1, 'asc']],
+        pageLength: 25,
+        columnDefs: [
+            { orderable: false, targets: [6] }
+        ],
+        dom: "<'row d-none'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+             "<'row'<'col-sm-12'tr>>" +
+             "<'row p-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        initComplete: function () {
+            var wrapper = $('#tabela-relatorios_wrapper');
+
+            wrapper.find('.dataTables_length')
+                .appendTo('#dt-length-control')
+                .addClass('mb-0');
+
+            var filter = wrapper.find('.dataTables_filter');
+            filter.appendTo('#dt-search-control').addClass('mb-0');
+            filter.find('label').prepend('<i class="fas fa-search text-primary me-2"></i>');
+
+            $('#dt-length-control label, #dt-search-control label')
+                .addClass('mb-0 fw-normal small text-nowrap d-flex align-items-center');
+
+            $('#dt-length-control select')
+                .removeClass('form-control-sm form-select-sm')
+                .addClass('form-select form-select-sm d-inline-block w-auto mx-2 bg-light');
+
+            $('#dt-search-control input')
+                .removeClass('form-control-sm')
+                .addClass('form-control form-control-sm border-0 shadow-none bg-transparent d-inline-block w-auto ms-1')
+                .attr('placeholder', 'Buscar na tabela...')
+                .attr('aria-label', 'Buscar relatórios na tabela');
+
+            wrapper.find('.row').first().remove();
+        }
+    });
+});
 </script>
 {% endblock %}

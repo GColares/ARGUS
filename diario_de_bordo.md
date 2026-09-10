@@ -1,5 +1,39 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-09] Sprint 2: Passo 2.6 — Homologação da Modernização da Lista Mestra de Relatórios de Atividades (`listar_relatorios.html`) (Kiro & Gemini)
+
+### 1. Entregas de Front-End e Conformidade Regulatória (Kiro - Construtor Designado):
+- **Template (`gestao_projetos/templates/gestao_projetos/listar_relatorios.html`):**
+  * **Padrão Almoxarifado Completo:**
+    - Container padrão `container-fluid px-4 mt-4`.
+    - Breadcrumb semântico de 3 níveis: `Home` (`home_geral`) > `Gestão de Projetos` (`gestao_projetos:home_gestao_projetos`) > `Relatórios de Atividades`.
+    - Link Voltar dinâmico padronizado sob o breadcrumb com `javascript:history.back()`.
+    - Cabeçalho Flexbox com Título, Badge de contagem (`{{ total_relatorios }} listados`) e subtítulo de governança do Art. 63 da Lei 4.320/64.
+  * **Ontologia Canônica de Instrumentos Jurídicos:**
+    - Veto total ao termo "Convênio": cabeçalho da primeira coluna renomeado para `Projeto / Instrumento`.
+    - Remoção das propriedades legadas `projeto.convenio` no corpo da tabela, substituídas por badge dinâmico do `termo_parceria` e `projeto.nome`.
+  * **Cards de KPIs Glassmorphism (`.cs-card`):**
+    - Card 1: `TOTAL FILTRADO` (Volume atual na seleção).
+    - Card 2: `PENDENTES` (Aguardando atesto técnico SIAPE).
+    - Card 3: `CONCLUÍDOS / ATESTADOS` (Estágio de liquidação concluído - aptos para pagamento).
+  * **Tabela Padrão-Ouro & Ações CRUD:**
+    - Cabeçalho `<thead class="thead-argus">` com `text-center` em todas as colunas `<th>`.
+    - Preservação integral do CRUD: Visualizar, Alterar/Upload, Baixar DOCX e Excluir com modal de confirmação.
+    - Offcanvas de filtros com botões de ação em lote (ZIP) e Zona de Perigo devidamente mantidos.
+  * **Acessibilidade WCAG 2.1 AA:**
+    - `{% block title %}Relatórios de Atividades - ARGUS{% endblock %}` inserido para identificação de página.
+    - `aria-label` adicionados em todos os botões de ação, offcanvas, controles de filtro e links de ação da tabela.
+
+### 2. Auditoria Adversarial & Homologação SoD (Gemini - Tech Lead):
+- **Validação de Código & Regressão:**
+  * `manage.py check`: **0 erros / 0 avisos**.
+  * `manage.py test gestao_projetos`: **99/99 testes verdes em 62.382s (100% OK)**.
+  * `manage.py test cadastros`: **75/75 testes verdes em 25.576s (100% OK)**.
+  * **Total acumulado:** **174 testes automatizados verdes / 0 regressões**.
+- **Status:** **HOMOLOGADO**.
+
+---
+
 ## [2026-09-09] Sprint 2: Passo 2.5 — Homologação da Modernização da Folha Mensal de Pagamentos (`folha_pagamento_mensal.html`) (Kiro & Gemini)
 
 ### 1. Entregas de Front-End e Conformidade Regulatória (Kiro - Construtor Designado):
