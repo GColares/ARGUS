@@ -79,7 +79,15 @@ if (-not (git diff --cached --quiet)) {
     Invoke-CheckedCommand "Criando commit..." { git commit -m $msg }
 } else {
     Write-Host "Nenhuma alteração para commitar." -ForegroundColor DarkYellow
+$currentBranch = (git branch --show-current).Trim()
+$hasUpstream = (git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null)
+
+if ($hasUpstream) {
+    Invoke-CheckedCommand "Atualizando a branch antes do envio..." { git pull --rebase }
+    Invoke-CheckedCommand "Enviando para o GitHub..." { git push }
+} else {
+    Invoke-CheckedCommand "Publicando e enviando a nova branch ($currentBranch) para o GitHub..." {
+        git push -u origin $currentBranch
+    }
 }
-Invoke-CheckedCommand "Atualizando a branch antes do envio..." { git pull --rebase }
-Invoke-CheckedCommand "Enviando para o GitHub..." { git push }
 Write-Host "Tudo salvo e enviado! Bom descanso e até amanhã!" -ForegroundColor Green
