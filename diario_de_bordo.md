@@ -1,5 +1,39 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-10] Sprint 2: Passo 2.8 — Homologação da Modernização da Lista Mestra de Termos de Concessão de Bolsa (`listar_termos_bolsa.html`) (Kiro & Gemini)
+
+### 1. Entregas de Front-End e Conformidade Regulatória (Kiro - Construtor Designado):
+- **Backend (`gestao_projetos/views.py`):**
+  * Otimização da view `listar_termos_bolsa`: inclusão de `'pessoa'` no `select_related('cota_pt__projeto', 'pessoa')`, eliminando overhead de queries N+1 para dados do bolsista.
+  * Injeção de 4 KPIs dinâmicos no contexto: `total_termos`, `termos_ativos`, `termos_encerrados`, `termos_outros`.
+- **Template (`gestao_projetos/templates/gestao_projetos/listar_termos_bolsa.html`):**
+  * **Padrão Almoxarifado Completo:**
+    - Container padrão `container-fluid px-4 mt-4`.
+    - Breadcrumb semântico de 3 níveis: `Home` (`home_geral`) > `Gestão de Projetos` (`gestao_projetos:home_gestao_projetos`) > `Termos de Concessão de Bolsa`.
+    - Link Voltar dinâmico padronizado imediatamente sob o breadcrumb com `javascript:history.back()`.
+  * **Ontologia Canônica & Correção de Atributos:**
+    - Veto ao termo obsoleto "Convênio": cabeçalho da coluna atualizado para `Projeto / Termo de Parceria`.
+    - Correção estrutural do loop: acesso à pessoa física ajustado para `termo.pessoa.nome` e `termo.pessoa.cpf` (o modelo `TermoBolsa` não possui atributo `bolsista`).
+  * **Cards de KPIs Glassmorphism (`.cs-card`):**
+    - 4 Cards com ícones FontAwesome: Total de Termos, Ativos/Empenhados (Art. 58 Lei 4.320/64), Encerrados e Outros (Substituídos/Cancelados).
+  * **Tabela DataTables & Padrão-Ouro:**
+    - Cabeçalhos `<thead class="thead-argus">` com `text-center` em todas as colunas `<th>`.
+    - **Regra Pétrea de Renderização:** Remoção definitiva do bloco `{% empty %}` de dentro de `<tbody>`, permitindo renderização nativa pelo DataTables pt-BR.
+    - Configuração do DataTables com ordenação por atualização descrescente e exclusão de ordenação na coluna de Ações.
+  * **Acessibilidade WCAG 2.1 AA:**
+    - `{% block title %}Termos de Concessão de Bolsa - ARGUS{% endblock %}` inserido.
+    - `aria-label` descritivos no botão de edição e na tag `<table>`.
+
+### 2. Auditoria Adversarial & Homologação SoD (Gemini - Tech Lead):
+- **Validação de Código & Regressão:**
+  * `manage.py check`: **0 erros / 0 avisos (System check identified no issues)**.
+  * `manage.py test gestao_projetos`: **99/99 testes verdes em 55.491s (100% OK)**.
+  * `manage.py test cadastros`: **75/75 testes verdes em 22.785s (100% OK)**.
+  * **Total acumulado:** **174 testes automatizados verdes / 0 regressões**.
+- **Status:** **HOMOLOGADO**.
+
+---
+
 ## [2026-09-09] Sprint 2: Passo 2.7 — Homologação da Modernização da Visualização e Atesto do Relatório de Atividades (`visualizar_relatorio.html`) (Kiro & Gemini)
 
 ### 1. Entregas de Front-End e Conformidade Regulatória (Kiro - Construtor Designado):

@@ -890,10 +890,22 @@ def relatorio_orcamento_financeiro(request):
 @login_required
 def listar_termos_bolsa(request):
     from cadastros.models import TermoBolsa
-    termos = TermoBolsa.objects.all().select_related('cota_pt__projeto').order_by('-vigencia_inicio')
-    
+    termos = TermoBolsa.objects.all().select_related(
+        'cota_pt__projeto', 'pessoa'
+    ).order_by('-vigencia_inicio')
+
+    # KPIs de governança contratual
+    total_termos = termos.count()
+    termos_ativos = termos.filter(status='ATIVO').count()
+    termos_encerrados = termos.filter(status='ENCERRADO').count()
+    termos_outros = termos.filter(status__in=['SUBSTITUIDO', 'CANCELADO']).count()
+
     return render(request, 'gestao_projetos/listar_termos_bolsa.html', {
         'termos': termos,
+        'total_termos': total_termos,
+        'termos_ativos': termos_ativos,
+        'termos_encerrados': termos_encerrados,
+        'termos_outros': termos_outros,
     })
 
 @login_required

@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% block title %}Termos de Concessão de Bolsa - ARGUS{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 {% endblock %}
@@ -6,26 +8,104 @@
 {% block content %}
 <div class="container-fluid px-4 mt-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <a href="{% url 'gestao_projetos:home_gestao_projetos' %}" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
-                <i class="fas fa-arrow-left me-1"></i> Voltar para Home de Projetos
-            </a>
-            <h3 class="fw-bold text-primary"><i class="fas fa-file-signature me-2"></i> Termos de Bolsa</h3>
-            <p class="text-muted small mb-0">Listagem de contratos (termos) dos bolsistas associados às Cotas dos Projetos.</p>
+    <!-- Breadcrumbs Semânticos (Padrão Almoxarifado) -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+                <a href="{% url 'home_geral' %}" class="text-decoration-none">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'gestao_projetos:home_gestao_projetos' %}" class="text-decoration-none">Gestão de Projetos</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Termos de Concessão de Bolsa</li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <!-- Topo: Título -->
+    <div class="mb-4">
+        <h4 class="fw-bold m-0 text-success">
+            <i class="fas fa-file-signature me-2"></i> Termos de Concessão de Bolsa
+            <span class="badge bg-secondary fs-6 ms-2 align-middle">{{ total_termos }} registros</span>
+        </h4>
+        <p class="text-muted small mb-0 mt-1">
+            Instrumentos contratuais formais — Estágio 2 (Empenho / Art. 58 Lei 4.320/64).
+        </p>
+    </div>
+
+    <!-- Cards de KPIs (Glassmorphism .cs-card) -->
+    <div class="row g-3 mb-4">
+        <!-- KPI 1: Total -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                        <i class="fas fa-file-contract" aria-hidden="true"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Total de Termos</span>
+                </div>
+                <h3 class="fw-bold text-primary mb-0">{{ total_termos }}</h3>
+                <span class="text-muted text-xs">Instrumentos cadastrados</span>
+            </div>
+        </div>
+
+        <!-- KPI 2: Ativos (Empenhados) -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                        <i class="fas fa-check-circle" aria-hidden="true"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Ativos (Empenhados)</span>
+                </div>
+                <h3 class="fw-bold text-success mb-0">{{ termos_ativos }}</h3>
+                <span class="text-muted text-xs">Obrigações formais vigentes</span>
+            </div>
+        </div>
+
+        <!-- KPI 3: Encerrados (Concluídos) -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-secondary bg-opacity-10 text-secondary rounded p-2 me-2">
+                        <i class="fas fa-history" aria-hidden="true"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Encerrados (Concluídos)</span>
+                </div>
+                <h3 class="fw-bold text-secondary mb-0">{{ termos_encerrados }}</h3>
+                <span class="text-muted text-xs">Vigências finalizadas</span>
+            </div>
+        </div>
+
+        <!-- KPI 4: Outros (Substituídos/Cancelados) -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card cs-card border-0 shadow-sm p-3 h-100">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded p-2 me-2">
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                    </div>
+                    <span class="fw-bold text-dark small text-uppercase">Outros (Subst./Cancelados)</span>
+                </div>
+                <h3 class="fw-bold text-warning mb-0">{{ termos_outros }}</h3>
+                <span class="text-muted text-xs">Substituídos ou cancelados</span>
+            </div>
         </div>
     </div>
 
-    <!-- Tabela de Termos -->
-    <div class="card shadow-sm border-0 mb-4">
+    <!-- Tabela de Termos com DataTables -->
+    <div class="card cs-card shadow-sm border-0 mb-5">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table id="tabela-termos" class="table table-hover align-middle mb-0 w-100">
-                    <thead class="table-light">
+                <table id="tabela-termos"
+                       class="table table-hover align-middle mb-0 w-100"
+                       aria-label="Lista mestra de Termos de Concessão de Bolsa">
+                    <thead class="thead-argus">
                         <tr>
-                            <th class="ps-4">Termo</th>
-                            <th>Bolsista</th>
-                            <th>Projeto (Convênio)</th>
+                            <th class="text-center ps-4">Termo</th>
+                            <th class="text-center">Bolsista</th>
+                            <th class="text-center">Projeto / Termo de Parceria</th>
                             <th class="text-center">Vigência</th>
                             <th class="text-center">Parcelas</th>
                             <th class="text-center">Status</th>
@@ -36,15 +116,15 @@
                     <tbody>
                         {% for termo in termos %}
                         <tr>
-                            <td class="ps-4 fw-bold">
+                            <td class="ps-4 fw-bold text-center">
                                 {{ termo.numero_termo }}
                             </td>
-                            <td>
-                                {{ termo.bolsista.nome }}<br>
-                                <small class="text-muted">CPF: {{ termo.bolsista.cpf }}</small>
+                            <td class="text-center">
+                                <div class="fw-bold">{{ termo.pessoa.nome|default:"Não atribuído" }}</div>
+                                <small class="text-muted">CPF: {{ termo.pessoa.cpf|default:"—" }}</small>
                             </td>
-                            <td>
-                                {{ termo.cota_pt.projeto.nome }}<br>
+                            <td class="text-center">
+                                <div class="fw-bold">{{ termo.cota_pt.projeto.nome }}</div>
                                 <small class="text-muted">Cota: {{ termo.cota_pt.perfil_funcao }}</small>
                             </td>
                             <td class="text-center">
@@ -52,37 +132,40 @@
                                 <span class="d-block small text-muted">até</span>
                                 <span class="d-block small">{{ termo.vigencia_fim|date:"d/m/Y" }}</span>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center fw-bold">
                                 {{ termo.quantidade_parcelas }}
                             </td>
                             <td class="text-center">
                                 {% if termo.status == 'ATIVO' %}
-                                    <span class="badge bg-success">Ativo</span>
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1" aria-hidden="true"></i>Ativo
+                                    </span>
                                 {% elif termo.status == 'ENCERRADO' %}
-                                    <span class="badge bg-secondary">Encerrado</span>
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-history me-1" aria-hidden="true"></i>Encerrado
+                                    </span>
                                 {% elif termo.status == 'SUBSTITUIDO' %}
-                                    <span class="badge bg-warning text-dark">Substituído</span>
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-exchange-alt me-1" aria-hidden="true"></i>Substituído
+                                    </span>
                                 {% else %}
-                                    <span class="badge bg-danger">Cancelado</span>
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1" aria-hidden="true"></i>Cancelado
+                                    </span>
                                 {% endif %}
                             </td>
                             <td class="text-center">
                                 <span class="d-block small">{{ termo.atualizado_em|date:"d/m/Y H:i" }}</span>
                             </td>
                             <td class="text-center pe-4">
-                                <a href="#" class="btn btn-sm btn-outline-info" title="Visualizar Detalhes" onclick="alert('Função em desenvolvimento!'); return false;">
-                                    <i class="fas fa-search"></i>
-                                </a>
-                                <a href="{% url 'gestao_projetos:editar_termo_bolsa' termo.id %}" class="btn btn-sm btn-outline-primary ms-1" title="Editar Termo">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
-                                <p class="mb-0">Nenhum Termo de Bolsa cadastrado no sistema.</p>
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="{% url 'gestao_projetos:editar_termo_bolsa' termo.id %}"
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="Editar Termo de Bolsa"
+                                       aria-label="Editar termo de {{ termo.pessoa.nome|default:'bolsista' }}">
+                                        <i class="fas fa-edit" aria-hidden="true"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -91,22 +174,23 @@
             </div>
         </div>
     </div>
+
 </div>
-
-
-
 {% endblock %}
+
 {% block extra_js %}
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#tabela-termos').DataTable({
-            "language": {
-                "url": "https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json"
-            },
-            "order": [[6, "desc"]] // Order by Última Modificação (Column index 6)
+            language: { url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/pt-BR.json' },
+            order: [[6, 'desc']],
+            pageLength: 25,
+            columnDefs: [
+                { orderable: false, targets: [7] }
+            ],
+            dom: '<"row p-3"<"col-md-6"l><"col-md-6"f>>rt<"row p-3"<"col-md-6"i><"col-md-6"p>>'
         });
     });
 </script>
