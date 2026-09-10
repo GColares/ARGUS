@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% block title %}Extrato Financeiro - {{ projeto.nome }} - ARGUS{% endblock %}
 
 {% block content %}
 <style>
@@ -45,7 +46,13 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1 small">
             <li class="breadcrumb-item">
+                <a href="{% url 'home_geral' %}">Home</a>
+            </li>
+            <li class="breadcrumb-item">
                 <a href="{% url 'gestao_projetos:home_gestao_projetos' %}">Gestão de Projetos</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'cadastros:visualizar_projeto' projeto.id %}">{{ projeto.nome }}</a>
             </li>
             <li class="breadcrumb-item active">Extrato Financeiro</li>
         </ol>
@@ -69,13 +76,17 @@
             <span class="badge bg-secondary">
                 <i class="fas fa-list me-1"></i>{{ qtd_movimentacoes }} movimentações
             </span>
-            <a href="{% url 'gestao_projetos:exportar_recibos_lote_zip' projeto.id %}" class="btn btn-outline-primary btn-sm" title="Baixar todos os recibos liquidados (PAGO) em lote">
+            <a href="{% url 'gestao_projetos:exportar_recibos_lote_zip' projeto.id %}" 
+               class="btn btn-outline-primary btn-sm" 
+               title="Baixar todos os recibos liquidados (PAGO) em lote"
+               aria-label="Exportar todos os recibos liquidados em arquivo ZIP">
                 <i class="fas fa-file-archive me-1"></i>Exportar Recibos (ZIP)
             </a>
             <button class="btn btn-outline-secondary btn-sm"
                     data-bs-toggle="collapse"
                     data-bs-target="#gaveta-filtros"
-                    aria-expanded="{% if conta_filtrada or data_inicio_filtro or data_fim_filtro %}true{% else %}false{% endif %}">
+                    aria-expanded="{% if conta_filtrada or data_inicio_filtro or data_fim_filtro %}true{% else %}false{% endif %}"
+                    aria-label="Abrir gaveta de filtros avançados">
                 <i class="fas fa-filter me-1"></i>Filtros
             </button>
         </div>
@@ -113,11 +124,13 @@
                                value="{{ data_fim_filtro|date:'Y-m-d' }}">
                     </div>
                     <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <button type="submit" class="btn btn-primary btn-sm w-100"
+                                aria-label="Aplicar filtros de conta e data">
                             <i class="fas fa-search me-1"></i>Filtrar
                         </button>
                         <a href="{% url 'gestao_projetos:extrato_financeiro_projeto' projeto.id %}"
-                           class="btn btn-outline-secondary btn-sm">
+                           class="btn btn-outline-secondary btn-sm"
+                           aria-label="Limpar filtros e resetar visualização">
                             <i class="fas fa-times"></i>
                         </a>
                     </div>
@@ -140,6 +153,7 @@
                         <div>
                             <p class="text-muted small mb-0 fw-semibold text-uppercase"
                                style="font-size:.72rem; letter-spacing:.04em;">Total de Aportes</p>
+                            <p class="text-muted small mb-0" style="font-size:.68rem;">SUBSISTEMA ORÇAMENTÁRIO</p>
                             <h5 class="fw-bold mb-0 text-success">
                                 R$ {{ total_aportes|floatformat:2 }}
                             </h5>
@@ -179,6 +193,7 @@
                         <div>
                             <p class="text-muted small mb-0 fw-semibold text-uppercase"
                                style="font-size:.72rem; letter-spacing:.04em;">Total Desembolsado</p>
+                            <p class="text-muted small mb-0" style="font-size:.68rem;">SUBSISTEMA FINANCEIRO</p>
                             <h5 class="fw-bold mb-0 text-danger">
                                 R$ {{ total_desembolsos|floatformat:2 }}
                             </h5>
@@ -203,6 +218,7 @@
                         <div>
                             <p class="text-muted small mb-0 fw-semibold text-uppercase"
                                style="font-size:.72rem; letter-spacing:.04em;">Saldo Comprometido</p>
+                            <p class="text-muted small mb-0" style="font-size:.68rem;">ESTÁGIO DE EMPENHO / RESERVA</p>
                             <h5 class="fw-bold mb-0 text-warning">
                                 R$ {{ saldo_comprometido|floatformat:2 }}
                             </h5>
@@ -221,14 +237,20 @@
             <div class="card kpi-card shadow-sm border-0 h-100">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="kpi-icon-wrap"
-                             style="background: rgba(var(--bs-{% if saldo_disponivel >= 0 %}info{% else %}danger{% endif %}-rgb), 0.12);">
-                            <i class="fas fa-wallet text-{% if saldo_disponivel >= 0 %}info{% else %}danger{% endif %}"></i>
+                        {% if saldo_disponivel >= 0 %}
+                        <div class="kpi-icon-wrap" style="background: rgba(var(--bs-info-rgb), 0.12);">
+                            <i class="fas fa-wallet text-info"></i>
                         </div>
+                        {% else %}
+                        <div class="kpi-icon-wrap" style="background: rgba(var(--bs-danger-rgb), 0.12);">
+                            <i class="fas fa-wallet text-danger"></i>
+                        </div>
+                        {% endif %}
                         <div>
                             <p class="text-muted small mb-0 fw-semibold text-uppercase"
                                style="font-size:.72rem; letter-spacing:.04em;">Saldo Disponível</p>
-                            <h5 class="fw-bold mb-0 text-{% if saldo_disponivel >= 0 %}info{% else %}danger{% endif %}">
+                            <p class="text-muted small mb-0" style="font-size:.68rem;">DISPONIBILIDADE LÍQUIDA</p>
+                            <h5 class="fw-bold mb-0 {% if saldo_disponivel >= 0 %}text-info{% else %}text-danger{% endif %}">
                                 R$ {{ saldo_disponivel|floatformat:2 }}
                             </h5>
                         </div>
@@ -331,7 +353,8 @@
                                         <a href="{{ mov.link_recibo }}"
                                            class="btn btn-outline-success btn-sm"
                                            title="Ver Recibo"
-                                           target="_blank">
+                                           target="_blank"
+                                           aria-label="Visualizar recibo da parcela">
                                             <i class="fas fa-receipt"></i>
                                         </a>
                                     {% else %}

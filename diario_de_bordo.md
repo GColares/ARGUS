@@ -1,5 +1,28 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-09] Sprint 2: Passo 2.4 — Homologação da Modernização do Extrato Financeiro & Conciliação Bancária (`extrato_financeiro_projeto.html`) (Devin & Gemini)
+
+### 1. Entregas de Front-End e Conformidade Regulatória (Devin):
+- **Template (`gestao_projetos/templates/gestao_projetos/extrato_financeiro_projeto.html`):**
+  * **Segregação Canônica Orçamento vs. Financeiro (MCASP / Lei 4.320/64):**
+    - Rótulo explícito `SUBSISTEMA ORÇAMENTÁRIO` no Card de Total de Aportes (Dotação / Previsão do Plano de Trabalho).
+    - Rótulo explícito `SUBSISTEMA FINANCEIRO` no Card de Total Desembolsado (Baixa Efetiva em Conta Bancária / Status PAGO).
+    - Rótulo explícito `ESTÁGIO DE EMPENHO / RESERVA` no Card de Saldo Comprometido (Parcelas Pendentes, Em Análise e Aprovadas).
+    - Rótulo explícito `DISPONIBILIDADE LÍQUIDA` no Card de Saldo Disponível (Aportes − Desembolsos − Comprometido).
+  * **Navegação & Breadcrumb:** Trilha canônica completa com rota `home_geral`, `gestao_projetos:home_gestao_projetos` e link direto para os detalhes do projeto (`cadastros:visualizar_projeto`).
+  * **Acessibilidade WCAG 2.1 AA:** Inserção de `aria-label` descritivos no botão de exportação ZIP em lote, gaveta de filtros avançados, botões de ação do formulário (filtrar e limpar) e links para visualização de recibos.
+  * **Design & Glassmorphism:** Cards com efeito `.kpi-card`, ausência de interpolações no CSS inline, estilização via variáveis Bootstrap 5.3 e cabeçalhos de tabela centralizados (`text-center`).
+
+### 2. Auditoria Adversarial & Homologação Técnica (Gemini - Tech Lead):
+- **Validação de Código & Regressão:**
+  * `manage.py check`: **0 erros / 0 avisos**.
+  * `manage.py test gestao_projetos`: **99/99 testes verdes em 59.765s (100% OK)**.
+  * `manage.py test cadastros`: **75/75 testes verdes em 24.877s (100% OK)**.
+  * **Total acumulado:** **174 testes automatizados verdes / 0 regressões**.
+- **Status:** **HOMOLOGADO**.
+
+---
+
 ## [2026-09-09] Sprint 2: Passo 2.3 — Homologação do Painel de Cotas & Contas Bancárias (`relatorio_orcamento_financeiro.html`) (Devin, Kiro & Gemini)
 
 ### 1. Entregas de Front-End e Otimização ORM (Devin):
