@@ -1642,7 +1642,16 @@ class ConvenioCreateView(SuccessMessageMixin, CreateView):
     template_name = 'cadastros/convenio_form.html'
     def get_success_url(self):
         return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
-    success_message = 'Termo de parceria criado com sucesso.'
+    success_message = 'Instrumento criado com sucesso.'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        especie = self.kwargs.get('especie')
+        if especie == 'acordos-parceria':
+            initial['tipo_instrumento'] = 'ACORDO_PARCERIA'
+        elif especie == 'convenios':
+            initial['tipo_instrumento'] = 'CONVENIO'
+        return initial
 
     def form_valid(self, form):
         try:
