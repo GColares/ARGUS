@@ -1538,6 +1538,13 @@ class TermoCooperacaoCreateView(CreateView):
     def get_success_url(self):
         return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
 
+    def get_initial(self):
+        initial = super().get_initial()
+        tipo_fk = self.request.GET.get('tipo_fk')
+        if tipo_fk:
+            initial['tipo_instrumento_fk'] = tipo_fk
+        return initial
+
 class TermoCooperacaoUpdateView(UpdateView):
     model = TermoCooperacao
     form_class = TermoCooperacaoForm
@@ -1651,6 +1658,11 @@ class ConvenioCreateView(SuccessMessageMixin, CreateView):
             initial['tipo_instrumento'] = 'ACORDO_PARCERIA'
         elif especie == 'convenios':
             initial['tipo_instrumento'] = 'CONVENIO'
+        
+        tipo_fk = self.request.GET.get('tipo_fk')
+        if tipo_fk:
+            initial['tipo_instrumento_fk'] = tipo_fk
+            
         return initial
 
     def form_valid(self, form):

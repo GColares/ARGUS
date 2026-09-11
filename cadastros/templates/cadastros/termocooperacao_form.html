@@ -18,6 +18,7 @@
         </div>
         <div class="card-body p-4">
             <form method="post" enctype="multipart/form-data">
+                    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
                 {% csrf_token %}
                 
                 <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-file-contract me-2"></i> Identificação</h5>

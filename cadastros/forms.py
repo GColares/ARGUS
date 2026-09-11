@@ -110,12 +110,14 @@ class TipoInstrumentoJuridicoForm(forms.ModelForm):
         }
 
 
+
 class ConvenioForm(forms.ModelForm):
     class Meta:
         model = Convenio
-        fields = ['tipo_instrumento', 'numero', 'objeto', 'concedente', 'convenente', 'interveniente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim']
+        fields = ['tipo_instrumento_fk', 'tipo_instrumento', 'numero', 'objeto', 'concedente', 'convenente', 'interveniente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim']
         widgets = {
-            'tipo_instrumento': forms.Select(attrs={'class': 'form-select form-select-lg'}),
+            'tipo_instrumento_fk': forms.Select(attrs={'class': 'form-select form-select-lg'}),
+            'tipo_instrumento': forms.Select(attrs={'class': 'form-select'}),
             'numero': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Opcional (Ex: AP nº 001/2026)'}),
             'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Objeto do Termo de Parceria...'}),
             'concedente': forms.Select(attrs={'class': 'form-select form-select-lg'}),
@@ -420,8 +422,9 @@ class TermoCooperacaoForm(forms.ModelForm):
 
     class Meta:
         model = TermoCooperacao
-        fields = ['concedente', 'convenente', 'objeto', 'valor_global', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim', 'arquivo_pdf', 'ativo']
+        fields = ['tipo_instrumento_fk', 'concedente', 'convenente', 'objeto', 'valor_global', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim', 'arquivo_pdf', 'ativo']
         widgets = {
+            'tipo_instrumento_fk': forms.HiddenInput(),
             'concedente': forms.Select(attrs={'class': 'form-select'}),
             'convenente': forms.Select(attrs={'class': 'form-select'}),
             'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descreva o objeto do termo de cooperação'}),

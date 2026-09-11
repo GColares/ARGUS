@@ -1,0 +1,60 @@
+<div class="modal fade" id="modalNovoInstrumento" tabindex="-1" aria-labelledby="modalNovoInstrumentoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold" id="modalNovoInstrumentoLabel"><i class="fas fa-file-contract me-2"></i>Selecione o Tipo de Instrumento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formNovoInstrumento">
+                    <div class="mb-3">
+                        <label for="selectTipoInstrumento" class="form-label fw-semibold">Tipo do Instrumento</label>
+                        <select class="form-select" id="selectTipoInstrumento" required>
+                            <option value="">Selecione...</option>
+                            {% for t in tipos %}
+                                {% if t.sigla == 'TC' %}
+                                    <option value="termos-cooperacao" data-tipo-id="{{ t.id }}">{{ t.nome }}</option>
+                                {% elif t.sigla == 'AP' %}
+                                    <option value="acordos-parceria" data-tipo-id="{{ t.id }}">{{ t.nome }}</option>
+                                {% elif t.sigla == 'CONV' or t.sigla == 'CV' %}
+                                    <option value="convenios" data-tipo-id="{{ t.id }}">{{ t.nome }}</option>
+                                {% else %}
+                                    <option value="instrumentos-gerais" data-tipo-id="{{ t.id }}">{{ t.nome }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger fw-bold shadow-sm" id="btnContinuarInstrumento">Continuar <i class="fas fa-arrow-right ms-1"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnContinuar = document.getElementById('btnContinuarInstrumento');
+    const select = document.getElementById('selectTipoInstrumento');
+    
+    if(btnContinuar && select) {
+        btnContinuar.addEventListener('click', function() {
+            if(select.value) {
+                const selectedOption = select.options[select.selectedIndex];
+                const tipoId = selectedOption.getAttribute('data-tipo-id');
+                // The base url is /cadastros/instrumentos-juridicos/<especie>/novo/
+                let baseUrl = "{% url 'cadastros:cadastrar_instrumento' especie='ESPECIE_PLACEHOLDER' %}";
+                baseUrl = baseUrl.replace('ESPECIE_PLACEHOLDER', select.value);
+                window.location.href = baseUrl + "?tipo_fk=" + tipoId;
+            } else {
+                select.classList.add('is-invalid');
+            }
+        });
+        
+        select.addEventListener('change', function() {
+            if(select.value) select.classList.remove('is-invalid');
+        });
+    }
+});
+</script>

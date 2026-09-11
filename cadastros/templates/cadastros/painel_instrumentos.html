@@ -29,29 +29,9 @@
             <a href="{% url 'cadastros:cadastrar_tipo_instrumento' %}" class="btn btn-outline-secondary fw-bold shadow-sm">
                 <i class="fas fa-tags me-1"></i> Novo Tipo
             </a>
-            <div class="dropdown">
-                <button class="btn btn-danger fw-bold shadow-sm dropdown-toggle" type="button" id="btnNovoInstrumento" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-plus me-1"></i> Novo Instrumento
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2" aria-labelledby="btnNovoInstrumento">
-                    <li>
-                        <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:cadastrar_instrumento' especie='acordos-parceria' %}">
-                            <i class="fas fa-handshake text-danger me-2"></i> Acordo de Parceria PD&amp;I
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:cadastrar_instrumento' especie='convenios' %}">
-                            <i class="fas fa-file-alt text-primary me-2"></i> Convênio
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider my-1"></li>
-                    <li>
-                        <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:cadastrar_instrumento' especie='termos-cooperacao' %}">
-                            <i class="fas fa-file-signature text-warning me-2"></i> Termo de Cooperação Técnica
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <button class="btn btn-danger fw-bold shadow-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalNovoInstrumento">
+                <i class="fas fa-plus me-1"></i> Novo Instrumento
+            </button>
         </div>
     </div>
 
@@ -610,3 +590,4 @@
     }
 </style>
 {% endblock %}
+{% include 'cadastros/modal_novo_instrumento.html' %}

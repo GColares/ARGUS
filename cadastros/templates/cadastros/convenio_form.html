@@ -34,7 +34,8 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Tipo de Instrumento</label>
-                        {{ form.tipo_instrumento }}
+                        {{ form.tipo_instrumento_fk }}
+                        <div class="d-none">{{ form.tipo_instrumento }}</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Número (opcional)</label>
