@@ -16,7 +16,8 @@
   * Inclusão dos campos formais `vigencia_inicio` e `vigencia_fim` em `InstrumentoJuridicoBase` e `TermoDeParceria`.
   * Inclusão do campo formal `data_assinatura` em `TermoCooperacao`.
   * Criação de propriedades inteligentes `@property get_vigencia_inicio` e `@property get_vigencia_fim` com fallback automatizado para os Planos de Trabalho homologados e Projetos PDI.
-  * Execução de rotina de backfill populando os registros existentes no banco.
+- **Alinhamento Conceitual de Nascimento do Projeto PDI (`cadastros/modelos/Conceito Projeto_PDI.txt`):**
+  * Formalização das três âncoras documentais do ciclo de vida: (1) Instrumento Jurídico (start do relógio no SIPAC/DOU), (2) Plano de Trabalho (com 1 e somente 1 orçamento válido por vez e esteira de pareceres de RH e Coordenação) e (3) Proposta Comercial da Fundação de Apoio (fechamento orçamentário externo).
 
 ---
 

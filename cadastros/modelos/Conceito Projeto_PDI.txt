@@ -1,1 +1,12 @@
-Conceito: O Projeto_PDI é uma entidade
+O Projeto_PDI é uma entidade que é composta essencialmente dos documentos:
+
+1. Instrumento Jurídico: atualmente o Acordo de Parceria é a espécie de instrumento jurídico, que é uma entidade no MER, utilizado para formalizar o ajuste entre as pessoas jurídicas, esse documento segue modelos das minutas da AGU e sofre as adaptações de contexto institucional e ao caso concreto. O instrumento jurídico nasce e tramita no SIPAC e, quando é assinado, estabelece o start no relógio do projeto para início da execução do plano de trabalho. O ARGUS deve permitir o cadastro desse artefato e sua vinculação ao projeto, para que este entre em modo de execução, sem um instrumento jurídico vinculado um projeto pode no máximo estar em modo de prospecção. Um instrumento jurídico além de estar assinado deve estar publicado no diário oficial da união.
+
+
+2. Plano de Trabalho: O plano de trabalho é uma entidade no MER que se materializa em um artefato documental o qual reúne os elementos listados no arquivo "para se criar um projetoPDI preciso", C:\ARGUS\cadastros\modelos. Embora o item 15, Orçamento, apareça como um campo, ele deve ser tratado como uma entidade que se relaciona com 1 e somente 1 plano de trabalho, o Plano de Trabalho tem apenas 1 orçamento válido por vez, tanto o Orçamento quando o Plano de Trabalho costumam sofrer mudanças no decorrer da execução do projeto. Pelo diagrama que estou te enviando, quero te mostrar outros documentos que exsitem e que podem estar no ARGUS, principalmente os pareceres do RH e da Coordenação de Projetos do Polo. Quem sabe futuramente, PPGI e NIT possam ter acesso ao ARGUS.
+
+
+
+3. Proposta Comercial da Fundação de Apoio: Documento externo da instituição indispensável para a finalização do orçamento do projeto. Deve ser cadastrada e vinculada ao projeto, acredito que é uma entidade no MER muito semelhante ao Instrumento Jurídico.
+
+
