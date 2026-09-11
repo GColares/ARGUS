@@ -122,7 +122,7 @@ class InstrumentoJuridicoBase(models.Model):
     TIPO_INSTRUMENTO_CHOICES = [
         ('CONVENIO', 'Convênio de P&D&I (Legado)'),
         ('ACORDO_PARCERIA', 'Acordo de Parceria para P&D&I (Marco Legal CT&I)'),
-        ('TERMO_COOPERACAO', 'Termo de Cooperação / Acordo Guarda-Chuva'),
+        ('TERMO_COOPERACAO', 'Termo de Cooperação'),
         ('NDA', 'Acordo de Confidencialidade e Sigilo'),
         ('STE', 'Prestação de Serviços Técnicos Especializados'),
         ('LICENCIAMENTO', 'Contrato de Licenciamento / Transferência de Tecnologia'),
@@ -372,7 +372,7 @@ class Fornecedor(PessoaJuridica):
 # =====================================================================
 class TermoCooperacao(models.Model):
     """
-    Termos de Cooperação / Acordos Guarda-Chuva.
+    Termos de Cooperação Técnica e Parcerias Estratégicas.
     """
     numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo")
     concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_cooperacao_concedidos', verbose_name="Parceiro")
@@ -415,7 +415,7 @@ class Programa(models.Model):
     """
     Subdivisão ou linha de fomento dentro de um Termo de Cooperação (Ex: PDC 2025).
     """
-    termo_cooperacao = models.ForeignKey(TermoCooperacao, on_delete=models.CASCADE, related_name='programas', verbose_name="Termo de Cooperação (Guarda-Chuva)")
+    termo_cooperacao = models.ForeignKey(TermoCooperacao, on_delete=models.CASCADE, related_name='programas', verbose_name="Termo de Cooperação")
     nome = models.CharField(max_length=255, verbose_name="Nome do Programa (Ex: PDC 2025)")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição do Programa")
     ativo = models.BooleanField(default=True)
@@ -444,7 +444,7 @@ class ProjetoPDI(models.Model):
     convenente = models.ForeignKey('ICT', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_conveniados', verbose_name="Convenente (ICT Executora)")
     interveniente = models.ForeignKey('FundacaoApoio', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_intervenientes', verbose_name="Interveniente (Fundação de Apoio)")
     
-    programa = models.ForeignKey(Programa, on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_vinculados', verbose_name="Programa (Acordo Mestre / Guarda-Chuva)")
+    programa = models.ForeignKey(Programa, on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_vinculados', verbose_name="Programa de Fomento")
 
     
     processo = models.CharField(
