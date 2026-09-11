@@ -189,7 +189,7 @@
                                 <th class="text-center" style="width: 180px;">Tipo de Instrumento</th>
                                 <th class="text-center">Partícipes Envolvidos</th>
                                 <th class="text-center">Objeto Resumido</th>
-                                <th class="text-center" style="width: 140px;">Data / Vigência</th>
+                                <th class="text-center" style="width: 200px;">Data / Vigência</th>
                                 <th class="text-center" style="width: 110px;">Status</th>
                                 <th class="text-center" style="width: 150px;">Ações</th>
                             </tr>
@@ -263,14 +263,20 @@
 
                                     <!-- Data / Vigência -->
                                     <td class="text-center small">
+                                        {% if item.vigencia_inicio or item.vigencia_fim %}
+                                            <div class="fw-bold text-dark">
+                                                {{ item.vigencia_inicio|date:"d/m/Y"|default:"-" }} a {{ item.vigencia_fim|date:"d/m/Y"|default:"-" }}
+                                                {% if item.is_prorrogado %}
+                                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning text-xs ms-1" title="Vigência prorrogada por Termo Aditivo">Aditivado</span>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Vigência não informada</span>
+                                        {% endif %}
                                         {% if item.data_assinatura %}
-                                            <div><i class="far fa-calendar-alt text-muted me-1"></i> {{ item.data_assinatura|date:"d/m/Y" }}</div>
-                                        {% endif %}
-                                        {% if item.vigencia_fim %}
-                                            <div class="text-xs text-muted mt-1">Até {{ item.vigencia_fim|date:"d/m/Y" }}</div>
-                                        {% endif %}
-                                        {% if not item.data_assinatura and not item.vigencia_fim %}
-                                            <span class="text-muted">Não informada</span>
+                                            <div class="text-xs text-muted mt-1">
+                                                <i class="far fa-calendar-check me-1"></i> Assinado em {{ item.data_assinatura|date:"d/m/Y" }}
+                                            </div>
                                         {% endif %}
                                     </td>
 

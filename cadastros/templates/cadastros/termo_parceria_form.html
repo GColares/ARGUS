@@ -31,17 +31,25 @@
                 {% endif %}
 
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label fw-bold">Tipo de Instrumento</label>
                         {{ form.tipo_instrumento }}
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label fw-bold">Número (opcional)</label>
                         {{ form.numero }}
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Data de Assinatura</label>
                         {{ form.data_assinatura }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Início da Vigência</label>
+                        {{ form.vigencia_inicio }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Fim da Vigência</label>
+                        {{ form.vigencia_fim }}
                     </div>
                     <div class="col-md-12">
                         <label class="form-label fw-bold">Concedente (Empresa/Parceiro)</label>

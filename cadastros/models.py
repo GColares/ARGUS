@@ -167,6 +167,8 @@ class InstrumentoJuridicoBase(models.Model):
     numero = models.CharField(max_length=50, unique=True, blank=True, null=True, verbose_name="Número do Instrumento")
     objeto = models.TextField(blank=True, null=True, verbose_name="Objeto / Descrição")
     data_assinatura = models.DateField(blank=True, null=True, verbose_name="Data de Assinatura")
+    vigencia_inicio = models.DateField(blank=True, null=True, verbose_name="Início da Vigência")
+    vigencia_fim = models.DateField(blank=True, null=True, verbose_name="Fim da Vigência")
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
 
     class Meta:
@@ -192,6 +194,31 @@ class TermoDeParceria(InstrumentoJuridicoBase):
 
     def __str__(self):
         return f"{self.numero or 'Sem Número'} ({self.concedente.sigla or self.concedente.nome_fantasia or self.concedente.nome})"
+
+    @property
+    def get_vigencia_inicio(self):
+        if self.vigencia_inicio:
+            return self.vigencia_inicio
+        plano = self.planos_homologados.filter(ativo=True).first()
+        if plano and plano.data_inicio:
+            return plano.data_inicio
+        if self.projeto and self.projeto.vigencia_inicio:
+            return self.projeto.vigencia_inicio
+        return None
+
+    @property
+    def get_vigencia_fim(self):
+        ultimo_aditivo = self.aditivos.filter(nova_data_fim__isnull=False).order_by('-nova_data_fim').first()
+        if ultimo_aditivo and ultimo_aditivo.nova_data_fim:
+            return ultimo_aditivo.nova_data_fim
+        if self.vigencia_fim:
+            return self.vigencia_fim
+        plano = self.planos_homologados.filter(ativo=True).first()
+        if plano and plano.data_fim:
+            return plano.data_fim
+        if self.projeto and self.projeto.vigencia_fim:
+            return self.projeto.vigencia_fim
+        return None
 
     def clean(self):
         super().clean()
@@ -418,6 +445,7 @@ class TermoCooperacao(models.Model):
     convenente = models.ForeignKey('ICT', on_delete=models.CASCADE, related_name='termos_cooperacao_conveniados', verbose_name="ICT")
     objeto = models.TextField(verbose_name="Objeto")
     valor_global = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Valor Global (R$)")
+    data_assinatura = models.DateField(null=True, blank=True, verbose_name="Data de Assinatura")
     vigencia_inicio = models.DateField(verbose_name="Início da Vigência")
     vigencia_fim = models.DateField(verbose_name="Fim da Vigência")
     arquivo_pdf = models.FileField(upload_to='termos_cooperacao/', null=True, blank=True, verbose_name="Cópia do Documento (PDF)")
@@ -430,6 +458,13 @@ class TermoCooperacao(models.Model):
 
     def __str__(self):
         return f"{self.numero} - {self.concedente}"
+
+    @property
+    def get_vigencia_fim(self):
+        ultimo_aditivo = self.aditivos.filter(nova_data_fim__isnull=False).order_by('-nova_data_fim').first()
+        if ultimo_aditivo and ultimo_aditivo.nova_data_fim:
+            return ultimo_aditivo.nova_data_fim
+        return self.vigencia_fim
 
 TIPO_ADITIVO_CHOICES = [
     ('PRORROGACAO', 'Prorrogação de Vigência (Prazo)'),
@@ -908,6 +943,10 @@ class TermoAditivo(models.Model):
             if tp:
                 self.termo_parceria = tp
         super().save(*args, **kwargs)
+        if self.nova_data_fim and self.termo_parceria:
+            if not self.termo_parceria.vigencia_fim or self.nova_data_fim > self.termo_parceria.vigencia_fim:
+                self.termo_parceria.vigencia_fim = self.nova_data_fim
+                self.termo_parceria.save(update_fields=['vigencia_fim'])
 
 class CotaBolsaPT(models.Model):
     """

@@ -55,7 +55,7 @@ class PlanoDeTrabalhoInline(admin.TabularInline):
 
 @admin.register(TermoDeParceria)
 class TermoDeParceriaAdmin(admin.ModelAdmin):
-    list_display = ('numero', 'concedente', 'convenente', 'interveniente', 'ativo')
+    list_display = ('numero', 'concedente', 'convenente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim', 'ativo')
     search_fields = ('numero',)
     inlines = [PlanoDeTrabalhoInline, TermoAditivoInline]
 
@@ -168,7 +168,7 @@ class ParcelaAdmin(admin.ModelAdmin):
 from .models import TermoCooperacao
 @admin.register(TermoCooperacao)
 class TermoCooperacaoAdmin(admin.ModelAdmin):
-    list_display = ('numero', 'concedente', 'convenente', 'vigencia_inicio', 'vigencia_fim', 'ativo')
+    list_display = ('numero', 'concedente', 'convenente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim', 'ativo')
     list_filter = ('ativo', 'concedente')
     search_fields = ('numero', 'objeto')
     inlines = [AditivoTermoCooperacaoInline]

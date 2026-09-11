@@ -113,7 +113,7 @@ class TipoInstrumentoJuridicoForm(forms.ModelForm):
 class TermoDeParceriaForm(forms.ModelForm):
     class Meta:
         model = TermoDeParceria
-        fields = ['tipo_instrumento', 'numero', 'objeto', 'concedente', 'convenente', 'interveniente', 'data_assinatura']
+        fields = ['tipo_instrumento', 'numero', 'objeto', 'concedente', 'convenente', 'interveniente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim']
         widgets = {
             'tipo_instrumento': forms.Select(attrs={'class': 'form-select form-select-lg'}),
             'numero': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Opcional (Ex: AP nº 001/2026)'}),
@@ -122,6 +122,8 @@ class TermoDeParceriaForm(forms.ModelForm):
             'convenente': forms.Select(attrs={'class': 'form-select form-select-lg'}),
             'interveniente': forms.Select(attrs={'class': 'form-select form-select-lg'}),
             'data_assinatura': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control form-control-lg', 'type': 'date'}),
+            'vigencia_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control form-control-lg', 'type': 'date'}),
+            'vigencia_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control form-control-lg', 'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -440,12 +442,13 @@ class TermoCooperacaoForm(forms.ModelForm):
 
     class Meta:
         model = TermoCooperacao
-        fields = ['concedente', 'convenente', 'objeto', 'valor_global', 'vigencia_inicio', 'vigencia_fim', 'arquivo_pdf', 'ativo']
+        fields = ['concedente', 'convenente', 'objeto', 'valor_global', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim', 'arquivo_pdf', 'ativo']
         widgets = {
             'concedente': forms.Select(attrs={'class': 'form-select'}),
             'convenente': forms.Select(attrs={'class': 'form-select'}),
             'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descreva o objeto do termo de cooperação'}),
             'valor_global': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'data_assinatura': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
             'vigencia_inicio': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
             'vigencia_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

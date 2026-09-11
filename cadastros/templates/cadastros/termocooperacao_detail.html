@@ -42,8 +42,15 @@
                 <div class="card-header bg-info text-white py-3"><h5 class="mb-0 fw-bold"><i class="fas fa-calendar-alt me-2"></i>Vigência e Partícipes</h5></div>
                 <div class="card-body">
                     <dl class="row mb-0">
-                        <dt class="col-sm-5 text-muted">Início</dt><dd class="col-sm-7">{{ termo.vigencia_inicio|date:"d/m/Y" }}</dd>
-                        <dt class="col-sm-5 text-muted">Fim</dt><dd class="col-sm-7">{{ termo.vigencia_fim|date:"d/m/Y" }}</dd>
+                        <dt class="col-sm-5 text-muted">Data de Assinatura</dt><dd class="col-sm-7">{{ termo.data_assinatura|date:"d/m/Y"|default:"Não informada" }}</dd>
+                        <dt class="col-sm-5 text-muted">Início da Vigência</dt><dd class="col-sm-7">{{ termo.vigencia_inicio|date:"d/m/Y" }}</dd>
+                        <dt class="col-sm-5 text-muted">Fim da Vigência</dt>
+                        <dd class="col-sm-7">
+                            <span class="fw-bold text-success">{{ termo.get_vigencia_fim|date:"d/m/Y" }}</span>
+                            {% if termo.aditivos.exists %}
+                                <span class="badge bg-warning bg-opacity-10 text-dark border border-warning ms-1" title="Vigência atualizada conforme termos aditivos">Aditivado</span>
+                            {% endif %}
+                        </dd>
                         <dt class="col-sm-5 text-muted">Parceiro</dt><dd class="col-sm-7">{{ termo.concedente }}</dd>
                         <dt class="col-sm-5 text-muted">ICT</dt><dd class="col-sm-7">{{ termo.convenente }}</dd>
                     </dl>

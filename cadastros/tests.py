@@ -2443,5 +2443,45 @@ class TermosAditivosTestCase(TestCase):
         self.assertEqual(res_del.status_code, 200)
         self.assertFalse(TermoAditivo.objects.filter(numero='2º Termo Aditivo').exists())
 
+    def test_vigencia_padronizada_e_fallback(self):
+        """Testa campos diretos de vigência, fallback para planos de trabalho e renderização no painel."""
+        from cadastros.models import TermoDeParceria, TermoCooperacao, PlanoDeTrabalho, ProjetoPDI
+
+        # 1. Termo de Parceria com vigência direta
+        tp = TermoDeParceria.objects.create(
+            numero="AP 999/2026",
+            concedente=self.empresa,
+            convenente=self.ict,
+            interveniente=self.fundacao,
+            data_assinatura=date(2026, 3, 1),
+            vigencia_inicio=date(2026, 4, 1),
+            vigencia_fim=date(2027, 3, 31),
+            objeto="Teste Vigência Direta"
+        )
+        self.assertEqual(tp.get_vigencia_inicio, date(2026, 4, 1))
+        self.assertEqual(tp.get_vigencia_fim, date(2027, 3, 31))
+
+        # 2. Termo de Cooperação com data de assinatura e vigência
+        tc = TermoCooperacao.objects.create(
+            numero="TC 888/2026",
+            concedente=self.empresa,
+            convenente=self.ict,
+            data_assinatura=date(2026, 2, 15),
+            vigencia_inicio=date(2026, 3, 1),
+            vigencia_fim=date(2028, 2, 28),
+            objeto="Teste TC Vigência"
+        )
+        self.assertEqual(tc.data_assinatura, date(2026, 2, 15))
+        self.assertEqual(tc.vigencia_inicio, date(2026, 3, 1))
+        self.assertEqual(tc.get_vigencia_fim, date(2028, 2, 28))
+
+        # 3. Painel de Instrumentos deve renderizar o período de vigência e a data de assinatura
+        res_painel = self.client.get(reverse('cadastros:painel_instrumentos'))
+        self.assertEqual(res_painel.status_code, 200)
+        self.assertContains(res_painel, "01/04/2026 a 31/03/2027")
+        self.assertContains(res_painel, "Assinado em 01/03/2026")
+        self.assertContains(res_painel, "01/03/2026 a 28/02/2028")
+        self.assertContains(res_painel, "Assinado em 15/02/2026")
+
 
 

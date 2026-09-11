@@ -1732,6 +1732,10 @@ def painel_instrumentos(request):
     for p in qs_parcerias:
         tipo_nome = p.tipo_instrumento_fk.nome if p.tipo_instrumento_fk else p.get_tipo_instrumento_display()
         tipo_sigla = p.tipo_instrumento_fk.sigla if p.tipo_instrumento_fk else ('CV' if p.tipo_instrumento == 'CONVENIO' else 'AP')
+        v_ini = p.get_vigencia_inicio
+        v_fim = p.get_vigencia_fim
+        total_aditivos = p.aditivos.count()
+        is_prorrogado = p.aditivos.filter(nova_data_fim__isnull=False).exists()
         ocorrencias.append({
             'id': p.pk,
             'numero': p.numero or f"Sem número (#{p.pk})",
@@ -1743,11 +1747,15 @@ def painel_instrumentos(request):
             'interveniente': p.interveniente,
             'objeto': p.objeto or '',
             'data_assinatura': p.data_assinatura,
-            'vigencia_fim': getattr(p, 'vigencia_fim', None),
+            'vigencia_inicio': v_ini,
+            'vigencia_fim': v_fim,
+            'is_prorrogado': is_prorrogado,
+            'total_aditivos': total_aditivos,
             'ativo': p.ativo,
             'url_visualizar': reverse('cadastros:visualizar_termo_parceria', args=[p.pk]),
             'url_editar': reverse('cadastros:editar_termo_parceria', args=[p.pk]),
             'url_excluir': reverse('cadastros:excluir_termo_parceria', args=[p.pk]),
+            'url_novo_aditivo': reverse('cadastros:cadastrar_aditivo_parceria') + f"?termo_parceria_id={p.pk}",
             'modelo_origem': 'parceria',
             'projeto': p.projeto,
         })
@@ -1755,6 +1763,8 @@ def painel_instrumentos(request):
     for c in qs_cooperacao:
         tipo_nome = c.tipo_instrumento_fk.nome if c.tipo_instrumento_fk else 'Termo de Cooperação Técnica'
         tipo_sigla = c.tipo_instrumento_fk.sigla if c.tipo_instrumento_fk else 'TC'
+        total_aditivos = c.aditivos.count()
+        is_prorrogado = c.aditivos.filter(nova_data_fim__isnull=False).exists()
         ocorrencias.append({
             'id': c.pk,
             'numero': c.numero or f"Sem número (#{c.pk})",
@@ -1765,10 +1775,12 @@ def painel_instrumentos(request):
             'convenente': c.convenente,
             'interveniente': None,
             'objeto': c.objeto or '',
-            'data_assinatura': c.vigencia_inicio,
-            'vigencia_fim': c.vigencia_fim,
+            'data_assinatura': c.data_assinatura,
+            'vigencia_inicio': c.vigencia_inicio,
+            'vigencia_fim': c.get_vigencia_fim,
+            'is_prorrogado': is_prorrogado,
             'ativo': c.ativo,
-            'total_aditivos': c.aditivos.count(),
+            'total_aditivos': total_aditivos,
             'url_visualizar': reverse('cadastros:visualizar_termo', args=[c.pk]),
             'url_editar': reverse('cadastros:editar_termo', args=[c.pk]),
             'url_excluir': reverse('cadastros:excluir_termo', args=[c.pk]),
@@ -1777,15 +1789,8 @@ def painel_instrumentos(request):
             'projeto': None,
         })
 
-    # Ocorrências de Termo de Parceria: incluir total_aditivos e url_novo_aditivo
-    for item in ocorrencias:
-        if item['modelo_origem'] == 'parceria':
-            tp = TermoDeParceria.objects.filter(pk=item['id']).first()
-            item['total_aditivos'] = tp.aditivos.count() if tp else 0
-            item['url_novo_aditivo'] = reverse('cadastros:cadastrar_aditivo_parceria') + f"?termo_parceria_id={item['id']}"
-
-    # Ordenar ocorrências (ativas primeiro, depois por data mais recente)
-    ocorrencias.sort(key=lambda item: (not item['ativo'], str(item['data_assinatura'] or '')), reverse=False)
+    # Ordenar ocorrências (ativas primeiro, depois por data de vigência final / assinatura mais recente)
+    ocorrencias.sort(key=lambda item: (not item['ativo'], str(item['vigencia_fim'] or item['data_assinatura'] or '')), reverse=False)
 
     # Tipos de Instrumentos com contagem
     tipos = list(TipoInstrumentoJuridico.objects.all().order_by('nome'))

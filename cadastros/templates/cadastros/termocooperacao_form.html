@@ -51,25 +51,32 @@
                         {{ form.objeto }}
                         {% if form.objeto.errors %}<div class="text-danger small mt-1">{{ form.objeto.errors }}</div>{% endif %}
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold text-muted small">{{ form.valor_global.label }}</label>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-muted small">Valor Global (R$)</label>
                         {{ form.valor_global }}
                         {% if form.valor_global.errors %}<div class="text-danger small mt-1">{{ form.valor_global.errors }}</div>{% endif %}
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-muted small">Data de Assinatura</label>
+                        {{ form.data_assinatura }}
+                        {% if form.data_assinatura.errors %}<div class="text-danger small mt-1">{{ form.data_assinatura.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-muted small">Arquivo do Instrumento (PDF)</label>
+                        {{ form.arquivo_pdf }}
+                        {% if form.arquivo_pdf.errors %}<div class="text-danger small mt-1">{{ form.arquivo_pdf.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label fw-bold text-muted small">{{ form.vigencia_inicio.label }}</label>
                         {{ form.vigencia_inicio }}
                         {% if form.vigencia_inicio.errors %}<div class="text-danger small mt-1">{{ form.vigencia_inicio.errors }}</div>{% endif %}
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label fw-bold text-muted small">{{ form.vigencia_fim.label }}</label>
                         {{ form.vigencia_fim }}
                         {% if form.vigencia_fim.errors %}<div class="text-danger small mt-1">{{ form.vigencia_fim.errors }}</div>{% endif %}
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold text-muted small">{{ form.arquivo_pdf.label }}</label>
-                        {{ form.arquivo_pdf }}
-                        {% if form.arquivo_pdf.errors %}<div class="text-danger small mt-1">{{ form.arquivo_pdf.errors }}</div>{% endif %}
+                    <div class="col-md-4 d-flex align-items-center">
                         <div class="form-check mt-3">
                             {{ form.ativo }}
                             <label class="form-check-label fw-bold text-muted small" for="{{ form.ativo.id_for_label }}">Termo Ativo?</label>
