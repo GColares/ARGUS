@@ -164,7 +164,7 @@ class InstrumentoJuridicoBase(models.Model):
     )
     sequencial = models.PositiveIntegerField(null=True, blank=True, verbose_name="Número Sequencial")
     ano = models.PositiveIntegerField(null=True, blank=True, verbose_name="Ano de Emissão")
-    numero = models.CharField(max_length=50, unique=True, blank=True, null=True, verbose_name="Número do Instrumento")
+    numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Instrumento")
     objeto = models.TextField(blank=True, null=True, verbose_name="Objeto / Descrição")
     data_assinatura = models.DateField(blank=True, null=True, verbose_name="Data de Assinatura")
     vigencia_inicio = models.DateField(blank=True, null=True, verbose_name="Início da Vigência")

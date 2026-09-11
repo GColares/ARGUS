@@ -112,13 +112,15 @@ class TipoInstrumentoJuridicoForm(forms.ModelForm):
 
 
 class ConvenioForm(forms.ModelForm):
+    numero = forms.CharField(label='Número', required=True, widget=forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Ex: 001/2026'}))
+
     class Meta:
         model = Convenio
         fields = ['tipo_instrumento_fk', 'tipo_instrumento', 'numero', 'objeto', 'concedente', 'convenente', 'interveniente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim']
         widgets = {
             'tipo_instrumento_fk': forms.Select(attrs={'class': 'form-select form-select-lg'}),
             'tipo_instrumento': forms.Select(attrs={'class': 'form-select'}),
-            'numero': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Opcional (Ex: AP nº 001/2026)'}),
+            'numero': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Ex: 001/2026'}),
             'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Objeto do Termo de Parceria...'}),
             'concedente': forms.Select(attrs={'class': 'form-select form-select-lg'}),
             'convenente': forms.Select(attrs={'class': 'form-select form-select-lg'}),
