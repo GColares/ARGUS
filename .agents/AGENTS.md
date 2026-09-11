@@ -387,3 +387,10 @@ Para erradicar a complacência e o "teatro de conformidade" no Squad IA:
 
 3. **Rejeição Automática por Cópia Cega:** Caso um agente devolva um relatório que seja cópia desatenta do prompt, sem evidências reais do terminal ou omitindo problemas que ocorreram durante a execução, o Tech Lead deve **rejeitar sumariamente a entrega** e exigir a auditoria empírica real.
 
+
+
+## Política de Backups em Refatorações Críticas (Safety First)
+Sempre que uma tarefa envolver alterações profundas, volumosas ou complexas na estrutura do banco de dados (ex: renomear modelos fundamentais, alterar chaves estrangeiras críticas, ou deletar tabelas), é **OBRIGATÓRIO** realizar um backup local (dump) do banco de dados antes de executar qualquer modificação ou script de migração.
+1. O agente deve realizar o backup por conta própria via linha de comando (ex: copiando o db.sqlite3 ou utilizando ferramentas de dump para o banco atual).
+2. O backup deve garantir a recuperação tanto da estrutura (schema) quanto do conteúdo (dados).
+3. Somente após a confirmação do backup bem-sucedido o agente poderá prosseguir com as alterações destrutivas ou de alto risco.

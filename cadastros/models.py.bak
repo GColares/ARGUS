@@ -172,27 +172,25 @@ class InstrumentoJuridicoBase(models.Model):
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
 
     class Meta:
-        verbose_name = "Instrumento Jurídico Base"
-        verbose_name_plural = "Instrumentos Jurídicos Base"
-        constraints = [
-            models.UniqueConstraint(
-                fields=['tipo_instrumento', 'sequencial', 'ano'],
-                condition=models.Q(sequencial__isnull=False, ano__isnull=False),
-                name='unique_seq_ano_por_tipo'
-            )
-        ]
+        abstract = True
 
-class Convenio(InstrumentoJuridicoBase):
+class TermoDeParceria(InstrumentoJuridicoBase):
     """Entidade macro jurídica que rege a parceria e união de interesses."""
-    projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='convenios', null=True, blank=True, verbose_name="Projeto Mestre")
+    projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='termos_parceria', null=True, blank=True, verbose_name="Projeto Mestre")
     concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_concedidos', verbose_name="Concedente (Empresa/Agência)")
     convenente = models.ForeignKey('ICT', on_delete=models.PROTECT, related_name='convenente_em', verbose_name="Convenente")
     interveniente = models.ForeignKey(FundacaoApoio, on_delete=models.PROTECT, related_name='interveniente_em', verbose_name="Interveniente")
 
     class Meta:
-        verbose_name = "Convênio"
-        verbose_name_plural = "Convênios"
-
+        verbose_name = "Termo de Parceria"
+        verbose_name_plural = "Termos de Parceria"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tipo_instrumento', 'sequencial', 'ano'],
+                condition=models.Q(sequencial__isnull=False, ano__isnull=False),
+                name='unique_sequencial_ano_por_tipo'
+            )
+        ]
 
     def __str__(self):
         return f"{self.numero or 'Sem Número'} ({self.concedente.sigla or self.concedente.nome_fantasia or self.concedente.nome})"
@@ -302,7 +300,7 @@ class Convenio(InstrumentoJuridicoBase):
                 try:
                     with transaction.atomic():
                         ultimo = (
-                            InstrumentoJuridicoBase.objects
+                            TermoDeParceria.objects
                             .select_for_update()
                             .filter(tipo_instrumento=self.tipo_instrumento, ano=self.ano)
                             .order_by('-sequencial')
@@ -338,7 +336,7 @@ class IndicadorResultado(models.Model):
 class PlanoDeTrabalho(models.Model):
     """Detalha a abordagem técnica, financeira e produto entregue do termo."""
     projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='planos_trabalho', null=True)
-    termo_homologador = models.ForeignKey(InstrumentoJuridicoBase, on_delete=models.SET_NULL, null=True, blank=True, related_name='planos_homologados', verbose_name="Termo Homologador")
+    termo_homologador = models.ForeignKey(TermoDeParceria, on_delete=models.SET_NULL, null=True, blank=True, related_name='planos_homologados', verbose_name="Termo Homologador")
     
     STATUS_CHOICES = [
         ('RASCUNHO', 'Rascunho / Em Edição'),
@@ -489,42 +487,28 @@ class Fornecedor(PessoaJuridica):
 # =====================================================================
 # PROJETO PDI 
 # =====================================================================
-
-class AcordoDeParceria(InstrumentoJuridicoBase):
-    """Entidade macro jurídica para os novos acordos sob o Marco Legal de CT&I."""
-    projeto = models.ForeignKey('ProjetoPDI', on_delete=models.CASCADE, related_name='acordos_parceria', null=True, blank=True, verbose_name="Projeto Mestre")
-    concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='acordos_concedidos', verbose_name="Concedente (Empresa/Agência)")
-    convenente = models.ForeignKey('ICT', on_delete=models.PROTECT, related_name='convenente_em_acordo', verbose_name="Convenente")
-    interveniente = models.ForeignKey(FundacaoApoio, on_delete=models.PROTECT, related_name='interveniente_em_acordo', verbose_name="Interveniente")
-
-    class Meta:
-        verbose_name = "Acordo de Parceria"
-        verbose_name_plural = "Acordos de Parceria"
-
-
-    def __str__(self):
-        return f"{self.numero or 'Sem Número'} ({self.concedente.sigla or self.concedente.nome_fantasia or self.concedente.nome})"
-
-    @property
-    def nome_especie(self):
-        return self.tipo_instrumento_fk.nome if self.tipo_instrumento_fk else 'Acordo de Parceria'
-
-    @property
-    def nome_especie_plural(self):
-        return self.tipo_instrumento_fk.nome if self.tipo_instrumento_fk else 'Acordos de Parceria'
-
-    @property
-    def sigla_especie(self):
-        return self.tipo_instrumento_fk.sigla if self.tipo_instrumento_fk else 'AP'
-
-class TermoCooperacao(InstrumentoJuridicoBase):
+class TermoCooperacao(models.Model):
     """
     Termos de Cooperação Técnica e Parcerias Estratégicas.
     """
+    numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo")
+    tipo_instrumento_fk = models.ForeignKey(
+        'TipoInstrumentoJuridico',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='termos_cooperacao',
+        verbose_name="Tipo de Instrumento"
+    )
     concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_cooperacao_concedidos', verbose_name="Parceiro")
     convenente = models.ForeignKey('ICT', on_delete=models.CASCADE, related_name='termos_cooperacao_conveniados', verbose_name="ICT")
+    objeto = models.TextField(verbose_name="Objeto")
     valor_global = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Valor Global (R$)")
+    data_assinatura = models.DateField(null=True, blank=True, verbose_name="Data de Assinatura")
+    vigencia_inicio = models.DateField(verbose_name="Início da Vigência")
+    vigencia_fim = models.DateField(verbose_name="Fim da Vigência")
     arquivo_pdf = models.FileField(upload_to='termos_cooperacao/', null=True, blank=True, verbose_name="Cópia do Documento (PDF)")
+    ativo = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Termo de Cooperação / Credenciamento"
@@ -571,6 +555,37 @@ TIPO_ADITIVO_CHOICES = [
     ('OUTRO', 'Outros Ajustes Formais'),
 ]
 
+
+class AditivoTermoCooperacao(models.Model):
+    """
+    Aditivos que alteram ou prorrogam o Termo de Cooperação
+    """
+    termo_cooperacao = models.ForeignKey(TermoCooperacao, on_delete=models.CASCADE, related_name='aditivos', verbose_name="Termo de Cooperação")
+    numero = models.CharField(max_length=50, verbose_name="Número do Aditivo")
+    tipo_aditivo = models.CharField(max_length=30, choices=TIPO_ADITIVO_CHOICES, default='PRORROGACAO', verbose_name="Tipo de Aditamento")
+    descricao = models.TextField(verbose_name="Objeto / Justificativa da Alteração")
+    nova_data_fim = models.DateField(null=True, blank=True, verbose_name="Nova Data de Fim (se houver prorrogação)")
+    valor_aditivo = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Valor Aditivado (R$)")
+    numero_processo = models.CharField(max_length=50, null=True, blank=True, verbose_name="Processo SIPAC/SEI")
+    arquivo_pdf = models.FileField(upload_to='instrumentos/aditivos/', null=True, blank=True, verbose_name="Cópia do Aditivo Assinado (PDF)")
+    data_assinatura = models.DateField(null=True, blank=True, verbose_name="Data de Assinatura")
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = "Aditivo de Termo de Cooperação"
+        verbose_name_plural = "Aditivos de Termo de Cooperação"
+        ordering = ['-data_assinatura']
+
+    def __str__(self):
+        return f"{self.numero} - {self.termo_cooperacao.numero}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.nova_data_fim and self.termo_cooperacao:
+            if not self.termo_cooperacao.vigencia_fim or self.nova_data_fim > self.termo_cooperacao.vigencia_fim:
+                self.termo_cooperacao.vigencia_fim = self.nova_data_fim
+                self.termo_cooperacao.save(update_fields=['vigencia_fim'])
 
 class Programa(models.Model):
     """
@@ -633,24 +648,9 @@ class ProjetoPDI(models.Model):
         verbose_name_plural = "Projetos PDI"
 
     @property
-    def convenio(self):
-        """Retorna o primeiro convênio associado."""
-        return self.convenios.first()
-
-    @property
-    def acordo_parceria(self):
-        """Retorna o primeiro acordo de parceria associado."""
-        return self.acordos_parceria.first()
-
-    @property
     def termo_parceria(self):
-        """Alias para retrocompatibilidade com templates que buscam o instrumento principal do projeto."""
-        return self.acordo_parceria or self.convenio
-
-    @property
-    def instrumento_vinculado(self):
-        """Retorna o acordo de parceria ou convênio principal vinculado a este projeto."""
-        return self.acordo_parceria or self.convenio
+        """Retorna o primeiro termo de parceria associado."""
+        return self.termos_parceria.first()
 
     @property
     def fase_color(self):
@@ -979,14 +979,33 @@ class ContaBancaria(models.Model):
         return f"{self.fonte_recurso} | {self.banco} Ag: {self.agencia} CC: {self.conta}-{self.dv}"
 
 class TermoAditivo(models.Model):
-    """Termo Aditivo unificado para todos os Instrumentos Jurídicos."""
-    instrumento = models.ForeignKey(InstrumentoJuridicoBase, on_delete=models.CASCADE, related_name='aditivos', null=True, blank=True)
+    """Registra as prorrogações e alterações contratuais de Termos de Parceria e Projetos."""
+    termo_parceria = models.ForeignKey(
+        'TermoDeParceria',
+        on_delete=models.CASCADE,
+        related_name='aditivos',
+        null=True,
+        blank=True,
+        verbose_name="Termo de Parceria"
+    )
+    projeto = models.ForeignKey(
+        ProjetoPDI,
+        on_delete=models.CASCADE,
+        related_name='aditivos',
+        null=True,
+        blank=True,
+        verbose_name="Projeto PDI Vinculado"
+    )
     numero = models.CharField(max_length=50, verbose_name="Número do Aditivo")
+    tipo_aditivo = models.CharField(max_length=30, choices=TIPO_ADITIVO_CHOICES, default='PRORROGACAO', verbose_name="Tipo de Aditamento")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Objeto / Justificativa da Alteração")
+    nova_data_fim = models.DateField(null=True, blank=True, verbose_name="Nova Data de Término (Se houver prorrogação)")
+    valor_aditivo = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Valor Aditivado (R$)")
+    numero_processo = models.CharField(max_length=50, null=True, blank=True, verbose_name="Processo Administrativo (SIPAC/SEI)")
+    arquivo_pdf = models.FileField(upload_to='instrumentos/aditivos/', null=True, blank=True, verbose_name="Cópia do Aditivo Assinado (PDF)")
     data_assinatura = models.DateField(verbose_name="Data de Assinatura")
-    nova_data_fim = models.DateField(blank=True, null=True, verbose_name="Nova Data Fim (Prorrogação)")
-    valor_acrescimo = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Valor Acrescido (R$)")
-    objeto = models.TextField(verbose_name="Objeto / Justificativa")
-    arquivo_pdf = models.FileField(upload_to='aditivos/', blank=True, null=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Termo Aditivo"
@@ -994,22 +1013,21 @@ class TermoAditivo(models.Model):
         ordering = ['-data_assinatura']
 
     def __str__(self):
-        return f"Aditivo {self.numero} - {self.instrumento.numero if self.instrumento else 'Sem Instrumento'}"
+        termo = self.termo_parceria.numero if self.termo_parceria else (self.projeto.termo_parceria.numero if self.projeto and self.projeto.termo_parceria else "Sem Termo")
+        return f"{self.numero} - {termo}"
 
-class TermoEncerramento(models.Model):
-    """Termo de Encerramento unificado para todos os Instrumentos Jurídicos."""
-    instrumento = models.OneToOneField(InstrumentoJuridicoBase, on_delete=models.CASCADE, related_name='encerramento', null=True, blank=True)
-    data_encerramento = models.DateField(verbose_name="Data do Encerramento")
-    motivo_rescisao = models.TextField(verbose_name="Motivo / Justificativa")
-    oficio_comunicacao = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nº do Ofício")
-    arquivo_pdf = models.FileField(upload_to='encerramentos/', blank=True, null=True)
-
-    class Meta:
-        verbose_name = "Termo de Encerramento"
-        verbose_name_plural = "Termos de Encerramento"
-
-    def __str__(self):
-        return f"Encerramento - {self.instrumento.numero if self.instrumento else 'Sem Instrumento'}"
+    def save(self, *args, **kwargs):
+        if self.termo_parceria and self.termo_parceria.projeto and not self.projeto:
+            self.projeto = self.termo_parceria.projeto
+        elif self.projeto and not self.termo_parceria:
+            tp = getattr(self.projeto, 'termo_parceria', None)
+            if tp:
+                self.termo_parceria = tp
+        super().save(*args, **kwargs)
+        if self.nova_data_fim and self.termo_parceria:
+            if not self.termo_parceria.vigencia_fim or self.nova_data_fim > self.termo_parceria.vigencia_fim:
+                self.termo_parceria.vigencia_fim = self.nova_data_fim
+                self.termo_parceria.save(update_fields=['vigencia_fim'])
 
 class CotaBolsaPT(models.Model):
     """

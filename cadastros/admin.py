@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho, PessoaFisica, PerfilServidor, Parcela, TipoInstrumentoJuridico, TermoAditivo, AditivoTermoCooperacao
+from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, Convenio, AcordoDeParceria, PlanoDeTrabalho, PessoaFisica, PerfilServidor, Parcela, TipoInstrumentoJuridico, TermoAditivo, TermoEncerramento
 
 @admin.register(TipoInstrumentoJuridico)
 class TipoInstrumentoJuridicoAdmin(admin.ModelAdmin):
@@ -11,8 +11,8 @@ class TermoAditivoInline(admin.TabularInline):
     model = TermoAditivo
     extra = 0
 
-class AditivoTermoCooperacaoInline(admin.TabularInline):
-    model = AditivoTermoCooperacao
+class TermoEncerramentoInline(admin.TabularInline):
+    model = TermoEncerramento
     extra = 0
 
 class AtividadePlanoAcaoInline(admin.TabularInline):
@@ -53,8 +53,8 @@ class PlanoDeTrabalhoInline(admin.TabularInline):
     model = PlanoDeTrabalho
     extra = 1
 
-@admin.register(TermoDeParceria)
-class TermoDeParceriaAdmin(admin.ModelAdmin):
+@admin.register(Convenio, AcordoDeParceria)
+class ConvenioAdmin(admin.ModelAdmin):
     list_display = ('numero', 'concedente', 'convenente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim', 'ativo')
     search_fields = ('numero',)
     inlines = [PlanoDeTrabalhoInline, TermoAditivoInline]
@@ -171,31 +171,15 @@ class TermoCooperacaoAdmin(admin.ModelAdmin):
     list_display = ('numero', 'concedente', 'convenente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim', 'ativo')
     list_filter = ('ativo', 'concedente')
     search_fields = ('numero', 'objeto')
-    inlines = [AditivoTermoCooperacaoInline]
+    inlines = [TermoEncerramentoInline]
+
 
 @admin.register(TermoAditivo)
 class TermoAditivoAdmin(admin.ModelAdmin):
-    list_display = ('numero', 'tipo_aditivo', 'termo_parceria', 'data_assinatura', 'nova_data_fim', 'valor_aditivo')
-    list_filter = ('tipo_aditivo', 'termo_parceria')
-    search_fields = ('numero', 'numero_processo', 'termo_parceria__numero')
+    list_display = ('numero', 'instrumento', 'data_assinatura', 'nova_data_fim', 'valor_acrescimo')
+    list_filter = ('instrumento',)
+    search_fields = ('numero', 'instrumento__numero')
 
-@admin.register(AditivoTermoCooperacao)
-class AditivoTermoCooperacaoAdmin(admin.ModelAdmin):
-    list_display = ('numero', 'tipo_aditivo', 'termo_cooperacao', 'data_assinatura', 'nova_data_fim', 'valor_aditivo')
-    list_filter = ('tipo_aditivo', 'termo_cooperacao')
-    search_fields = ('numero', 'numero_processo', 'termo_cooperacao__numero')
-
-class PerfilServidorInline(admin.StackedInline):
-    model = PerfilServidor
-    extra = 0
-
-@admin.register(PessoaFisica)
-class PessoaFisicaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'cpf', 'user', 'email', 'get_siape')
-    search_fields = ('nome', 'cpf', 'email', 'user__username', 'perfil_servidor__siape')
-    autocomplete_fields = ['user']
-    inlines = [PerfilServidorInline]
-
-    @admin.display(description="SIAPE")
-    def get_siape(self, obj):
-        return obj.siape
+@admin.register(TermoEncerramento)
+class TermoEncerramentoAdmin(admin.ModelAdmin):
+    list_display = ('instrumento', 'data_encerramento', 'oficio_comunicacao')

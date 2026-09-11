@@ -7,8 +7,8 @@ from django.urls import reverse, reverse_lazy
 from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
 from django.db.models import Q
-from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa, TipoInstrumentoJuridico, TermoAditivo, AditivoTermoCooperacao
-from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm, TipoInstrumentoJuridicoForm, TermoAditivoForm, AditivoTermoCooperacaoForm
+from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, Convenio, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa, TipoInstrumentoJuridico, TermoAditivo, TermoEncerramento
+from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, ConvenioForm, PlanoDeTrabalhoForm, TipoInstrumentoJuridicoForm, TermoAditivoForm, TermoEncerramentoForm
 from .forms import (
     PessoaFisicaForm, PerfilServidorForm, PerfilAlunoForm,
     PerfilColaboradorExternoForm, PerfilTerceirizadoForm, DadoBancarioForm,
@@ -133,7 +133,7 @@ class PessoaJuridicaDetailView(LoginRequiredMixin, DetailView):
             termos |= Q(interveniente=child)
 
         context['projetos_vinculados'] = ProjetoPDI.objects.filter(projetos).distinct()
-        context['termos_vinculados'] = TermoDeParceria.objects.filter(termos).distinct()
+        context['termos_vinculados'] = Convenio.objects.filter(termos).distinct()
         context['termos_cooperacao_vinculados'] = TermoCooperacao.objects.filter(
             Q(concedente=self.object) | Q(convenente=child)
         ).distinct()
@@ -278,7 +278,7 @@ def novo_projeto(request):
                     # Opcional: Vincular um Termo Existente se houver seleção no Wizard
                     termo_id = request.POST.get('termo_existente')
                     if termo_id:
-                        termo = TermoDeParceria.objects.filter(id=termo_id).first()
+                        termo = Convenio.objects.filter(id=termo_id).first()
                         if termo:
                             termo.projeto = projeto
                             termo.save()
@@ -337,7 +337,7 @@ def api_termos_por_empresa(request, empresa_id):
     if projeto_id:
         q |= Q(concedente_id=empresa_id, projeto_id=projeto_id)
     
-    termos = TermoDeParceria.objects.filter(q).distinct()
+    termos = Convenio.objects.filter(q).distinct()
     data = []
     for termo in termos:
         objeto_texto = termo.objeto or ''
@@ -492,9 +492,9 @@ def editar_projeto(request, projeto_id):
                     termo_id = request.POST.get('termo_existente')
                     if termo_id:
                         # Remove vínculo antigo se existir (evita duplicatas)
-                        TermoDeParceria.objects.filter(projeto=projeto_salvo).exclude(id=termo_id).update(projeto=None)
+                        Convenio.objects.filter(projeto=projeto_salvo).exclude(id=termo_id).update(projeto=None)
                         # Aplica o novo vínculo
-                        TermoDeParceria.objects.filter(id=termo_id).update(projeto=projeto_salvo)
+                        Convenio.objects.filter(id=termo_id).update(projeto=projeto_salvo)
                     
                     # Plano
                     if not valid_plano:
@@ -1565,9 +1565,9 @@ class ProgramaDeleteView(DeleteView):
     success_url = reverse_lazy('cadastros:listar_programas')
 
 # CRUD TERMO DE PARCERIA
-class TermoDeParceriaListView(LoginRequiredMixin, ListView):
-    model = TermoDeParceria
-    template_name = 'cadastros/termo_parceria_list.html'
+class ConvenioListView(LoginRequiredMixin, ListView):
+    model = Convenio
+    template_name = 'cadastros/convenio_list.html'
     context_object_name = 'termos'
     ordering = ['-id']
 
@@ -1588,22 +1588,22 @@ class TermoDeParceriaListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_termos'] = TermoDeParceria.objects.count()
-        context['total_acordos'] = TermoDeParceria.objects.filter(tipo_instrumento='ACORDO_PARCERIA').count()
-        context['total_convenios'] = TermoDeParceria.objects.filter(tipo_instrumento='CONVENIO').count()
-        context['termos_ativos'] = TermoDeParceria.objects.filter(ativo=True).count()
-        context['termos_inativos'] = TermoDeParceria.objects.filter(ativo=False).count()
+        context['total_termos'] = Convenio.objects.count()
+        context['total_acordos'] = Convenio.objects.filter(tipo_instrumento='ACORDO_PARCERIA').count()
+        context['total_convenios'] = Convenio.objects.filter(tipo_instrumento='CONVENIO').count()
+        context['termos_ativos'] = Convenio.objects.filter(ativo=True).count()
+        context['termos_inativos'] = Convenio.objects.filter(ativo=False).count()
         return context
 
-class TermoDeParceriaDetailView(LoginRequiredMixin, DetailView):
-    model = TermoDeParceria
-    template_name = 'cadastros/termo_parceria_detail.html'
+class ConvenioDetailView(LoginRequiredMixin, DetailView):
+    model = Convenio
+    template_name = 'cadastros/convenio_detail.html'
     context_object_name = 'termo'
 
-class TermoDeParceriaCreateView(SuccessMessageMixin, CreateView):
-    model = TermoDeParceria
-    form_class = TermoDeParceriaForm
-    template_name = 'cadastros/termo_parceria_form.html'
+class ConvenioCreateView(SuccessMessageMixin, CreateView):
+    model = Convenio
+    form_class = ConvenioForm
+    template_name = 'cadastros/convenio_form.html'
     def get_success_url(self):
         return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
     success_message = 'Termo de parceria criado com sucesso.'
@@ -1615,10 +1615,10 @@ class TermoDeParceriaCreateView(SuccessMessageMixin, CreateView):
             messages.error(self.request, "Erro de concorrência ao gerar o número do termo. Por favor, tente novamente.")
             return self.form_invalid(form)
 
-class TermoDeParceriaUpdateView(SuccessMessageMixin, UpdateView):
-    model = TermoDeParceria
-    form_class = TermoDeParceriaForm
-    template_name = 'cadastros/termo_parceria_form.html'
+class ConvenioUpdateView(SuccessMessageMixin, UpdateView):
+    model = Convenio
+    form_class = ConvenioForm
+    template_name = 'cadastros/convenio_form.html'
     def get_success_url(self):
         return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
     success_message = 'Termo de parceria atualizado com sucesso.'
@@ -1630,9 +1630,9 @@ class TermoDeParceriaUpdateView(SuccessMessageMixin, UpdateView):
             messages.error(self.request, "Erro de concorrência ao gerar o número do termo. Por favor, tente novamente.")
             return self.form_invalid(form)
 
-class TermoDeParceriaDeleteView(SuccessMessageMixin, DeleteView):
-    model = TermoDeParceria
-    template_name = 'cadastros/termo_parceria_confirm_delete.html'
+class ConvenioDeleteView(SuccessMessageMixin, DeleteView):
+    model = Convenio
+    template_name = 'cadastros/convenio_confirm_delete.html'
     def get_success_url(self):
         return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
     success_message = 'Termo de parceria excluído com sucesso.'
@@ -1701,7 +1701,7 @@ def painel_instrumentos(request):
     filtro_busca = request.GET.get('busca', '').strip()
 
     # Ocorrências de Termos de Parceria
-    qs_parcerias = TermoDeParceria.objects.select_related(
+    qs_parcerias = Convenio.objects.select_related(
         'tipo_instrumento_fk', 'concedente', 'convenente', 'interveniente', 'projeto'
     ).all()
 
@@ -1758,10 +1758,10 @@ def painel_instrumentos(request):
             'is_prorrogado': is_prorrogado,
             'total_aditivos': total_aditivos,
             'ativo': p.ativo,
-            'url_visualizar': reverse('cadastros:visualizar_termo_parceria', args=[p.pk]),
-            'url_editar': reverse('cadastros:editar_termo_parceria', args=[p.pk]),
-            'url_excluir': reverse('cadastros:excluir_termo_parceria', args=[p.pk]),
-            'url_novo_aditivo': reverse('cadastros:cadastrar_aditivo_parceria') + f"?termo_parceria_id={p.pk}",
+            'url_visualizar': reverse('cadastros:visualizar_convenio', args=[p.pk]),
+            'url_editar': reverse('cadastros:editar_convenio', args=[p.pk]),
+            'url_excluir': reverse('cadastros:excluir_convenio', args=[p.pk]),
+            'url_novo_aditivo': reverse('cadastros:cadastrar_aditivo_parceria') + f"?convenio_id={p.pk}",
             'modelo_origem': 'parceria',
             'projeto': p.projeto,
         })
@@ -1804,14 +1804,14 @@ def painel_instrumentos(request):
         t.total_ocorrencias = t.termodeparcerias.count() + t.termos_cooperacao.count()
 
     # Termos Aditivos consolidados de ambos os modelos
-    qs_aditivos_parceria = TermoAditivo.objects.select_related('termo_parceria', 'termo_parceria__concedente', 'projeto').all()
-    qs_aditivos_cooperacao = AditivoTermoCooperacao.objects.select_related('termo_cooperacao', 'termo_cooperacao__concedente').all()
+    qs_aditivos_parceria = TermoAditivo.objects.select_related('convenio', 'convenio__concedente', 'projeto').all()
+    qs_aditivos_cooperacao = TermoEncerramento.objects.select_related('termo_cooperacao', 'termo_cooperacao__concedente').all()
 
     aditivos = []
     for a in qs_aditivos_parceria:
-        termo_num = a.termo_parceria.numero if a.termo_parceria else (a.projeto.termo_parceria.numero if a.projeto and a.projeto.termo_parceria else 'Sem termo')
-        url_termo = reverse('cadastros:visualizar_termo_parceria', args=[a.termo_parceria_id]) if a.termo_parceria_id else '#'
-        parceiro_obj = a.termo_parceria.concedente if a.termo_parceria else (a.projeto.concedente if a.projeto else None)
+        termo_num = a.convenio.numero if a.convenio else (a.projeto.convenio.numero if a.projeto and a.projeto.convenio else 'Sem termo')
+        url_termo = reverse('cadastros:visualizar_convenio', args=[a.convenio_id]) if a.convenio_id else '#'
+        parceiro_obj = a.convenio.concedente if a.convenio else (a.projeto.concedente if a.projeto else None)
         aditivos.append({
             'id': a.pk,
             'numero': a.numero,
@@ -1919,22 +1919,22 @@ class TermoAditivoCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView
 
     def get_initial(self):
         initial = super().get_initial()
-        termo_id = self.request.GET.get('termo_parceria_id')
+        termo_id = self.request.GET.get('convenio_id')
         if termo_id:
-            initial['termo_parceria'] = termo_id
+            initial['convenio'] = termo_id
         return initial
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tipo_instrumento_label'] = "Acordo de Parceria"
-        termo_id = self.request.GET.get('termo_parceria_id') or (self.object.termo_parceria_id if hasattr(self, 'object') and self.object else None)
+        termo_id = self.request.GET.get('convenio_id') or (self.object.convenio_id if hasattr(self, 'object') and self.object else None)
         if termo_id:
-            context['termo_obj'] = TermoDeParceria.objects.filter(pk=termo_id).first()
+            context['termo_obj'] = Convenio.objects.filter(pk=termo_id).first()
         return context
 
     def get_success_url(self):
-        if self.object.termo_parceria_id:
-            return reverse('cadastros:visualizar_termo_parceria', kwargs={'pk': self.object.termo_parceria_id})
+        if self.object.convenio_id:
+            return reverse('cadastros:visualizar_convenio', kwargs={'pk': self.object.convenio_id})
         return reverse('cadastros:painel_instrumentos')
 
 
@@ -1947,12 +1947,12 @@ class TermoAditivoUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tipo_instrumento_label'] = "Acordo de Parceria"
-        context['termo_obj'] = self.object.termo_parceria
+        context['termo_obj'] = self.object.convenio
         return context
 
     def get_success_url(self):
-        if self.object.termo_parceria_id:
-            return reverse('cadastros:visualizar_termo_parceria', kwargs={'pk': self.object.termo_parceria_id})
+        if self.object.convenio_id:
+            return reverse('cadastros:visualizar_convenio', kwargs={'pk': self.object.convenio_id})
         return reverse('cadastros:painel_instrumentos')
 
 
@@ -1962,14 +1962,14 @@ class TermoAditivoDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView
     success_message = "Termo Aditivo excluído com sucesso!"
 
     def get_success_url(self):
-        if self.object.termo_parceria_id:
-            return reverse('cadastros:visualizar_termo_parceria', kwargs={'pk': self.object.termo_parceria_id})
+        if self.object.convenio_id:
+            return reverse('cadastros:visualizar_convenio', kwargs={'pk': self.object.convenio_id})
         return reverse('cadastros:painel_instrumentos')
 
 
-class AditivoTermoCooperacaoCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
-    model = AditivoTermoCooperacao
-    form_class = AditivoTermoCooperacaoForm
+class TermoEncerramentoCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = TermoEncerramento
+    form_class = TermoEncerramentoForm
     template_name = 'cadastros/aditivo_form.html'
     success_message = "Termo Aditivo de Cooperação cadastrado com sucesso!"
 
@@ -1994,9 +1994,9 @@ class AditivoTermoCooperacaoCreateView(LoginRequiredMixin, SuccessMessageMixin, 
         return reverse('cadastros:painel_instrumentos')
 
 
-class AditivoTermoCooperacaoUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    model = AditivoTermoCooperacao
-    form_class = AditivoTermoCooperacaoForm
+class TermoEncerramentoUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = TermoEncerramento
+    form_class = TermoEncerramentoForm
     template_name = 'cadastros/aditivo_form.html'
     success_message = "Termo Aditivo de Cooperação atualizado com sucesso!"
 
@@ -2012,8 +2012,8 @@ class AditivoTermoCooperacaoUpdateView(LoginRequiredMixin, SuccessMessageMixin, 
         return reverse('cadastros:painel_instrumentos')
 
 
-class AditivoTermoCooperacaoDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
-    model = AditivoTermoCooperacao
+class TermoEncerramentoDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = TermoEncerramento
     template_name = 'cadastros/aditivo_confirm_delete.html'
     success_message = "Termo Aditivo de Cooperação excluído com sucesso!"
 
@@ -2037,7 +2037,7 @@ class InstrumentoListView(LoginRequiredMixin, View):
             return TermoCooperacaoListView.as_view()(request, *args, **kwargs)
         else:
             # Para 'convenios', 'acordos-parceria', etc, envia para a view unificada
-            return TermoDeParceriaListView.as_view()(request, *args, **kwargs)
+            return ConvenioListView.as_view()(request, *args, **kwargs)
 
 class InstrumentoDetailView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
@@ -2045,7 +2045,7 @@ class InstrumentoDetailView(LoginRequiredMixin, View):
         if especie == 'termos-cooperacao':
             return TermoCooperacaoDetailView.as_view()(request, *args, **kwargs)
         else:
-            return TermoDeParceriaDetailView.as_view()(request, *args, **kwargs)
+            return ConvenioDetailView.as_view()(request, *args, **kwargs)
 
 class InstrumentoCreateView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
@@ -2054,7 +2054,7 @@ class InstrumentoCreateView(LoginRequiredMixin, View):
             return TermoCooperacaoCreateView.as_view()(request, *args, **kwargs)
         else:
             # Poderiamos injetar inicialização baseada na especie (ex: tipo_instrumento='CONVENIO')
-            return TermoDeParceriaCreateView.as_view()(request, *args, **kwargs)
+            return ConvenioCreateView.as_view()(request, *args, **kwargs)
 
 class InstrumentoUpdateView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
@@ -2062,7 +2062,7 @@ class InstrumentoUpdateView(LoginRequiredMixin, View):
         if especie == 'termos-cooperacao':
             return TermoCooperacaoUpdateView.as_view()(request, *args, **kwargs)
         else:
-            return TermoDeParceriaUpdateView.as_view()(request, *args, **kwargs)
+            return ConvenioUpdateView.as_view()(request, *args, **kwargs)
 
 class InstrumentoDeleteView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
@@ -2070,4 +2070,4 @@ class InstrumentoDeleteView(LoginRequiredMixin, View):
         if especie == 'termos-cooperacao':
             return TermoCooperacaoDeleteView.as_view()(request, *args, **kwargs)
         else:
-            return TermoDeParceriaDeleteView.as_view()(request, *args, **kwargs)
+            return ConvenioDeleteView.as_view()(request, *args, **kwargs)

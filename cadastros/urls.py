@@ -73,7 +73,7 @@ urlpatterns = [
     path('instrumentos/aditivos/parceria/novo/', views.TermoAditivoCreateView.as_view(), name='cadastrar_aditivo_parceria'),
     path('instrumentos/aditivos/parceria/<int:pk>/editar/', views.TermoAditivoUpdateView.as_view(), name='editar_aditivo_parceria'),
     path('instrumentos/aditivos/parceria/<int:pk>/excluir/', views.TermoAditivoDeleteView.as_view(), name='excluir_aditivo_parceria'),
-    path('instrumentos/aditivos/cooperacao/novo/', views.AditivoTermoCooperacaoCreateView.as_view(), name='cadastrar_aditivo_cooperacao'),
-    path('instrumentos/aditivos/cooperacao/<int:pk>/editar/', views.AditivoTermoCooperacaoUpdateView.as_view(), name='editar_aditivo_cooperacao'),
-    path('instrumentos/aditivos/cooperacao/<int:pk>/excluir/', views.AditivoTermoCooperacaoDeleteView.as_view(), name='excluir_aditivo_cooperacao'),
+    path('instrumentos/aditivos/cooperacao/novo/', views.TermoEncerramentoCreateView.as_view(), name='cadastrar_aditivo_cooperacao'),
+    path('instrumentos/aditivos/cooperacao/<int:pk>/editar/', views.TermoEncerramentoUpdateView.as_view(), name='editar_aditivo_cooperacao'),
+    path('instrumentos/aditivos/cooperacao/<int:pk>/excluir/', views.TermoEncerramentoDeleteView.as_view(), name='excluir_aditivo_cooperacao'),
 ]

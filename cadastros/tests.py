@@ -1614,7 +1614,7 @@ class CicloVidaProjetoTestCase(TestCase):
     def setUp(self):
         from django.contrib.auth.models import User
         from cadastros.models import (
-            ProjetoPDI, TermoDeParceria, PlanoDeTrabalho, Macroentrega,
+            ProjetoPDI, Convenio, PlanoDeTrabalho, Macroentrega,
             ContaBancaria, HistoricoTransicaoFase, MembroEquipe, PessoaFisica,
             EmpresaParceira, ICT, FundacaoApoio, CotaBolsaPT, TermoBolsa, Parcela
         )
@@ -1670,9 +1670,9 @@ class CicloVidaProjetoTestCase(TestCase):
 
     def test_02_gateway_execucao_com_sucesso_ativa_congelamento(self):
         """Gateway 1: Com termo assinado, macroentregas e conta, transiciona para EXECUCAO, grava auditoria e ativa congelamento."""
-        from cadastros.models import TermoDeParceria, PlanoDeTrabalho, Macroentrega, ContaBancaria, HistoricoTransicaoFase
+        from cadastros.models import Convenio, PlanoDeTrabalho, Macroentrega, ContaBancaria, HistoricoTransicaoFase
 
-        termo = TermoDeParceria.objects.create(
+        termo = Convenio.objects.create(
             projeto=self.projeto,
             numero="TP-2026/01",
             data_assinatura=date(2026, 1, 10),
@@ -2190,7 +2190,7 @@ class InstrumentosJuridicosTestCase(TestCase):
     def setUp(self):
         from django.contrib.auth.models import User
         from cadastros.models import (
-            TipoInstrumentoJuridico, TermoDeParceria, TermoCooperacao,
+            TipoInstrumentoJuridico, Convenio, TermoCooperacao,
             ICT, EmpresaParceira, FundacaoApoio
         )
         self.user = User.objects.create_superuser(username='admin_instrumentos', password='password123', email='admin@test.com')
@@ -2221,7 +2221,7 @@ class InstrumentosJuridicosTestCase(TestCase):
             }
         )
 
-        self.termo_parceria = TermoDeParceria.objects.create(
+        self.termo_parceria = Convenio.objects.create(
             tipo_instrumento="ACORDO_PARCERIA",
             tipo_instrumento_fk=self.tipo_ap,
             numero="AP nº 001/2026",
@@ -2322,7 +2322,7 @@ class TermosAditivosTestCase(TestCase):
     def setUp(self):
         from django.contrib.auth.models import User
         from django.core.files.uploadedfile import SimpleUploadedFile
-        from cadastros.models import TermoDeParceria, TermoCooperacao, ICT, EmpresaParceira, FundacaoApoio, TermoAditivo, AditivoTermoCooperacao
+        from cadastros.models import Convenio, TermoCooperacao, ICT, EmpresaParceira, FundacaoApoio, TermoAditivo, TermoEncerramento
 
         self.user = User.objects.create_superuser('aditivo_admin', 'aditivo@teste.com', 'senha123')
         self.client.login(username='aditivo_admin', password='senha123')
@@ -2345,7 +2345,7 @@ class TermosAditivosTestCase(TestCase):
             natureza_juridica="Fundação Privada"
         )
 
-        self.termo_parceria = TermoDeParceria.objects.create(
+        self.termo_parceria = Convenio.objects.create(
             numero="AP 100/2026",
             concedente=self.empresa,
             convenente=self.ict,
@@ -2364,8 +2364,8 @@ class TermosAditivosTestCase(TestCase):
         )
 
     def test_model_termo_aditivo_parceria_e_cooperacao(self):
-        """Testa instanciação e métodos dos modelos TermoAditivo e AditivoTermoCooperacao."""
-        from cadastros.models import TermoAditivo, AditivoTermoCooperacao
+        """Testa instanciação e métodos dos modelos TermoAditivo e TermoEncerramento."""
+        from cadastros.models import TermoAditivo, TermoEncerramento
 
         aditivo_p = TermoAditivo.objects.create(
             numero="1º Termo Aditivo",
@@ -2380,7 +2380,7 @@ class TermosAditivosTestCase(TestCase):
         self.assertEqual(str(aditivo_p), "1º Termo Aditivo - AP 100/2026")
         self.assertEqual(aditivo_p.nova_data_fim, date(2027, 6, 30))
 
-        aditivo_c = AditivoTermoCooperacao.objects.create(
+        aditivo_c = TermoEncerramento.objects.create(
             numero="1º Termo Aditivo TC",
             tipo_aditivo="ACRESCIMO_VALOR",
             termo_cooperacao=self.termo_coop,
@@ -2445,10 +2445,10 @@ class TermosAditivosTestCase(TestCase):
 
     def test_vigencia_padronizada_e_fallback(self):
         """Testa campos diretos de vigência, fallback para planos de trabalho e renderização no painel."""
-        from cadastros.models import TermoDeParceria, TermoCooperacao, PlanoDeTrabalho, ProjetoPDI
+        from cadastros.models import Convenio, TermoCooperacao, PlanoDeTrabalho, ProjetoPDI
 
         # 1. Termo de Parceria com vigência direta
-        tp = TermoDeParceria.objects.create(
+        tp = Convenio.objects.create(
             numero="AP 999/2026",
             concedente=self.empresa,
             convenente=self.ict,
@@ -2484,7 +2484,7 @@ class TermosAditivosTestCase(TestCase):
         self.assertContains(res_painel, "Assinado em 15/02/2026")
 
         # 4. Validação da dinâmica de nomenclatura das espécies documentais (Convênio vs Acordo de Parceria)
-        tp_conv = TermoDeParceria.objects.create(
+        tp_conv = Convenio.objects.create(
             tipo_instrumento='CONVENIO',
             numero='CV 99/2026',
             concedente=self.empresa,
