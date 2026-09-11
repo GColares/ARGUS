@@ -473,7 +473,7 @@ def editar_projeto(request, projeto_id):
         
         action = request.POST.get('action', 'salvar')
 
-        if (valid_plano and valid_proj) or (is_prospeccao and nome):
+        if (valid_plano and valid_proj) or (action == 'salvar' and nome) or (is_prospeccao and nome):
             try:
                 with transaction.atomic():
                     if action == 'publicar' and (not valid_proj or not valid_plano):
@@ -512,13 +512,7 @@ def editar_projeto(request, projeto_id):
                         form_plano.save_m2m()
                     plano = plano_salvo
 
-                    # --- SALVAMENTO DINÂMICO ---
-                    # Limpa registros antigos para recriar com os dados atualizados
-                    plano.atividades.all().delete()
-                    plano.macroentregas.all().delete()
-                    plano.rubricas.all().delete()
-                    plano.desembolsos.all().delete()
-                    
+                    # --- SALVAMENTO DINÂMICO SEGURO ---
                     # 1. Atividades
                     atividades_nome = request.POST.getlist('atividade_nome[]')
                     atividades_desc = request.POST.getlist('atividade_descricao[]')
@@ -527,30 +521,32 @@ def editar_projeto(request, projeto_id):
                     atividades_inicio = request.POST.getlist('atividade_mes_inicio[]')
                     atividades_fim = request.POST.getlist('atividade_mes_fim[]')
                     
-                    for i in range(len(atividades_nome)):
-                        if atividades_nome[i].strip():
-                            mes_in = int(atividades_inicio[i]) if atividades_inicio[i].strip() else None
-                            mes_out = int(atividades_fim[i]) if atividades_fim[i].strip() else None
-                            
-                            atividade = AtividadePlanoAcao.objects.create(
-                                plano_trabalho=plano,
-                                numero=i+1,
-                                nome=atividades_nome[i],
-                                descricao=atividades_desc[i] if i < len(atividades_desc) else '',
-                                justificativa=atividades_just[i] if i < len(atividades_just) else '',
-                                mes_inicio=mes_in,
-                                mes_fim=mes_out
-                            )
-                            
-                            if i < len(atividades_entreg) and atividades_entreg[i].strip():
-                                for nome_entregavel in atividades_entreg[i].split(';'):
-                                    if nome_entregavel.strip():
-                                        from .models import EntregavelAtividade
-                                        EntregavelAtividade.objects.create(
-                                            atividade=atividade,
-                                            nome=nome_entregavel.strip()
-                                        )
-                            
+                    if any(nome_atv.strip() for nome_atv in atividades_nome):
+                        plano.atividades.all().delete()
+                        for i in range(len(atividades_nome)):
+                            if atividades_nome[i].strip():
+                                mes_in = int(atividades_inicio[i]) if i < len(atividades_inicio) and atividades_inicio[i].strip() else None
+                                mes_out = int(atividades_fim[i]) if i < len(atividades_fim) and atividades_fim[i].strip() else None
+                                
+                                atividade = AtividadePlanoAcao.objects.create(
+                                    plano_trabalho=plano,
+                                    numero=i+1,
+                                    nome=atividades_nome[i],
+                                    descricao=atividades_desc[i] if i < len(atividades_desc) else '',
+                                    justificativa=atividades_just[i] if i < len(atividades_just) else '',
+                                    mes_inicio=mes_in,
+                                    mes_fim=mes_out
+                                )
+                                
+                                if i < len(atividades_entreg) and atividades_entreg[i].strip():
+                                    for nome_entregavel in atividades_entreg[i].split(';'):
+                                        if nome_entregavel.strip():
+                                            from .models import EntregavelAtividade
+                                            EntregavelAtividade.objects.create(
+                                                atividade=atividade,
+                                                nome=nome_entregavel.strip()
+                                            )
+                                
                     # 2. Macroentregas
                     macro_titulos = request.POST.getlist('macro_nome[]')
                     if not macro_titulos:
@@ -564,62 +560,77 @@ def editar_projeto(request, projeto_id):
                     macro_fim = request.POST.getlist('macro_data_fim[]')
                     if not macro_fim:
                         macro_fim = request.POST.getlist('macro_fim[]')
+                    macro_trl = request.POST.getlist('macro_trl[]')
                     
-                    for i in range(len(macro_titulos)):
-                        if macro_titulos[i].strip():
-                            data_in = macro_inicio[i] if i < len(macro_inicio) and macro_inicio[i].strip() else None
-                            data_out = macro_fim[i] if i < len(macro_fim) and macro_fim[i].strip() else None
-                            
-                            Macroentrega.objects.create(
-                                plano_trabalho=plano,
-                                numero=i+1,
-                                nome=macro_titulos[i],
-                                micro_entregas=macro_desc[i] if i < len(macro_desc) else '',
-                                data_inicio=data_in,
-                                data_fim=data_out
-                            )
-                            
-                    # 3. Rubricas
+                    if any(t.strip() for t in macro_titulos):
+                        plano.macroentregas.all().delete()
+                        for i in range(len(macro_titulos)):
+                            if macro_titulos[i].strip():
+                                data_in = macro_inicio[i] if i < len(macro_inicio) and macro_inicio[i].strip() else None
+                                data_out = macro_fim[i] if i < len(macro_fim) and macro_fim[i].strip() else None
+                                trl_val = int(macro_trl[i]) if i < len(macro_trl) and macro_trl[i].strip() and macro_trl[i].isdigit() else None
+                                
+                                Macroentrega.objects.create(
+                                    plano_trabalho=plano,
+                                    numero=i+1,
+                                    nome=macro_titulos[i],
+                                    micro_entregas=macro_desc[i] if i < len(macro_desc) else '',
+                                    trl=trl_val,
+                                    data_inicio=data_in,
+                                    data_fim=data_out
+                                )
+                                
+                    # 3. Rubricas Orçamentárias
                     rubrica_fontes = request.POST.getlist('rubrica_fonte[]')
                     rubrica_categorias = request.POST.getlist('rubrica_categoria[]')
                     rubrica_desc = request.POST.getlist('rubrica_descricao[]')
                     rubrica_valores = request.POST.getlist('rubrica_valor[]')
                     
                     from .models import RubricaOrcamentariaPT, CronogramaDesembolso
-                    for i in range(len(rubrica_fontes)):
-                        if rubrica_fontes[i].strip() and rubrica_categorias[i].strip():
-                            val_str = rubrica_valores[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(rubrica_valores) else '0'
-                            try:
-                                valor_float = float(val_str)
-                            except ValueError:
-                                valor_float = 0.0
+
+                    def _converter_valor_monetario(val_raw):
+                        if not val_raw:
+                            return 0.0
+                        s = str(val_raw).replace('R$', '').strip()
+                        if ',' in s:
+                            s = s.replace('.', '').replace(',', '.')
+                        try:
+                            return float(s)
+                        except ValueError:
+                            return 0.0
+
+                    if any(f.strip() for f in rubrica_fontes):
+                        plano.rubricas.all().delete()
+                        for i in range(len(rubrica_fontes)):
+                            if rubrica_fontes[i].strip() and i < len(rubrica_categorias) and rubrica_categorias[i].strip():
+                                raw_val = rubrica_valores[i] if i < len(rubrica_valores) else '0'
+                                valor_float = _converter_valor_monetario(raw_val)
+                                    
+                                RubricaOrcamentariaPT.objects.create(
+                                    plano_trabalho=plano,
+                                    fonte_recurso=rubrica_fontes[i],
+                                    categoria=rubrica_categorias[i],
+                                    descricao=rubrica_desc[i] if i < len(rubrica_desc) else '',
+                                    valor_previsto=valor_float
+                                )
                                 
-                            RubricaOrcamentariaPT.objects.create(
-                                plano_trabalho=plano,
-                                fonte_recurso=rubrica_fontes[i],
-                                categoria=rubrica_categorias[i],
-                                descricao=rubrica_desc[i] if i < len(rubrica_desc) else '',
-                                valor=valor_float
-                            )
-                            
                     # 4. Cronograma Financeiro (Desembolsos)
                     desembolso_mes = request.POST.getlist('desembolso_mes[]')
                     desembolso_valor = request.POST.getlist('desembolso_valor[]')
                     
-                    for i in range(len(desembolso_mes)):
-                        if desembolso_mes[i].strip():
-                            val_str = desembolso_valor[i].replace('R$', '').replace('.', '').replace(',', '.').strip() if i < len(desembolso_valor) else '0'
-                            try:
-                                valor_float = float(val_str)
-                            except ValueError:
-                                valor_float = 0.0
-                                
-                            CronogramaDesembolso.objects.create(
-                                plano_trabalho=plano,
-                                parcela=i+1,
-                                mes_previsto=desembolso_mes[i],
-                                valor=valor_float
-                            )
+                    if any(m.strip() for m in desembolso_mes):
+                        plano.desembolsos.all().delete()
+                        for i in range(len(desembolso_mes)):
+                            if desembolso_mes[i].strip():
+                                raw_val = desembolso_valor[i] if i < len(desembolso_valor) else '0'
+                                valor_float = _converter_valor_monetario(raw_val)
+                                    
+                                CronogramaDesembolso.objects.create(
+                                    plano_trabalho=plano,
+                                    parcela=i+1,
+                                    mes_previsto=desembolso_mes[i],
+                                    valor_parcela=valor_float
+                                )
 
                 if action == 'publicar':
                     plano_salvo.status = 'CONGELADO_VIGENTE'
@@ -645,13 +656,51 @@ def editar_projeto(request, projeto_id):
         form_plano = PlanoDeTrabalhoForm(instance=plano)
         form_projeto = ProjetoPDIForm(instance=projeto)
 
+    # Contexto enriquecido para as 4 Abas Canônicas
+    from decimal import Decimal
+    macroentregas_existentes = list(plano.macroentregas.order_by('numero')) if plano else []
+    atividades_existentes = list(plano.atividades.prefetch_related('entregaveis').order_by('numero')) if plano else []
+    rubricas_existentes = list(plano.rubricas.order_by('id')) if plano else []
+    desembolsos_existentes = list(plano.desembolsos.order_by('parcela')) if plano else []
+
+    trls = [m.trl for m in macroentregas_existentes if m.trl is not None]
+    trl_inicial = min(trls) if trls else None
+    trl_final = max(trls) if trls else None
+
+    valor_global = plano.valor_global or Decimal('0.00') if plano else Decimal('0.00')
+    aporte_empresa = plano.aporte_empresa or Decimal('0.00') if plano else Decimal('0.00')
+    aporte_embrapii = plano.aporte_embrapii or Decimal('0.00') if plano else Decimal('0.00')
+    aporte_sebrae = plano.aporte_sebrae or Decimal('0.00') if plano else Decimal('0.00')
+    aporte_contrapartida = plano.aporte_contrapartida or Decimal('0.00') if plano else Decimal('0.00')
+
+    pct_empresa = (aporte_empresa / valor_global * Decimal('100.0')) if valor_global > 0 else Decimal('0.0')
+    pct_embrapii = (aporte_embrapii / valor_global * Decimal('100.0')) if valor_global > 0 else Decimal('0.0')
+    pct_sebrae = (aporte_sebrae / valor_global * Decimal('100.0')) if valor_global > 0 else Decimal('0.0')
+    pct_contrapartida = (aporte_contrapartida / valor_global * Decimal('100.0')) if valor_global > 0 else Decimal('0.0')
+
+    rubrica_doas = plano.rubricas.filter(categoria='SUPORTE_OPERACIONAL').first() if plano else None
+
     context = {
         'form_projeto': form_projeto,
         'form_plano': form_plano,
         'projeto': projeto,
-        'plano_ativo': plano
+        'plano_ativo': plano,
+        'macroentregas': macroentregas_existentes,
+        'atividades': atividades_existentes,
+        'rubricas': rubricas_existentes,
+        'desembolsos': desembolsos_existentes,
+        'processos': projeto.processos.all() if projeto else [],
+        'contas': projeto.contas.all() if projeto else [],
+        'trl_inicial': trl_inicial,
+        'trl_final': trl_final,
+        'pct_empresa': pct_empresa,
+        'pct_embrapii': pct_embrapii,
+        'pct_sebrae': pct_sebrae,
+        'pct_contrapartida': pct_contrapartida,
+        'rubrica_doas': rubrica_doas,
     }
     return render(request, 'cadastros/form_projeto.html', context)
+
 
 
 

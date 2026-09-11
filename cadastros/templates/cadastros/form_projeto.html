@@ -1,1866 +1,1280 @@
 {% extends 'base.html' %}
-{% block content %}
+{% load static %}
 
-<!-- Include Quill stylesheet -->
+{% block extra_css %}
+<!-- Quill Rich Text Editor Stylesheet -->
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<!-- Include Quill library -->
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
 <style>
-    /* Trava de Caixa Eletrônico: Proíbe estritamente a rolagem da página inteira */
-    html, body {
-        height: 100%;
-    }
-    body {
-        overflow-x: hidden;
-    }
-
-    .row {
-        min-height: 0;
+    /* Estilização Padrão-Ouro Glassmorphism & Anti-Trava de Viewport */
+    .cs-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        transition: all 0.2s ease-in-out;
     }
 
-    .vertical-wizard,
-    #wizard-content-col {
-        min-height: 0;
-        display: flex;
-    }
-
-    #wizard-content-col {
-        flex-direction: column;
-    }
-
-    #v-pills-tab {
-        height: calc(100vh - 290px);
-        min-height: 420px;
-        max-height: calc(100vh - 290px);
-        overflow-y: auto;
-        overflow-x: hidden;
-        flex-wrap: nowrap;
-        padding-right: 5px;
-        width: 100%;
-    }
-
-    .custom-scrollbar {
-        flex: 1 1 auto;
-        min-height: 0;
-        height: calc(100vh - 290px);
-        max-height: calc(100vh - 290px);
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    /* Esconde o footer institucional apenas nesta tela para economizar espaço e evitar que fique cortado pela metade */
-    .footer-institucional {
-        display: none !important;
-    }
-
-    .ql-container.ql-snow,
-    .ql-container {
-        font-family: inherit;
-        font-size: 1rem;
-        border-bottom-left-radius: 0.375rem;
-        border-bottom-right-radius: 0.375rem;
-        background-color: #fff;
-        height: 150px;
-        min-height: 150px;
-        max-height: 150px;
-        overflow-y: auto;
-        position: relative;
-        z-index: 1;
-    }
-    .ql-editor {
-        min-height: 150px;
-        max-height: 150px;
-        overflow-y: auto;
-        position: relative;
-        z-index: 1;
-    }
-    .ql-toolbar {
-        position: relative;
-        z-index: 2;
-    }
-    .ql-toolbar {
-        position: relative;
-        z-index: 2;
-        border-top-left-radius: 0.375rem;
-        border-top-right-radius: 0.375rem;
-        background-color: #f8f9fa;
-    }
-    .richtext-wrapper {
-        margin-bottom: 1rem;
-    }
-    .wizard-step h4 {
-        margin-top: 0;
-        margin-bottom: 1.25rem !important;
-    }
-    .wizard-step .row.g-4 {
-        --bs-gutter-y: 1.25rem;
-    }
-    #step5 .col-md-12 + .col-md-12 {
-        margin-top: 0.5rem !important;
-    }
-    .wizard-step .richtext-editor-container .ql-toolbar {
-        display: none !important;
-    }
-    .wizard-step .richtext-editor-container,
-    .wizard-step .richtext-editor-container .ql-container,
-    .wizard-step .richtext-editor-container .ql-editor {
-        height: auto !important;
-        min-height: 100px;
-        max-height: 48vh !important;
-        overflow-y: auto !important;
-    }
-    #step4 .richtext-editor-container,
-    #step4 .richtext-editor-container .ql-container,
-    #step4 .richtext-editor-container .ql-editor {
-        max-height: calc(100vh - 418px) !important;
-    }
-    .wizard-step .richtext-editor-container.is-editing .ql-toolbar {
-        display: block !important;
-        background-color: #f8f9fa;
-        border: 1px solid #ced4da;
-        border-bottom: none;
-        border-top-left-radius: 0.375rem;
-        border-top-right-radius: 0.375rem;
-    }
-    .wizard-step .richtext-editor-container.is-editing .ql-container {
-        border-top-left-radius: 0 !important;
-        border-top-right-radius: 0 !important;
-    }
-    #step5 .richtext-toggle-btn {
-        margin-left: 0.35rem;
-        padding: 0.1rem 0.3rem;
-        line-height: 1;
-        vertical-align: middle;
-    }
-    .richtext-edit-target {
-        display: flex !important;
-        align-items: center;
-        width: 100% !important;
-    }
-    .richtext-edit-target .richtext-toggle-btn {
-        margin-left: auto !important;
-        flex-shrink: 0;
-    }
-    .richtext-actions {
-        margin-left: auto;
-        display: inline-flex;
-        gap: 0.25rem;
-        flex-shrink: 0;
-    }
-    .richtext-actions .richtext-toggle-btn {
-        margin-left: 0 !important;
-    }
-    #project-wizard-shell.is-fullscreen {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin-top: 0 !important;
-        max-width: 100%;
-    }
-    #project-wizard-shell.is-fullscreen > .card {
-        border-radius: 0 !important;
-    }
-    #project-wizard-shell.is-fullscreen #wizard-content-col {
-        padding-left: 0 !important;
-    }
-    #step5 label.richtext-edit-target {
-        max-width: 100%;
-    }
-    .ql-editor img {
-        max-width: 100%;
-        height: auto;
-        display: inline-block !important;
-        vertical-align: middle;
-        margin: 0.25rem;
-        border-radius: 0.375rem;
-    }
-    .wizard-content-panel {
-        min-height: 680px;
-        display: flex;
-        flex-direction: column;
-        padding-bottom: 0 !important;
-    }
-    .wizard-step {
-        display: none;
-        flex-direction: column;
-        flex-grow: 1;
-        min-height: 0;
-    }
-    .wizard-step.active {
-        display: flex !important;
-        width: 100%;
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: visible;
-        padding-bottom: 0 !important;
-    }
-    .wizard-step .d-flex.border-top {
-        margin-top: auto !important;
-    }
-    .wizard-step > .border-top {
-        position: sticky !important;
-        bottom: 0 !important;
-        background-color: #ffffff !important;
-        z-index: 1050 !important;
-        margin-top: auto !important;
-        padding-top: 0.85rem !important;
-        padding-bottom: 0.5cm !important;
-        margin-bottom: 0 !important;
-        border-top: 1px solid #dee2e6 !important;
-        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05) !important;
-    }
-
-    .wizard-step > .row {
-        width: 100%;
-        flex: 0 0 auto;
-        margin-bottom: 0;
-    }
-    .wizard-step > .row,
-    .wizard-step > .row.g-4 {
-        padding-bottom: 1.5rem;
-    }
-    #step4 > .row,
-    #step4 > .row.g-4 {
-        padding-bottom: 0 !important;
-        margin-bottom: 0.2cm !important;
-        --bs-gutter-y: 0 !important;
-    }
-    #step4 > .row > .col-md-12,
-    #step4 .richtext-wrapper {
-        padding-bottom: 0 !important;
-        margin-bottom: 0 !important;
-    }
-
-    .wizard-step .col-md-12 {
-        position: relative;
-        flex: 0 0 auto;
-        z-index: 1;
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Layout Vertical do Wizard */
-    .vertical-wizard .nav-link {
+    .nav-pills-custom .nav-link {
         color: #495057;
         font-weight: 600;
         border-radius: 0.5rem;
-        padding: 0.75rem 1rem;
-        margin-bottom: 0.25rem;
-        text-align: left;
-        font-size: 0.9rem;
-        border: 1px solid transparent;
+        padding: 0.75rem 1.25rem;
         transition: all 0.2s ease-in-out;
-    }
-    .vertical-wizard .nav-link:hover {
-        background-color: #f8f9fa;
-        transform: translateX(5px);
-    }
-    .vertical-wizard .nav-link.active {
-        background-color: var(--bs-info);
-        color: white;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        transform: translateX(5px);
-    }
-    .vertical-wizard .step-number {
-        display: inline-block;
-        width: 1.5rem;
-        height: 1.5rem;
-        line-height: 1.5rem;
-        text-align: center;
-        margin-right: 0.5rem;
-        background: rgba(0,0,0,0.05);
-        border-radius: 50%;
-        font-size: 0.8rem;
-    }
-    .vertical-wizard .nav-link.active .step-number {
-        background: rgba(255,255,255,0.2);
-    }
-    
-    .placeholder-box {
-        background-color: #f8f9fa;
-        border: 2px dashed #dee2e6;
-        border-radius: 0.5rem;
-        padding: 3rem;
-        text-align: center;
-        color: #6c757d;
+        border: 1px solid transparent;
     }
 
-    /* Ajustes das bolinhas da lista do Quill solicitados pelo usuario */
-    .ql-editor ul li:not(.ql-direction-rtl)::before {
-        content: '\25CF' !important; /* Circulo preto maior */
-        font-size: 1.1em;
-    }
-    .ql-editor ul li.ql-indent-1:not(.ql-direction-rtl)::before {
-        content: '\25CB' !important; /* Circulo branco */
-        font-size: 1.0em;
-    }
-    .ql-editor ul li.ql-indent-2:not(.ql-direction-rtl)::before {
-        content: '\25A0' !important; /* Quadrado preto */
-        font-size: 0.9em;
-    }
-    .ql-editor ul li.ql-indent-3:not(.ql-direction-rtl)::before {
-        content: '\25A1' !important; /* Quadrado branco */
-        font-size: 0.9em;
-    }
-    .ql-editor ul li.ql-indent-4:not(.ql-direction-rtl)::before {
-        content: '\25AA' !important; /* Quadrado pequeno */
-        font-size: 0.8em;
+    .nav-pills-custom .nav-link:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.06);
+        color: var(--bs-primary);
     }
 
+    .nav-pills-custom .nav-link.active {
+        background-color: var(--bs-primary);
+        color: #fff;
+        box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.3);
+    }
+
+    /* Editores Quill integrados */
+    .ql-container.ql-snow {
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+        background-color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+        min-height: 120px;
+    }
+
+    .ql-toolbar.ql-snow {
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        background-color: #f8f9fa;
+    }
+
+    /* Barra Inferior Sticky */
+    .sticky-actions-bar {
+        position: sticky;
+        bottom: 0;
+        z-index: 1020;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid #dee2e6;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Tabelas Dinâmicas */
+    .table-dinamica th {
+        font-size: 0.85rem;
+        text-transform: none;
+    }
+
+    .badge-soft-primary {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--bs-primary);
+    }
+
+    .badge-soft-success {
+        background-color: rgba(var(--bs-success-rgb), 0.1);
+        color: var(--bs-success);
+    }
+
+    .badge-soft-info {
+        background-color: rgba(var(--bs-info-rgb), 0.1);
+        color: var(--bs-info);
+    }
+
+    .badge-soft-warning {
+        background-color: rgba(var(--bs-warning-rgb), 0.1);
+        color: var(--bs-warning);
+    }
 </style>
+{% endblock %}
 
-<div class="container-fluid px-4 mt-2 mb-0" id="project-wizard-shell">
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-header bg-white py-2 border-bottom border-info border-3 d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-2 d-inline-block">
-                    <i class="fas fa-arrow-left me-1"></i> Voltar
-                </a>
-                <h4 class="mb-0 fw-bold text-info">
-                    <i class="fas fa-project-diagram me-2"></i> {% if projeto %}Editar Projeto PDI{% else %}Cadastro de Projeto PDI{% endif %}
-                    {% if projeto %}
-                    <span class="badge bg-{{ projeto.fase_color }} ms-3 px-3 py-2 rounded-pill fs-6 align-middle shadow-sm">
-                        <i class="fas {{ projeto.fase_icone }} me-1"></i> {{ projeto.get_fase_display }}
-                    </span>
-                    {% endif %}
-                </h4>
-                <p class="text-muted small mb-0 mt-2">Navegue pelas seções laterais. O progresso é <strong>salvo automaticamente</strong> no seu navegador (Offline-First).</p>
-            </div>
-            <div class="mt-2 mt-md-0 d-flex gap-3 align-items-center">
-                {% if form_projeto.errors or form_plano.errors %}
-                <button type="button" class="btn btn-warning position-relative px-3 py-2 shadow-sm border-0" data-bs-toggle="modal" data-bs-target="#modalPendencias" title="Visualizar Pendências">
-                    <i class="fas fa-bell text-dark fs-5"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm border border-white" id="badge-erros">
-                        <span class="visually-hidden">pendências</span>
-                    </span>
-                </button>
+{% block content %}
+<div class="container-fluid px-4 mt-4 mb-5 pb-4">
+
+    <!-- 1. Breadcrumbs e Navegação -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a href="{% url 'home_geral' %}" class="text-decoration-none">Início</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:listar_projetos' %}" class="text-decoration-none">Projetos PDI</a></li>
+            {% if projeto %}
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:visualizar_projeto' projeto.id %}" class="text-decoration-none">{{ projeto.nome|truncatechars:35 }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Editar</li>
+            {% else %}
+            <li class="breadcrumb-item active" aria-current="page">Novo Cadastro</li>
+            {% endif %}
+        </ol>
+    </nav>
+
+    <!-- 2. Link Voltar Padronizado -->
+    <a href="javascript:history.back()" class="text-decoration-none text-muted small fw-bold mb-3 d-inline-block">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <!-- 3. Cabeçalho da Página -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="h3 fw-bold text-dark mb-0">
+                    <i class="fas fa-project-diagram text-primary me-2"></i>
+                    {% if projeto %}Editar Projeto: {{ projeto.nome }}{% else %}Novo Projeto de PDI{% endif %}
+                </h2>
+                {% if projeto %}
+                <span class="badge bg-{{ projeto.fase_color }} px-3 py-2 rounded-pill fs-6">
+                    <i class="fas {{ projeto.fase_icone }} me-1"></i> {{ projeto.get_fase_display }}
+                </span>
+                {% else %}
+                <span class="badge bg-secondary px-3 py-2 rounded-pill fs-6">
+                    <i class="fas fa-compass me-1"></i> Prospecção (Novo)
+                </span>
                 {% endif %}
-                <button type="button" class="btn btn-sm btn-outline-secondary text-muted" id="btn-toggle-sidebar" title="Expandir/Recolher Área de Trabalho">
-                    <i class="fas fa-expand-arrows-alt me-1"></i> Tela Cheia
-                </button>
-                <button type="submit" form="projetoWizardForm" name="action" value="salvar" class="btn btn-outline-success px-4 shadow-sm fw-bold">
-                    <i class="fas fa-save me-2"></i> Salvar Alterações
-                </button>
-                <button type="submit" form="projetoWizardForm" name="action" value="publicar" class="btn btn-primary px-4 shadow-sm fw-bold">
-                    <i class="fas fa-paper-plane me-2"></i> Publicar Projeto
-                </button>
+            </div>
+            <p class="text-muted small mb-0 mt-1">
+                Estrutura canônica de 4 eixos processuais: Instrumento Jurídico, Plano de Trabalho Técnico, Orçamento/FAEPI e Governança.
+            </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            {% if form_projeto.errors or form_plano.errors %}
+            <button type="button" class="btn btn-danger position-relative px-3 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPendencias" title="Visualizar Pendências">
+                <i class="fas fa-exclamation-triangle me-1"></i> Pendências
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark border border-white">
+                    !
+                </span>
+            </button>
+            {% endif %}
+
+            {% if projeto %}
+            <a href="{% url 'cadastros:visualizar_projeto' projeto.id %}" class="btn btn-outline-secondary px-3 shadow-sm">
+                <i class="fas fa-eye me-1"></i> Ver Dossier
+            </a>
+            {% endif %}
+
+            <button type="submit" form="formProjetoMaster" name="action" value="salvar" class="btn btn-outline-success px-4 shadow-sm fw-bold">
+                <i class="fas fa-save me-1"></i> Salvar Rascunho
+            </button>
+            <button type="submit" form="formProjetoMaster" name="action" value="publicar" class="btn btn-primary px-4 shadow-sm fw-bold">
+                <i class="fas fa-paper-plane me-1"></i> Publicar Projeto
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Pendências / Erros de Formulário -->
+    {% if form_projeto.errors or form_plano.errors %}
+    <div class="modal fade" id="modalPendencias" tabindex="-1" aria-labelledby="modalPendenciasLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="modalPendenciasLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Pendências Encontradas no Projeto
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <p class="mb-3 text-muted">Corrija os campos apontados abaixo para permitir a publicação ou avanço do projeto:</p>
+                    <div class="list-group list-group-flush rounded-3 border border-danger border-opacity-25">
+                        {% for field in form_projeto %}
+                            {% if field.errors %}
+                            <div class="list-group-item list-group-item-danger py-2">
+                                <strong class="d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> [Projeto] {{ field.label }}</strong>
+                                <small class="text-dark">{{ field.errors.0 }}</small>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        {% for field in form_plano %}
+                            {% if field.errors %}
+                            <div class="list-group-item list-group-item-danger py-2">
+                                <strong class="d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> [Plano de Trabalho] {{ field.label }}</strong>
+                                <small class="text-dark">{{ field.errors.0 }}</small>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-secondary px-4 fw-bold" data-bs-dismiss="modal">Fechar</button>
+                </div>
             </div>
         </div>
-        
-        <div class="card-body p-3 bg-light">
-            <form method="post" id="projetoWizardForm">
-                {% csrf_token %}
-                
-                                {% if form_projeto.errors or form_plano.errors %}
-                <!-- Modal de Pendências -->
-                <div class="modal fade" id="modalPendencias" tabindex="-1" aria-labelledby="modalPendenciasLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                        <div class="modal-content border-0 shadow-lg">
-                            <div class="modal-header bg-danger text-white border-0 py-3">
-                                <h5 class="modal-title fw-bold" id="modalPendenciasLabel">
-                                    <i class="fas fa-exclamation-triangle me-2"></i> Pendências Encontradas
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                            </div>
-                            <div class="modal-body p-4 bg-light">
-                                <p class="mb-4">O ARGUS identificou informações ausentes ou inválidas. Clique no item abaixo para ir direto ao campo com erro e corrigi-lo:</p>
-                                
-                                <div class="list-group list-group-flush rounded-3 border border-danger border-opacity-25" id="lista-erros-modal">
-                                    
-                                    <!-- Erros do form_projeto -->
-                                    {% for field in form_projeto %}
-                                        {% if field.errors %}
-                                            <a href="javascript:void(0)" onclick="focarErroModal('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center erro-item">
-                                                <div>
-                                                    <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
-                                                    <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
-                                                </div>
-                                                <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
-                                            </a>
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% if form_projeto.non_field_errors %}
-                                        {% for erro in form_projeto.non_field_errors %}
-                                        <div class="list-group-item list-group-item-danger py-3 erro-item">
-                                            <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral de Validação (Projeto)</strong>
-                                            <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
-                                        </div>
-                                        {% endfor %}
-                                    {% endif %}
+    </div>
+    {% endif %}
 
-                                    <!-- Erros do form_plano -->
-                                    {% for field in form_plano %}
-                                        {% if field.errors %}
-                                            <a href="javascript:void(0)" onclick="focarErroModal('{{ field.id_for_label }}')" class="list-group-item list-group-item-action list-group-item-danger py-3 d-flex justify-content-between align-items-center erro-item">
-                                                <div>
-                                                    <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-circle me-1"></i> {{ field.label }}</strong>
-                                                    <p class="mb-0 small text-dark mt-1">{{ field.errors.0 }}</p>
-                                                </div>
-                                                <i class="fas fa-external-link-alt text-danger opacity-50 ms-3"></i>
-                                            </a>
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% if form_plano.non_field_errors %}
-                                        {% for erro in form_plano.non_field_errors %}
-                                        <div class="list-group-item list-group-item-danger py-3 erro-item">
-                                            <strong class="mb-1 d-block text-danger"><i class="fas fa-exclamation-triangle me-1"></i> Erro Geral (Plano)</strong>
-                                            <p class="mb-0 small text-dark mt-1">{{ erro }}</p>
-                                        </div>
-                                        {% endfor %}
-                                    {% endif %}
+    <!-- 4. Formulário Mestre -->
+    <form method="post" id="formProjetoMaster" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Navegação em 4 Abas Canônicas Superiores -->
+        <ul class="nav nav-pills nav-pills-custom bg-white p-2 rounded-3 shadow-sm border mb-4" id="dossierTabs" role="tablist">
+            <li class="nav-item flex-fill text-center" role="presentation">
+                <button class="nav-link active w-100 py-3" id="tab-instrumento-btn" data-bs-toggle="pill" data-bs-target="#tab-instrumento" type="button" role="tab" aria-controls="tab-instrumento" aria-selected="true">
+                    <i class="fas fa-file-contract me-2"></i> 1. Instrumento Jurídico &amp; Partícipes
+                </button>
+            </li>
+            <li class="nav-item flex-fill text-center" role="presentation">
+                <button class="nav-link w-100 py-3" id="tab-plano-btn" data-bs-toggle="pill" data-bs-target="#tab-plano" type="button" role="tab" aria-controls="tab-plano" aria-selected="false">
+                    <i class="fas fa-microscope me-2"></i> 2. Plano de Trabalho Técnico
+                </button>
+            </li>
+            <li class="nav-item flex-fill text-center" role="presentation">
+                <button class="nav-link w-100 py-3" id="tab-orcamento-btn" data-bs-toggle="pill" data-bs-target="#tab-orcamento" type="button" role="tab" aria-controls="tab-orcamento" aria-selected="false">
+                    <i class="fas fa-calculator me-2"></i> 3. Orçamento &amp; Proposta FAEPI
+                </button>
+            </li>
+            <li class="nav-item flex-fill text-center" role="presentation">
+                <button class="nav-link w-100 py-3" id="tab-governanca-btn" data-bs-toggle="pill" data-bs-target="#tab-governanca" type="button" role="tab" aria-controls="tab-governanca" aria-selected="false">
+                    <i class="fas fa-gavel me-2"></i> 4. Trilha de Pareceres &amp; Governança
+                </button>
+            </li>
+        </ul>
+
+        <!-- Conteúdo das Abas -->
+        <div class="tab-content" id="dossierTabsContent">
+
+            <!-- ================================================================= -->
+            <!-- ABA 1: INSTRUMENTO JURÍDICO & PARTÍCIPES                          -->
+            <!-- ================================================================= -->
+            <div class="tab-pane fade show active" id="tab-instrumento" role="tabpanel" aria-labelledby="tab-instrumento-btn">
+                
+                <div class="row g-4">
+                    <!-- Qualificação Geral do Projeto -->
+                    <div class="col-lg-6">
+                        <div class="card cs-card h-100">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2">
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-info-circle text-primary me-2"></i> Identificação Oficial do Projeto
+                                </h5>
+                                <small class="text-muted">Dados mestres de catalogação no ARGUS</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Título Completo do Projeto <span class="text-danger">*</span></label>
+                                    {{ form_projeto.nome }}
+                                    {% if form_projeto.nome.errors %}<div class="text-danger small mt-1">{{ form_projeto.nome.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small">Código / Sigla / Apelido <span class="text-danger">*</span></label>
+                                        {{ form_projeto.projeto }}
+                                        {% if form_projeto.projeto.errors %}<div class="text-danger small mt-1">{{ form_projeto.projeto.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small">Coordenador do Projeto (SIAPE) <span class="text-danger">*</span></label>
+                                        {{ form_projeto.coordenador }}
+                                        {% if form_projeto.coordenador.errors %}<div class="text-danger small mt-1">{{ form_projeto.coordenador.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small">Local de Execução</label>
+                                        {{ form_projeto.local_execucao }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small">Programa Guarda-Chuva (Se houver)</label>
+                                        {{ form_projeto.programa }}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="modal-footer border-0 bg-light pb-4 pe-4 d-flex justify-content-between align-items-center">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="checkSilenciarPendencias">
-                                    <label class="form-check-label small text-muted fw-bold" for="checkSilenciarPendencias">
-                                        Não abrir automaticamente ao salvar rascunhos
+                        </div>
+                    </div>
+
+                    <!-- Acordo de Parceria / Instrumento Jurídico -->
+                    <div class="col-lg-6">
+                        <div class="card cs-card h-100">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2">
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-file-signature text-primary me-2"></i> Instrumento Jurídico (Marco Legal CT&amp;I)
+                                </h5>
+                                <small class="text-muted">Vínculo formal com o Acordo de Parceria / Termo no SIPAC</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="p-3 bg-light rounded border mb-3">
+                                    <label class="form-label fw-bold text-primary small">
+                                        <i class="fas fa-link me-1"></i> Vincular a Acordo de Parceria Existente
                                     </label>
+                                    <p class="text-muted small mb-2">
+                                        Se a Gestão de Contratos já autuou um Acordo no SIPAC para a empresa parceira, selecione-o abaixo:
+                                    </p>
+                                    <select name="termo_existente" id="termo_existente" class="form-select">
+                                        <option value="">Nenhum / Projeto em Prospecção Inicial</option>
+                                        {% if projeto and projeto.termos_parceria.first %}
+                                        {% with tp=projeto.termos_parceria.first %}
+                                        <option value="{{ tp.id }}" selected>
+                                            Termo {{ tp.numero|default:"S/N" }} — {{ tp.objeto|truncatechars:60 }} (Atualmente Vinculado)
+                                        </option>
+                                        {% endwith %}
+                                        {% endif %}
+                                    </select>
+                                    <div id="termo-loading-spinner" class="spinner-border spinner-border-sm text-primary mt-2 d-none" role="status">
+                                        <span class="visually-hidden">Buscando...</span>
+                                    </div>
                                 </div>
-                                <button type="button" class="btn btn-secondary px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Entendi</button>
+
+                                <div class="alert alert-info border-0 rounded-3 mb-0 py-2 small">
+                                    <i class="fas fa-shield-alt me-1 text-primary"></i>
+                                    <strong>Conformidade Legal:</strong> O Acordo de Parceria formaliza a cooperação entre as pessoas jurídicas nos moldes do Art. 9º da Lei 10.973/04 e orientações da AGU.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Partícipes da Hélice Tríplice -->
+                    <div class="col-lg-6">
+                        <div class="card cs-card h-100">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2">
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-users text-primary me-2"></i> Partícipes da Hélice Tríplice
+                                </h5>
+                                <small class="text-muted">Atores institucionais e interveniência administrativa</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">
+                                        <i class="fas fa-building text-warning me-1"></i> Concedente (Empresa Parceira / Financiador) <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form_projeto.concedente }}
+                                    {% if form_projeto.concedente.errors %}<div class="text-danger small mt-1">{{ form_projeto.concedente.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">
+                                        <i class="fas fa-university text-primary me-1"></i> Convenente (ICT Executora / IFAM) <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form_projeto.convenente }}
+                                    {% if form_projeto.convenente.errors %}<div class="text-danger small mt-1">{{ form_projeto.convenente.errors.0 }}</div>{% endif %}
+                                </div>
+
+                                <div class="mb-0">
+                                    <label class="form-label fw-bold text-muted small">
+                                        <i class="fas fa-hands-helping text-success me-1"></i> Interveniente (Fundação de Apoio / FAEPI) <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form_projeto.interveniente }}
+                                    {% if form_projeto.interveniente.errors %}<div class="text-danger small mt-1">{{ form_projeto.interveniente.errors.0 }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vigência & Processo SIPAC -->
+                    <div class="col-lg-6">
+                        <div class="card cs-card h-100">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2">
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-calendar-alt text-primary me-2"></i> Vigência e Prazos de Execução
+                                </h5>
+                                <small class="text-muted">Cronologia e autos processuais de tramitação</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small">Data de Início <span class="text-danger">*</span></label>
+                                        {{ form_projeto.vigencia_inicio }}
+                                        {% if form_projeto.vigencia_inicio.errors %}<div class="text-danger small mt-1">{{ form_projeto.vigencia_inicio.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small">Data de Término <span class="text-danger">*</span></label>
+                                        {{ form_projeto.vigencia_fim }}
+                                        {% if form_projeto.vigencia_fim.errors %}<div class="text-danger small mt-1">{{ form_projeto.vigencia_fim.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small">Duração (Meses)</label>
+                                        {{ form_projeto.vigencia_meses }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-muted small">Processo SIPAC Mãe</label>
+                                        {{ form_projeto.processo }}
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 p-2 bg-light rounded text-center small text-muted">
+                                    <i class="fas fa-clock me-1"></i> A vigência formal e o relógio de execução iniciam após a assinatura e publicação em Diário Oficial.
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                {% endif %}
 
-                <div class="row">
-                    <!-- Menu Lateral Vertical -->
-                    <div class="col-md-4 col-lg-3 vertical-wizard border-end pe-4" id="wizard-sidebar-col" style="transition: width 0.3s, padding 0.3s; overflow: hidden;">
-                        <div class="nav flex-column nav-pills wizard-sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                            <button class="nav-link active" id="step1-tab" type="button" role="tab"><span class="step-number">1</span> Dados Cadastrais</button>
-                            <button class="nav-link" id="step2-tab" type="button" role="tab"><span class="step-number">2</span> Descrição Básica</button>
-                            <button class="nav-link" id="step3-tab" type="button" role="tab"><span class="step-number">3</span> Vigência e Execução</button>
-                            <button class="nav-link" id="step4-tab" type="button" role="tab"><span class="step-number">4</span> Motivação</button>
-                            <button class="nav-link" id="step5-tab" type="button" role="tab"><span class="step-number">5</span> Objetivos e Metas</button>
-                            <button class="nav-link" id="step6-tab" type="button" role="tab"><span class="step-number">6</span> Escopo Técnico</button>
-                            <button class="nav-link" id="step7-tab" type="button" role="tab"><span class="step-number">7</span> Gestão de Riscos</button>
-                            <button class="nav-link" id="step8-tab" type="button" role="tab"><span class="step-number">8</span> Estratégia</button>
-                            <button class="nav-link" id="step9-tab" type="button" role="tab"><span class="step-number">9</span> Plano de Ação</button>
-                            <button class="nav-link" id="step10-tab" type="button" role="tab"><span class="step-number">10</span> Macro-Entregas</button>
-                            <button class="nav-link" id="step11-tab" type="button" role="tab"><span class="step-number">11</span> Indicadores</button>
-                            <button class="nav-link" id="step12-tab" type="button" role="tab"><span class="step-number">12</span> Inovação</button>
-                            <button class="nav-link" id="step13-tab" type="button" role="tab"><span class="step-number">13</span> Resultados</button>
-                            <button class="nav-link" id="step14-tab" type="button" role="tab"><span class="step-number">14</span> Cronograma</button>
-                            <button class="nav-link" id="step15-tab" type="button" role="tab"><span class="step-number">15</span> Desafios</button>
-                            <button class="nav-link" id="step16-tab" type="button" role="tab"><span class="step-number">16</span> Solução</button>
-                            <button class="nav-link" id="step17-tab" type="button" role="tab"><span class="step-number">17</span> Orçamento</button>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- ABA 2: PLANO DE TRABALHO TÉCNICO                                  -->
+            <!-- ================================================================= -->
+            <div class="tab-pane fade" id="tab-plano" role="tabpanel" aria-labelledby="tab-plano-btn">
+                
+                <div class="row g-4">
+                    <!-- Arquivo PDF & Régua de TRL -->
+                    <div class="col-12">
+                        <div class="card cs-card">
+                            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-1">
+                                        <i class="fas fa-layer-group text-primary me-2"></i> Maturidade Tecnológica e Documento Base
+                                    </h5>
+                                    <p class="text-muted small mb-0">Escala de maturidade TRL EMBRAPII e arquivo digital do Plano de Trabalho</p>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <div>
+                                        <label class="form-label small fw-bold text-muted mb-1">Upload do PDF do Plano de Trabalho</label>
+                                        {{ form_plano.arquivo_pdf }}
+                                    </div>
+                                    {% if plano_ativo and plano_ativo.arquivo_pdf %}
+                                    <a href="{{ plano_ativo.arquivo_pdf.url }}" target="_blank" class="btn btn-outline-danger btn-sm mt-4">
+                                        <i class="fas fa-file-pdf me-1"></i> Ver PDF Atual
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Área de Conteúdo do Formulário -->
-                    <div class="col-md-8 col-lg-9 ps-4" id="wizard-content-col" style="transition: width 0.3s, padding 0.3s;">
-                        <div class="bg-white p-3 border rounded shadow-sm custom-scrollbar d-flex flex-column wizard-content-panel">
-                            
-                            <!-- 1. Dados Cadastrais -->
-                            <div class="wizard-step active flex-grow-1" id="step1">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">1. Dados Cadastrais</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">1.1 Empresa Parceira / Agência de Fomento (Concedente) <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.concedente }}
-                                        
-                                    </div>
-                                    <div class="col-md-12 mt-3">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">1.2 Instituição Científica e Tecnológica - ICT (Convenente) <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.convenente }}
-                                        
-                                    </div>
-                                    <div class="col-md-12 mt-3">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">1.3 Fundação de Apoio (Interveniente) <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.interveniente }}
-                                        
-                                    </div>
-                                    <div class="col-md-12 mt-4 pt-3 border-top bg-light p-3 rounded">
-                                        <label class="form-label fw-bold text-primary small text-uppercase"><i class="fas fa-sitemap me-2"></i>Programa</label>
-                                        <p class="text-muted small mb-2">Selecione-o abaixo:</p>
-                                        {{ form_projeto.programa }}
-                                        
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-end mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step2">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
+                    <!-- Acordeão de Abordagem Técnica e Metas -->
+                    <div class="col-12">
+                        <div class="card cs-card">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2">
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-align-left text-primary me-2"></i> Abordagem Técnica, Metas e Gestão de Riscos
+                                </h5>
+                                <small class="text-muted">Campos detalhados do Plano de Trabalho com editor de texto rico</small>
                             </div>
-
-                            <!-- 2. Descrição Básica -->
-                            <div class="wizard-step flex-grow-1" id="step2">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">2. Descrição Básica</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">2.1 Título Completo do Projeto <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.nome }}
-                                    </div>
+                            <div class="card-body">
+                                <div class="accordion" id="accordionTecnico">
                                     
-                                    <div class="col-md-12 mt-4 pt-3 border-top bg-light p-3 rounded">
-                                        <label class="form-label fw-bold text-primary small text-uppercase"><i class="fas fa-link me-2"></i>Vincular a Termo Específico Existente (Opcional)</label>
-                                        <p class="text-muted small mb-2">Se a Gestão de Contratos já iniciou um Termo no SIPAC específico para este projeto, selecione-o abaixo:</p>
-                                        <select name="termo_existente" id="termo_existente" class="form-select">
-                                            <option value="">Nenhum / Continuar em Prospecção Solta</option>
-                                            {% if projeto and projeto.termos_parceria.first %}
-                                            {% with tp=projeto.termos_parceria.first %}
-                                            <option value="{{ tp.id }}" selected>Termo {{ tp.numero }} - {{ tp.objeto }} (Vinculado Atualmente)</option>
-                                            {% endwith %}
-                                            {% endif %}
-                                            <!-- Opções adicionais preenchidas via AJAX -->
-                                        </select>
+                                    <!-- Bloco 1: Visão Geral e Objetivos -->
+                                    <div class="accordion-item border rounded-3 mb-2 shadow-sm">
+                                        <h2 class="accordion-header" id="headingObjetivos">
+                                            <button class="accordion-button fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseObjetivos" aria-expanded="true" aria-controls="collapseObjetivos">
+                                                <i class="fas fa-bullseye text-primary me-2"></i> 1. Motivação e Objetivos (Geral e Específicos)
+                                            </button>
+                                        </h2>
+                                        <div id="collapseObjetivos" class="accordion-collapse collapse show" aria-labelledby="headingObjetivos">
+                                            <div class="accordion-body bg-light">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-muted">Motivação do Projeto</label>
+                                                    {{ form_plano.motivacao }}
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-muted">Objetivo Geral</label>
+                                                    {{ form_plano.objetivo_geral }}
+                                                </div>
+                                                <div class="mb-0">
+                                                    <label class="form-label fw-bold small text-muted">Objetivos Específicos</label>
+                                                    {{ form_plano.objetivos_especificos }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    
-                                    <div class="col-md-6 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">2.2 Identificação / Sigla <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.projeto }}
-                                    </div>
-                                    <div class="col-md-6 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">2.3 Coordenador do Projeto <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.coordenador }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold btn-prev" data-prev="step1"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white px-4 fw-bold btn-next" data-next="step3">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
 
-                            <!-- 3. Vigência e Execução -->
-                            <div class="wizard-step flex-grow-1" id="step3">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">3. Vigência e Execução</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-4 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">3.1 Duração (em meses) <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.vigencia_meses }}
+                                    <!-- Bloco 2: Escopo e Metodologia -->
+                                    <div class="accordion-item border rounded-3 mb-2 shadow-sm">
+                                        <h2 class="accordion-header" id="headingEscopo">
+                                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEscopo" aria-expanded="false" aria-controls="collapseEscopo">
+                                                <i class="fas fa-sitemap text-info me-2"></i> 2. Escopo Técnico, Metodologia e Tecnologias
+                                            </button>
+                                        </h2>
+                                        <div id="collapseEscopo" class="accordion-collapse collapse" aria-labelledby="headingEscopo">
+                                            <div class="accordion-body bg-light">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-muted">Escopo Geral da Pesquisa</label>
+                                                    {{ form_plano.escopo_geral }}
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-muted">Estrutura Analítica do Projeto (EAP)</label>
+                                                    {{ form_plano.estrutura_analitica }}
+                                                </div>
+                                                <div class="mb-0">
+                                                    <label class="form-label fw-bold small text-muted">Tecnologias Utilizadas</label>
+                                                    {{ form_plano.tecnologias_utilizadas }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-md-4 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">3.2 Início da Vigência <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.vigencia_inicio }}
-                                    </div>
-                                    <div class="col-md-4 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">3.3 Fim da Vigência <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.vigencia_fim }}
-                                    </div>
-                                    <div class="col-md-6 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">3.4 Local de Execução</label>
-                                        {{ form_projeto.local_execucao }}
-                                    </div>
-                                    <div class="col-md-6 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">3.5 Número do Processo <span class='text-danger'>*</span></label>
-                                        {{ form_projeto.processo }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold btn-prev" data-prev="step2"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white px-4 fw-bold btn-next" data-next="step4">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- 4. Motivação -->
-                            <div class="wizard-step flex-grow-1" id="step4">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4" id="step4-title">4. Motivação <span class="text-danger">*</span></h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        {{ form_plano.motivacao }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step3"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step5">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
 
-                            <!-- 5. Objetivos e Metas -->
-                            <div class="wizard-step flex-grow-1" id="step5">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">5. Objetivos e Metas</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">5.1 Objetivo Geral <span class='text-danger'>*</span></label>
-                                        {{ form_plano.objetivo_geral }}
+                                    <!-- Bloco 3: Inovação e Desafios -->
+                                    <div class="accordion-item border rounded-3 mb-2 shadow-sm">
+                                        <h2 class="accordion-header" id="headingInovacao">
+                                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInovacao" aria-expanded="false" aria-controls="collapseInovacao">
+                                                <i class="fas fa-lightbulb text-warning me-2"></i> 3. Características Inovadoras, Desafios e Resultados Esperados
+                                            </button>
+                                        </h2>
+                                        <div id="collapseInovacao" class="accordion-collapse collapse" aria-labelledby="headingInovacao">
+                                            <div class="accordion-body bg-light">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-muted">Características Inovadoras</label>
+                                                    {{ form_plano.caracteristicas_inovadoras }}
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-muted">Desafios Tecnológicos</label>
+                                                    {{ form_plano.desafios_tecnologicos }}
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-muted">Solução Proposta</label>
+                                                    {{ form_plano.solucao_proposta }}
+                                                </div>
+                                                <div class="mb-0">
+                                                    <label class="form-label fw-bold small text-muted">Resultados Esperados</label>
+                                                    {{ form_plano.resultados_esperados }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">5.2 Objetivos Específicos <span class='text-danger'>*</span></label>
-                                        {{ form_plano.objetivos_especificos }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step4"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step6">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
 
-                            
-                            <div class="wizard-step flex-grow-1" id="step6">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">6. Escopo Técnico</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">6.1 Escopo Geral do Projeto <span class='text-danger'>*</span></label>
-                                        {{ form_plano.escopo_geral }}
+                                    <!-- Bloco 4: Gestão de Riscos e Estratégia -->
+                                    <div class="accordion-item border rounded-3 mb-0 shadow-sm">
+                                        <h2 class="accordion-header" id="headingRiscos">
+                                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRiscos" aria-expanded="false" aria-controls="collapseRiscos">
+                                                <i class="fas fa-shield-alt text-danger me-2"></i> 4. Gestão de Riscos, Vulnerabilidades e Estratégia
+                                            </button>
+                                        </h2>
+                                        <div id="collapseRiscos" class="accordion-collapse collapse" aria-labelledby="headingRiscos">
+                                            <div class="accordion-body bg-light">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-muted">Vulnerabilidades Identificadas</label>
+                                                    {{ form_plano.vulnerabilidades }}
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold small text-muted">Plano de Contingência e Mitigação de Riscos</label>
+                                                    {{ form_plano.plano_riscos }}
+                                                </div>
+                                                <div class="mb-0">
+                                                    <label class="form-label fw-bold small text-muted">Estratégia de Execução</label>
+                                                    {{ form_plano.estrategia }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">6.2 Estrutura Analítica do Projeto (EAP/WBS) <span class='text-danger'>*</span></label>
-                                        {{ form_plano.estrutura_analitica }}
-                                    </div>
-                                    <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">6.3 Tecnologias e Ferramentas Utilizadas <span class='text-danger'>*</span></label>
-                                        {{ form_plano.tecnologias_utilizadas }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold btn-prev" data-prev="step5"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white px-4 fw-bold btn-next" data-next="step7">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- 7. Gestão de Riscos -->
-                            <div class="wizard-step flex-grow-1" id="step7">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">7. Gestão de Riscos</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">7.1 Vulnerabilidades do Projeto <span class='text-danger'>*</span></label>
-                                        {{ form_plano.vulnerabilidades }}
-                                    </div>
-                                    <div class="col-md-12 mt-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">7.2 Plano de Riscos <span class='text-danger'>*</span></label>
-                                        {{ form_plano.plano_riscos }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold btn-prev" data-prev="step6"><i class="fas fa-arrow-left ms-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white px-4 fw-bold btn-next" data-next="step8">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- 8. Estratégia -->
-                            <div class="wizard-step flex-grow-1" id="step8">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">8. Estratégia <span class="text-danger">*</span></h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        {{ form_plano.estrategia }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step7"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step9">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
 
-                            <!-- 7. Plano de Ação -->
-                            <div class="wizard-step flex-grow-1" id="step9">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">9. Plano de Ação</h4>
-                                                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 class="mb-0 text-muted">Lista de Atividades e Entregáveis</h6>
-                                    <button type="button" class="btn btn-primary fw-bold btn-sm" id="btn-open-modal-atividade">
-                                        <i class="fas fa-plus me-1"></i> Adicionar Atividade
-                                    </button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Macroentregas & Cronograma Físico -->
+                    <div class="col-12">
+                        <div class="card cs-card">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-0">
+                                        <i class="fas fa-cubes text-primary me-2"></i> Macroentregas &amp; Cronograma Físico
+                                    </h5>
+                                    <small class="text-muted">Marcos tecnológicos auditáveis de validação e maturidade TRL</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary fw-bold" id="btn-add-macroentrega">
+                                    <i class="fas fa-plus me-1"></i> Adicionar Macroentrega
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-hover table-bordered bg-white shadow-sm" id="tabela-atividades">
+                                    <table class="table table-hover table-striped align-middle mb-0" id="tabela-macroentregas">
                                         <thead class="table-light">
                                             <tr>
-                                                <th class="text-center" width="8%">Item</th>
-                                                <th class="text-center">Nome da Atividade</th>
-                                                <th class="text-center" width="30%">Entregáveis</th>
-                                                <th class="text-center" width="12%">Mês Início</th>
-                                                <th class="text-center" width="12%">Mês Fim</th>
-                                                <th class="text-center" width="12%">Ações</th>
+                                                <th class="text-center" style="width: 60px;">Nº</th>
+                                                <th>Título da Macroentrega</th>
+                                                <th style="width: 140px;">Maturidade TRL</th>
+                                                <th style="width: 140px;">Data Início</th>
+                                                <th style="width: 140px;">Data Fim</th>
+                                                <th class="text-center" style="width: 60px;">Ações</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <!-- Dynamic Rows -->
-                                            <tr id="row-empty-atividade">
-                                                <td colspan="6" class="text-center text-muted py-4">Nenhuma atividade cadastrada. Clique em "Adicionar Atividade".</td>
+                                        <tbody id="macroentregas-tbody">
+                                            {% for m in macroentregas %}
+                                            <tr class="macro-row">
+                                                <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                                                <td>
+                                                    <input type="text" name="macro_nome[]" class="form-control form-control-sm mb-1 fw-bold" value="{{ m.nome }}" placeholder="Título da entrega" required>
+                                                    <input type="text" name="macro_micro_entregas[]" class="form-control form-control-sm text-muted" value="{{ m.micro_entregas|default:'' }}" placeholder="Micro-entregas ou critérios de aceite">
+                                                </td>
+                                                <td>
+                                                    <select name="macro_trl[]" class="form-select form-select-sm">
+                                                        <option value="">Selecione...</option>
+                                                        <option value="3" {% if m.trl == 3 %}selected{% endif %}>TRL 3 — Prova de Conceito</option>
+                                                        <option value="4" {% if m.trl == 4 %}selected{% endif %}>TRL 4 — Validação em Laboratório</option>
+                                                        <option value="5" {% if m.trl == 5 %}selected{% endif %}>TRL 5 — Ambiente Relevante</option>
+                                                        <option value="6" {% if m.trl == 6 %}selected{% endif %}>TRL 6 — Protótipo Operacional</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="date" name="macro_data_inicio[]" class="form-control form-control-sm" value="{{ m.data_inicio|date:'Y-m-d' }}">
+                                                </td>
+                                                <td>
+                                                    <input type="date" name="macro_data_fim[]" class="form-control form-control-sm" value="{{ m.data_fim|date:'Y-m-d' }}">
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row" title="Remover">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </td>
                                             </tr>
+                                            {% empty %}
+                                            <tr id="empty-macroentregas-row">
+                                                <td colspan="6" class="text-center py-4 text-muted">
+                                                    <i class="fas fa-box-open fs-4 d-block mb-2 text-secondary"></i>
+                                                    Nenhuma macroentrega cadastrada. Clique em "Adicionar Macroentrega" acima para definir os marcos.
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
-                                <div id="atividades-hidden-inputs"></div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step8"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step10">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
                             </div>
-                            
-                            <!-- 10. Macro-Entregas -->
-                            <div class="wizard-step flex-grow-1" id="step10">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">10. Macro-Entregas</h4>
-                                <div id="macroentregas-container">
-                                    <!-- Dynamic Macro-Entrega Cards will go here -->
-                                </div>
-                                <div class="text-center mt-3">
-                                    <button type="button" class="btn btn-outline-primary fw-bold" id="btn-add-macroentrega">
-                                        <i class="fas fa-plus me-2"></i> Adicionar Nova Macro-Entrega
-                                    </button>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step9"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step11">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-
-                            <!-- 11. Indicadores -->
-                            <div class="wizard-step flex-grow-1" id="step11">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">11. Indicadores de Resultados</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Selecione os Indicadores Aplicáveis</label>
-                                        {{ form_plano.indicadores }}
-                                        <div class="form-text mt-2"><i class="fas fa-mouse-pointer me-1"></i> Você pode selecionar múltiplas opções.</div>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step10"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step12">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- 12. Inovação -->
-                            <div class="wizard-step flex-grow-1" id="step12">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">12. Características Inovadoras</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        {{ form_plano.caracteristicas_inovadoras }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step11"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step13">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-
-                            <!-- 13. Resultados -->
-                            <div class="wizard-step flex-grow-1" id="step13">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">13. Resultados Esperados</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        {{ form_plano.resultados_esperados }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step12"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step14">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- 14. Cronograma -->
-                            <div class="wizard-step flex-grow-1" id="step14">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">14. Cronograma</h4>
-                                <div class="placeholder-box">
-                                    <i class="fas fa-calendar-alt fa-3x mb-3 text-secondary"></i>
-                                    <h5>Gantt / Cronograma (Em Breve)</h5>
-                                    <p>Tabela interativa cruzando as Atividades (coluna 1) com os meses do projeto (M1, M2...).</p>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step13"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step15">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- 15. Desafios -->
-                            <div class="wizard-step flex-grow-1" id="step15">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">15. Desafios Científicos e Tecnológicos</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        {{ form_plano.desafios_tecnologicos }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step14"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step16">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- 14. Solução Proposta -->
-                            <div class="wizard-step flex-grow-1" id="step16">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">16. Solução Proposta</h4>
-                                <div class="row g-4">
-                                    <div class="col-md-12">
-                                        {{ form_plano.solucao_proposta }}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step15"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <button type="button" class="btn btn-info text-white  px-4 fw-bold btn-next" data-next="step17">Próximo <i class="fas fa-arrow-right ms-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- 17. Orçamento -->
-                            <div class="wizard-step flex-grow-1" id="step17">
-                                <h4 class="fw-bold text-secondary border-bottom pb-2 mb-4">17. Orçamento e Aportes Globais</h4>
-                                
-                                <div class="alert alert-warning shadow-sm mb-4">
-                                    <h5 class="fw-bold"><i class="fas fa-balance-scale me-2"></i>Travas Financeiras</h5>
-                                    <ul class="mb-0 small">
-                                        <li><strong>Projetos Padrão:</strong> Mínimo de 10% de aporte da Empresa e 10% da EMBRAPII.</li>
-                                        <li><strong>Projetos PDC (Capacitação):</strong> A Empresa não aporta (0%). O Concedente deve ser obrigatoriamente a EMBRAPII (Agência de Fomento).</li>
-                                    </ul>
-                                </div>
-
-                                <div class="row g-4 mb-4">
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Aporte Empresa (R$)</label>
-                                        {{ form_plano.aporte_empresa }}
-                                        <div class="text-danger small"></div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Aporte EMBRAPII (R$)</label>
-                                        {{ form_plano.aporte_embrapii }}
-                                        <div class="text-danger small"></div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Aporte SEBRAE (R$)</label>
-                                        {{ form_plano.aporte_sebrae }}
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Contrapartida (R$)</label>
-                                        {{ form_plano.aporte_contrapartida }}
-                                    </div>
-                                </div>
-
-                                <div class="row g-4 mb-4">
-                                    <div class="col-md-12">
-                                        <label class="form-label fw-bold text-muted text-uppercase small">Descrição Geral do Orçamento</label>
-                                        {{ form_plano.orcamento_descricao }}
-                                    </div>
-                                </div>
-                                <div id="orcamento-container">
-                                    <!-- Dynamic Rubrica Cards will go here -->
-                                </div>
-                                <div class="text-center mt-3 mb-5">
-                                    <button type="button" class="btn btn-outline-success fw-bold" id="btn-add-rubrica">
-                                        <i class="fas fa-plus me-2"></i> Adicionar Nova Rubrica Orçamentária
-                                    </button>
-                                </div>
-                                
-                                <div class="alert alert-secondary shadow-sm">
-                                    <h5 class="fw-bold"><i class="fas fa-calculator me-2"></i>Resumo do Orçamento</h5>
-                                    <p class="mb-0 small text-muted">A soma total das rubricas será processada no backend após o salvamento.</p>
-                                </div>
-                                <div class="d-flex justify-content-between mt-auto pt-3 pb-3 mb-2 border-top">
-                                    <button type="button" class="btn btn-light border  px-4 fw-bold btn-prev" data-prev="step16"><i class="fas fa-arrow-left me-2"></i> Voltar</button>
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" name="action" value="salvar" class="btn btn-outline-success px-4 shadow-sm fw-bold">
-                                            <i class="fas fa-save me-2"></i> Salvar Alterações
-                                        </button>
-                                        <button type="submit" name="action" value="publicar" class="btn btn-primary px-4 shadow-sm fw-bold">
-                                            <i class="fas fa-paper-plane me-2"></i> Publicar Projeto
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
-                        </div>
-                                        </form>
-                    
-                    <!-- Modal Atividade -->
-                    <div class="modal fade" id="modalAtividade" tabindex="-1" aria-labelledby="modalAtividadeLabel" aria-hidden="true" data-bs-backdrop="static">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header bg-primary text-white">
-                                    <h5 class="modal-title" id="modalAtividadeLabel"><i class="fas fa-tasks me-2"></i><span id="modal-atividade-titulo">Nova Atividade</span></h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <input type="hidden" id="modal-atividade-index">
-                                    <div class="row g-3">
-                                        <div class="col-md-12">
-                                            <label class="form-label small fw-bold">Nome da Atividade *</label>
-                                            <input type="text" id="modal-atividade-nome" class="form-control" required>
-                                        </div>
-                                        
-                                        <div class="col-md-12">
-                                            <label class="form-label small fw-bold">Vigência (Mês Início e Fim) *</label>
-                                            <div id="modal-atividade-month-grid" class="d-flex flex-wrap gap-1 mb-2"></div>
-                                            <input type="hidden" id="modal-atividade-mes-inicio" required>
-                                            <input type="hidden" id="modal-atividade-mes-fim" required>
-                                            <small id="modal-atividade-month-error" class="text-danger d-none">Selecione o mês de início e fim no grid acima.</small>
-                                        </div>
 
-                                        <div class="col-md-12">
-                                            <label class="form-label small fw-bold">Descrição da Atividade</label>
-                                            <textarea id="modal-atividade-descricao" class="form-control" rows="3"></textarea>
+                    <!-- Indicadores de Desempenho -->
+                    <div class="col-12">
+                        <div class="card cs-card">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2">
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-chart-line text-primary me-2"></i> Indicadores de Desempenho de CT&amp;I
+                                </h5>
+                                <small class="text-muted">Selecione os indicadores que serão monitorados na execução do projeto</small>
+                            </div>
+                            <div class="card-body">
+                                {{ form_plano.indicadores }}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- ABA 3: ORÇAMENTO & PROPOSTA COMERCIAL FAEPI                        -->
+            <!-- ================================================================= -->
+            <div class="tab-pane fade" id="tab-orcamento" role="tabpanel" aria-labelledby="tab-orcamento-btn">
+                
+                <div class="row g-4">
+                    <!-- Cards de Aportes Globais -->
+                    <div class="col-12">
+                        <div class="card cs-card">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2">
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-coins text-warning me-2"></i> Composição Financeira e Aportes Globais
+                                </h5>
+                                <small class="text-muted">Fontes de recurso e contrapartida acordadas no Plano de Trabalho</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded border bg-light">
+                                            <label class="form-label small fw-bold text-dark">
+                                                <i class="fas fa-building text-warning me-1"></i> Aporte Empresa Parceira (R$)
+                                            </label>
+                                            {{ form_plano.aporte_empresa }}
+                                            <small class="text-muted d-block mt-1" id="lbl-pct-empresa">
+                                                Participação: <strong>{{ pct_empresa|floatformat:1 }}%</strong>
+                                            </small>
                                         </div>
-                                        <div class="col-md-12">
-                                            <label class="form-label small fw-bold">Justificativa</label>
-                                            <textarea id="modal-atividade-justificativa" class="form-control" rows="2"></textarea>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded border bg-light">
+                                            <label class="form-label small fw-bold text-dark">
+                                                <i class="fas fa-certificate text-primary me-1"></i> Aporte EMBRAPII (R$)
+                                            </label>
+                                            {{ form_plano.aporte_embrapii }}
+                                            <small class="text-muted d-block mt-1" id="lbl-pct-embrapii">
+                                                Participação: <strong>{{ pct_embrapii|floatformat:1 }}%</strong> (Mín. 10%)
+                                            </small>
                                         </div>
-                                        <div class="col-md-12">
-                                            <label class="form-label small fw-bold">Entregáveis da Atividade</label>
-                                            <div class="input-group mb-2">
-                                                <input type="text" id="modal-atividade-entregavel-input" class="form-control" placeholder="Adicionar entregável...">
-                                                <button type="button" class="btn btn-outline-success" id="btn-add-entregavel"><i class="fas fa-plus"></i></button>
-                                            </div>
-                                            <div id="modal-atividade-entregaveis-list" class="d-flex flex-wrap gap-2"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded border bg-light">
+                                            <label class="form-label small fw-bold text-dark">
+                                                <i class="fas fa-hand-holding-usd text-info me-1"></i> Aporte SEBRAE (R$)
+                                            </label>
+                                            {{ form_plano.aporte_sebrae }}
+                                            <small class="text-muted d-block mt-1" id="lbl-pct-sebrae">
+                                                Participação: <strong>{{ pct_sebrae|floatformat:1 }}%</strong>
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 rounded border bg-light">
+                                            <label class="form-label small fw-bold text-dark">
+                                                <i class="fas fa-university text-success me-1"></i> Contrapartida ICT (R$)
+                                            </label>
+                                            {{ form_plano.aporte_contrapartida }}
+                                            <small class="text-muted d-block mt-1" id="lbl-pct-contrapartida">
+                                                Participação: <strong>{{ pct_contrapartida|floatformat:1 }}%</strong>
+                                            </small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="modal-footer bg-light">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="button" class="btn btn-primary" id="btn-save-atividade-modal"><i class="fas fa-save me-1"></i>Salvar na Tabela</button>
+
+                                <div class="mt-3 p-3 bg-white rounded border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <span class="text-muted small text-uppercase fw-bold d-block">Valor Global Consolidado</span>
+                                        <h4 class="fw-bold text-primary mb-0" id="total-valor-global">
+                                            R$ {{ plano_ativo.valor_global|default:"0.00" }}
+                                        </h4>
+                                    </div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <span class="badge badge-soft-primary px-3 py-2 fs-6">
+                                            <i class="fas fa-percentage me-1"></i> DOAS FAEPI: 10,9%
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Tabela Dinâmica de Rubricas Orçamentárias -->
+                    <div class="col-12">
+                        <div class="card cs-card">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-0">
+                                        <i class="fas fa-receipt text-primary me-2"></i> Rubricas Orçamentárias (Planejamento / MCASP)
+                                    </h5>
+                                    <small class="text-muted">Autorização programática de gastos por categoria econômica e fonte</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary fw-bold" id="btn-add-rubrica">
+                                    <i class="fas fa-plus me-1"></i> Adicionar Rubrica
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped align-middle mb-0" id="tabela-rubricas">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 160px;">Fonte de Recurso</th>
+                                                <th style="width: 200px;">Categoria Econômica</th>
+                                                <th>Descrição / Justificativa do Dispêndio</th>
+                                                <th style="width: 160px;">Valor Previsto (R$)</th>
+                                                <th class="text-center" style="width: 60px;">Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="rubricas-tbody">
+                                            {% for r in rubricas %}
+                                            <tr class="rubrica-row">
+                                                <td>
+                                                    <select name="rubrica_fonte[]" class="form-select form-select-sm" required>
+                                                        <option value="EMPRESA" {% if r.fonte_recurso == 'EMPRESA' %}selected{% endif %}>Empresa</option>
+                                                        <option value="EMBRAPII" {% if r.fonte_recurso == 'EMBRAPII' %}selected{% endif %}>EMBRAPII</option>
+                                                        <option value="SEBRAE" {% if r.fonte_recurso == 'SEBRAE' %}selected{% endif %}>SEBRAE</option>
+                                                        <option value="CONTRAPARTIDA" {% if r.fonte_recurso == 'CONTRAPARTIDA' %}selected{% endif %}>Contrapartida ICT</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select name="rubrica_categoria[]" class="form-select form-select-sm" required>
+                                                        <option value="PESSOAL" {% if r.categoria == 'PESSOAL' %}selected{% endif %}>Pessoal / Bolsas</option>
+                                                        <option value="CONSUMO" {% if r.categoria == 'CONSUMO' %}selected{% endif %}>Material de Consumo</option>
+                                                        <option value="DIARIAS" {% if r.categoria == 'DIARIAS' %}selected{% endif %}>Diárias e Passagens</option>
+                                                        <option value="TERCEIROS" {% if r.categoria == 'TERCEIROS' %}selected{% endif %}>Serviços de Terceiros</option>
+                                                        <option value="CAPITAL" {% if r.categoria == 'CAPITAL' %}selected{% endif %}>Capital / Equipamentos</option>
+                                                        <option value="SUPORTE" {% if r.categoria == 'SUPORTE' %}selected{% endif %}>Suporte / DOAS FAEPI</option>
+                                                        <option value="OUTRAS" {% if r.categoria == 'OUTRAS' %}selected{% endif %}>Outras Despesas</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="rubrica_descricao[]" class="form-control form-control-sm" value="{{ r.descricao|default:'' }}" placeholder="Ex: Bolsas de Pesquisa ou Materiais">
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="rubrica_valor[]" class="form-control form-control-sm valor-monetario text-end fw-bold" value="{{ r.valor_previsto }}" placeholder="0,00" required>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row" title="Remover">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr id="empty-rubricas-row">
+                                                <td colspan="5" class="text-center py-4 text-muted">
+                                                    <i class="fas fa-calculator fs-4 d-block mb-2 text-secondary"></i>
+                                                    Nenhuma rubrica orçamentária cadastrada. Clique em "Adicionar Rubrica" para alocar recursos.
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cronograma de Desembolso Financeiro -->
+                    <div class="col-12">
+                        <div class="card cs-card">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-0">
+                                        <i class="fas fa-money-check-alt text-success me-2"></i> Cronograma de Desembolso Financeiro
+                                    </h5>
+                                    <small class="text-muted">Previsão das parcelas de ingresso na conta bancária específica do projeto</small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-success fw-bold" id="btn-add-desembolso">
+                                    <i class="fas fa-plus me-1"></i> Adicionar Parcela
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped align-middle mb-0" id="tabela-desembolsos">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-center" style="width: 80px;">Parcela</th>
+                                                <th>Mês Previsto de Ingresso</th>
+                                                <th style="width: 220px;">Valor Previsto da Parcela (R$)</th>
+                                                <th class="text-center" style="width: 60px;">Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="desembolsos-tbody">
+                                            {% for d in desembolsos %}
+                                            <tr class="desembolso-row">
+                                                <td class="text-center fw-bold">{{ d.parcela }}</td>
+                                                <td>
+                                                    <input type="text" name="desembolso_mes[]" class="form-control form-control-sm fw-semibold" value="{{ d.mes_previsto }}" placeholder="Ex: Mês 1 ou Jan/2026" required>
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="desembolso_valor[]" class="form-control form-control-sm valor-monetario text-end fw-bold" value="{{ d.valor_parcela }}" placeholder="0,00" required>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row" title="Remover">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr id="empty-desembolsos-row">
+                                                <td colspan="4" class="text-center py-4 text-muted">
+                                                    <i class="fas fa-calendar-check fs-4 d-block mb-2 text-secondary"></i>
+                                                    Nenhum desembolso planejado. Clique em "Adicionar Parcela" acima.
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- ABA 4: TRILHA DE PARECERES & GOVERNANÇA                           -->
+            <!-- ================================================================= -->
+            <div class="tab-pane fade" id="tab-governanca" role="tabpanel" aria-labelledby="tab-governanca-btn">
+                
+                <div class="row g-4">
+                    <!-- Processos SIPAC Vinculados -->
+                    <div class="col-lg-6">
+                        <div class="card cs-card h-100">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2">
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-folder-open text-primary me-2"></i> Processos Administrativos no SIPAC
+                                </h5>
+                                <small class="text-muted">Autos de celebração, aprovação jurídica e acompanhamento</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted small">Número do Processo Principal (SIPAC)</label>
+                                    {{ form_projeto.processo }}
+                                    <small class="text-muted d-block mt-1">Exemplo: 23200.000123/2026-45</small>
+                                </div>
+
+                                {% if processos %}
+                                <h6 class="fw-bold text-dark small mt-4 mb-2">Processos Vinculados no Sistema:</h6>
+                                <ul class="list-group list-group-flush rounded border">
+                                    {% for proc in processos %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                        <div>
+                                            <strong class="small text-dark">{{ proc.numero }}</strong>
+                                            <small class="text-muted d-block">{{ proc.tipo.nome }} — {{ proc.descricao|truncatechars:40 }}</small>
+                                        </div>
+                                        <span class="badge bg-secondary">{{ proc.status }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <div class="p-3 bg-light rounded text-center small text-muted">
+                                    <i class="fas fa-info-circle me-1"></i> Nenhum subprocesso adicional registrado.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diretrizes de Ciclo de Vida e SoD -->
+                    <div class="col-lg-6">
+                        <div class="card cs-card h-100">
+                            <div class="card-header bg-transparent border-0 pt-3 pb-2">
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="fas fa-traffic-light text-primary me-2"></i> Diretrizes do Ciclo de Vida do Projeto
+                                </h5>
+                                <small class="text-muted">Governança SoD (Segregation of Duties) e tramitação</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="p-3 bg-light rounded border mb-3">
+                                    <h6 class="fw-bold text-dark small mb-2"><i class="fas fa-check-circle text-success me-1"></i> Modo Rascunho (Salvar)</h6>
+                                    <p class="text-muted small mb-0">
+                                        Permite gravar alterações parciais sem exigir o preenchimento de todos os requisitos do Marco Legal. O projeto permanece em elaboração.
+                                    </p>
+                                </div>
+
+                                <div class="p-3 bg-light rounded border mb-3">
+                                    <h6 class="fw-bold text-dark small mb-2"><i class="fas fa-lock text-primary me-1"></i> Modo Publicação (Congelar Plano)</h6>
+                                    <p class="text-muted small mb-0">
+                                        Exige o preenchimento rigoroso de todos os campos obrigatórios e congela o escopo técnico do Plano de Trabalho para execução e emissão de bolsas.
+                                    </p>
+                                </div>
+
+                                {% if projeto %}
+                                <div class="alert alert-warning border-0 rounded-3 small mb-0">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    Fase atual do projeto: <strong>{{ projeto.get_fase_display }}</strong>. As alterações salvas serão registradas no histórico de auditoria.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
 
         </div>
-    </div>
+
+        <!-- Barra Inferior Sticky com Botões de Ação -->
+        <div class="sticky-actions-bar py-3 px-4 mt-5 rounded-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3" id="btn-tab-prev">
+                    <i class="fas fa-arrow-left me-1"></i> Aba Anterior
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3" id="btn-tab-next">
+                    Próxima Aba <i class="fas fa-arrow-right ms-1"></i>
+                </button>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                {% if projeto %}
+                <a href="{% url 'cadastros:visualizar_projeto' projeto.id %}" class="btn btn-outline-secondary px-3 shadow-sm">
+                    Cancelar
+                </a>
+                {% endif %}
+                <button type="submit" name="action" value="salvar" class="btn btn-outline-success px-4 shadow-sm fw-bold">
+                    <i class="fas fa-save me-1"></i> Salvar Rascunho
+                </button>
+                <button type="submit" name="action" value="publicar" class="btn btn-primary px-4 shadow-sm fw-bold">
+                    <i class="fas fa-paper-plane me-1"></i> Publicar Projeto
+                </button>
+            </div>
+        </div>
+
+    </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Quill Library -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const formId = 'projetoWizardForm';
-    const storageKey = 'argus_projeto_draft';
-    const isEditMode = {% if projeto %}true{% else %}false{% endif %};
-    const form = document.getElementById(formId);
+    const form = document.getElementById("formProjetoMaster");
     const quillInstances = {};
 
-    if(typeof jQuery !== 'undefined') {
-        jQuery('.select2-multiple').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: "Selecione as opções..."
-        });
-        jQuery('.select2-multiple').on('change', function() {
-            autoSave();
-        });
-    }
-
+    // 1. Inicializar Editores Quill para Textareas RichText
     const textareas = document.querySelectorAll('textarea.richtext');
     textareas.forEach(function(textarea) {
         textarea.style.display = 'none';
         const editorContainer = document.createElement('div');
-        editorContainer.className = 'richtext-editor-container';
+        editorContainer.className = 'richtext-quill-container';
         textarea.parentNode.insertBefore(editorContainer, textarea.nextSibling);
 
         const toolbarOptions = [
-            [{ 'header': [1, 2, 3, false] }],
+            [{ 'header': [2, 3, false] }],
             ['bold', 'italic', 'underline', 'strike'],
-            [{ 'align': [] }],
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            [{ 'indent': '-1'}, { 'indent': '+1' }],
-            ['link', 'image', 'video'],
-            ['clean']
+            ['link', 'clean']
         ];
+
         const quill = new Quill(editorContainer, {
             theme: 'snow',
-            modules: {
-                toolbar: toolbarOptions
-            }
-        });
-        const toolbarElem = quill.getModule('toolbar').container;
-        if (toolbarElem) toolbarElem.style.display = 'none';
-
-        quillInstances[textarea.id] = quill;
-        quill.enable(false);
-
-        quill.on('text-change', function() {
-            textarea.value = quill.root.innerHTML;
-            autoSave();
+            modules: { toolbar: toolbarOptions }
         });
 
-        if (textarea.closest('.wizard-step')) {
-            const fieldColumn = textarea.closest('.col-md-12');
-            const fieldLabel = fieldColumn.querySelector('label');
-            const stepTitle = textarea.closest('.wizard-step').querySelector('h4');
-            const editTarget = fieldLabel || stepTitle;
-            if (!editTarget) {
-                return;
+        // Carregar valor inicial existente
+        if (textarea.value) {
+            quill.root.innerHTML = textarea.value;
+        }
+
+        quillInstances[textarea.id || textarea.name] = {
+            quill: quill,
+            textarea: textarea
+        };
+    });
+
+    // 2. Sincronização Universal antes do Submit do Formulário
+    form.addEventListener("submit", function(e) {
+        for (const key in quillInstances) {
+            const item = quillInstances[key];
+            const html = item.quill.root.innerHTML;
+            if (html === '<p><br></p>') {
+                item.textarea.value = '';
+            } else {
+                item.textarea.value = html;
             }
-            editTarget.classList.add('richtext-edit-target');
-            const actions = document.createElement('span');
-            actions.className = 'richtext-actions';
-            editTarget.appendChild(actions);
-
-            const editBtn = document.createElement('button');
-            editBtn.type = 'button';
-            editBtn.className = 'btn btn-sm btn-outline-primary richtext-toggle-btn fw-bold';
-            editBtn.innerHTML = '<i class="fas fa-edit me-1"></i> Editar';
-            editBtn.title = 'Habilitar edição';
-            actions.appendChild(editBtn);
-
-            editBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const isEditing = editorContainer.classList.toggle('is-editing');
-                if (isEditing) {
-                    quill.enable(true);
-                    if (toolbarElem) toolbarElem.style.display = 'block';
-                    quill.focus();
-                    editBtn.className = 'btn btn-sm btn-success richtext-toggle-btn fw-bold';
-                    editBtn.innerHTML = '<i class="fas fa-check me-1"></i> Concluir';
-                    editBtn.title = 'Concluir edição e salvar';
-                } else {
-                    quill.enable(false);
-                    if (toolbarElem) toolbarElem.style.display = 'none';
-                    editBtn.className = 'btn btn-sm btn-outline-primary richtext-toggle-btn fw-bold';
-                    editBtn.innerHTML = '<i class="fas fa-edit me-1"></i> Editar';
-                    editBtn.title = 'Habilitar edição';
-                    textarea.value = quill.root.innerHTML;
-                    autoSave();
-                }
-            });
         }
     });
 
-    
-    // --- LÓGICA DINÂMICA: PLANO DE AÇÃO (ATIVIDADES) (TABELA + MODAL) ---
-    let atividadesList = [];
-    let modalAtividadeEditIndex = -1;
-    const modalAtividadeInstance = new bootstrap.Modal(document.getElementById('modalAtividade'));
-    
-    let modalAtividadeStartMonth = null;
-    let modalAtividadeEndMonth = null;
-    let modalEntregaveisTemp = []; // Store deliverables temporarily while modal is open
-    
-    function renderMonthGrid() {
-        const grid = document.getElementById('modal-atividade-month-grid');
-        if (!grid) return;
-        const vigenciaInput = document.getElementById('id_vigencia_meses');
-        const totalMeses = vigenciaInput && vigenciaInput.value ? parseInt(vigenciaInput.value) : 24;
-        
-        grid.innerHTML = '';
-        for (let i = 1; i <= totalMeses; i++) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'd-flex flex-column align-items-center mb-1';
-            wrapper.style.width = '45px';
-            
-            const box = document.createElement('div');
-            box.className = 'month-box';
-            box.textContent = 'M' + i;
-            
-            const label = document.createElement('small');
-            label.className = 'text-muted fw-bold mt-1';
-            label.style.fontSize = '0.65rem';
-            label.textContent = ' '; // Non-breaking space to keep height
-            
-            if (modalAtividadeStartMonth === i && modalAtividadeEndMonth === i) {
-                box.classList.add('selected-single');
-                label.textContent = 'ÚNICO';
-                label.classList.add('text-purple'); // Just reusing a color if possible, or leave muted
-            } else if (modalAtividadeStartMonth === i) {
-                box.classList.add('selected-start');
-                label.textContent = 'INÍCIO';
-                label.classList.remove('text-muted');
-                label.classList.add('text-success');
-            } else if (modalAtividadeEndMonth === i) {
-                box.classList.add('selected-end');
-                label.textContent = 'FIM';
-                label.classList.remove('text-muted');
-                label.classList.add('text-danger');
-            } else if (modalAtividadeStartMonth && modalAtividadeEndMonth && i > modalAtividadeStartMonth && i < modalAtividadeEndMonth) {
-                box.classList.add('in-range');
+    // 3. Controle de Navegação entre as 4 Abas (Próxima / Anterior)
+    const tabsList = ['#tab-instrumento-btn', '#tab-plano-btn', '#tab-orcamento-btn', '#tab-governanca-btn'];
+    let currentTabIndex = 0;
+
+    document.querySelectorAll('#dossierTabs button[data-bs-toggle="pill"]').forEach((btn, idx) => {
+        btn.addEventListener('shown.bs.tab', () => { currentTabIndex = idx; });
+    });
+
+    document.getElementById('btn-tab-next').addEventListener('click', function() {
+        if (currentTabIndex < tabsList.length - 1) {
+            currentTabIndex++;
+            const nextTab = new bootstrap.Tab(document.querySelector(tabsList[currentTabIndex]));
+            nextTab.show();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    document.getElementById('btn-tab-prev').addEventListener('click', function() {
+        if (currentTabIndex > 0) {
+            currentTabIndex--;
+            const prevTab = new bootstrap.Tab(document.querySelector(tabsList[currentTabIndex]));
+            prevTab.show();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    // 4. Cálculo Automático de Vigência (Meses)
+    const inputInicio = document.getElementById('id_vigencia_inicio');
+    const inputFim = document.getElementById('id_vigencia_fim');
+    const inputMeses = document.getElementById('id_vigencia_meses');
+
+    function calcularMeses() {
+        if (inputInicio && inputFim && inputMeses && inputInicio.value && inputFim.value) {
+            const d1 = new Date(inputInicio.value);
+            const d2 = new Date(inputFim.value);
+            if (d2 > d1) {
+                const meses = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+                inputMeses.value = meses > 0 ? meses : 1;
             }
-            
-            box.addEventListener('click', () => {
-                if (!modalAtividadeStartMonth || (modalAtividadeStartMonth && modalAtividadeEndMonth)) {
-                    modalAtividadeStartMonth = i;
-                    modalAtividadeEndMonth = null;
-                } else {
-                    if (i < modalAtividadeStartMonth) {
-                        modalAtividadeEndMonth = modalAtividadeStartMonth;
-                        modalAtividadeStartMonth = i;
-                    } else {
-                        modalAtividadeEndMonth = i;
-                    }
-                }
-                
-                document.getElementById('modal-atividade-mes-inicio').value = modalAtividadeStartMonth || '';
-                document.getElementById('modal-atividade-mes-fim').value = modalAtividadeEndMonth || modalAtividadeStartMonth || '';
-                
-                if (modalAtividadeStartMonth && modalAtividadeEndMonth) {
-                    document.getElementById('modal-atividade-month-error').classList.add('d-none');
-                }
-                
-                renderMonthGrid();
-            });
-            wrapper.appendChild(box);
-            wrapper.appendChild(label);
-            grid.appendChild(wrapper);
+        }
+    }
+    if (inputInicio && inputFim) {
+        inputInicio.addEventListener('change', calcularMeses);
+        inputFim.addEventListener('change', calcularMeses);
+    }
+
+    // 5. Cálculo Dinâmico de Aportes e Percentuais em Tempo Real
+    const inEmpresa = document.getElementById('id_aporte_empresa');
+    const inEmbrapii = document.getElementById('id_aporte_embrapii');
+    const inSebrae = document.getElementById('id_aporte_sebrae');
+    const inContrapartida = document.getElementById('id_aporte_contrapartida');
+    const lblTotalGlobal = document.getElementById('total-valor-global');
+
+    function recalcularAportes() {
+        const vEmp = parseFloat(inEmpresa ? inEmpresa.value : 0) || 0;
+        const vEmb = parseFloat(inEmbrapii ? inEmbrapii.value : 0) || 0;
+        const vSeb = parseFloat(inSebrae ? inSebrae.value : 0) || 0;
+        const vCont = parseFloat(inContrapartida ? inContrapartida.value : 0) || 0;
+        const total = vEmp + vEmb + vSeb + vCont;
+
+        if (lblTotalGlobal) {
+            lblTotalGlobal.textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        if (total > 0) {
+            const pEmp = (vEmp / total) * 100;
+            const pEmb = (vEmb / total) * 100;
+            const pSeb = (vSeb / total) * 100;
+            const pCont = (vCont / total) * 100;
+
+            const elPEmp = document.getElementById('lbl-pct-empresa');
+            if (elPEmp) elPEmp.innerHTML = `Participação: <strong>${pEmp.toFixed(1)}%</strong>`;
+
+            const elPEmb = document.getElementById('lbl-pct-embrapii');
+            if (elPEmb) elPEmb.innerHTML = `Participação: <strong>${pEmb.toFixed(1)}%</strong> ${pEmb < 10 ? '<span class="text-danger">(Mín. 10%)</span>' : '<span class="text-success">(OK)</span>'}`;
+
+            const elPSeb = document.getElementById('lbl-pct-sebrae');
+            if (elPSeb) elPSeb.innerHTML = `Participação: <strong>${pSeb.toFixed(1)}%</strong>`;
+
+            const elPCont = document.getElementById('lbl-pct-contrapartida');
+            if (elPCont) elPCont.innerHTML = `Participação: <strong>${pCont.toFixed(1)}%</strong>`;
         }
     }
 
-    function renderEntregaveisList() {
-        const listContainer = document.getElementById('modal-atividade-entregaveis-list');
-        listContainer.innerHTML = '';
-        
-        if (modalEntregaveisTemp.length === 0) {
-            listContainer.innerHTML = '<small class="text-muted fst-italic">Nenhum entregável adicionado.</small>';
-            return;
-        }
-        
-        modalEntregaveisTemp.forEach((ent, idx) => {
-            const item = document.createElement('div');
-            item.className = 'd-flex justify-content-between align-items-center bg-light border rounded px-2 py-1';
-            item.innerHTML = `
-                <span class="small"><i class="fas fa-check-circle text-success me-2"></i>${ent}</span>
-                <button type="button" class="btn btn-sm text-danger border-0 p-0" title="Remover" onclick="removeTempEntregavel(${idx})"><i class="fas fa-times"></i></button>
-            `;
-            listContainer.appendChild(item);
+    [inEmpresa, inEmbrapii, inSebrae, inContrapartida].forEach(input => {
+        if (input) input.addEventListener('input', recalcularAportes);
+    });
+
+    // 6. Manipulação de Tabelas Dinâmicas (Adição e Remoção de Linhas)
+    function attachRemoveRow(btn) {
+        btn.addEventListener('click', function() {
+            const row = btn.closest('tr');
+            if (row) row.remove();
         });
     }
 
-    window.removeTempEntregavel = function(idx) {
-        modalEntregaveisTemp.splice(idx, 1);
-        renderEntregaveisList();
-    };
+    document.querySelectorAll('.btn-remove-row').forEach(attachRemoveRow);
 
-    document.getElementById('btn-add-entregavel').addEventListener('click', function() {
-        const input = document.getElementById('modal-atividade-entregavel-input');
-        const val = input.value.trim();
-        if (val) {
-            // Evitar ; no meio do texto para não quebrar nosso split do backend
-            modalEntregaveisTemp.push(val.replace(/;/g, ','));
-            input.value = '';
-            renderEntregaveisList();
-        }
-    });
-    
-    document.getElementById('modal-atividade-entregavel-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('btn-add-entregavel').click();
-        }
-    });
+    // 6.1 Adicionar Macroentrega
+    const btnAddMacro = document.getElementById('btn-add-macroentrega');
+    const tbodyMacro = document.getElementById('macroentregas-tbody');
+    if (btnAddMacro && tbodyMacro) {
+        btnAddMacro.addEventListener('click', function() {
+            const emptyRow = document.getElementById('empty-macroentregas-row');
+            if (emptyRow) emptyRow.remove();
 
-    // Abrir Modal de Nova Atividade
-    document.getElementById('btn-open-modal-atividade').addEventListener('click', function() {
-        document.getElementById('modal-atividade-titulo').textContent = 'Nova Atividade #' + (atividadesList.length + 1);
-        modalAtividadeEditIndex = -1;
-        document.getElementById('modal-atividade-nome').value = '';
-        document.getElementById('modal-atividade-descricao').value = '';
-        document.getElementById('modal-atividade-justificativa').value = '';
-        
-        modalEntregaveisTemp = [];
-        document.getElementById('modal-atividade-entregavel-input').value = '';
-        renderEntregaveisList();
-        
-        modalAtividadeStartMonth = null;
-        modalAtividadeEndMonth = null;
-        document.getElementById('modal-atividade-mes-inicio').value = '';
-        document.getElementById('modal-atividade-mes-fim').value = '';
-        document.getElementById('modal-atividade-month-error').classList.add('d-none');
-        renderMonthGrid();
-        
-        modalAtividadeInstance.show();
-    });
-    
-    // Salvar do Modal para a Tabela Virtual
-    document.getElementById('btn-save-atividade-modal').addEventListener('click', function() {
-        // Coletar
-        const nome = document.getElementById('modal-atividade-nome').value.trim();
-        const mes_inicio = document.getElementById('modal-atividade-mes-inicio').value;
-        const mes_fim = document.getElementById('modal-atividade-mes-fim').value;
-        const descricao = document.getElementById('modal-atividade-descricao').value;
-        const justificativa = document.getElementById('modal-atividade-justificativa').value;
-        
-        // Juntar entregaveis com ;
-        const entregaveis = modalEntregaveisTemp.join(';');
-        
-        if (!nome || !descricao.trim() || !justificativa.trim()) {
-            alert('Por favor, preencha todos os campos obrigatórios (*).');
-            return;
-        }
-        
-        if (!mes_inicio || !mes_fim) {
-            document.getElementById('modal-atividade-month-error').classList.remove('d-none');
-            return;
-        }
-        
-        const obj = { nome, mes_inicio, mes_fim, descricao, justificativa, entregaveis };
-        
-        if (modalAtividadeEditIndex >= 0) {
-            atividadesList[modalAtividadeEditIndex] = obj;
-        } else {
-            atividadesList.push(obj);
-        }
-        
-        renderAtividadesTable();
-        modalAtividadeInstance.hide();
-        autoSave();
-        if (typeof isEditMode !== 'undefined' && isEditMode && window.saveFormAjax) {
-            window.saveFormAjax(true);
-        }
-    });
-    
-    window.editAtividade = function(index) {
-        modalAtividadeEditIndex = index;
-        const obj = atividadesList[index];
-        document.getElementById('modal-atividade-titulo').textContent = 'Editar Atividade #' + (index + 1);
-        document.getElementById('modal-atividade-nome').value = obj.nome;
-        document.getElementById('modal-atividade-mes-inicio').value = obj.mes_inicio;
-        document.getElementById('modal-atividade-mes-fim').value = obj.mes_fim;
-        document.getElementById('modal-atividade-descricao').value = obj.descricao;
-        document.getElementById('modal-atividade-justificativa').value = obj.justificativa;
-        
-        // Popular Entregaveis
-        modalEntregaveisTemp = obj.entregaveis ? obj.entregaveis.split(';').filter(e => e.trim().length > 0) : [];
-        document.getElementById('modal-atividade-entregavel-input').value = '';
-        renderEntregaveisList();
-        
-        modalAtividadeStartMonth = parseInt(obj.mes_inicio) || null;
-        modalAtividadeEndMonth = parseInt(obj.mes_fim) || null;
-        document.getElementById('modal-atividade-month-error').classList.add('d-none');
-        renderMonthGrid();
-        
-        modalAtividadeInstance.show();
-    };
-    
-    window.removeAtividade = function(index) {
-        if(confirm('Remover esta atividade?')) {
-            atividadesList.splice(index, 1);
-            renderAtividadesTable();
-            autoSave();
-        }
-    };
-    
-    function renderAtividadesTable() {
-        const tbody = document.querySelector('#tabela-atividades tbody');
-        const hiddenInputsContainer = document.getElementById('atividades-hidden-inputs');
-        if(!tbody) return;
-        
-        tbody.innerHTML = '';
-        hiddenInputsContainer.innerHTML = '';
-        
-        if (atividadesList.length === 0) {
-            tbody.innerHTML = `<tr id="row-empty-atividade"><td colspan="6" class="text-center text-muted py-4">Nenhuma atividade cadastrada. Clique em "Adicionar Atividade".</td></tr>`;
-            return;
-        }
-        
-        atividadesList.forEach((atv, i) => {
-            // Embelezar a listagem de entregáveis na tabela mestre
-            let entregaveisBadge = '-';
-            if (atv.entregaveis) {
-                const arr = atv.entregaveis.split(';').filter(e => e.trim() !== '');
-                if(arr.length > 0) {
-                   entregaveisBadge = arr.map(e => `<span class="badge bg-secondary mb-1 me-1 text-wrap text-start">${e}</span>`).join('');
-                }
-            }
-            
-            // Tabela Visual
+            const count = tbodyMacro.querySelectorAll('tr.macro-row').length + 1;
             const tr = document.createElement('tr');
+            tr.className = 'macro-row';
             tr.innerHTML = `
-                <td class="text-center align-middle fw-bold">${i + 1}</td>
-                <td class="align-middle">${atv.nome}</td>
-                <td class="align-middle">${entregaveisBadge}</td>
-                <td class="text-center align-middle">Mês ${atv.mes_inicio}</td>
-                <td class="text-center align-middle">Mês ${atv.mes_fim}</td>
-                <td class="text-center align-middle">
-                    <button type="button" class="btn btn-sm btn-outline-primary" title="Editar" onclick="editAtividade(${i})"><i class="fas fa-edit"></i></button>
-                    <button type="button" class="btn btn-sm btn-outline-danger" title="Remover" onclick="removeAtividade(${i})"><i class="fas fa-trash"></i></button>
+                <td class="text-center fw-bold">${count}</td>
+                <td>
+                    <input type="text" name="macro_nome[]" class="form-control form-control-sm mb-1 fw-bold" placeholder="Título da entrega" required>
+                    <input type="text" name="macro_micro_entregas[]" class="form-control form-control-sm text-muted" placeholder="Micro-entregas ou critérios de aceite">
+                </td>
+                <td>
+                    <select name="macro_trl[]" class="form-select form-select-sm">
+                        <option value="">Selecione...</option>
+                        <option value="3">TRL 3 — Prova de Conceito</option>
+                        <option value="4">TRL 4 — Validação em Lab</option>
+                        <option value="5">TRL 5 — Ambiente Relevante</option>
+                        <option value="6">TRL 6 — Protótipo Operacional</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="date" name="macro_data_inicio[]" class="form-control form-control-sm">
+                </td>
+                <td>
+                    <input type="date" name="macro_data_fim[]" class="form-control form-control-sm">
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row" title="Remover">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 </td>
             `;
-            tbody.appendChild(tr);
-            
-            // Inputs Ocultos para Django (Form POST)
-            hiddenInputsContainer.innerHTML += `
-                <input type="hidden" name="atividade_nome[]" value="${atv.nome.replace(/"/g, '&quot;')}">
-                <input type="hidden" name="atividade_mes_inicio[]" value="${atv.mes_inicio}">
-                <input type="hidden" name="atividade_mes_fim[]" value="${atv.mes_fim}">
-                <input type="hidden" name="atividade_descricao[]" value="${atv.descricao.replace(/"/g, '&quot;')}">
-                <input type="hidden" name="atividade_justificativa[]" value="${atv.justificativa.replace(/"/g, '&quot;')}">
-                <input type="hidden" name="atividade_entregaveis[]" value="${atv.entregaveis.replace(/"/g, '&quot;')}">
-            `;
+            tbodyMacro.appendChild(tr);
+            attachRemoveRow(tr.querySelector('.btn-remove-row'));
         });
     }
-    
-    // CARREGAR ATIVIDADES EXISTENTES NO MODO EDIÇÃO
-    {% if plano_ativo and plano_ativo.atividades.all %}
-        {% for atividade in plano_ativo.atividades.all %}
-            atividadesList.push({
-                nome: '{{ atividade.nome|escapejs }}',
-                mes_inicio: '{{ atividade.mes_inicio|default_if_none:""|escapejs }}',
-                mes_fim: '{{ atividade.mes_fim|default_if_none:""|escapejs }}',
-                descricao: `{{ atividade.descricao|escapejs }}`,
-                justificativa: `{{ atividade.justificativa|default_if_none:""|escapejs }}`,
-                entregaveis: `{% for entregavel in atividade.entregaveis.all %}{{ entregavel.nome|escapejs }}{% if not forloop.last %};{% endif %}{% endfor %}`
-            });
-        {% endfor %}
-        renderAtividadesTable();
-    {% endif %}
 
-    // --- LÓGICA DINÂMICA: MACRO-ENTREGAS ---
-    const macroentregasContainer = document.getElementById('macroentregas-container');
-    const btnAddMacroentrega = document.getElementById('btn-add-macroentrega');
-    let macroentregaCount = 0;
-
-    function createMacroentregaCard(data = {}) {
-        macroentregaCount++;
-        const index = macroentregaCount;
-        
-        const card = document.createElement('div');
-        card.className = 'card border-primary mb-4 shadow-sm macroentrega-card';
-        card.innerHTML = `
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-box-open me-2"></i>Macro-Entrega ${index}</h6>
-                <button type="button" class="btn btn-sm btn-danger btn-remover-macroentrega" title="Remover Macro-Entrega"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="card-body bg-light">
-                <div class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label small fw-bold">Número</label>
-                        <input type="number" name="macro_numero[]" class="form-control" value="${data.numero || index}" required>
-                    </div>
-                    <div class="col-md-10">
-                        <label class="form-label small fw-bold">Nome da Macro-Entrega</label>
-                        <input type="text" name="macro_nome[]" class="form-control" value="${data.nome || ''}" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold">Data Início</label>
-                        <input type="date" name="macro_data_inicio[]" class="form-control" value="${data.data_inicio || ''}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold">Data Fim</label>
-                        <input type="date" name="macro_data_fim[]" class="form-control" value="${data.data_fim || ''}">
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label small fw-bold">Micro-Entregas Relacionadas</label>
-                        <textarea name="macro_micro_entregas[]" class="form-control" rows="2" placeholder="Descreva os componentes ou entregas menores que formam esta Macro-Entrega...">${data.micro_entregas || ''}</textarea>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        card.querySelector('.btn-remover-macroentrega').addEventListener('click', function() {
-            card.remove();
-            autoSave();
-        });
-        
-        card.querySelectorAll('input, textarea').forEach(input => {
-            input.addEventListener('input', autoSave);
-        });
-
-        macroentregasContainer.appendChild(card);
-    }
-
-    if (btnAddMacroentrega) {
-        btnAddMacroentrega.addEventListener('click', function() {
-            createMacroentregaCard();
-            autoSave();
-        });
-    }
-    
-    if (!isEditMode && document.querySelectorAll('.macroentrega-card').length === 0 && macroentregasContainer) {
-        createMacroentregaCard();
-    }
-
-    
-    // --- LÓGICA DINÂMICA: ORÇAMENTO (RUBRICAS) ---
-    const orcamentoContainer = document.getElementById('orcamento-container');
+    // 6.2 Adicionar Rubrica Orçamentária
     const btnAddRubrica = document.getElementById('btn-add-rubrica');
-    let rubricaCount = 0;
-
-    function createRubricaCard(data = {}) {
-        rubricaCount++;
-        const index = rubricaCount;
-        
-        const card = document.createElement('div');
-        card.className = 'card border-success mb-3 shadow-sm rubrica-card';
-        card.innerHTML = `
-            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-2">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-money-bill-wave me-2"></i>Despesa ${index}</h6>
-                <button type="button" class="btn btn-sm btn-danger btn-remover-rubrica" title="Remover Rubrica"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="card-body bg-light">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Categoria</label>
-                        <select name="rubrica_categoria[]" class="form-select" required>
-                            <option value="">Selecione...</option>
-                            <option value="PESSOAL">Pessoal (RH Direto e Indireto)</option>
-                            <option value="CONSUMO">Material de Consumo</option>
-                            <option value="DIARIAS">Diárias, Passagens e Locomoção</option>
-                            <option value="TERCEIROS">Serviços de Terceiros (PF e PJ)</option>
-                            <option value="CAPITAL">Capital e Equipamentos</option>
-                            <option value="SUPORTE">Suporte Operacional / Administrativo</option>
-                            <option value="OUTRAS">Outras Despesas Correntes</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Fonte de Recurso</label>
-                        <select name="rubrica_fonte[]" class="form-select" required>
-                            <option value="">Selecione...</option>
-                            <option value="EMPRESA">Empresa Parceira</option>
-                            <option value="EMBRAPII">EMBRAPII</option>
-                            <option value="SEBRAE">SEBRAE</option>
-                            <option value="CONTRAPARTIDA">Contrapartida ICT</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Valor Previsto (R$)</label>
-                        <input type="number" step="0.01" name="rubrica_valor[]" class="form-control" value="${data.valor_previsto || ''}" required>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label small fw-bold">Descrição do Item</label>
-                        <input type="text" name="rubrica_descricao[]" class="form-control" placeholder="Descreva brevemente no que será gasto..." value="${data.descricao || ''}">
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Restore selects if data exists
-        if(data.categoria) {
-            card.querySelector(`select[name="rubrica_categoria[]"]`).value = data.categoria;
-        }
-        if(data.fonte) {
-            card.querySelector(`select[name="rubrica_fonte[]"]`).value = data.fonte;
-        }
-
-        card.querySelector('.btn-remover-rubrica').addEventListener('click', function() {
-            card.remove();
-            autoSave();
-        });
-        
-        card.querySelectorAll('input, select').forEach(input => {
-            input.addEventListener('change', autoSave);
-            input.addEventListener('input', autoSave);
-        });
-
-        orcamentoContainer.appendChild(card);
-    }
-
-    if (btnAddRubrica) {
+    const tbodyRubricas = document.getElementById('rubricas-tbody');
+    if (btnAddRubrica && tbodyRubricas) {
         btnAddRubrica.addEventListener('click', function() {
-            createRubricaCard();
-            autoSave();
+            const emptyRow = document.getElementById('empty-rubricas-row');
+            if (emptyRow) emptyRow.remove();
+
+            const tr = document.createElement('tr');
+            tr.className = 'rubrica-row';
+            tr.innerHTML = `
+                <td>
+                    <select name="rubrica_fonte[]" class="form-select form-select-sm" required>
+                        <option value="EMPRESA">Empresa</option>
+                        <option value="EMBRAPII">EMBRAPII</option>
+                        <option value="SEBRAE">SEBRAE</option>
+                        <option value="CONTRAPARTIDA">Contrapartida ICT</option>
+                    </select>
+                </td>
+                <td>
+                    <select name="rubrica_categoria[]" class="form-select form-select-sm" required>
+                        <option value="PESSOAL">Pessoal / Bolsas</option>
+                        <option value="CONSUMO">Material de Consumo</option>
+                        <option value="DIARIAS">Diárias e Passagens</option>
+                        <option value="TERCEIROS">Serviços de Terceiros</option>
+                        <option value="CAPITAL">Capital / Equipamentos</option>
+                        <option value="SUPORTE">Suporte / DOAS FAEPI</option>
+                        <option value="OUTRAS">Outras Despesas</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" name="rubrica_descricao[]" class="form-control form-control-sm" placeholder="Ex: Bolsas de Pesquisa ou Materiais">
+                </td>
+                <td>
+                    <input type="text" name="rubrica_valor[]" class="form-control form-control-sm valor-monetario text-end fw-bold" placeholder="0,00" required>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row" title="Remover">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+            tbodyRubricas.appendChild(tr);
+            attachRemoveRow(tr.querySelector('.btn-remove-row'));
         });
     }
-    
-    if (!isEditMode && document.querySelectorAll('.rubrica-card').length === 0 && orcamentoContainer) {
-        createRubricaCard();
-    }
 
-    
-    // --- LÓGICA AJAX: FILTRAR TERMOS DE PARCERIA PELA EMPRESA ---
-    const concedenteSelect = document.querySelector('select[name="concedente"]');
-    const termoSelect = document.getElementById('termo_existente');
-    // Captura o ID do projeto atual (se editando) e o termo já vinculado (se existir)
-    const projetoAtualId = "{{ projeto.id|default:'' }}";
-    const termoAtualId = "{{ projeto.termos_parceria.first.id|default:'' }}";
-    
-    function carregarTermos(concedenteId, termoParaSelecionarId) {
-        if (!concedenteId) return;
-        
-        let url = `/cadastros/api/termos-por-empresa/${concedenteId}/`;
-        if (projetoAtualId) url += `?projeto_id=${projetoAtualId}`;
-        
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                // Preserva a opção vazia
-                termoSelect.innerHTML = '<option value="">Nenhum / Continuar em Prospecção Solta</option>';
-                data.termos.forEach(termo => {
-                    const option = document.createElement('option');
-                    option.value = termo.id;
-                    option.textContent = termo.display_name;
-                    termoSelect.appendChild(option);
-                });
-                
-                // Seleciona o termo correto: prioridade (1) parâmetro passado (2) termo atual do servidor
-                const idParaSelecionar = termoParaSelecionarId || termoAtualId;
-                if (idParaSelecionar) {
-                    termoSelect.value = idParaSelecionar;
-                }
-            })
-            .catch(error => console.error('Erro ao buscar termos:', error));
-    }
-    
-    if (concedenteSelect && termoSelect) {
-        // Ao mudar a empresa, recarrega os termos sem pré-seleção
-        concedenteSelect.addEventListener('change', function() {
-            carregarTermos(this.value, null);
+    // 6.3 Adicionar Desembolso
+    const btnAddDesembolso = document.getElementById('btn-add-desembolso');
+    const tbodyDesembolsos = document.getElementById('desembolsos-tbody');
+    if (btnAddDesembolso && tbodyDesembolsos) {
+        btnAddDesembolso.addEventListener('click', function() {
+            const emptyRow = document.getElementById('empty-desembolsos-row');
+            if (emptyRow) emptyRow.remove();
+
+            const count = tbodyDesembolsos.querySelectorAll('tr.desembolso-row').length + 1;
+            const tr = document.createElement('tr');
+            tr.className = 'desembolso-row';
+            tr.innerHTML = `
+                <td class="text-center fw-bold">${count}</td>
+                <td>
+                    <input type="text" name="desembolso_mes[]" class="form-control form-control-sm fw-semibold" value="Mês ${count}" placeholder="Ex: Mês ${count} ou Jan/2026" required>
+                </td>
+                <td>
+                    <input type="text" name="desembolso_valor[]" class="form-control form-control-sm valor-monetario text-end fw-bold" placeholder="0,00" required>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row" title="Remover">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+            tbodyDesembolsos.appendChild(tr);
+            attachRemoveRow(tr.querySelector('.btn-remove-row'));
         });
-        
-        // Ao carregar a página: se há empresa selecionada, carrega os termos e pré-seleciona o atual
-        if (concedenteSelect.value) {
-            carregarTermos(concedenteSelect.value, termoAtualId);
-        }
-        
-        termoSelect.addEventListener('change', autoSave);
     }
 
-    window.showStepGlobal = function(stepId) { showStep(stepId); };
-    function showStep(stepId) {
-        syncQuills();
-        document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.vertical-wizard .nav-link').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById(stepId).classList.add('active');
-        document.getElementById(stepId + '-tab').classList.add('active');
-        
-        // Em vez de rolar a janela (que agora está travada), rola apenas a caixa de conteúdo da direita
-        const rightPane = document.querySelector('.custom-scrollbar');
-        if (rightPane) {
-            rightPane.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        }
-        
-        autoSave();
-    }
+    // 7. Busca AJAX de Termos de Parceria ao Selecionar Concedente
+    const selectConcedente = document.getElementById('id_concedente');
+    const selectTermo = document.getElementById('termo_existente');
+    const spinnerTermo = document.getElementById('termo-loading-spinner');
 
-    document.querySelectorAll('.btn-next').forEach(btn => {
-        btn.addEventListener('click', function() {
-            showStep(this.getAttribute('data-next'));
-        });
-    });
+    if (selectConcedente && selectTermo) {
+        selectConcedente.addEventListener('change', function() {
+            const empresaId = this.value;
+            if (!empresaId) return;
 
-    document.querySelectorAll('.btn-prev').forEach(btn => {
-        btn.addEventListener('click', function() {
-            showStep(this.getAttribute('data-prev'));
-        });
-    });
-    
-    document.querySelectorAll('.vertical-wizard .nav-link').forEach(btn => {
-        btn.removeAttribute('disabled');
-        btn.addEventListener('click', function() {
-            const targetId = this.id.replace('-tab', '');
-            showStep(targetId);
-        });
-    });
+            if (spinnerTermo) spinnerTermo.classList.remove('d-none');
+            const url = `{% url 'cadastros:api_termos_por_empresa' 0 %}`.replace('0', empresaId) + `?projeto_id={% if projeto %}{{ projeto.id }}{% else %}0{% endif %}`;
 
-    function autoSave() {
-        if (isEditMode) return;
-        
-        const formData = new FormData(form);
-        const data = {};
-        for (let [key, value] of formData.entries()) {
-            if (key === 'csrfmiddlewaretoken') continue;
-            if (data[key]) {
-                if (!Array.isArray(data[key])) {
-                    data[key] = [data[key]];
-                }
-                data[key].push(value);
-            } else {
-                data[key] = value;
-            }
-        }
-        localStorage.setItem(storageKey, JSON.stringify(data));
-    }
-
-    function loadDraft() {
-        if (isEditMode) return;
-        
-        const draft = localStorage.getItem(storageKey);
-        if (draft) {
-            try {
-                const data = JSON.parse(draft);
-                for (let key in data) {
-                    const input = form.elements[key];
-                    if (!input) continue;
-                    
-                    const value = data[key];
-                    
-                    if (input.type === 'checkbox' || input.type === 'radio') {
-                        input.checked = (input.value === value);
-                    } else if (input.tagName === 'SELECT' && input.multiple) {
-                        const vals = Array.isArray(value) ? value : [value];
-                        if(typeof jQuery !== 'undefined') {
-                            jQuery(input).val(vals).trigger('change');
-                        } else {
-                            Array.from(input.options).forEach(opt => {
-                                opt.selected = vals.includes(opt.value);
-                            });
-                        }
-                    } else if (input.length) {
-                        const radio = Array.from(input).find(r => r.value === value);
-                        if (radio) radio.checked = true;
-                    } else {
-                        input.value = value;
-                        if (input.classList && input.classList.contains('richtext') && quillInstances[input.id]) {
-                            quillInstances[input.id].clipboard.dangerouslyPasteHTML(value);
-                        }
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    if (spinnerTermo) spinnerTermo.classList.add('d-none');
+                    // Preserva a primeira opção
+                    const options = ['<option value="">Nenhum / Projeto em Prospecção Inicial</option>'];
+                    if (data && data.termos) {
+                        data.termos.forEach(t => {
+                            options.push(`<option value="${t.id}">Termo ${t.numero || 'S/N'} — ${t.objeto}</option>`);
+                        });
                     }
-                }
-            } catch (e) {
-                console.error("Erro ao carregar rascunho:", e);
-            }
-        }
-    }
-
-    form.addEventListener('input', function(e) {
-        if(e.target.name !== 'csrfmiddlewaretoken') {
-            autoSave();
-        }
-    });
-
-    function syncQuills() {
-        textareas.forEach(function(textarea) {
-            if (quillInstances[textarea.id]) {
-                textarea.value = quillInstances[textarea.id].root.innerHTML;
-            }
+                    selectTermo.innerHTML = options.join('');
+                })
+                .catch(() => {
+                    if (spinnerTermo) spinnerTermo.classList.add('d-none');
+                });
         });
     }
-
-    window.saveFormAjax = function(silent = false) {
-        syncQuills();
-        const formData = new FormData(form);
-        formData.append('action', 'salvar'); // Força a ação como rascunho
-        
-        let btnSave = null;
-        let originalBtnHTML = '';
-        if (!silent) {
-            btnSave = document.querySelector('button[type="submit"]');
-            if (btnSave) {
-                originalBtnHTML = btnSave.innerHTML;
-                btnSave.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Salvando...';
-                btnSave.disabled = true;
-            }
-        }
-        
-        fetch(window.location.href, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => {
-            if (!silent) {
-                if (btnSave) {
-                    btnSave.innerHTML = originalBtnHTML;
-                    btnSave.disabled = false;
-                }
-            }
-            if (response.ok) {
-                const toastHTML = `
-                <div class="toast align-items-center text-bg-success border-0 shadow-lg mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body fw-bold d-flex align-items-center">
-                            <i class="fas fa-check-circle me-2 fs-5"></i>
-                            ${silent ? 'Atividade salva no banco de dados!' : 'Alterações salvas com sucesso!'}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                </div>`;
-                
-                let toastContainer = document.querySelector('.toast-container');
-                if (!toastContainer) {
-                    toastContainer = document.createElement('div');
-                    toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-                    document.body.appendChild(toastContainer);
-                }
-                
-                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-                const toastEl = toastContainer.lastElementChild;
-                const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
-                toast.show();
-                toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
-            } else {
-                if (!silent) {
-                    window.location.reload();
-                }
-            }
-        })
-        .catch(error => {
-            if (!silent && btnSave) {
-                btnSave.innerHTML = originalBtnHTML;
-                btnSave.disabled = false;
-            }
-            console.error('Erro no salvamento AJAX:', error);
-            if (!silent) {
-                window.location.reload();
-            }
-        });
-    };
-
-    form.addEventListener('submit', function(e) {
-        if (!isEditMode) {
-            syncQuills();
-            localStorage.removeItem(storageKey);
-            return;
-        }
-        
-        e.preventDefault();
-        
-        if (e.submitter && e.submitter.value === 'publicar') {
-            syncQuills();
-            form.submit();
-            return;
-        }
-        
-        window.saveFormAjax(false);
-    });
-
-
-    if (!isEditMode) {
-        loadDraft();
-    } else {
-        textareas.forEach(function(textarea) {
-            if (textarea.value && quillInstances[textarea.id]) {
-                quillInstances[textarea.id].clipboard.dangerouslyPasteHTML(textarea.value);
-            }
-        });
-    }
-
-    // --- LÓGICA DO MENU LATERAL RETRÁTIL ---
-    const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
-    const sidebarCol = document.getElementById('wizard-sidebar-col');
-    const contentCol = document.getElementById('wizard-content-col');
-    let isSidebarVisible = true;
-
-    if(btnToggleSidebar && sidebarCol && contentCol) {
-        btnToggleSidebar.addEventListener('click', function() {
-            isSidebarVisible = !isSidebarVisible;
-            if(isSidebarVisible) {
-                document.getElementById('project-wizard-shell').classList.remove('is-fullscreen');
-                sidebarCol.classList.remove('d-none');
-                sidebarCol.classList.add('col-md-4', 'col-lg-3');
-                contentCol.classList.remove('col-12');
-                contentCol.classList.remove('col-md-12', 'col-lg-12');
-                contentCol.classList.add('col-md-8', 'col-lg-9');
-                btnToggleSidebar.innerHTML = '<i class="fas fa-expand-arrows-alt me-1"></i> Tela Cheia';
-            } else {
-                document.getElementById('project-wizard-shell').classList.add('is-fullscreen');
-                sidebarCol.classList.add('d-none');
-                sidebarCol.classList.remove('col-md-4', 'col-lg-3');
-                contentCol.classList.remove('col-md-8', 'col-lg-9');
-                contentCol.classList.add('col-md-12', 'col-lg-12');
-                contentCol.classList.add('col-12');
-                btnToggleSidebar.innerHTML = '<i class="fas fa-compress-arrows-alt me-1"></i> Voltar Menu';
-            }
-        });
-    }
-
-    
 });
 </script>
-
-
-
-
-<script>
-    function focarErro(fieldId) {
-        console.log("Tentando focar no campo:", fieldId);
-
-        // Mapa de fallback: campos que não são renderizados como widgets padrão
-        // mas existem no formulário. Aponta qual step contém o campo.
-        const stepMap = {
-            'id_vigencia_inicio': 'step3',
-            'id_vigencia_fim': 'step3',
-            'id_vigencia_meses': 'step3',
-            'id_coordenador': 'step2',
-            'id_local_execucao': 'step3',
-            'id_processo': 'step3',
-            'id_vulnerabilidades': 'step7',
-            'id_plano_riscos': 'step7',
-            'id_escopo_geral': 'step6',
-            'id_estrutura_analitica': 'step6',
-            'id_tecnologias_utilizadas': 'step6'
-        };
-
-        let field = document.getElementById(fieldId);
-        
-        // Se falhar pelo ID, tenta pelo name
-        if (!field && fieldId) {
-            const cleanName = fieldId.replace('id_', '');
-            field = document.querySelector(`[name="${cleanName}"]`);
-        }
-
-        // Se ainda não encontrou, verifica se está no mapa de fallback de step
-        if (!field) {
-            const fallbackStep = stepMap[fieldId];
-            if (fallbackStep && window.showStepGlobal) {
-                window.showStepGlobal(fallbackStep);
-                // Tenta de novo após a aba abrir
-                setTimeout(() => {
-                    let retryField = document.getElementById(fieldId);
-                    if (!retryField) {
-                        const cleanName = fieldId.replace('id_', '');
-                        retryField = document.querySelector(`[name="${cleanName}"]`);
-                    }
-                    if (retryField) {
-                        retryField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        retryField.style.transition = 'all 0.4s ease';
-                        retryField.style.borderColor = '#dc3545';
-                        retryField.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.8)';
-                        setTimeout(() => { retryField.style.borderColor = ''; retryField.style.boxShadow = ''; }, 3000);
-                        try { retryField.focus({ preventScroll: true }); } catch(e){}
-                    }
-                }, 250);
-                return;
-            }
-            console.warn("Elemento não encontrado:", fieldId);
-            return;
-        }
-
-        const step = field.closest('.wizard-step');
-        if (step) {
-            const stepId = step.id;
-            if (window.showStepGlobal) {
-                window.showStepGlobal(stepId);
-            } else {
-                document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.vertical-wizard .nav-link').forEach(el => el.classList.remove('active'));
-                step.classList.add('active');
-                const tabButton = document.getElementById(stepId + '-tab');
-                if (tabButton) tabButton.classList.add('active');
-            }
-        }
-
-        setTimeout(() => {
-            let targetElement = field;
-            const $field = $(field);
-            if ($field.next('.select2-container').length) {
-                targetElement = $field.next('.select2-container')[0];
-            } else if ($field.siblings('.ql-container').length) {
-                targetElement = $field.siblings('.ql-container')[0];
-            }
-
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            const originalBoxShadow = targetElement.style.boxShadow || '';
-            const originalBorder = targetElement.style.borderColor || '';
-            targetElement.style.transition = 'all 0.4s ease';
-            targetElement.style.borderColor = '#dc3545';
-            targetElement.style.boxShadow = '0 0 15px rgba(220, 53, 69, 0.8)';
-            try { if (typeof field.focus === 'function') field.focus({ preventScroll: true }); } catch (e) {}
-            setTimeout(() => { targetElement.style.borderColor = originalBorder; targetElement.style.boxShadow = originalBoxShadow; }, 3000);
-        }, 150);
-    }
-</script>
-<script>
-    // Se existir o modal de pendências, atualiza o badge e controla abertura automática
-    document.addEventListener('DOMContentLoaded', function() {
-        var modalPendenciasEl = document.getElementById('modalPendencias');
-        if (modalPendenciasEl) {
-            // Conta quantos itens de erro existem
-            var errorCount = document.querySelectorAll('.erro-item').length;
-            var badgeEl = document.getElementById('badge-erros');
-            if(badgeEl) {
-                badgeEl.textContent = errorCount;
-            }
-            
-            // Lógica do Checkbox de Silenciamento
-            var checkbox = document.getElementById('checkSilenciarPendencias');
-            var isSilenced = localStorage.getItem('silenciarModalPendencias') === 'true';
-            
-            if (checkbox) {
-                checkbox.checked = isSilenced;
-                checkbox.addEventListener('change', function() {
-                    localStorage.setItem('silenciarModalPendencias', this.checked);
-                });
-            }
-            
-            // Abre o modal automaticamente no load apenas se não estiver silenciado
-            if (!isSilenced) {
-                var myModal = new bootstrap.Modal(modalPendenciasEl, {
-                    keyboard: true
-                });
-                myModal.show();
-            }
-        }
-    });
-
-    // Função ajustada para fechar o modal antes de focar
-    function focarErroModal(campoId) {
-        var modalEl = document.getElementById('modalPendencias');
-        var modal = bootstrap.Modal.getInstance(modalEl);
-        if(modal) {
-            modal.hide();
-        }
-        // Aguarda a animação do modal fechar antes de rolar
-        setTimeout(function() {
-            focarErro(campoId);
-        }, 400);
-    }
-</script>
-
 {% endblock %}

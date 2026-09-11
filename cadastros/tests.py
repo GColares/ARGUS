@@ -2012,6 +2012,8 @@ class FonteDeRecursoListViewTests(TestCase):
 # =====================================================================
 # TESTES DO DOSSIER PROCESSUAL DO PROJETO PDI (VISUALIZAR_PROJETO)
 # =====================================================================
+from django.urls import reverse
+
 @override_settings(
     STORAGES={
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
@@ -2022,7 +2024,6 @@ class VisualizarProjetoDossierTestCase(TestCase):
     """Garante a integridade do Dossier Processual em 4 abas do Projeto PDI."""
 
     def setUp(self):
-        from django.urls import reverse
         from cadastros.models import EmpresaParceira, ICT, FundacaoApoio, CronogramaDesembolso
         self.user = User.objects.create_user(username='dossier_qa', password='password123')
         self.client.login(username='dossier_qa', password='password123')
@@ -2116,4 +2117,69 @@ class VisualizarProjetoDossierTestCase(TestCase):
         self.assertContains(response, "Plano de Trabalho")
         self.assertContains(response, "FAEPI")
         self.assertContains(response, "Governan")
+
+    def test_editar_projeto_renderiza_4_abas_com_sucesso(self):
+        """Tela de edição renderiza status 200 com as 4 abas canônicas e dados pré-preenchidos."""
+        url_editar = reverse('cadastros:editar_projeto', kwargs={'projeto_id': self.projeto.id})
+        response = self.client.get(url_editar)
+        self.assertEqual(response.status_code, 200)
+
+        # Presença das 4 Abas Canônicas
+        self.assertContains(response, "1. Instrumento")
+        self.assertContains(response, "2. Plano de Trabalho")
+        self.assertContains(response, "3. Orçamento")
+        self.assertContains(response, "4. Trilha de Pareceres")
+
+        # Dados existentes no contexto
+        self.assertEqual(response.context['projeto'], self.projeto)
+        self.assertEqual(len(response.context['macroentregas']), 1)
+        self.assertEqual(len(response.context['desembolsos']), 1)
+
+    def test_editar_projeto_salvar_rascunho_com_dados_dinamicos(self):
+        """Salva rascunho e atualiza macroentregas e rubricas sem erro de campo ou integridade."""
+        url_editar = reverse('cadastros:editar_projeto', kwargs={'projeto_id': self.projeto.id})
+        payload = {
+            'action': 'salvar',
+            'nome': 'Projeto Dossier Atualizado',
+            'projeto': 'PRJ-UPD',
+            'concedente': self.pj_empresa.id,
+            'convenente': self.ict.id,
+            'interveniente': self.fundacao.id,
+            'vigencia_inicio': '2026-03-01',
+            'vigencia_fim': '2026-11-30',
+            'vigencia_meses': '9',
+            'coordenador': '',
+            'local_execucao': 'Manaus',
+            'processo': '23200.0001/2026',
+            'aporte_empresa': '60000.00',
+            'aporte_embrapii': '30000.00',
+            'aporte_sebrae': '5000.00',
+            'aporte_contrapartida': '5000.00',
+            # Macroentrega dinâmica
+            'macro_nome[]': ['Macroentrega Atualizada'],
+            'macro_micro_entregas[]': ['Micro-entregas atualizadas'],
+            'macro_trl[]': ['5'],
+            'macro_data_inicio[]': ['2026-03-01'],
+            'macro_data_fim[]': ['2026-06-30'],
+            # Rubrica dinâmica
+            'rubrica_fonte[]': ['EMPRESA'],
+            'rubrica_categoria[]': ['PESSOAL'],
+            'rubrica_descricao[]': ['Bolsas de Pesquisa'],
+            'rubrica_valor[]': ['25000.00'],
+            # Desembolso dinâmico
+            'desembolso_mes[]': ['Mês 1'],
+            'desembolso_valor[]': ['50000.00']
+        }
+        response = self.client.post(url_editar, data=payload, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # Verifica se o nome e os dados dinâmicos foram atualizados no banco
+        self.projeto.refresh_from_db()
+        self.assertEqual(self.projeto.nome, 'Projeto Dossier Atualizado')
+        self.plano.refresh_from_db()
+        self.assertEqual(self.plano.macroentregas.count(), 1)
+        self.assertEqual(self.plano.macroentregas.first().nome, 'Macroentrega Atualizada')
+        self.assertEqual(self.plano.macroentregas.first().trl, 5)
+        self.assertEqual(self.plano.rubricas.count(), 1)
+        self.assertEqual(self.plano.rubricas.first().valor_previsto, Decimal('25000.00'))
 
