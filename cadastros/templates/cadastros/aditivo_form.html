@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Termo Aditivo{% else %}Novo Termo Aditivo{% endif %} - ARGUS
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <!-- Breadcrumbs e Voltar Dinâmico -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:painel_instrumentos' %}" class="text-decoration-none">Instrumentos Jurídicos</a></li>
+            {% if termo_obj %}
+                {% if form.termo_parceria %}
+                    <li class="breadcrumb-item"><a href="{% url 'cadastros:visualizar_termo_parceria' termo_obj.pk %}" class="text-decoration-none">{{ termo_obj.numero }}</a></li>
+                {% elif form.termo_cooperacao %}
+                    <li class="breadcrumb-item"><a href="{% url 'cadastros:visualizar_termo' termo_obj.pk %}" class="text-decoration-none">{{ termo_obj.numero }}</a></li>
+                {% endif %}
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">
+                {% if form.instance.pk %}Editar Aditivo{% else %}Novo Aditivo{% endif %}
+            </li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <!-- Topo -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h4 class="fw-bold m-0 text-dark">
+                <i class="fas fa-file-signature text-primary me-2"></i>
+                {% if form.instance.pk %}Editar Termo Aditivo{% else %}Celebrar Novo Termo Aditivo{% endif %}
+            </h4>
+            <p class="text-muted small mb-0 mt-1">
+                Aditamento contratual para alteração de vigência, acréscimo de valor ou modificação de escopo em <strong>{{ tipo_instrumento_label }}</strong>.
+            </p>
+        </div>
+        {% if termo_obj %}
+            <div class="text-end">
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 fw-semibold">
+                    <i class="fas fa-file-contract me-1"></i> Instrumento: {{ termo_obj.numero }}
+                </span>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-xl-8">
+            <div class="card shadow-sm border-0 border-top border-primary border-4 mb-4">
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mb-3">
+                                {% for error in form.non_field_errors %}
+                                    <div><i class="fas fa-exclamation-triangle me-1"></i> {{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <!-- Instrumento Jurídico Vinculado -->
+                            <div class="col-12">
+                                {% if form.termo_parceria %}
+                                    <label for="{{ form.termo_parceria.id_for_label }}" class="form-label fw-bold small text-muted">
+                                        Acordo de Parceria Vinculado <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.termo_parceria }}
+                                    {% if form.termo_parceria.errors %}
+                                        <div class="text-danger small mt-1">{{ form.termo_parceria.errors.0 }}</div>
+                                    {% endif %}
+                                {% elif form.termo_cooperacao %}
+                                    <label for="{{ form.termo_cooperacao.id_for_label }}" class="form-label fw-bold small text-muted">
+                                        Termo de Cooperação Vinculado <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.termo_cooperacao }}
+                                    {% if form.termo_cooperacao.errors %}
+                                        <div class="text-danger small mt-1">{{ form.termo_cooperacao.errors.0 }}</div>
+                                    {% endif %}
+                                {% endif %}
+                                <div class="form-text text-xs">Instrumento jurídico principal ao qual este termo aditivo fica vinculado.</div>
+                            </div>
+
+                            <!-- Identificação do Aditivo -->
+                            <div class="col-md-6">
+                                <label for="{{ form.numero.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Identificação / Número do Aditivo <span class="text-danger">*</span>
+                                </label>
+                                {{ form.numero }}
+                                {% if form.numero.errors %}
+                                    <div class="text-danger small mt-1">{{ form.numero.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Ex: 1º Termo Aditivo, TA 02/2026</div>
+                            </div>
+
+                            <!-- Tipo de Aditivo -->
+                            <div class="col-md-6">
+                                <label for="{{ form.tipo_aditivo.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Modalidade do Aditivo <span class="text-danger">*</span>
+                                </label>
+                                {{ form.tipo_aditivo }}
+                                {% if form.tipo_aditivo.errors %}
+                                    <div class="text-danger small mt-1">{{ form.tipo_aditivo.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Finalidade primordial da celebração.</div>
+                            </div>
+
+                            <!-- Número do Processo SIPAC -->
+                            <div class="col-md-6">
+                                <label for="{{ form.numero_processo.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Processo SIPAC / SEI
+                                </label>
+                                {{ form.numero_processo }}
+                                {% if form.numero_processo.errors %}
+                                    <div class="text-danger small mt-1">{{ form.numero_processo.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Número do processo administrativo de aditamento.</div>
+                            </div>
+
+                            <!-- Data de Assinatura -->
+                            <div class="col-md-6">
+                                <label for="{{ form.data_assinatura.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Data de Assinatura <span class="text-danger">*</span>
+                                </label>
+                                {{ form.data_assinatura }}
+                                {% if form.data_assinatura.errors %}
+                                    <div class="text-danger small mt-1">{{ form.data_assinatura.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Data formal de celebração das partes.</div>
+                            </div>
+
+                            <!-- Nova Data Fim (Prorrogação) -->
+                            <div class="col-md-6">
+                                <label for="{{ form.nova_data_fim.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Nova Data de Término (Prorrogação)
+                                </label>
+                                {{ form.nova_data_fim }}
+                                {% if form.nova_data_fim.errors %}
+                                    <div class="text-danger small mt-1">{{ form.nova_data_fim.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Preencha caso haja prorrogação de vigência. O instrumento será sincronizado.</div>
+                            </div>
+
+                            <!-- Valor Aditivado -->
+                            <div class="col-md-6">
+                                <label for="{{ form.valor_aditivo.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Valor Aditivado (R$)
+                                </label>
+                                {{ form.valor_aditivo }}
+                                {% if form.valor_aditivo.errors %}
+                                    <div class="text-danger small mt-1">{{ form.valor_aditivo.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Valor financeiro acrescido ao instrumento (se aplicável).</div>
+                            </div>
+
+                            <!-- Descrição / Objeto do Aditivo -->
+                            <div class="col-12">
+                                <label for="{{ form.descricao.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Descrição e Justificativa do Aditamento <span class="text-danger">*</span>
+                                </label>
+                                {{ form.descricao }}
+                                {% if form.descricao.errors %}
+                                    <div class="text-danger small mt-1">{{ form.descricao.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Detalhamento dos motivos da alteração, motivação técnica e disposições aditadas.</div>
+                            </div>
+
+                            <!-- Anexo do Documento Assinado (PDF) -->
+                            <div class="col-12">
+                                <div class="card border-0 bg-light p-3">
+                                    <label for="{{ form.arquivo_pdf.id_for_label }}" class="form-label fw-bold small text-dark d-flex align-items-center justify-content-between">
+                                        <span><i class="fas fa-file-pdf text-danger me-1"></i> Documento Assinado (Via Original em PDF)</span>
+                                        {% if form.instance.arquivo_pdf %}
+                                            <a href="{{ form.instance.arquivo_pdf.url }}" target="_blank" class="badge bg-danger bg-opacity-10 text-danger border border-danger text-decoration-none py-1 px-2">
+                                                <i class="fas fa-external-link-alt me-1"></i> Visualizar PDF Atual
+                                            </a>
+                                        {% endif %}
+                                    </label>
+                                    {{ form.arquivo_pdf }}
+                                    {% if form.arquivo_pdf.errors %}
+                                        <div class="text-danger small mt-1">{{ form.arquivo_pdf.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text text-xs mt-1">
+                                        Anexe a via digitalizada ou assinada eletronicamente (Gov.br / ICP-Brasil / SIPAC) em formato PDF.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação -->
+                        <div class="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary px-4 fw-bold">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                                <i class="fas fa-save me-1"></i> Salvar Termo Aditivo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

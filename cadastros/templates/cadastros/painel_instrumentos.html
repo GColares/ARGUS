@@ -119,6 +119,12 @@
                 <span class="badge bg-primary bg-opacity-10 text-primary ms-1">{{ tipos|length }}</span>
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold text-dark" id="aditivos-tab" data-bs-toggle="tab" data-bs-target="#aditivos-pane" type="button" role="tab" aria-controls="aditivos-pane" aria-selected="false">
+                <i class="fas fa-file-signature me-2 text-warning"></i> Termos Aditivos
+                <span class="badge bg-warning bg-opacity-10 text-dark ms-1">{{ total_aditivos }}</span>
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content" id="instrumentosTabsContent">
@@ -418,6 +424,149 @@
                                 <tr>
                                     <td colspan="8" class="text-center py-5 text-muted">
                                         <p>Nenhum tipo de instrumento jurídico cadastrado.</p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- ABA 3: TERMOS ADITIVOS REGISTRADOS                             -->
+        <!-- ============================================================== -->
+        <div class="tab-pane fade" id="aditivos-pane" role="tabpanel" aria-labelledby="aditivos-tab" tabindex="0">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold m-0 text-dark">Termos Aditivos Registrados</h5>
+                    <p class="text-muted small mb-0">Aditamentos contratuais celebrados para prorrogação de vigência, acréscimo de valor ou alteração de escopo.</p>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-warning fw-bold btn-sm shadow-sm dropdown-toggle text-dark" type="button" id="btnNovoAditivoPainel" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-plus me-1"></i> Novo Termo Aditivo
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2" aria-labelledby="btnNovoAditivoPainel">
+                        <li>
+                            <a class="dropdown-item py-2 px-3 fw-semibold small" href="{% url 'cadastros:cadastrar_aditivo_parceria' %}">
+                                <i class="fas fa-handshake text-danger me-2"></i> Aditivo para Acordo de Parceria
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <a class="dropdown-item py-2 px-3 fw-semibold small" href="{% url 'cadastros:cadastrar_aditivo_cooperacao' %}">
+                                <i class="fas fa-file-signature text-warning me-2"></i> Aditivo para Termo de Cooperação
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-center border-bottom">
+                            <tr>
+                                <th class="text-center" style="width: 140px;">Aditivo</th>
+                                <th class="text-center" style="width: 150px;">Modalidade</th>
+                                <th class="text-center">Instrumento Principal</th>
+                                <th class="text-center">Parceiro / Concedente</th>
+                                <th class="text-center" style="width: 110px;">Assinatura</th>
+                                <th class="text-center" style="width: 120px;">Nova Vigência</th>
+                                <th class="text-center" style="width: 130px;">Valor Aditivado</th>
+                                <th class="text-center" style="width: 110px;">Doc. Assinado</th>
+                                <th class="text-center" style="width: 100px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in aditivos %}
+                                <tr>
+                                    <!-- Aditivo -->
+                                    <td class="text-center fw-bold">
+                                        <span class="text-dark">{{ a.numero }}</span>
+                                        {% if a.numero_processo %}
+                                            <div class="text-xs text-muted">{{ a.numero_processo }}</div>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Modalidade -->
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border">
+                                            {{ a.tipo_aditivo_nome }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Instrumento Principal -->
+                                    <td>
+                                        <a href="{{ a.instrumento_url }}" class="fw-bold text-decoration-none text-primary">
+                                            {{ a.instrumento_numero }}
+                                        </a>
+                                        <div class="text-xs text-muted">{{ a.instrumento_tipo }}</div>
+                                    </td>
+
+                                    <!-- Parceiro / Concedente -->
+                                    <td class="small">
+                                        {% if a.parceiro %}
+                                            <i class="fas fa-building text-muted me-1"></i>{{ a.parceiro.nome }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Data de Assinatura -->
+                                    <td class="text-center small">
+                                        {{ a.data_assinatura|date:"d/m/Y"|default:"-" }}
+                                    </td>
+
+                                    <!-- Nova Vigência -->
+                                    <td class="text-center">
+                                        {% if a.nova_data_fim %}
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                                {{ a.nova_data_fim|date:"d/m/Y" }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted small">-</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Valor Aditivado -->
+                                    <td class="text-center fw-semibold small">
+                                        {% if a.valor_aditivo %}
+                                            R$ {{ a.valor_aditivo|floatformat:2 }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Documento Assinado (PDF) -->
+                                    <td class="text-center">
+                                        {% if a.arquivo_pdf %}
+                                            <a href="{{ a.arquivo_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-danger py-0 px-2 fw-semibold" title="Visualizar via PDF original assinada">
+                                                <i class="fas fa-file-pdf me-1"></i> PDF
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted text-xs">Sem anexo</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Ações -->
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ a.url_editar }}" class="btn btn-outline-primary" title="Editar Aditivo">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ a.url_excluir }}" class="btn btn-outline-danger" title="Excluir Aditivo">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center py-5 text-muted">
+                                        <i class="fas fa-file-signature fa-3x text-muted opacity-50 mb-3 d-block"></i>
+                                        <h5 class="fw-bold">Nenhum termo aditivo registrado</h5>
+                                        <p class="small mb-3">Não há termos aditivos cadastrados para os instrumentos jurídicos.</p>
                                     </td>
                                 </tr>
                             {% endfor %}

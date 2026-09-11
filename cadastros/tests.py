@@ -2316,3 +2316,132 @@ class InstrumentosJuridicosTestCase(TestCase):
         self.assertFalse(TipoInstrumentoJuridico.objects.filter(sigla='TEST_NDA').exists())
 
 
+class TermosAditivosTestCase(TestCase):
+    """Testes completos da esteira de Termos Aditivos para Acordos de Parceria e Termos de Cooperação."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from cadastros.models import TermoDeParceria, TermoCooperacao, ICT, EmpresaParceira, FundacaoApoio, TermoAditivo, AditivoTermoCooperacao
+
+        self.user = User.objects.create_superuser('aditivo_admin', 'aditivo@teste.com', 'senha123')
+        self.client.login(username='aditivo_admin', password='senha123')
+
+        self.empresa = EmpresaParceira.objects.create(
+            nome="Empresa Aditivos S/A",
+            cnpj="55.666.777/0001-88",
+            natureza_juridica="S/A",
+            representante_legal="Diretor Aditivo"
+        )
+        self.ict = ICT.objects.create(
+            nome="IFAM Polo de Inovação",
+            cnpj="11.222.333/0001-44",
+            natureza_juridica="Autarquia",
+            sigla="IFAM"
+        )
+        self.fundacao = FundacaoApoio.objects.create(
+            nome="FAEPI Fundação",
+            cnpj="99.888.777/0001-66",
+            natureza_juridica="Fundação Privada"
+        )
+
+        self.termo_parceria = TermoDeParceria.objects.create(
+            numero="AP 100/2026",
+            concedente=self.empresa,
+            convenente=self.ict,
+            interveniente=self.fundacao,
+            data_assinatura=date(2026, 1, 1),
+            objeto="Projeto Piloto com Aditivos"
+        )
+
+        self.termo_coop = TermoCooperacao.objects.create(
+            numero="TC 200/2026",
+            concedente=self.empresa,
+            convenente=self.ict,
+            vigencia_inicio=date(2026, 1, 1),
+            vigencia_fim=date(2026, 12, 31),
+            objeto="Cooperação Técnica com Aditivos"
+        )
+
+    def test_model_termo_aditivo_parceria_e_cooperacao(self):
+        """Testa instanciação e métodos dos modelos TermoAditivo e AditivoTermoCooperacao."""
+        from cadastros.models import TermoAditivo, AditivoTermoCooperacao
+
+        aditivo_p = TermoAditivo.objects.create(
+            numero="1º Termo Aditivo",
+            tipo_aditivo="PRORROGACAO",
+            termo_parceria=self.termo_parceria,
+            data_assinatura=date(2026, 6, 1),
+            nova_data_fim=date(2027, 6, 30),
+            valor_aditivo=Decimal('50000.00'),
+            numero_processo="23443.001111/2026-01",
+            descricao="Prorrogação de 6 meses no cronograma"
+        )
+        self.assertEqual(str(aditivo_p), "1º Termo Aditivo - AP 100/2026")
+        self.assertEqual(aditivo_p.nova_data_fim, date(2027, 6, 30))
+
+        aditivo_c = AditivoTermoCooperacao.objects.create(
+            numero="1º Termo Aditivo TC",
+            tipo_aditivo="ACRESCIMO_VALOR",
+            termo_cooperacao=self.termo_coop,
+            data_assinatura=date(2026, 7, 1),
+            nova_data_fim=date(2027, 12, 31),
+            valor_aditivo=Decimal('120000.00'),
+            numero_processo="23443.002222/2026-02",
+            descricao="Aporte suplementar de P&D"
+        )
+        self.assertEqual(str(aditivo_c), "1º Termo Aditivo TC - TC 200/2026")
+        self.assertEqual(aditivo_c.termo_cooperacao.vigencia_fim, date(2027, 12, 31))
+
+    def test_crud_termo_aditivo_com_upload_pdf(self):
+        """Testa criação via POST com upload de arquivo PDF assinado, visualização e deleção."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from cadastros.models import TermoAditivo
+
+        url_create = reverse('cadastros:cadastrar_aditivo_parceria')
+        pdf_conteudo = b"%PDF-1.4 Mock de documento assinado digitalmente ICP-Brasil"
+        pdf_file = SimpleUploadedFile("termo_aditivo_assinado.pdf", pdf_conteudo, content_type="application/pdf")
+
+        payload = {
+            'numero': '2º Termo Aditivo',
+            'tipo_aditivo': 'MISTO',
+            'termo_parceria': self.termo_parceria.pk,
+            'data_assinatura': '2026-08-01',
+            'nova_data_fim': '2027-12-31',
+            'valor_aditivo': '85000.00',
+            'numero_processo': '23443.009999/2026-88',
+            'descricao': 'Prorrogação e aporte adicional de recursos',
+            'arquivo_pdf': pdf_file,
+        }
+
+        res_post = self.client.post(url_create, data=payload, follow=True)
+        self.assertEqual(res_post.status_code, 200)
+
+        aditivo = TermoAditivo.objects.get(numero='2º Termo Aditivo')
+        self.assertEqual(aditivo.valor_aditivo, Decimal('85000.00'))
+        self.assertTrue(bool(aditivo.arquivo_pdf))
+        self.assertIn('.pdf', aditivo.arquivo_pdf.name)
+
+        # Verificar renderização na tela de detalhes do Termo de Parceria
+        url_detail = reverse('cadastros:visualizar_termo_parceria', kwargs={'pk': self.termo_parceria.pk})
+        res_detail = self.client.get(url_detail)
+        self.assertEqual(res_detail.status_code, 200)
+        self.assertContains(res_detail, "Termos Aditivos Celebrados")
+        self.assertContains(res_detail, "2º Termo Aditivo")
+        self.assertContains(res_detail, aditivo.arquivo_pdf.url)
+
+        # Verificar renderização na Aba de Aditivos do Painel de Instrumentos Jurídicos
+        url_painel = reverse('cadastros:painel_instrumentos')
+        res_painel = self.client.get(url_painel)
+        self.assertEqual(res_painel.status_code, 200)
+        self.assertContains(res_painel, "2º Termo Aditivo")
+        self.assertContains(res_painel, "Termos Aditivos Registrados")
+
+        # Exclusão do Aditivo
+        url_del = reverse('cadastros:excluir_aditivo_parceria', kwargs={'pk': aditivo.pk})
+        res_del = self.client.post(url_del, follow=True)
+        self.assertEqual(res_del.status_code, 200)
+        self.assertFalse(TermoAditivo.objects.filter(numero='2º Termo Aditivo').exists())
+
+
+

@@ -93,6 +93,79 @@
                 </div>
             </div>
         </div>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-file-signature text-primary me-2"></i>Termos Aditivos Celebrados</h5>
+                    <a href="{% url 'cadastros:cadastrar_aditivo_parceria' %}?termo_parceria_id={{ termo.pk }}" class="btn btn-sm btn-primary fw-bold shadow-sm">
+                        <i class="fas fa-plus me-1"></i> Novo Termo Aditivo
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Aditivo</th>
+                                    <th class="text-center">Tipo / Modalidade</th>
+                                    <th class="text-center">Processo SIPAC</th>
+                                    <th class="text-center">Assinatura</th>
+                                    <th class="text-center">Nova Vigência</th>
+                                    <th class="text-center">Valor Aditivado</th>
+                                    <th class="text-center">Documento Assinado</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for aditivo in termo.aditivos.all %}
+                                <tr>
+                                    <td class="text-center fw-bold">{{ aditivo.numero }}</td>
+                                    <td class="text-center"><span class="badge bg-secondary bg-opacity-10 text-secondary border">{{ aditivo.get_tipo_aditivo_display }}</span></td>
+                                    <td class="text-center small">{{ aditivo.numero_processo|default:"-" }}</td>
+                                    <td class="text-center">{{ aditivo.data_assinatura|date:"d/m/Y"|default:"-" }}</td>
+                                    <td class="text-center">
+                                        {% if aditivo.nova_data_fim %}
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success">{{ aditivo.nova_data_fim|date:"d/m/Y" }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if aditivo.valor_aditivo %}
+                                            R$ {{ aditivo.valor_aditivo|floatformat:2 }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if aditivo.arquivo_pdf %}
+                                            <a href="{{ aditivo.arquivo_pdf.url }}" target="_blank" class="btn btn-sm btn-outline-danger py-0 px-2 fw-semibold" title="Abrir PDF assinado">
+                                                <i class="fas fa-file-pdf me-1"></i> PDF
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted small">Sem anexo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{% url 'cadastros:editar_aditivo_parceria' aditivo.pk %}" class="btn btn-sm btn-light text-primary" title="Editar Aditivo">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'cadastros:excluir_aditivo_parceria' aditivo.pk %}" class="btn btn-sm btn-light text-danger" title="Excluir Aditivo">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">Nenhum termo aditivo celebrado para este instrumento.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

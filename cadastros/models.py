@@ -431,16 +431,30 @@ class TermoCooperacao(models.Model):
     def __str__(self):
         return f"{self.numero} - {self.concedente}"
 
+TIPO_ADITIVO_CHOICES = [
+    ('PRORROGACAO', 'Prorrogação de Vigência (Prazo)'),
+    ('VALOR', 'Acréscimo / Supressão de Recursos (Valor)'),
+    ('ESCOPO', 'Alteração de Escopo / Plano de Trabalho'),
+    ('MISTO', 'Misto (Prazo, Valor e Escopo)'),
+    ('OUTRO', 'Outros Ajustes Formais'),
+]
+
+
 class AditivoTermoCooperacao(models.Model):
     """
     Aditivos que alteram ou prorrogam o Termo de Cooperação
     """
     termo_cooperacao = models.ForeignKey(TermoCooperacao, on_delete=models.CASCADE, related_name='aditivos', verbose_name="Termo de Cooperação")
-    numero = models.CharField(max_length=20, verbose_name="Número do Aditivo")
-    descricao = models.TextField(verbose_name="Objeto da Alteração")
+    numero = models.CharField(max_length=50, verbose_name="Número do Aditivo")
+    tipo_aditivo = models.CharField(max_length=30, choices=TIPO_ADITIVO_CHOICES, default='PRORROGACAO', verbose_name="Tipo de Aditamento")
+    descricao = models.TextField(verbose_name="Objeto / Justificativa da Alteração")
     nova_data_fim = models.DateField(null=True, blank=True, verbose_name="Nova Data de Fim (se houver prorrogação)")
-    arquivo_pdf = models.FileField(upload_to='termos_cooperacao/aditivos/', null=True, blank=True, verbose_name="Cópia do Aditivo (PDF)")
+    valor_aditivo = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Valor Aditivado (R$)")
+    numero_processo = models.CharField(max_length=50, null=True, blank=True, verbose_name="Processo SIPAC/SEI")
+    arquivo_pdf = models.FileField(upload_to='instrumentos/aditivos/', null=True, blank=True, verbose_name="Cópia do Aditivo Assinado (PDF)")
     data_assinatura = models.DateField(null=True, blank=True, verbose_name="Data de Assinatura")
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Aditivo de Termo de Cooperação"
@@ -448,7 +462,14 @@ class AditivoTermoCooperacao(models.Model):
         ordering = ['-data_assinatura']
 
     def __str__(self):
-        return f"Aditivo {self.numero} - {self.termo_cooperacao.numero}"
+        return f"{self.numero} - {self.termo_cooperacao.numero}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.nova_data_fim and self.termo_cooperacao:
+            if not self.termo_cooperacao.vigencia_fim or self.nova_data_fim > self.termo_cooperacao.vigencia_fim:
+                self.termo_cooperacao.vigencia_fim = self.nova_data_fim
+                self.termo_cooperacao.save(update_fields=['vigencia_fim'])
 
 class Programa(models.Model):
     """
@@ -842,21 +863,51 @@ class ContaBancaria(models.Model):
         return f"{self.fonte_recurso} | {self.banco} Ag: {self.agencia} CC: {self.conta}-{self.dv}"
 
 class TermoAditivo(models.Model):
-    """Registra as prorrogações e alterações contratuais do projeto."""
-    projeto = models.ForeignKey(ProjetoPDI, on_delete=models.CASCADE, related_name='aditivos')
-    numero = models.CharField(max_length=20, verbose_name="Número do Aditivo")
-    descricao = models.TextField(blank=True, null=True, verbose_name="Objeto da Alteração")
-    nova_data_fim = models.DateField(verbose_name="Nova Data de Término (Se houver prorrogação)")
-    arquivo_pdf = models.FileField(upload_to='convenios/aditivos/', null=True, blank=True, verbose_name="Documento em PDF")
+    """Registra as prorrogações e alterações contratuais de Termos de Parceria e Projetos."""
+    termo_parceria = models.ForeignKey(
+        'TermoDeParceria',
+        on_delete=models.CASCADE,
+        related_name='aditivos',
+        null=True,
+        blank=True,
+        verbose_name="Termo de Parceria"
+    )
+    projeto = models.ForeignKey(
+        ProjetoPDI,
+        on_delete=models.CASCADE,
+        related_name='aditivos',
+        null=True,
+        blank=True,
+        verbose_name="Projeto PDI Vinculado"
+    )
+    numero = models.CharField(max_length=50, verbose_name="Número do Aditivo")
+    tipo_aditivo = models.CharField(max_length=30, choices=TIPO_ADITIVO_CHOICES, default='PRORROGACAO', verbose_name="Tipo de Aditamento")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Objeto / Justificativa da Alteração")
+    nova_data_fim = models.DateField(null=True, blank=True, verbose_name="Nova Data de Término (Se houver prorrogação)")
+    valor_aditivo = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="Valor Aditivado (R$)")
+    numero_processo = models.CharField(max_length=50, null=True, blank=True, verbose_name="Processo Administrativo (SIPAC/SEI)")
+    arquivo_pdf = models.FileField(upload_to='instrumentos/aditivos/', null=True, blank=True, verbose_name="Cópia do Aditivo Assinado (PDF)")
     data_assinatura = models.DateField(verbose_name="Data de Assinatura")
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Termo Aditivo"
         verbose_name_plural = "Termos Aditivos"
+        ordering = ['-data_assinatura']
 
     def __str__(self):
-        termo = self.projeto.termo_parceria.numero if self.projeto.termo_parceria else "Sem Termo"
-        return f"Aditivo {self.numero} - {termo}"
+        termo = self.termo_parceria.numero if self.termo_parceria else (self.projeto.termo_parceria.numero if self.projeto and self.projeto.termo_parceria else "Sem Termo")
+        return f"{self.numero} - {termo}"
+
+    def save(self, *args, **kwargs):
+        if self.termo_parceria and self.termo_parceria.projeto and not self.projeto:
+            self.projeto = self.termo_parceria.projeto
+        elif self.projeto and not self.termo_parceria:
+            tp = getattr(self.projeto, 'termo_parceria', None)
+            if tp:
+                self.termo_parceria = tp
+        super().save(*args, **kwargs)
 
 class CotaBolsaPT(models.Model):
     """

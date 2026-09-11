@@ -1,6 +1,6 @@
 import re
 from django import forms
-from .models import TermoCooperacao, Programa, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Fornecedor, FonteDeRecurso, TermoDeParceria, PlanoDeTrabalho, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TipoInstrumentoJuridico
+from .models import TermoCooperacao, Programa, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Fornecedor, FonteDeRecurso, TermoDeParceria, PlanoDeTrabalho, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TipoInstrumentoJuridico, TermoAditivo, AditivoTermoCooperacao
 from .models import (
     PessoaFisica, PerfilServidor, PerfilAluno,
     PerfilColaboradorExterno, PerfilTerceirizado, DadoBancario,
@@ -146,6 +146,46 @@ class TermoDeParceriaForm(forms.ModelForm):
             instance.save()
             self.save_m2m()
         return instance
+
+
+class TermoAditivoForm(forms.ModelForm):
+    class Meta:
+        model = TermoAditivo
+        fields = [
+            'numero', 'tipo_aditivo', 'termo_parceria', 'data_assinatura',
+            'nova_data_fim', 'valor_aditivo', 'numero_processo', 'descricao', 'arquivo_pdf'
+        ]
+        widgets = {
+            'numero': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 1º Termo Aditivo'}),
+            'tipo_aditivo': forms.Select(attrs={'class': 'form-select'}),
+            'termo_parceria': forms.Select(attrs={'class': 'form-select'}),
+            'data_assinatura': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'nova_data_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'valor_aditivo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0,00'}),
+            'numero_processo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 23443.001234/2026-12'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Justificativa e objeto da alteração contratual...'}),
+            'arquivo_pdf': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf'}),
+        }
+
+
+class AditivoTermoCooperacaoForm(forms.ModelForm):
+    class Meta:
+        model = AditivoTermoCooperacao
+        fields = [
+            'numero', 'tipo_aditivo', 'termo_cooperacao', 'data_assinatura',
+            'nova_data_fim', 'valor_aditivo', 'numero_processo', 'descricao', 'arquivo_pdf'
+        ]
+        widgets = {
+            'numero': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 1º Termo Aditivo'}),
+            'tipo_aditivo': forms.Select(attrs={'class': 'form-select'}),
+            'termo_cooperacao': forms.Select(attrs={'class': 'form-select'}),
+            'data_assinatura': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'nova_data_fim': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'valor_aditivo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0,00'}),
+            'numero_processo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 23443.001234/2026-12'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Justificativa e objeto da alteração contratual...'}),
+            'arquivo_pdf': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf'}),
+        }
 
 
 class PlanoDeTrabalhoForm(forms.ModelForm):

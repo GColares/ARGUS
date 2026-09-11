@@ -7,8 +7,8 @@ from django.urls import reverse, reverse_lazy
 from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
 from django.db.models import Q
-from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa, TipoInstrumentoJuridico
-from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm, TipoInstrumentoJuridicoForm
+from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa, TipoInstrumentoJuridico, TermoAditivo, AditivoTermoCooperacao
+from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm, TipoInstrumentoJuridicoForm, TermoAditivoForm, AditivoTermoCooperacaoForm
 from .forms import (
     PessoaFisicaForm, PerfilServidorForm, PerfilAlunoForm,
     PerfilColaboradorExternoForm, PerfilTerceirizadoForm, DadoBancarioForm,
@@ -1768,12 +1768,21 @@ def painel_instrumentos(request):
             'data_assinatura': c.vigencia_inicio,
             'vigencia_fim': c.vigencia_fim,
             'ativo': c.ativo,
+            'total_aditivos': c.aditivos.count(),
             'url_visualizar': reverse('cadastros:visualizar_termo', args=[c.pk]),
             'url_editar': reverse('cadastros:editar_termo', args=[c.pk]),
             'url_excluir': reverse('cadastros:excluir_termo', args=[c.pk]),
+            'url_novo_aditivo': reverse('cadastros:cadastrar_aditivo_cooperacao') + f"?termo_cooperacao_id={c.pk}",
             'modelo_origem': 'cooperacao',
             'projeto': None,
         })
+
+    # Ocorrências de Termo de Parceria: incluir total_aditivos e url_novo_aditivo
+    for item in ocorrencias:
+        if item['modelo_origem'] == 'parceria':
+            tp = TermoDeParceria.objects.filter(pk=item['id']).first()
+            item['total_aditivos'] = tp.aditivos.count() if tp else 0
+            item['url_novo_aditivo'] = reverse('cadastros:cadastrar_aditivo_parceria') + f"?termo_parceria_id={item['id']}"
 
     # Ordenar ocorrências (ativas primeiro, depois por data mais recente)
     ocorrencias.sort(key=lambda item: (not item['ativo'], str(item['data_assinatura'] or '')), reverse=False)
@@ -1782,6 +1791,59 @@ def painel_instrumentos(request):
     tipos = list(TipoInstrumentoJuridico.objects.all().order_by('nome'))
     for t in tipos:
         t.total_ocorrencias = t.termodeparcerias.count() + t.termos_cooperacao.count()
+
+    # Termos Aditivos consolidados de ambos os modelos
+    qs_aditivos_parceria = TermoAditivo.objects.select_related('termo_parceria', 'termo_parceria__concedente', 'projeto').all()
+    qs_aditivos_cooperacao = AditivoTermoCooperacao.objects.select_related('termo_cooperacao', 'termo_cooperacao__concedente').all()
+
+    aditivos = []
+    for a in qs_aditivos_parceria:
+        termo_num = a.termo_parceria.numero if a.termo_parceria else (a.projeto.termo_parceria.numero if a.projeto and a.projeto.termo_parceria else 'Sem termo')
+        url_termo = reverse('cadastros:visualizar_termo_parceria', args=[a.termo_parceria_id]) if a.termo_parceria_id else '#'
+        parceiro_obj = a.termo_parceria.concedente if a.termo_parceria else (a.projeto.concedente if a.projeto else None)
+        aditivos.append({
+            'id': a.pk,
+            'numero': a.numero,
+            'tipo_aditivo_nome': a.get_tipo_aditivo_display(),
+            'tipo_aditivo_codigo': a.tipo_aditivo,
+            'instrumento_tipo': 'Acordo de Parceria',
+            'instrumento_numero': termo_num,
+            'instrumento_url': url_termo,
+            'parceiro': parceiro_obj,
+            'data_assinatura': a.data_assinatura,
+            'nova_data_fim': a.nova_data_fim,
+            'valor_aditivo': a.valor_aditivo,
+            'numero_processo': a.numero_processo,
+            'descricao': a.descricao,
+            'arquivo_pdf': a.arquivo_pdf,
+            'url_editar': reverse('cadastros:editar_aditivo_parceria', args=[a.pk]),
+            'url_excluir': reverse('cadastros:excluir_aditivo_parceria', args=[a.pk]),
+            'modelo_origem': 'parceria',
+        })
+
+    for a in qs_aditivos_cooperacao:
+        aditivos.append({
+            'id': a.pk,
+            'numero': a.numero,
+            'tipo_aditivo_nome': a.get_tipo_aditivo_display(),
+            'tipo_aditivo_codigo': a.tipo_aditivo,
+            'instrumento_tipo': 'Termo de Cooperação',
+            'instrumento_numero': a.termo_cooperacao.numero,
+            'instrumento_url': reverse('cadastros:visualizar_termo', args=[a.termo_cooperacao_id]),
+            'parceiro': a.termo_cooperacao.concedente,
+            'data_assinatura': a.data_assinatura,
+            'nova_data_fim': a.nova_data_fim,
+            'valor_aditivo': a.valor_aditivo,
+            'numero_processo': a.numero_processo,
+            'descricao': a.descricao,
+            'arquivo_pdf': a.arquivo_pdf,
+            'url_editar': reverse('cadastros:editar_aditivo_cooperacao', args=[a.pk]),
+            'url_excluir': reverse('cadastros:excluir_aditivo_cooperacao', args=[a.pk]),
+            'modelo_origem': 'cooperacao',
+        })
+
+    aditivos.sort(key=lambda item: str(item['data_assinatura'] or ''), reverse=True)
+    total_aditivos = len(aditivos)
 
     # Métricas Globais
     total_ocorrencias = len(ocorrencias)
@@ -1798,11 +1860,13 @@ def painel_instrumentos(request):
     context = {
         'ocorrencias': ocorrencias,
         'tipos': tipos,
+        'aditivos': aditivos,
         'total_ocorrencias': total_ocorrencias,
         'total_ativos': total_ativos,
         'total_inativos': total_inativos,
         'total_tipos': total_tipos,
         'total_parceiros': total_parceiros,
+        'total_aditivos': total_aditivos,
         'filtro_tipo': filtro_tipo,
         'filtro_status': filtro_status,
         'filtro_busca': filtro_busca,
@@ -1831,4 +1895,120 @@ class TipoInstrumentoJuridicoDeleteView(LoginRequiredMixin, SuccessMessageMixin,
     template_name = 'cadastros/tipo_instrumento_confirm_delete.html'
     success_url = reverse_lazy('cadastros:painel_instrumentos')
     success_message = "Tipo de Instrumento Jurídico excluído com sucesso!"
+
+
+# ==============================================================================
+# VIEWS DE TERMOS ADITIVOS (ACORDOS DE PARCERIA & TERMOS DE COOPERAÇÃO)
+# ==============================================================================
+class TermoAditivoCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = TermoAditivo
+    form_class = TermoAditivoForm
+    template_name = 'cadastros/aditivo_form.html'
+    success_message = "Termo Aditivo cadastrado com sucesso!"
+
+    def get_initial(self):
+        initial = super().get_initial()
+        termo_id = self.request.GET.get('termo_parceria_id')
+        if termo_id:
+            initial['termo_parceria'] = termo_id
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tipo_instrumento_label'] = "Acordo de Parceria"
+        termo_id = self.request.GET.get('termo_parceria_id') or (self.object.termo_parceria_id if hasattr(self, 'object') and self.object else None)
+        if termo_id:
+            context['termo_obj'] = TermoDeParceria.objects.filter(pk=termo_id).first()
+        return context
+
+    def get_success_url(self):
+        if self.object.termo_parceria_id:
+            return reverse('cadastros:visualizar_termo_parceria', kwargs={'pk': self.object.termo_parceria_id})
+        return reverse('cadastros:painel_instrumentos')
+
+
+class TermoAditivoUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = TermoAditivo
+    form_class = TermoAditivoForm
+    template_name = 'cadastros/aditivo_form.html'
+    success_message = "Termo Aditivo atualizado com sucesso!"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tipo_instrumento_label'] = "Acordo de Parceria"
+        context['termo_obj'] = self.object.termo_parceria
+        return context
+
+    def get_success_url(self):
+        if self.object.termo_parceria_id:
+            return reverse('cadastros:visualizar_termo_parceria', kwargs={'pk': self.object.termo_parceria_id})
+        return reverse('cadastros:painel_instrumentos')
+
+
+class TermoAditivoDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = TermoAditivo
+    template_name = 'cadastros/aditivo_confirm_delete.html'
+    success_message = "Termo Aditivo excluído com sucesso!"
+
+    def get_success_url(self):
+        if self.object.termo_parceria_id:
+            return reverse('cadastros:visualizar_termo_parceria', kwargs={'pk': self.object.termo_parceria_id})
+        return reverse('cadastros:painel_instrumentos')
+
+
+class AditivoTermoCooperacaoCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = AditivoTermoCooperacao
+    form_class = AditivoTermoCooperacaoForm
+    template_name = 'cadastros/aditivo_form.html'
+    success_message = "Termo Aditivo de Cooperação cadastrado com sucesso!"
+
+    def get_initial(self):
+        initial = super().get_initial()
+        termo_id = self.request.GET.get('termo_cooperacao_id')
+        if termo_id:
+            initial['termo_cooperacao'] = termo_id
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tipo_instrumento_label'] = "Termo de Cooperação"
+        termo_id = self.request.GET.get('termo_cooperacao_id') or (self.object.termo_cooperacao_id if hasattr(self, 'object') and self.object else None)
+        if termo_id:
+            context['termo_obj'] = TermoCooperacao.objects.filter(pk=termo_id).first()
+        return context
+
+    def get_success_url(self):
+        if self.object.termo_cooperacao_id:
+            return reverse('cadastros:visualizar_termo', kwargs={'pk': self.object.termo_cooperacao_id})
+        return reverse('cadastros:painel_instrumentos')
+
+
+class AditivoTermoCooperacaoUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = AditivoTermoCooperacao
+    form_class = AditivoTermoCooperacaoForm
+    template_name = 'cadastros/aditivo_form.html'
+    success_message = "Termo Aditivo de Cooperação atualizado com sucesso!"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tipo_instrumento_label'] = "Termo de Cooperação"
+        context['termo_obj'] = self.object.termo_cooperacao
+        return context
+
+    def get_success_url(self):
+        if self.object.termo_cooperacao_id:
+            return reverse('cadastros:visualizar_termo', kwargs={'pk': self.object.termo_cooperacao_id})
+        return reverse('cadastros:painel_instrumentos')
+
+
+class AditivoTermoCooperacaoDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = AditivoTermoCooperacao
+    template_name = 'cadastros/aditivo_confirm_delete.html'
+    success_message = "Termo Aditivo de Cooperação excluído com sucesso!"
+
+    def get_success_url(self):
+        if self.object.termo_cooperacao_id:
+            return reverse('cadastros:visualizar_termo', kwargs={'pk': self.object.termo_cooperacao_id})
+        return reverse('cadastros:painel_instrumentos')
+
 

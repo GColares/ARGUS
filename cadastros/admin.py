@@ -1,11 +1,19 @@
 from django.contrib import admin
-from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho, PessoaFisica, PerfilServidor, Parcela, TipoInstrumentoJuridico
+from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho, PessoaFisica, PerfilServidor, Parcela, TipoInstrumentoJuridico, TermoAditivo, AditivoTermoCooperacao
 
 @admin.register(TipoInstrumentoJuridico)
 class TipoInstrumentoJuridicoAdmin(admin.ModelAdmin):
     list_display = ('sigla', 'nome', 'fundamentacao_legal', 'exige_fundacao_apoio', 'ativo')
     search_fields = ('sigla', 'nome', 'fundamentacao_legal')
     list_filter = ('ativo', 'exige_fundacao_apoio')
+
+class TermoAditivoInline(admin.TabularInline):
+    model = TermoAditivo
+    extra = 0
+
+class AditivoTermoCooperacaoInline(admin.TabularInline):
+    model = AditivoTermoCooperacao
+    extra = 0
 
 class AtividadePlanoAcaoInline(admin.TabularInline):
     model = AtividadePlanoAcao
@@ -49,7 +57,7 @@ class PlanoDeTrabalhoInline(admin.TabularInline):
 class TermoDeParceriaAdmin(admin.ModelAdmin):
     list_display = ('numero', 'concedente', 'convenente', 'interveniente', 'ativo')
     search_fields = ('numero',)
-    inlines = [PlanoDeTrabalhoInline]
+    inlines = [PlanoDeTrabalhoInline, TermoAditivoInline]
 
     def formfield_for_choice_field(self, db_field, request, **kwargs):
         if db_field.name == "tipo_instrumento":
@@ -163,6 +171,19 @@ class TermoCooperacaoAdmin(admin.ModelAdmin):
     list_display = ('numero', 'concedente', 'convenente', 'vigencia_inicio', 'vigencia_fim', 'ativo')
     list_filter = ('ativo', 'concedente')
     search_fields = ('numero', 'objeto')
+    inlines = [AditivoTermoCooperacaoInline]
+
+@admin.register(TermoAditivo)
+class TermoAditivoAdmin(admin.ModelAdmin):
+    list_display = ('numero', 'tipo_aditivo', 'termo_parceria', 'data_assinatura', 'nova_data_fim', 'valor_aditivo')
+    list_filter = ('tipo_aditivo', 'termo_parceria')
+    search_fields = ('numero', 'numero_processo', 'termo_parceria__numero')
+
+@admin.register(AditivoTermoCooperacao)
+class AditivoTermoCooperacaoAdmin(admin.ModelAdmin):
+    list_display = ('numero', 'tipo_aditivo', 'termo_cooperacao', 'data_assinatura', 'nova_data_fim', 'valor_aditivo')
+    list_filter = ('tipo_aditivo', 'termo_cooperacao')
+    search_fields = ('numero', 'numero_processo', 'termo_cooperacao__numero')
 
 class PerfilServidorInline(admin.StackedInline):
     model = PerfilServidor
