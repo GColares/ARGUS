@@ -102,7 +102,7 @@ class TipoInstrumentoJuridicoForm(forms.ModelForm):
         fields = ['sigla', 'nome', 'fundamentacao_legal', 'descricao', 'exige_fundacao_apoio', 'ativo']
         widgets = {
             'sigla': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: AP, TC, NDA'}),
-            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Acordo de Parceria para P&D&I'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Acordo de Parceria para PD&I'}),
             'fundamentacao_legal': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Art. 9º da Lei nº 10.973/2004 e Decreto nº 9.283/2018'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descrição e finalidade do tipo de instrumento...'}),
             'exige_fundacao_apoio': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -131,8 +131,8 @@ class TermoDeParceriaForm(forms.ModelForm):
         from .models import PessoaJuridica, ICT
         self.fields['numero'].required = False
         self.fields['tipo_instrumento'].choices = [
-            ('CONVENIO', 'Convênio de P&D&I'),
-            ('ACORDO_PARCERIA', 'Acordo de Parceria para P&D&I (Marco Legal CT&I)'),
+            ('CONVENIO', 'Convênio de PD&I'),
+            ('ACORDO_PARCERIA', 'Acordo de Parceria para PD&I (Marco Legal CT&I)'),
         ]
         # Excluir a ICT Executora (Sede/Polo) da lista de possíveis Concedentes/Parceiros
         executoras_ids = ICT.objects.filter(is_executora=True).values_list('pessoajuridica_ptr_id', flat=True)

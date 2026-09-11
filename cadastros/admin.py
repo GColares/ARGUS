@@ -62,8 +62,8 @@ class TermoDeParceriaAdmin(admin.ModelAdmin):
     def formfield_for_choice_field(self, db_field, request, **kwargs):
         if db_field.name == "tipo_instrumento":
             kwargs['choices'] = [
-                ('CONVENIO', 'Convênio de P&D&I'),
-                ('ACORDO_PARCERIA', 'Acordo de Parceria para P&D&I (Marco Legal CT&I)'),
+                ('CONVENIO', 'Convênio de PD&I'),
+                ('ACORDO_PARCERIA', 'Acordo de Parceria para PD&I (Marco Legal CT&I)'),
             ]
         return super().formfield_for_choice_field(db_field, request, **kwargs)
 

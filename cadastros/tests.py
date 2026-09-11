@@ -2203,7 +2203,7 @@ class InstrumentosJuridicosTestCase(TestCase):
         self.tipo_ap, _ = TipoInstrumentoJuridico.objects.get_or_create(
             sigla="AP",
             defaults={
-                'nome': "Acordo de Parceria para P&D&I",
+                'nome': "Acordo de Parceria para PD&I",
                 'fundamentacao_legal': "Art. 9º da Lei 10.973/04",
                 'descricao': "Instrumento tripartite para PDI",
                 'exige_fundacao_apoio': True,
@@ -2246,7 +2246,7 @@ class InstrumentosJuridicosTestCase(TestCase):
 
     def test_tipo_instrumento_model_str_e_atributos(self):
         """Verifica str e campos de TipoInstrumentoJuridico."""
-        self.assertEqual(str(self.tipo_ap), "AP - Acordo de Parceria para P&D&I")
+        self.assertEqual(str(self.tipo_ap), "AP - Acordo de Parceria para PD&I")
         self.assertTrue(self.tipo_ap.exige_fundacao_apoio)
         self.assertFalse(self.tipo_tc.exige_fundacao_apoio)
 

@@ -143,8 +143,8 @@ class TipoInstrumentoJuridico(models.Model):
 
 class InstrumentoJuridicoBase(models.Model):
     TIPO_INSTRUMENTO_CHOICES = [
-        ('CONVENIO', 'Convênio de P&D&I'),
-        ('ACORDO_PARCERIA', 'Acordo de Parceria para P&D&I (Marco Legal CT&I)'),
+        ('CONVENIO', 'Convênio de PD&I'),
+        ('ACORDO_PARCERIA', 'Acordo de Parceria para PD&I (Marco Legal CT&I)'),
         ('TERMO_COOPERACAO', 'Termo de Cooperação'),
         ('NDA', 'Acordo de Confidencialidade e Sigilo'),
         ('STE', 'Prestação de Serviços Técnicos Especializados'),
@@ -257,7 +257,7 @@ class TermoDeParceria(InstrumentoJuridicoBase):
         super().clean()
         from django.core.exceptions import ValidationError
         if self.tipo_instrumento not in ['CONVENIO', 'ACORDO_PARCERIA']:
-            raise ValidationError({'tipo_instrumento': 'Para Parcerias de P&D&I, o instrumento deve ser Convênio ou Acordo de Parceria.'})
+            raise ValidationError({'tipo_instrumento': 'Para Parcerias de PD&I, o instrumento deve ser Convênio ou Acordo de Parceria.'})
 
     def save(self, *args, **kwargs):
         from django.db import transaction, IntegrityError

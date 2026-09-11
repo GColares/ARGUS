@@ -8,7 +8,7 @@ def seed_tipos_instrumentos(apps, schema_editor):
 
     tipos_padrao = [
         {
-            'nome': 'Acordo de Parceria para P&D&I',
+            'nome': 'Acordo de Parceria para PD&I',
             'sigla': 'AP',
             'fundamentacao_legal': 'Art. 9º da Lei nº 10.973/2004 e Decreto nº 9.283/2018',
             'descricao': 'Instrumento formal tripartite para pesquisa, desenvolvimento científico e inovação entre ICT pública, empresa financiadora e fundação de apoio como interveniente-anuente gestora.',
@@ -56,7 +56,7 @@ def seed_tipos_instrumentos(apps, schema_editor):
             'ativo': True,
         },
         {
-            'nome': 'Convênio de P&D&I',
+            'nome': 'Convênio de PD&I',
             'sigla': 'CV',
             'fundamentacao_legal': 'Lei nº 8.666/1993 (Regime Anterior)',
             'descricao': 'Instrumento de convênio celebrado sob a vigência da legislação anterior ou transferências governamentais tradicionais.',
