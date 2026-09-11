@@ -1,5 +1,64 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-10] Sprint 2: Gestão Centralizada de Instrumentos Jurídicos, Termos Aditivos com Upload de PDF Assinado e Padronização Canônica de Vigência
+
+### 1. Entregas Técnicas e Conformidade Regulatória (CT&I / Marco Legal):
+- **Gestão Centralizada de Instrumentos Jurídicos (`/cadastros/instrumentos/`):**
+  * Criação do modelo de cadastro base `TipoInstrumentoJuridico` com fundamentação legal (Lei 10.973/04 e Dec. 9.283/18), flag `exige_fundacao_apoio` e auditoria `HistoricalRecords()`.
+  * Painel unificado com Padrão Almoxarifado, 4 KPIs de monitoramento, gaveta de filtros avançados por texto, tipo e vigência, e gestão de ocorrências com ações completas (Visualizar, Editar, Excluir).
+  * Substituição na home de cadastros dos cards fragmentados pelo painel integrado de Instrumentos Jurídicos.
+- **Esteira Completa de Termos Aditivos com Upload de PDF:**
+  * Modelagem dos aditamentos contratuais em `TermoAditivo` (Acordos de Parceria e Projetos PDI) e `AditivoTermoCooperacao` (Termos de Cooperação Técnica).
+  * Suporte a 5 modalidades formais de aditivos (`PRORROGACAO`, `VALOR`, `ESCOPO`, `MISTO`, `OUTRO`), número do processo SIPAC, valor aditivado e upload de via original assinada em PDF (`arquivo_pdf`).
+  * Formulários com `enctype="multipart/form-data"` e visualização direta em nova aba do PDF assinado anexado.
+  * Sincronização automática da prorrogação de prazo (`nova_data_fim`) estendendo a vigência final do instrumento jurídico pai.
+- **Padronização Canônica de Vigência e Assinatura em Todos os Instrumentos:**
+  * Inclusão dos campos formais `vigencia_inicio` e `vigencia_fim` em `InstrumentoJuridicoBase` e `TermoDeParceria`.
+  * Inclusão do campo formal `data_assinatura` em `TermoCooperacao`.
+  * Criação de propriedades inteligentes `@property get_vigencia_inicio` e `@property get_vigencia_fim` com fallback automatizado para os Planos de Trabalho homologados e Projetos PDI.
+  * Execução de rotina de backfill populando os registros existentes no banco.
+
+---
+
+### 2. Lista Ostensiva e Específica de Alterações nos Templates HTML:
+1. **`cadastros/templates/cadastros/painel_instrumentos.html` [NOVO]:**
+   - Breadcrumb semântico (`Home` > `Cadastros` > `Instrumentos Jurídicos`) e link voltar inteligente `javascript:history.back()`.
+   - 4 Cards de KPIs (`Total de Instrumentos`, `Instrumentos Vigentes`, `Tipos Regulatórios`, `Parceiros Concedentes`).
+   - Abas dinâmicas Bootstrap 5.3:
+     * **Aba 1 (Ocorrências):** Gaveta de filtros GET (busca, tipo, status), tabela com colunas centralizadas, badges de tipos, partícipes, objeto, coluna `Data / Vigência` em 2 níveis (período de vigência em destaque com badge "Aditivado" + subtítulo "Assinado em DD/MM/AAAA") e botões de ação CRUD.
+     * **Aba 2 (Tipos de Instrumentos):** Tabela de modalidades regulatórias com Sigla, Nome, Fundamentação, Exigência de Fundação e ações.
+     * **Aba 3 (Termos Aditivos):** Tabela unificada de aditamentos com modalidade, instrumento pai, vigência prorrogada, valor aditivado e botão direto para abrir/baixar a via original assinada em PDF (`<i class="fas fa-file-pdf text-danger"></i>`).
+2. **`cadastros/templates/cadastros/aditivo_form.html` [NOVO]:**
+   - Formulário com `enctype="multipart/form-data"`, alerta de erros de validação, badge dinâmico do instrumento pai, campos de data ISO 8601 (`format='%Y-%m-%d'`) e preview com link em `_blank` do PDF original quando já anexado.
+3. **`cadastros/templates/cadastros/aditivo_confirm_delete.html` [NOVO]:**
+   - Tela de confirmação com card de perigo, identificação clara do aditivo, modalidade, instrumento vinculado e cancelamento com `javascript:history.back()`.
+4. **`cadastros/templates/cadastros/tipo_instrumento_form.html` [NOVO]:**
+   - Formulário para gestão dos parâmetros regulatórios de instrumentos (Sigla, Nome, Fundamentação Legal, Descrição, Switch de Fundação e Status).
+5. **`cadastros/templates/cadastros/tipo_instrumento_confirm_delete.html` [NOVO]:**
+   - Confirmação de exclusão com checagem e alerta preventivo de instrumentos vinculados à modalidade.
+6. **`cadastros/templates/cadastros/termo_parceria_detail.html` [MODIFICADO]:**
+   - Inserido campo formal de *Período de Vigência* (`DD/MM/AAAA a DD/MM/AAAA`) com badge indicativo se aditivado.
+   - Inserido card completo **"Termos Aditivos Celebrados"** com botão `+ Novo Termo Aditivo`, tabela com processo, assinatura, nova vigência, valor, botão para abrir o PDF assinado e ações completas de edição e exclusão.
+7. **`cadastros/templates/cadastros/termocooperacao_detail.html` [MODIFICADO]:**
+   - Inserida *Data de Assinatura* e vigência final recalculada com base nos aditivos celebrados.
+   - Inserido card completo **"Termos Aditivos Celebrados"** com tabela de aditivos, link para download de PDF assinado e ações.
+8. **`cadastros/templates/cadastros/termo_parceria_form.html` [MODIFICADO]:**
+   - Reorganizado o grid de identificação incluindo os novos campos `vigencia_inicio` e `vigencia_fim` alinhados à `data_assinatura`.
+9. **`cadastros/templates/cadastros/termocooperacao_form.html` [MODIFICADO]:**
+   - Reorganizado o grid de detalhes inserindo o novo campo `data_assinatura`.
+10. **`cadastros/templates/cadastros/home_cadastros.html` [MODIFICADO]:**
+    - Remoção dos cards legados e inserção do card de **Instrumentos Jurídicos** com link direto para `/cadastros/instrumentos/`.
+
+---
+
+### 3. Auditoria & Homologação de Testes Automatizados:
+- **`manage.py test cadastros.tests.InstrumentosJuridicosTestCase cadastros.tests.TermosAditivosTestCase`:** **6 de 6 testes verdes (100% OK)**.
+- **`manage.py test cadastros`:** **85 de 85 testes verdes em 27.9s (100% OK, zero regressões)**.
+- **`collectstatic`:** Executado com sucesso (0 erros de manifesto).
+- **Status:** **HOMOLOGADO**.
+
+---
+
 ## [2026-09-10] Sprint 2: Passo 2.8 — Homologação da Modernização da Lista Mestra de Termos de Concessão de Bolsa (`listar_termos_bolsa.html`) (Kiro & Gemini)
 
 ### 1. Entregas de Front-End e Conformidade Regulatória (Kiro - Construtor Designado):
