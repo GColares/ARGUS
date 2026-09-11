@@ -125,43 +125,47 @@ class PessoaJuridicaDetailView(LoginRequiredMixin, DetailView):
 
         projetos = Q()
         termos = Q()
+        has_projetos = False
+        has_termos = False
         
-        if hasattr(child, 'projetopdi_concedente'):
+        if child.__class__.__name__ == 'EmpresaParceira':
             projetos |= Q(concedente=child)
-        if hasattr(child, 'convenio_concedente'):
             termos |= Q(concedente=child)
+            has_projetos = True
+            has_termos = True
             
-        if isinstance(child, ICT):
+        if child.__class__.__name__ == 'ICT':
             projetos |= Q(convenente=child)
             termos |= Q(convenente=child)
-        elif isinstance(child, FundacaoApoio):
+            has_projetos = True
+            has_termos = True
+            
+        elif child.__class__.__name__ == 'FundacaoApoio':
             projetos |= Q(interveniente=child)
             termos |= Q(interveniente=child)
-        elif hasattr(child.__class__, 'projetopdi_set'):
-            projetos |= Q(concedente=child)
-        else:
-            # Check EmpresaParceira
-            if child.__class__.__name__ == 'EmpresaParceira':
-                projetos |= Q(concedente=child)
-                termos |= Q(concedente=child)
+            has_projetos = True
+            has_termos = True
 
-        if projetos:
+        if has_projetos:
             context['projetos_vinculados'] = ProjetoPDI.objects.filter(projetos).distinct()
         else:
             context['projetos_vinculados'] = ProjetoPDI.objects.none()
             
-        if termos:
+        if has_termos:
             context['termos_vinculados'] = Convenio.objects.filter(termos).distinct()
         else:
             context['termos_vinculados'] = Convenio.objects.none()
             
         termos_coop = Q()
+        has_coop = False
         if child.__class__.__name__ == 'EmpresaParceira':
             termos_coop |= Q(concedente=child)
-        if isinstance(child, ICT):
+            has_coop = True
+        if child.__class__.__name__ == 'ICT':
             termos_coop |= Q(convenente=child)
+            has_coop = True
 
-        if termos_coop:
+        if has_coop:
             context['termos_cooperacao_vinculados'] = TermoCooperacao.objects.filter(termos_coop).distinct()
         else:
             context['termos_cooperacao_vinculados'] = TermoCooperacao.objects.none()
