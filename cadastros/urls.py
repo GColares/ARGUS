@@ -1,3 +1,4 @@
+from django.views.generic.base import RedirectView
 from django.urls import path
 
 from cadastros import views
@@ -52,7 +53,6 @@ urlpatterns = [
     path('fontes-recurso/<int:id>/excluir/', views.excluir_fonte_recurso, name='excluir_fonte_recurso'),
 
     # Redirecionamentos de Legado (Backward Compatibility)
-    from django.views.generic.base import RedirectView
     path('termos/', RedirectView.as_view(pattern_name='cadastros:listar_instrumento', permanent=True), kwargs={'especie': 'termos-cooperacao'}),
     path('termos-parceria/', RedirectView.as_view(pattern_name='cadastros:listar_instrumento', permanent=True), kwargs={'especie': 'acordos-parceria'}),
 
