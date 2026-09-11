@@ -1,6 +1,6 @@
 import re
 from django import forms
-from .models import TermoCooperacao, Programa, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Fornecedor, FonteDeRecurso, TermoDeParceria, PlanoDeTrabalho, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento
+from .models import TermoCooperacao, Programa, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, TermoBolsa, Fornecedor, FonteDeRecurso, TermoDeParceria, PlanoDeTrabalho, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TipoInstrumentoJuridico
 from .models import (
     PessoaFisica, PerfilServidor, PerfilAluno,
     PerfilColaboradorExterno, PerfilTerceirizado, DadoBancario,
@@ -96,6 +96,20 @@ class ProjetoPDIForm(forms.ModelForm):
         return cleaned_data
 
 
+class TipoInstrumentoJuridicoForm(forms.ModelForm):
+    class Meta:
+        model = TipoInstrumentoJuridico
+        fields = ['sigla', 'nome', 'fundamentacao_legal', 'descricao', 'exige_fundacao_apoio', 'ativo']
+        widgets = {
+            'sigla': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: AP, TC, NDA'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Acordo de Parceria para P&D&I'}),
+            'fundamentacao_legal': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Art. 9º da Lei nº 10.973/2004 e Decreto nº 9.283/2018'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descrição e finalidade do tipo de instrumento...'}),
+            'exige_fundacao_apoio': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
 class TermoDeParceriaForm(forms.ModelForm):
     class Meta:
         model = TermoDeParceria
@@ -121,6 +135,17 @@ class TermoDeParceriaForm(forms.ModelForm):
         # Excluir a ICT Executora (Sede/Polo) da lista de possíveis Concedentes/Parceiros
         executoras_ids = ICT.objects.filter(is_executora=True).values_list('pessoajuridica_ptr_id', flat=True)
         self.fields['concedente'].queryset = PessoaJuridica.objects.exclude(id__in=executoras_ids).order_by('nome')
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        sigla = 'CV' if instance.tipo_instrumento == 'CONVENIO' else 'AP'
+        tipo_obj = TipoInstrumentoJuridico.objects.filter(sigla=sigla).first()
+        if tipo_obj:
+            instance.tipo_instrumento_fk = tipo_obj
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 
 class PlanoDeTrabalhoForm(forms.ModelForm):

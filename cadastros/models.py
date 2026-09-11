@@ -118,6 +118,29 @@ class AgenciaFomento(PessoaJuridica):
         verbose_name_plural = "Agências de Fomento"
 
 
+class TipoInstrumentoJuridico(models.Model):
+    """
+    Cadastro Base de Tipos de Instrumentos Jurídicos padronizados no ARGUS
+    (Conforme Marco Legal de CT&I - Lei 10.973/04 e orientações da AGU).
+    """
+    nome = models.CharField(max_length=150, unique=True, verbose_name="Nome do Tipo de Instrumento")
+    sigla = models.CharField(max_length=20, unique=True, verbose_name="Sigla / Prefixo")
+    fundamentacao_legal = models.CharField(max_length=255, blank=True, null=True, verbose_name="Fundamentação Legal")
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    exige_fundacao_apoio = models.BooleanField(default=False, verbose_name="Exige Fundação de Apoio (Interveniente-Anuente)")
+    ativo = models.BooleanField(default=True, verbose_name="Ativo")
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = "Tipo de Instrumento Jurídico"
+        verbose_name_plural = "Tipos de Instrumentos Jurídicos"
+        ordering = ['nome']
+
+    def __str__(self):
+        return f"{self.sigla} - {self.nome}" if self.sigla else self.nome
+
+
 class InstrumentoJuridicoBase(models.Model):
     TIPO_INSTRUMENTO_CHOICES = [
         ('CONVENIO', 'Convênio de P&D&I (Legado)'),
@@ -130,6 +153,14 @@ class InstrumentoJuridicoBase(models.Model):
     ]
     tipo_instrumento = models.CharField(
         max_length=30, choices=TIPO_INSTRUMENTO_CHOICES, default='ACORDO_PARCERIA', verbose_name="Tipo de Instrumento"
+    )
+    tipo_instrumento_fk = models.ForeignKey(
+        TipoInstrumentoJuridico,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='%(class)ss',
+        verbose_name="Tipo de Instrumento (Parametrizado)"
     )
     sequencial = models.PositiveIntegerField(null=True, blank=True, verbose_name="Número Sequencial")
     ano = models.PositiveIntegerField(null=True, blank=True, verbose_name="Ano de Emissão")
@@ -375,6 +406,14 @@ class TermoCooperacao(models.Model):
     Termos de Cooperação Técnica e Parcerias Estratégicas.
     """
     numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Termo")
+    tipo_instrumento_fk = models.ForeignKey(
+        'TipoInstrumentoJuridico',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='termos_cooperacao',
+        verbose_name="Tipo de Instrumento"
+    )
     concedente = models.ForeignKey('PessoaJuridica', on_delete=models.CASCADE, related_name='termos_cooperacao_concedidos', verbose_name="Parceiro")
     convenente = models.ForeignKey('ICT', on_delete=models.CASCADE, related_name='termos_cooperacao_conveniados', verbose_name="ICT")
     objeto = models.TextField(verbose_name="Objeto")

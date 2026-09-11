@@ -76,24 +76,7 @@
                         <h5 class="fw-bold">Instrumentos Jurídicos</h5>
                         <p class="text-muted small mb-4">Gestão de Acordos de Parceria, Termos de Cooperação e Ajustes Formais.</p>
                     </div>
-                    <div class="dropdown w-100">
-                        <button class="btn btn-outline-danger w-100 rounded-pill fw-bold dropdown-toggle" type="button" id="dropdownInstrumentos" data-bs-toggle="dropdown" aria-expanded="false">
-                            Acessar Instrumentos
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-center w-100 shadow border-0 py-2 mt-2" aria-labelledby="dropdownInstrumentos">
-                            <li>
-                                <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:listar_termos_parceria' %}">
-                                    <i class="fas fa-file-contract text-danger me-2"></i> Acordos de Parceria P&D&I
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider my-1"></li>
-                            <li>
-                                <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:listar_termos' %}">
-                                    <i class="fas fa-handshake text-warning me-2"></i> Termos de Cooperação
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                    <a href="{% url 'cadastros:painel_instrumentos' %}" class="btn btn-outline-danger w-100 rounded-pill fw-bold">Acessar Instrumentos Jurídicos</a>
                 </div>
             </div>
         </div>

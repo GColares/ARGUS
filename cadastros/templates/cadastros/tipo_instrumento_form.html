@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Tipo de Instrumento{% else %}Novo Tipo de Instrumento{% endif %} - ARGUS
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <!-- Breadcrumbs e Voltar Dinâmico -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:painel_instrumentos' %}" class="text-decoration-none">Instrumentos Jurídicos</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {% if form.instance.pk %}Editar Tipo{% else %}Novo Tipo{% endif %}
+            </li>
+        </ol>
+    </nav>
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <!-- Topo -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h4 class="fw-bold m-0 text-dark">
+                <i class="fas fa-tags text-primary me-2"></i>
+                {% if form.instance.pk %}Editar Tipo de Instrumento Jurídico{% else %}Novo Tipo de Instrumento Jurídico{% endif %}
+            </h4>
+            <p class="text-muted small mb-0 mt-1">Parametrização regulatória da modalidade documental conforme Marco Legal de CT&amp;I.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <div class="card shadow-sm border-0 border-top border-primary border-4">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mb-3">
+                                {% for error in form.non_field_errors %}
+                                    <div><i class="fas fa-exclamation-triangle me-1"></i> {{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <!-- Sigla -->
+                            <div class="col-md-4">
+                                <label for="{{ form.sigla.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Sigla / Prefixo <span class="text-danger">*</span>
+                                </label>
+                                {{ form.sigla }}
+                                {% if form.sigla.errors %}
+                                    <div class="text-danger small mt-1">{{ form.sigla.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Ex: AP, TC, NDA, STE, CLTT</div>
+                            </div>
+
+                            <!-- Nome -->
+                            <div class="col-md-8">
+                                <label for="{{ form.nome.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Nome da Modalidade / Tipo <span class="text-danger">*</span>
+                                </label>
+                                {{ form.nome }}
+                                {% if form.nome.errors %}
+                                    <div class="text-danger small mt-1">{{ form.nome.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Ex: Acordo de Parceria para P&amp;D&amp;I</div>
+                            </div>
+
+                            <!-- Fundamentação Legal -->
+                            <div class="col-12">
+                                <label for="{{ form.fundamentacao_legal.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Fundamentação Legal (Lei / Decreto / AGU)
+                                </label>
+                                {{ form.fundamentacao_legal }}
+                                {% if form.fundamentacao_legal.errors %}
+                                    <div class="text-danger small mt-1">{{ form.fundamentacao_legal.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Ex: Art. 9º da Lei nº 10.973/2004 e Decreto nº 9.283/2018</div>
+                            </div>
+
+                            <!-- Descrição -->
+                            <div class="col-12">
+                                <label for="{{ form.descricao.id_for_label }}" class="form-label fw-bold small text-muted">
+                                    Descrição e Finalidade Regulamentar <span class="text-danger">*</span>
+                                </label>
+                                {{ form.descricao }}
+                                {% if form.descricao.errors %}
+                                    <div class="text-danger small mt-1">{{ form.descricao.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-xs">Explique quando e como esta modalidade deve ser adotada pela instituição.</div>
+                            </div>
+
+                            <!-- Checkboxes: Exige Fundação e Ativo -->
+                            <div class="col-12 mt-3">
+                                <div class="card bg-light border-0 p-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-7">
+                                            <div class="form-check form-switch">
+                                                {{ form.exige_fundacao_apoio }}
+                                                <label class="form-check-label fw-bold text-dark" for="{{ form.exige_fundacao_apoio.id_for_label }}">
+                                                    Exige Fundação de Apoio (Tripartite)
+                                                </label>
+                                            </div>
+                                            <div class="small text-muted ps-4">
+                                                Marque caso o instrumento exija interveniência gestora da fundação de apoio para execução financeira de recursos.
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-check form-switch">
+                                                {{ form.ativo }}
+                                                <label class="form-check-label fw-bold text-dark" for="{{ form.ativo.id_for_label }}">
+                                                    Modalidade Ativa
+                                                </label>
+                                            </div>
+                                            <div class="small text-muted ps-4">
+                                                Tipos inativos deixam de aparecer em novos cadastros.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação -->
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary px-4 fw-bold">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                                <i class="fas fa-save me-1"></i> Salvar Tipo de Instrumento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho, PessoaFisica, PerfilServidor, Parcela
+from .models import Fornecedor, OrigemDoacao, ProjetoPDI, ContaBancaria, TipoProcesso, Processo, AtividadePlanoAcao, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, TermoDeParceria, PlanoDeTrabalho, PessoaFisica, PerfilServidor, Parcela, TipoInstrumentoJuridico
+
+@admin.register(TipoInstrumentoJuridico)
+class TipoInstrumentoJuridicoAdmin(admin.ModelAdmin):
+    list_display = ('sigla', 'nome', 'fundamentacao_legal', 'exige_fundacao_apoio', 'ativo')
+    search_fields = ('sigla', 'nome', 'fundamentacao_legal')
+    list_filter = ('ativo', 'exige_fundacao_apoio')
 
 class AtividadePlanoAcaoInline(admin.TabularInline):
     model = AtividadePlanoAcao

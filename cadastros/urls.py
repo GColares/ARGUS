@@ -63,4 +63,9 @@ urlpatterns = [
     path('termos-parceria/<int:pk>/editar/', views.TermoDeParceriaUpdateView.as_view(), name='editar_termo_parceria'),
     path('termos-parceria/<int:pk>/excluir/', views.TermoDeParceriaDeleteView.as_view(), name='excluir_termo_parceria'),
 
+    # Gestão de Instrumentos Jurídicos (Painel e Tipos)
+    path('instrumentos/', views.painel_instrumentos, name='painel_instrumentos'),
+    path('instrumentos/tipos/novo/', views.TipoInstrumentoJuridicoCreateView.as_view(), name='cadastrar_tipo_instrumento'),
+    path('instrumentos/tipos/<int:pk>/editar/', views.TipoInstrumentoJuridicoUpdateView.as_view(), name='editar_tipo_instrumento'),
+    path('instrumentos/tipos/<int:pk>/excluir/', views.TipoInstrumentoJuridicoDeleteView.as_view(), name='excluir_tipo_instrumento'),
 ]

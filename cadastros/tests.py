@@ -2183,3 +2183,136 @@ class VisualizarProjetoDossierTestCase(TestCase):
         self.assertEqual(self.plano.rubricas.count(), 1)
         self.assertEqual(self.plano.rubricas.first().valor_previsto, Decimal('25000.00'))
 
+
+class InstrumentosJuridicosTestCase(TestCase):
+    """Testes de Gestão de Instrumentos Jurídicos, Tipos e Ocorrências."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from cadastros.models import (
+            TipoInstrumentoJuridico, TermoDeParceria, TermoCooperacao,
+            ICT, EmpresaParceira, FundacaoApoio
+        )
+        self.user = User.objects.create_superuser(username='admin_instrumentos', password='password123', email='admin@test.com')
+        self.client.force_login(self.user)
+
+        self.ict = ICT.objects.create(nome="IFAM", cnpj="10.792.928/0001-00", sigla="IFAM")
+        self.empresa = EmpresaParceira.objects.create(nome="Empresa Parceira S/A", cnpj="11.222.333/0001-44", nome_fantasia="PARCEIRA")
+        self.fundacao = FundacaoApoio.objects.create(nome="FAEPI", cnpj="22.333.444/0001-55", sigla="FAEPI")
+
+        self.tipo_ap, _ = TipoInstrumentoJuridico.objects.get_or_create(
+            sigla="AP",
+            defaults={
+                'nome': "Acordo de Parceria para P&D&I",
+                'fundamentacao_legal': "Art. 9º da Lei 10.973/04",
+                'descricao': "Instrumento tripartite para PDI",
+                'exige_fundacao_apoio': True,
+                'ativo': True
+            }
+        )
+        self.tipo_tc, _ = TipoInstrumentoJuridico.objects.get_or_create(
+            sigla="TC",
+            defaults={
+                'nome': "Termo de Cooperação Técnica",
+                'fundamentacao_legal': "Art. 116 da Lei 8.666/93",
+                'descricao': "Cooperação técnica bilateral",
+                'exige_fundacao_apoio': False,
+                'ativo': True
+            }
+        )
+
+        self.termo_parceria = TermoDeParceria.objects.create(
+            tipo_instrumento="ACORDO_PARCERIA",
+            tipo_instrumento_fk=self.tipo_ap,
+            numero="AP nº 001/2026",
+            objeto="Pesquisa e desenvolvimento em bioeconomia",
+            concedente=self.empresa,
+            convenente=self.ict,
+            interveniente=self.fundacao,
+            data_assinatura=date.today(),
+            ativo=True
+        )
+
+        self.termo_cooperacao = TermoCooperacao.objects.create(
+            tipo_instrumento_fk=self.tipo_tc,
+            numero="TC nº 002/2026",
+            objeto="Cooperação institucional para laboratórios",
+            concedente=self.empresa,
+            convenente=self.ict,
+            vigencia_inicio=date.today(),
+            vigencia_fim=date.today() + timedelta(days=365),
+            ativo=True
+        )
+
+    def test_tipo_instrumento_model_str_e_atributos(self):
+        """Verifica str e campos de TipoInstrumentoJuridico."""
+        self.assertEqual(str(self.tipo_ap), "AP - Acordo de Parceria para P&D&I")
+        self.assertTrue(self.tipo_ap.exige_fundacao_apoio)
+        self.assertFalse(self.tipo_tc.exige_fundacao_apoio)
+
+    def test_painel_instrumentos_view_get(self):
+        """Verifica renderização da tela de instrumentos jurídicos e contagem correta."""
+        url = reverse('cadastros:painel_instrumentos')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Instrumentos Jurídicos")
+        self.assertContains(response, "AP nº 001/2026")
+        self.assertContains(response, "TC nº 002/2026")
+        self.assertGreaterEqual(response.context['total_ocorrencias'], 2)
+        self.assertGreaterEqual(response.context['total_ativos'], 2)
+
+    def test_painel_instrumentos_filtros(self):
+        """Verifica filtros de busca e tipo no painel."""
+        url = reverse('cadastros:painel_instrumentos')
+
+        # Filtro por tipo AP
+        response = self.client.get(url, {'tipo': 'AP'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "AP nº 001/2026")
+        self.assertNotContains(response, "TC nº 002/2026")
+
+        # Filtro por busca textual
+        response_busca = self.client.get(url, {'busca': 'bioeconomia'})
+        self.assertEqual(response_busca.status_code, 200)
+        self.assertContains(response_busca, "AP nº 001/2026")
+        self.assertNotContains(response_busca, "TC nº 002/2026")
+
+    def test_crud_tipo_instrumento(self):
+        """Testa criação, edição e exclusão de um TipoInstrumentoJuridico."""
+        url_create = reverse('cadastros:cadastrar_tipo_instrumento')
+        payload = {
+            'sigla': 'TEST_NDA',
+            'nome': 'Acordo de Confidencialidade Teste',
+            'fundamentacao_legal': 'Lei 9.279/96',
+            'descricao': 'Proteção de informações confidenciais',
+            'exige_fundacao_apoio': False,
+            'ativo': True
+        }
+        res_post = self.client.post(url_create, data=payload, follow=True)
+        self.assertEqual(res_post.status_code, 200)
+
+        from cadastros.models import TipoInstrumentoJuridico
+        novo_tipo = TipoInstrumentoJuridico.objects.get(sigla='TEST_NDA')
+        self.assertEqual(novo_tipo.nome, 'Acordo de Confidencialidade Teste')
+
+        # Update
+        url_edit = reverse('cadastros:editar_tipo_instrumento', kwargs={'pk': novo_tipo.pk})
+        res_edit = self.client.post(url_edit, data={
+            'sigla': 'TEST_NDA',
+            'nome': 'Acordo de Confidencialidade Atualizado',
+            'fundamentacao_legal': 'Lei 9.279/96',
+            'descricao': 'Descrição atualizada',
+            'exige_fundacao_apoio': False,
+            'ativo': True
+        }, follow=True)
+        self.assertEqual(res_edit.status_code, 200)
+        novo_tipo.refresh_from_db()
+        self.assertEqual(novo_tipo.nome, 'Acordo de Confidencialidade Atualizado')
+
+        # Delete
+        url_del = reverse('cadastros:excluir_tipo_instrumento', kwargs={'pk': novo_tipo.pk})
+        res_del = self.client.post(url_del, follow=True)
+        self.assertEqual(res_del.status_code, 200)
+        self.assertFalse(TipoInstrumentoJuridico.objects.filter(sigla='TEST_NDA').exists())
+
+

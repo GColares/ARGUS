@@ -3,12 +3,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.core.exceptions import ValidationError
 from django.db import transaction, IntegrityError
 from django.db.models import Q
-from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa
-from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm
+from .models import Fornecedor, PessoaJuridica, ICT, EmpresaParceira, FundacaoApoio, AgenciaFomento, ProjetoPDI, ContaBancaria, Processo, TipoProcesso, FonteDeRecurso, OrigemDoacao, CotaBolsaPT, MembroEquipePT, TermoDeParceria, PlanoDeTrabalho, AtividadePlanoAcao, Macroentrega, TermoCooperacao, Programa, TipoInstrumentoJuridico
+from .forms import TermoCooperacaoForm, ProgramaForm, ProjetoPDIForm, ContaBancariaForm, ProcessoForm, FornecedorForm, FonteDeRecursoForm, TermoDeParceriaForm, PlanoDeTrabalhoForm, TipoInstrumentoJuridicoForm
 from .forms import (
     PessoaFisicaForm, PerfilServidorForm, PerfilAlunoForm,
     PerfilColaboradorExternoForm, PerfilTerceirizadoForm, DadoBancarioForm,
@@ -1678,4 +1678,157 @@ def transicionar_fase_projeto(request, projeto_id):
         messages.error(request, f"Erro inesperado ao transicionar fase: {str(e)}")
 
     return redirect('cadastros:visualizar_projeto', projeto_id=projeto.id)
+
+
+# ==============================================================================
+# GESTÃO DE INSTRUMENTOS JURÍDICOS (PAINEL, OCORRÊNCIAS E TIPOS)
+# ==============================================================================
+@login_required
+def painel_instrumentos(request):
+    """
+    Painel Centralizador de Gestão de Instrumentos Jurídicos do ARGUS.
+    Apresenta em abas as Ocorrências de Instrumentos e os Tipos Parametrizados.
+    """
+    # Filtros GET
+    filtro_tipo = request.GET.get('tipo', '').strip()
+    filtro_status = request.GET.get('status', '').strip()
+    filtro_busca = request.GET.get('busca', '').strip()
+
+    # Ocorrências de Termos de Parceria
+    qs_parcerias = TermoDeParceria.objects.select_related(
+        'tipo_instrumento_fk', 'concedente', 'convenente', 'interveniente', 'projeto'
+    ).all()
+
+    # Ocorrências de Termos de Cooperação
+    qs_cooperacao = TermoCooperacao.objects.select_related(
+        'tipo_instrumento_fk', 'concedente', 'convenente'
+    ).all()
+
+    # Aplicação de filtros
+    if filtro_status == 'ativo':
+        qs_parcerias = qs_parcerias.filter(ativo=True)
+        qs_cooperacao = qs_cooperacao.filter(ativo=True)
+    elif filtro_status == 'inativo':
+        qs_parcerias = qs_parcerias.filter(ativo=False)
+        qs_cooperacao = qs_cooperacao.filter(ativo=False)
+
+    if filtro_tipo:
+        try:
+            tipo_id = int(filtro_tipo)
+            qs_parcerias = qs_parcerias.filter(tipo_instrumento_fk_id=tipo_id)
+            qs_cooperacao = qs_cooperacao.filter(tipo_instrumento_fk_id=tipo_id)
+        except ValueError:
+            qs_parcerias = qs_parcerias.filter(tipo_instrumento_fk__sigla=filtro_tipo)
+            qs_cooperacao = qs_cooperacao.filter(tipo_instrumento_fk__sigla=filtro_tipo)
+
+    if filtro_busca:
+        q_busca_p = Q(numero__icontains=filtro_busca) | Q(objeto__icontains=filtro_busca) | Q(concedente__nome__icontains=filtro_busca)
+        q_busca_c = Q(numero__icontains=filtro_busca) | Q(objeto__icontains=filtro_busca) | Q(concedente__nome__icontains=filtro_busca)
+        qs_parcerias = qs_parcerias.filter(q_busca_p)
+        qs_cooperacao = qs_cooperacao.filter(q_busca_c)
+
+    # Consolidação das ocorrências unificadas
+    ocorrencias = []
+    for p in qs_parcerias:
+        tipo_nome = p.tipo_instrumento_fk.nome if p.tipo_instrumento_fk else p.get_tipo_instrumento_display()
+        tipo_sigla = p.tipo_instrumento_fk.sigla if p.tipo_instrumento_fk else ('CV' if p.tipo_instrumento == 'CONVENIO' else 'AP')
+        ocorrencias.append({
+            'id': p.pk,
+            'numero': p.numero or f"Sem número (#{p.pk})",
+            'tipo_nome': tipo_nome,
+            'tipo_sigla': tipo_sigla,
+            'tipo_id': p.tipo_instrumento_fk_id,
+            'concedente': p.concedente,
+            'convenente': p.convenente,
+            'interveniente': p.interveniente,
+            'objeto': p.objeto or '',
+            'data_assinatura': p.data_assinatura,
+            'vigencia_fim': getattr(p, 'vigencia_fim', None),
+            'ativo': p.ativo,
+            'url_visualizar': reverse('cadastros:visualizar_termo_parceria', args=[p.pk]),
+            'url_editar': reverse('cadastros:editar_termo_parceria', args=[p.pk]),
+            'url_excluir': reverse('cadastros:excluir_termo_parceria', args=[p.pk]),
+            'modelo_origem': 'parceria',
+            'projeto': p.projeto,
+        })
+
+    for c in qs_cooperacao:
+        tipo_nome = c.tipo_instrumento_fk.nome if c.tipo_instrumento_fk else 'Termo de Cooperação Técnica'
+        tipo_sigla = c.tipo_instrumento_fk.sigla if c.tipo_instrumento_fk else 'TC'
+        ocorrencias.append({
+            'id': c.pk,
+            'numero': c.numero or f"Sem número (#{c.pk})",
+            'tipo_nome': tipo_nome,
+            'tipo_sigla': tipo_sigla,
+            'tipo_id': c.tipo_instrumento_fk_id,
+            'concedente': c.concedente,
+            'convenente': c.convenente,
+            'interveniente': None,
+            'objeto': c.objeto or '',
+            'data_assinatura': c.vigencia_inicio,
+            'vigencia_fim': c.vigencia_fim,
+            'ativo': c.ativo,
+            'url_visualizar': reverse('cadastros:visualizar_termo', args=[c.pk]),
+            'url_editar': reverse('cadastros:editar_termo', args=[c.pk]),
+            'url_excluir': reverse('cadastros:excluir_termo', args=[c.pk]),
+            'modelo_origem': 'cooperacao',
+            'projeto': None,
+        })
+
+    # Ordenar ocorrências (ativas primeiro, depois por data mais recente)
+    ocorrencias.sort(key=lambda item: (not item['ativo'], str(item['data_assinatura'] or '')), reverse=False)
+
+    # Tipos de Instrumentos com contagem
+    tipos = list(TipoInstrumentoJuridico.objects.all().order_by('nome'))
+    for t in tipos:
+        t.total_ocorrencias = t.termodeparcerias.count() + t.termos_cooperacao.count()
+
+    # Métricas Globais
+    total_ocorrencias = len(ocorrencias)
+    total_ativos = sum(1 for o in ocorrencias if o['ativo'])
+    total_inativos = sum(1 for o in ocorrencias if not o['ativo'])
+    total_tipos = TipoInstrumentoJuridico.objects.filter(ativo=True).count()
+
+    concedentes_ids = set()
+    for o in ocorrencias:
+        if o['concedente']:
+            concedentes_ids.add(o['concedente'].pk)
+    total_parceiros = len(concedentes_ids)
+
+    context = {
+        'ocorrencias': ocorrencias,
+        'tipos': tipos,
+        'total_ocorrencias': total_ocorrencias,
+        'total_ativos': total_ativos,
+        'total_inativos': total_inativos,
+        'total_tipos': total_tipos,
+        'total_parceiros': total_parceiros,
+        'filtro_tipo': filtro_tipo,
+        'filtro_status': filtro_status,
+        'filtro_busca': filtro_busca,
+    }
+    return render(request, 'cadastros/painel_instrumentos.html', context)
+
+
+class TipoInstrumentoJuridicoCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = TipoInstrumentoJuridico
+    form_class = TipoInstrumentoJuridicoForm
+    template_name = 'cadastros/tipo_instrumento_form.html'
+    success_url = reverse_lazy('cadastros:painel_instrumentos')
+    success_message = "Tipo de Instrumento Jurídico cadastrado com sucesso!"
+
+
+class TipoInstrumentoJuridicoUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = TipoInstrumentoJuridico
+    form_class = TipoInstrumentoJuridicoForm
+    template_name = 'cadastros/tipo_instrumento_form.html'
+    success_url = reverse_lazy('cadastros:painel_instrumentos')
+    success_message = "Tipo de Instrumento Jurídico atualizado com sucesso!"
+
+
+class TipoInstrumentoJuridicoDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = TipoInstrumentoJuridico
+    template_name = 'cadastros/tipo_instrumento_confirm_delete.html'
+    success_url = reverse_lazy('cadastros:painel_instrumentos')
+    success_message = "Tipo de Instrumento Jurídico excluído com sucesso!"
 
