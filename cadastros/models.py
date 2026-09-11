@@ -210,7 +210,7 @@ class TermoDeParceria(InstrumentoJuridicoBase):
     def nome_especie_plural(self):
         """Retorna o plural da espécie documental para breadcrumbs e listas."""
         if self.tipo_instrumento_fk:
-            return f"{self.tipo_instrumento_fk.nome}s"
+            return self.tipo_instrumento_fk.nome
         if self.tipo_instrumento == 'CONVENIO':
             return 'Convênios'
         if self.tipo_instrumento == 'ACORDO_PARCERIA':
