@@ -444,7 +444,7 @@ class ProjetoPDI(models.Model):
     convenente = models.ForeignKey('ICT', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_conveniados', verbose_name="Convenente (ICT Executora)")
     interveniente = models.ForeignKey('FundacaoApoio', on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_intervenientes', verbose_name="Interveniente (Fundação de Apoio)")
     
-    programa = models.ForeignKey(Programa, on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_vinculados', verbose_name="Programa de Fomento")
+    programa = models.ForeignKey(Programa, on_delete=models.SET_NULL, null=True, blank=True, related_name='projetos_vinculados', verbose_name="Programa Associado")
 
     
     processo = models.CharField(

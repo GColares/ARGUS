@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Programas de Fomento - ARGUS{% endblock %}
+{% block title %}Programas Associados - ARGUS{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4 mt-4">
@@ -7,7 +7,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
             <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Programas</li>
+            <li class="breadcrumb-item active" aria-current="page">Programas Associados</li>
         </ol>
     </nav>
     <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
@@ -18,7 +18,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h4 class="fw-bold m-0 text-success">
-                <i class="fas fa-sitemap me-2"></i> Programas de Fomento
+                <i class="fas fa-sitemap me-2"></i> Programas Associados
                 <span class="badge bg-secondary fs-6 ms-2 align-middle">{{ programas.count }} listados</span>
             </h4>
             <p class="text-muted small mb-0 mt-1">Gerenciamento das linhas temáticas de fomento vinculadas a Termos de Cooperação.</p>
