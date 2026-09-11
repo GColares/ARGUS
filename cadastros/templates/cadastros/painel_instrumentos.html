@@ -30,7 +30,7 @@
                 <i class="fas fa-tags me-1"></i> Novo Tipo
             </a>
             <button class="btn btn-danger fw-bold shadow-sm" type="button" data-bs-toggle="modal" data-bs-target="#modalNovoInstrumento">
-                <i class="fas fa-plus me-1"></i> Novo Instrumento
+                <i class="fas fa-plus me-1"></i> Novo Instrumento de Parceria
             </button>
         </div>
     </div>
@@ -300,12 +300,9 @@
                                         <h5 class="fw-bold">Nenhum instrumento jurídico encontrado</h5>
                                         <p class="small mb-3">Não há ocorrências registradas com os filtros selecionados.</p>
                                         <div class="d-inline-flex gap-2">
-                                            <a href="{% url 'cadastros:cadastrar_instrumento' especie='acordos-parceria' %}" class="btn btn-danger btn-sm fw-bold">
-                                                <i class="fas fa-plus me-1"></i> Novo Acordo de Parceria
-                                            </a>
-                                            <a href="{% url 'cadastros:cadastrar_instrumento' especie='termos-cooperacao' %}" class="btn btn-warning btn-sm fw-bold">
-                                                <i class="fas fa-plus me-1"></i> Novo Termo de Cooperação
-                                            </a>
+                                            <button class="btn btn-danger btn-sm fw-bold" type="button" data-bs-toggle="modal" data-bs-target="#modalNovoInstrumento">
+                                                <i class="fas fa-plus me-1"></i> Novo Instrumento de Parceria
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
