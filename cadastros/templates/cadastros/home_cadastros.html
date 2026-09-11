@@ -10,7 +10,7 @@
 
     <div class="row g-4">
         <!-- Card: Projetos -->
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 border-top border-info border-4 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
@@ -24,7 +24,7 @@
         </div>
 
         <!-- Card: Pessoas Físicas -->
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 border-top border-primary border-4 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
@@ -38,7 +38,7 @@
         </div>
 
         <!-- Card: Pessoas Jurídicas -->
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 border-top border-success border-4 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Card: Processos -->
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 border-top border-secondary border-4 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
@@ -65,44 +65,48 @@
             </div>
         </div>
 
-        
-        <!-- Card: Termos de Parceria -->
-        <div class="col-md-6 col-lg-3">
+        <!-- Card: Instrumentos Jurídicos -->
+        <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 border-top border-danger border-4 hover-shadow transition-all">
-                <div class="card-body text-center p-4">
-                    <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-                        <i class="fas fa-file-contract fa-2x text-danger"></i>
+                <div class="card-body text-center p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                            <i class="fas fa-file-contract fa-2x text-danger"></i>
+                        </div>
+                        <h5 class="fw-bold">Instrumentos Jurídicos</h5>
+                        <p class="text-muted small mb-4">Gestão de Acordos de Parceria, Termos de Cooperação e Ajustes Formais.</p>
                     </div>
-                    <h5 class="fw-bold">Termos de Parceria</h5>
-                    <p class="text-muted small mb-4">Gestão de acordos e convênios para projetos.</p>
-                    <a href="{% url 'cadastros:listar_termos_parceria' %}" class="btn btn-outline-dark w-100 rounded-pill fw-bold">Acessar Termos</a>
+                    <div class="dropdown w-100">
+                        <button class="btn btn-outline-danger w-100 rounded-pill fw-bold dropdown-toggle" type="button" id="dropdownInstrumentos" data-bs-toggle="dropdown" aria-expanded="false">
+                            Acessar Instrumentos
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-center w-100 shadow border-0 py-2 mt-2" aria-labelledby="dropdownInstrumentos">
+                            <li>
+                                <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:listar_termos_parceria' %}">
+                                    <i class="fas fa-file-contract text-danger me-2"></i> Acordos de Parceria P&D&I
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:listar_termos' %}">
+                                    <i class="fas fa-handshake text-warning me-2"></i> Termos de Cooperação
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Card: Termos de Cooperação -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm border-0 border-top border-warning border-4 hover-shadow transition-all">
-                <div class="card-body text-center p-4">
-                    <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-                        <i class="fas fa-handshake fa-2x text-warning"></i>
-                    </div>
-                    <h5 class="fw-bold">Termos de Cooperação</h5>
-                    <p class="text-muted small mb-4">Gestão de acordos jurídicos mestres.</p>
-                    <a href="{% url 'cadastros:listar_termos' %}" class="btn btn-outline-warning w-100 rounded-pill fw-bold">Acessar Termos</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card: Programas -->
-        <div class="col-md-6 col-lg-3">
+        <!-- Card: Programas Associados -->
+        <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm border-0 border-top border-dark border-4 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="bg-dark bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
                         <i class="fas fa-sitemap fa-2x text-dark"></i>
                     </div>
-                    <h5 class="fw-bold">Programas</h5>
-                    <p class="text-muted small mb-4">Gestão de programas e chamadas.</p>
+                    <h5 class="fw-bold">Programas Associados</h5>
+                    <p class="text-muted small mb-4">Gestão de programas e chamadas de fomento.</p>
                     <a href="{% url 'cadastros:listar_programas' %}" class="btn btn-outline-dark w-100 rounded-pill fw-bold">Acessar Programas</a>
                 </div>
             </div>
