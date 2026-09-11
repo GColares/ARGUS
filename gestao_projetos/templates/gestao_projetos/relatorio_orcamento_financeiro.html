@@ -33,7 +33,7 @@
                     <option value="">-- Selecione --</option>
                     {% for p in projetos %}
                         <option value="{{ p.id }}" {% if projeto_selecionado and p.id == projeto_selecionado.id %}selected{% endif %}>
-                            {% if p.termos_parceria.first %}[{{ p.termos_parceria.first.tipo_instrumento|slice:":2" }}] {{ p.termos_parceria.first.numero }} - {% endif %}{{ p.nome }}
+                            {% if p.termo_parceria %}[{{ p.termo_parceria.tipo_instrumento|slice:":2" }}] {{ p.termo_parceria.numero }} - {% endif %}{{ p.nome }}
                         </option>
                     {% endfor %}
                 </select>
@@ -107,8 +107,8 @@
         <div class="card-header bg-white border-bottom py-3">
             <h5 class="mb-0 fw-bold">
                 Painel de Cotas (Bolsistas) — {{ projeto_selecionado.nome }}
-                {% if projeto_selecionado.termos_parceria.first %}
-                <span class="badge bg-primary ms-2">[{{ projeto_selecionado.termos_parceria.first.tipo_instrumento|slice:":2" }}] {{ projeto_selecionado.termos_parceria.first.numero }}</span>
+                {% if projeto_selecionado.termo_parceria %}
+                <span class="badge bg-primary ms-2">[{{ projeto_selecionado.termo_parceria.tipo_instrumento|slice:":2" }}] {{ projeto_selecionado.termo_parceria.numero }}</span>
                 {% endif %}
             </h5>
         </div>

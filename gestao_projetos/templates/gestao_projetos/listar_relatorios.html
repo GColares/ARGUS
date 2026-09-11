@@ -130,9 +130,9 @@
                             <td class="fw-bold ps-3">
                                 {% if relatorio.termo_bolsa %}
                                     {% with projeto=relatorio.termo_bolsa.cota_pt.projeto %}
-                                        {% if projeto.termos_parceria.first %}
+                                        {% if projeto.termo_parceria %}
                                             <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle small mb-1">
-                                                {{ projeto.termos_parceria.first.numero }}
+                                                {{ projeto.termo_parceria.numero }}
                                             </span><br>
                                         {% endif %}
                                         <span class="small text-dark">{{ projeto.nome|truncatechars:45 }}</span>

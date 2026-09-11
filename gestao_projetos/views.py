@@ -813,7 +813,7 @@ def relatorio_orcamento_financeiro(request):
         usuario=request.user
     ).values_list('projeto_id', flat=True)
     
-    projetos = ProjetoPDI.objects.filter(id__in=projetos_permitidos).prefetch_related('termos_parceria')
+    projetos = ProjetoPDI.objects.filter(id__in=projetos_permitidos).prefetch_related('convenios', 'acordos_parceria')
     
     projeto_id = request.GET.get('projeto_id')
     projeto_selecionado = None

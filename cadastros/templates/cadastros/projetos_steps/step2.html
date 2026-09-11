@@ -11,8 +11,8 @@
             <p class="text-muted small mb-2">Se a Gestão de Contratos já iniciou um Termo no SIPAC específico para este projeto, selecione-o abaixo:</p>
             <select name="termo_existente" id="termo_existente" class="form-select">
                 <option value="">Nenhum / Continuar em Prospecção Solta</option>
-                {% if projeto and projeto.termos_parceria.first %}
-                {% with tp=projeto.termos_parceria.first %}
+                {% if projeto and projeto.termo_parceria %}
+                {% with tp=projeto.termo_parceria %}
                 <option value="{{ tp.id }}" selected>Termo {{ tp.numero }} - {{ tp.objeto }} (Vinculado Atualmente)</option>
                 {% endwith %}
                 {% endif %}

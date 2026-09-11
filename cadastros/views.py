@@ -26,7 +26,7 @@ def home_cadastros(request):
 def listar_projetos(request):
     from .models import ProjetoPDI
 
-    queryset = ProjetoPDI.objects.select_related('coordenador').prefetch_related('termos_parceria__concedente').all().order_by('-data_cadastro')
+    queryset = ProjetoPDI.objects.select_related('coordenador').prefetch_related('convenios__concedente', 'acordos_parceria__concedente').all().order_by('-data_cadastro')
 
     # Filtros Avançados
     nome = request.GET.get('nome', '').strip()
@@ -389,9 +389,12 @@ def visualizar_projeto(request, projeto_id):
     projeto = get_object_or_404(
         ProjetoPDI.objects.select_related('coordenador', 'programa__termo_cooperacao')
         .prefetch_related(
-            'termos_parceria__concedente',
-            'termos_parceria__convenente',
-            'termos_parceria__interveniente',
+            'convenios__concedente',
+            'convenios__convenente',
+            'convenios__interveniente',
+            'acordos_parceria__concedente',
+            'acordos_parceria__convenente',
+            'acordos_parceria__interveniente',
             'contas__fonte_recurso',
             'historico_fases__usuario'
         ),

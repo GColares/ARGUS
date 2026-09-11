@@ -134,7 +134,7 @@
                             </td>
                             <td class="text-center">
                                 <a href="{% url 'cadastros:gerenciar_processos' p.projeto.id %}" class="text-decoration-none">
-                                    <div class="fw-bold">{{ p.projeto.termos_parceria.first.numero|default:"Sem Termo" }}</div>
+                                    <div class="fw-bold">{{ p.projeto.termo_parceria.numero|default:"Sem Termo" }}</div>
                                     <small class="text-muted">{{ p.projeto.nome|truncatechars:30 }}</small>
                                 </a>
                             </td>
