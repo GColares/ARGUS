@@ -6,12 +6,7 @@ app_name = 'cadastros'
 
 urlpatterns = [
 
-    path('termos/', views.TermoCooperacaoListView.as_view(), name='listar_termos'),
-    path('termos/novo/', views.TermoCooperacaoCreateView.as_view(), name='cadastrar_termo'),
-    path('termos/<int:pk>/visualizar/', views.TermoCooperacaoDetailView.as_view(), name='visualizar_termo'),
-    path('termos/<int:pk>/editar/', views.TermoCooperacaoUpdateView.as_view(), name='editar_termo'),
-    path('termos/<int:pk>/excluir/', views.TermoCooperacaoDeleteView.as_view(), name='excluir_termo'),
-    
+
     path('programas/', views.ProgramaListView.as_view(), name='listar_programas'),
     path('programas/novo/', views.ProgramaCreateView.as_view(), name='cadastrar_programa'),
     path('programas/<int:pk>/visualizar/', views.ProgramaDetailView.as_view(), name='visualizar_programa'),
@@ -56,12 +51,17 @@ urlpatterns = [
     path('fontes-recurso/<int:id>/visualizar/', views.visualizar_fonte_recurso, name='visualizar_fonte_recurso'),
     path('fontes-recurso/<int:id>/excluir/', views.excluir_fonte_recurso, name='excluir_fonte_recurso'),
 
-    # Termos de Parceria
-    path('termos-parceria/', views.TermoDeParceriaListView.as_view(), name='listar_termos_parceria'),
-    path('termos-parceria/novo/', views.TermoDeParceriaCreateView.as_view(), name='cadastrar_termo_parceria'),
-    path('termos-parceria/<int:pk>/visualizar/', views.TermoDeParceriaDetailView.as_view(), name='visualizar_termo_parceria'),
-    path('termos-parceria/<int:pk>/editar/', views.TermoDeParceriaUpdateView.as_view(), name='editar_termo_parceria'),
-    path('termos-parceria/<int:pk>/excluir/', views.TermoDeParceriaDeleteView.as_view(), name='excluir_termo_parceria'),
+    # Redirecionamentos de Legado (Backward Compatibility)
+    from django.views.generic.base import RedirectView
+    path('termos/', RedirectView.as_view(pattern_name='cadastros:listar_instrumento', permanent=True), kwargs={'especie': 'termos-cooperacao'}),
+    path('termos-parceria/', RedirectView.as_view(pattern_name='cadastros:listar_instrumento', permanent=True), kwargs={'especie': 'acordos-parceria'}),
+
+    # Rotas Canônicas de Instrumentos Jurídicos
+    path('instrumentos-juridicos/<slug:especie>/', views.InstrumentoListView.as_view(), name='listar_instrumento'),
+    path('instrumentos-juridicos/<slug:especie>/novo/', views.InstrumentoCreateView.as_view(), name='cadastrar_instrumento'),
+    path('instrumentos-juridicos/<slug:especie>/<int:pk>/visualizar/', views.InstrumentoDetailView.as_view(), name='visualizar_instrumento'),
+    path('instrumentos-juridicos/<slug:especie>/<int:pk>/editar/', views.InstrumentoUpdateView.as_view(), name='editar_instrumento'),
+    path('instrumentos-juridicos/<slug:especie>/<int:pk>/excluir/', views.InstrumentoDeleteView.as_view(), name='excluir_instrumento'),
 
     # Gestão de Instrumentos Jurídicos (Painel e Tipos)
     path('instrumentos/', views.painel_instrumentos, name='painel_instrumentos'),

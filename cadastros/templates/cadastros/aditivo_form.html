@@ -13,9 +13,9 @@
             <li class="breadcrumb-item"><a href="{% url 'cadastros:painel_instrumentos' %}" class="text-decoration-none">Instrumentos Jurídicos</a></li>
             {% if termo_obj %}
                 {% if form.termo_parceria %}
-                    <li class="breadcrumb-item"><a href="{% url 'cadastros:visualizar_termo_parceria' termo_obj.pk %}" class="text-decoration-none">{{ termo_obj.numero }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{termo_obj.get_absolute_url}}" class="text-decoration-none">{{ termo_obj.numero }}</a></li>
                 {% elif form.termo_cooperacao %}
-                    <li class="breadcrumb-item"><a href="{% url 'cadastros:visualizar_termo' termo_obj.pk %}" class="text-decoration-none">{{ termo_obj.numero }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{termo_obj.get_absolute_url}}" class="text-decoration-none">{{ termo_obj.numero }}</a></li>
                 {% endif %}
             {% endif %}
             <li class="breadcrumb-item active" aria-current="page">

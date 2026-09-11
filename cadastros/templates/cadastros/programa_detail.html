@@ -41,7 +41,7 @@
                 <div class="card-header bg-info text-white py-3"><h5 class="mb-0 fw-bold"><i class="fas fa-handshake me-2"></i>Termo de Cooperação Pai</h5></div>
                 <div class="card-body">
                     <p class="text-muted mb-1">Termo de Cooperação vinculado</p>
-                    <a href="{% url 'cadastros:visualizar_termo' programa.termo_cooperacao.pk %}" class="h5 text-decoration-none">{{ programa.termo_cooperacao.numero }}</a>
+                    <a href="{{programa.termo_cooperacao.get_absolute_url}}" class="h5 text-decoration-none">{{ programa.termo_cooperacao.numero }}</a>
                     <p class="mt-3 mb-0">{{ programa.termo_cooperacao.objeto }}</p>
                 </div>
             </div>

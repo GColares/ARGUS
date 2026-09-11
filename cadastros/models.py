@@ -229,6 +229,32 @@ class TermoDeParceria(InstrumentoJuridicoBase):
         return 'IJ'
 
     @property
+    def slug_especie(self):
+        """Retorna o slug da espécie para montar a rota canônica."""
+        if self.tipo_instrumento_fk:
+            sigla = self.tipo_instrumento_fk.sigla
+            if sigla == 'CV': return 'convenios'
+            if sigla == 'AP': return 'acordos-parceria'
+            if sigla == 'TC': return 'termos-cooperacao'
+        if self.tipo_instrumento == 'CONVENIO':
+            return 'convenios'
+        if self.tipo_instrumento == 'ACORDO_PARCERIA':
+            return 'acordos-parceria'
+        return 'instrumentos-gerais'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('cadastros:visualizar_instrumento', kwargs={'especie': self.slug_especie, 'pk': self.pk})
+
+    def get_edit_url(self):
+        from django.urls import reverse
+        return reverse('cadastros:editar_instrumento', kwargs={'especie': self.slug_especie, 'pk': self.pk})
+
+    def get_delete_url(self):
+        from django.urls import reverse
+        return reverse('cadastros:excluir_instrumento', kwargs={'especie': self.slug_especie, 'pk': self.pk})
+
+    @property
     def get_vigencia_inicio(self):
         if self.vigencia_inicio:
             return self.vigencia_inicio
@@ -491,6 +517,28 @@ class TermoCooperacao(models.Model):
 
     def __str__(self):
         return f"{self.numero} - {self.concedente}"
+
+    @property
+    def slug_especie(self):
+        return 'termos-cooperacao'
+
+    @property
+    def nome_especie_plural(self):
+        if self.tipo_instrumento_fk:
+            return self.tipo_instrumento_fk.nome
+        return 'Termos de Cooperação'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('cadastros:visualizar_instrumento', kwargs={'especie': self.slug_especie, 'pk': self.pk})
+
+    def get_edit_url(self):
+        from django.urls import reverse
+        return reverse('cadastros:editar_instrumento', kwargs={'especie': self.slug_especie, 'pk': self.pk})
+
+    def get_delete_url(self):
+        from django.urls import reverse
+        return reverse('cadastros:excluir_instrumento', kwargs={'especie': self.slug_especie, 'pk': self.pk})
 
     @property
     def get_vigencia_fim(self):

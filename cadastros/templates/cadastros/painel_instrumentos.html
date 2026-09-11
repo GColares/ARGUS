@@ -35,13 +35,13 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-2" aria-labelledby="btnNovoInstrumento">
                     <li>
-                        <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:cadastrar_termo_parceria' %}">
+                        <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:cadastrar_instrumento' especie='acordos-parceria' %}">
                             <i class="fas fa-handshake text-danger me-2"></i> Acordo de Parceria PD&amp;I
                         </a>
                     </li>
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
-                        <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:cadastrar_termo' %}">
+                        <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'cadastros:cadastrar_instrumento' especie='termos-cooperacao' %}">
                             <i class="fas fa-file-signature text-warning me-2"></i> Termo de Cooperação Técnica
                         </a>
                     </li>
@@ -315,10 +315,10 @@
                                         <h5 class="fw-bold">Nenhum instrumento jurídico encontrado</h5>
                                         <p class="small mb-3">Não há ocorrências registradas com os filtros selecionados.</p>
                                         <div class="d-inline-flex gap-2">
-                                            <a href="{% url 'cadastros:cadastrar_termo_parceria' %}" class="btn btn-danger btn-sm fw-bold">
+                                            <a href="{% url 'cadastros:cadastrar_instrumento' especie='acordos-parceria' %}" class="btn btn-danger btn-sm fw-bold">
                                                 <i class="fas fa-plus me-1"></i> Novo Acordo de Parceria
                                             </a>
-                                            <a href="{% url 'cadastros:cadastrar_termo' %}" class="btn btn-warning btn-sm fw-bold">
+                                            <a href="{% url 'cadastros:cadastrar_instrumento' especie='termos-cooperacao' %}" class="btn btn-warning btn-sm fw-bold">
                                                 <i class="fas fa-plus me-1"></i> Novo Termo de Cooperação
                                             </a>
                                         </div>

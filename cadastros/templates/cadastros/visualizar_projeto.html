@@ -390,7 +390,7 @@
                                     </span>
                                 </div>
                                 {% if projeto.termo_parceria %}
-                                    <a href="{% url 'cadastros:editar_termo_parceria' projeto.termo_parceria.id %}" class="btn btn-outline-primary btn-sm fw-semibold">
+                                    <a href="{{projeto.termo_parceria.get_edit_url}}" class="btn btn-outline-primary btn-sm fw-semibold">
                                         <i class="fas fa-pen-to-square me-1"></i> Editar Instrumento
                                     </a>
                                 {% endif %}
@@ -413,7 +413,7 @@
                                     <span class="text-muted small d-block">Número do Registro</span>
                                     <span class="fw-bold text-primary">
                                         {% if projeto.termo_parceria %}
-                                            <a href="{% url 'cadastros:visualizar_termo_parceria' projeto.termo_parceria.id %}" class="text-decoration-none text-primary">
+                                            <a href="{{projeto.termo_parceria.get_absolute_url}}" class="text-decoration-none text-primary">
                                                 {{ projeto.termo_parceria.numero }} <i class="fas fa-external-link-alt small ms-1"></i>
                                             </a>
                                         {% else %}

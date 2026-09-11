@@ -1499,18 +1499,21 @@ class TermoCooperacaoCreateView(CreateView):
     model = TermoCooperacao
     form_class = TermoCooperacaoForm
     template_name = 'cadastros/termocooperacao_form.html'
-    success_url = reverse_lazy('cadastros:listar_termos')
+    def get_success_url(self):
+        return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
 
 class TermoCooperacaoUpdateView(UpdateView):
     model = TermoCooperacao
     form_class = TermoCooperacaoForm
     template_name = 'cadastros/termocooperacao_form.html'
-    success_url = reverse_lazy('cadastros:listar_termos')
+    def get_success_url(self):
+        return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
 
 class TermoCooperacaoDeleteView(DeleteView):
     model = TermoCooperacao
     template_name = 'cadastros/termocooperacao_confirm_delete.html'
-    success_url = reverse_lazy('cadastros:listar_termos')
+    def get_success_url(self):
+        return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
 
 # ==============================================================================
 # CRUD PROGRAMA
@@ -1601,7 +1604,8 @@ class TermoDeParceriaCreateView(SuccessMessageMixin, CreateView):
     model = TermoDeParceria
     form_class = TermoDeParceriaForm
     template_name = 'cadastros/termo_parceria_form.html'
-    success_url = reverse_lazy('cadastros:listar_termos_parceria')
+    def get_success_url(self):
+        return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
     success_message = 'Termo de parceria criado com sucesso.'
 
     def form_valid(self, form):
@@ -1615,7 +1619,8 @@ class TermoDeParceriaUpdateView(SuccessMessageMixin, UpdateView):
     model = TermoDeParceria
     form_class = TermoDeParceriaForm
     template_name = 'cadastros/termo_parceria_form.html'
-    success_url = reverse_lazy('cadastros:listar_termos_parceria')
+    def get_success_url(self):
+        return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
     success_message = 'Termo de parceria atualizado com sucesso.'
 
     def form_valid(self, form):
@@ -1628,7 +1633,8 @@ class TermoDeParceriaUpdateView(SuccessMessageMixin, UpdateView):
 class TermoDeParceriaDeleteView(SuccessMessageMixin, DeleteView):
     model = TermoDeParceria
     template_name = 'cadastros/termo_parceria_confirm_delete.html'
-    success_url = reverse_lazy('cadastros:listar_termos_parceria')
+    def get_success_url(self):
+        return reverse('cadastros:listar_instrumento', kwargs={'especie': self.object.slug_especie})
     success_message = 'Termo de parceria excluído com sucesso.'
 
     def delete(self, request, *args, **kwargs):
@@ -2017,3 +2023,51 @@ class AditivoTermoCooperacaoDeleteView(LoginRequiredMixin, SuccessMessageMixin, 
         return reverse('cadastros:painel_instrumentos')
 
 
+
+
+# =====================================================================
+# ROTAS CANONICAS DE INSTRUMENTOS JURIDICOS (DISPATCHERS)
+# =====================================================================
+from django.views import View
+
+class InstrumentoListView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        especie = kwargs.get('especie')
+        if especie == 'termos-cooperacao':
+            return TermoCooperacaoListView.as_view()(request, *args, **kwargs)
+        else:
+            # Para 'convenios', 'acordos-parceria', etc, envia para a view unificada
+            return TermoDeParceriaListView.as_view()(request, *args, **kwargs)
+
+class InstrumentoDetailView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        especie = kwargs.get('especie')
+        if especie == 'termos-cooperacao':
+            return TermoCooperacaoDetailView.as_view()(request, *args, **kwargs)
+        else:
+            return TermoDeParceriaDetailView.as_view()(request, *args, **kwargs)
+
+class InstrumentoCreateView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        especie = kwargs.get('especie')
+        if especie == 'termos-cooperacao':
+            return TermoCooperacaoCreateView.as_view()(request, *args, **kwargs)
+        else:
+            # Poderiamos injetar inicialização baseada na especie (ex: tipo_instrumento='CONVENIO')
+            return TermoDeParceriaCreateView.as_view()(request, *args, **kwargs)
+
+class InstrumentoUpdateView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        especie = kwargs.get('especie')
+        if especie == 'termos-cooperacao':
+            return TermoCooperacaoUpdateView.as_view()(request, *args, **kwargs)
+        else:
+            return TermoDeParceriaUpdateView.as_view()(request, *args, **kwargs)
+
+class InstrumentoDeleteView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        especie = kwargs.get('especie')
+        if especie == 'termos-cooperacao':
+            return TermoCooperacaoDeleteView.as_view()(request, *args, **kwargs)
+        else:
+            return TermoDeParceriaDeleteView.as_view()(request, *args, **kwargs)

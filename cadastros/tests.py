@@ -2423,7 +2423,7 @@ class TermosAditivosTestCase(TestCase):
         self.assertIn('.pdf', aditivo.arquivo_pdf.name)
 
         # Verificar renderização na tela de detalhes do Termo de Parceria
-        url_detail = reverse('cadastros:visualizar_termo_parceria', kwargs={'pk': self.termo_parceria.pk})
+        url_detail = self.termo_parceria.get_absolute_url()
         res_detail = self.client.get(url_detail)
         self.assertEqual(res_detail.status_code, 200)
         self.assertContains(res_detail, "Termos Aditivos Celebrados")
@@ -2495,7 +2495,7 @@ class TermosAditivosTestCase(TestCase):
         self.assertEqual(tp_conv.nome_especie_plural, 'Convênios')
         self.assertEqual(tp_conv.sigla_especie, 'CV')
 
-        res_detail = self.client.get(reverse('cadastros:visualizar_termo_parceria', args=[tp_conv.pk]))
+        res_detail = self.client.get(tp_conv.get_absolute_url())
         self.assertEqual(res_detail.status_code, 200)
         self.assertContains(res_detail, "Convênios")
         self.assertContains(res_detail, "[CV] Convênio")
