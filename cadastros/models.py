@@ -143,7 +143,7 @@ class TipoInstrumentoJuridico(models.Model):
 
 class InstrumentoJuridicoBase(models.Model):
     TIPO_INSTRUMENTO_CHOICES = [
-        ('CONVENIO', 'Convênio de P&D&I (Legado)'),
+        ('CONVENIO', 'Convênio de P&D&I'),
         ('ACORDO_PARCERIA', 'Acordo de Parceria para P&D&I (Marco Legal CT&I)'),
         ('TERMO_COOPERACAO', 'Termo de Cooperação'),
         ('NDA', 'Acordo de Confidencialidade e Sigilo'),

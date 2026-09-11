@@ -56,7 +56,7 @@ def seed_tipos_instrumentos(apps, schema_editor):
             'ativo': True,
         },
         {
-            'nome': 'Convênio de P&D&I (Legado)',
+            'nome': 'Convênio de P&D&I',
             'sigla': 'CV',
             'fundamentacao_legal': 'Lei nº 8.666/1993 (Regime Anterior)',
             'descricao': 'Instrumento de convênio celebrado sob a vigência da legislação anterior ou transferências governamentais tradicionais.',

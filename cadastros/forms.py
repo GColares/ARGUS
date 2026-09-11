@@ -131,7 +131,7 @@ class TermoDeParceriaForm(forms.ModelForm):
         from .models import PessoaJuridica, ICT
         self.fields['numero'].required = False
         self.fields['tipo_instrumento'].choices = [
-            ('CONVENIO', 'Convênio de P&D&I (Legado)'),
+            ('CONVENIO', 'Convênio de P&D&I'),
             ('ACORDO_PARCERIA', 'Acordo de Parceria para P&D&I (Marco Legal CT&I)'),
         ]
         # Excluir a ICT Executora (Sede/Polo) da lista de possíveis Concedentes/Parceiros
