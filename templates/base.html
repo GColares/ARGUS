@@ -229,10 +229,10 @@
         {% endif %}
     </div>
 
-    <!-- Script to Auto-Initialize Toasts -->
+    <!-- Script to Auto-Initialize Django Messages Toasts -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            var toastElList = [].slice.call(document.querySelectorAll('.toast-container.top-0 .toast'));
             var toastList = toastElList.map(function (toastEl) {
                 return new bootstrap.Toast(toastEl, { delay: 6000 });
             });
