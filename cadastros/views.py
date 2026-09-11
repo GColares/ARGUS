@@ -1801,53 +1801,89 @@ def painel_instrumentos(request):
     # Tipos de Instrumentos com contagem
     tipos = list(TipoInstrumentoJuridico.objects.all().order_by('nome'))
     for t in tipos:
-        t.total_ocorrencias = t.termodeparcerias.count() + t.termos_cooperacao.count()
+        t.total_ocorrencias = t.instrumentojuridicobases.count()
 
     # Termos Aditivos consolidados de ambos os modelos
-    qs_aditivos_parceria = TermoAditivo.objects.select_related('convenio', 'convenio__concedente', 'projeto').all()
-    qs_aditivos_cooperacao = TermoEncerramento.objects.select_related('termo_cooperacao', 'termo_cooperacao__concedente').all()
+    qs_aditivos_parceria = TermoAditivo.objects.select_related('instrumento').all()
+    qs_aditivos_cooperacao = TermoEncerramento.objects.select_related('instrumento').all()
 
     aditivos = []
     for a in qs_aditivos_parceria:
-        termo_num = a.convenio.numero if a.convenio else (a.projeto.convenio.numero if a.projeto and a.projeto.convenio else 'Sem termo')
-        url_termo = reverse('cadastros:visualizar_convenio', args=[a.convenio_id]) if a.convenio_id else '#'
-        parceiro_obj = a.convenio.concedente if a.convenio else (a.projeto.concedente if a.projeto else None)
+        termo_num = a.instrumento.numero if a.instrumento else 'Sem termo'
+        
+        url_termo = '#'
+        if a.instrumento:
+            if hasattr(a.instrumento, 'convenio'):
+                url_termo = reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'convenios', 'pk': a.instrumento.pk})
+            elif hasattr(a.instrumento, 'acordodeparceria'):
+                url_termo = reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'acordos-parceria', 'pk': a.instrumento.pk})
+            elif hasattr(a.instrumento, 'termocooperacao'):
+                url_termo = reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'termos-cooperacao', 'pk': a.instrumento.pk})
+
+        parceiro_obj = None
+        if a.instrumento:
+            if hasattr(a.instrumento, 'convenio'):
+                parceiro_obj = a.instrumento.convenio.concedente
+            elif hasattr(a.instrumento, 'acordodeparceria'):
+                parceiro_obj = a.instrumento.acordodeparceria.concedente
+            elif hasattr(a.instrumento, 'termocooperacao'):
+                parceiro_obj = a.instrumento.termocooperacao.concedente
+
         aditivos.append({
             'id': a.pk,
             'numero': a.numero,
-            'tipo_aditivo_nome': a.get_tipo_aditivo_display(),
-            'tipo_aditivo_codigo': a.tipo_aditivo,
-            'instrumento_tipo': 'Acordo de Parceria',
+            'tipo_aditivo_nome': 'Aditivo',
+            'tipo_aditivo_codigo': 'ADITIVO',
+            'instrumento_tipo': a.instrumento.get_tipo_instrumento_display() if a.instrumento else 'Instrumento',
             'instrumento_numero': termo_num,
             'instrumento_url': url_termo,
             'parceiro': parceiro_obj,
             'data_assinatura': a.data_assinatura,
             'nova_data_fim': a.nova_data_fim,
-            'valor_aditivo': a.valor_aditivo,
-            'numero_processo': a.numero_processo,
-            'descricao': a.descricao,
-            'arquivo_pdf': a.arquivo_pdf,
+            'valor_aditivo': None,
+            'numero_processo': None,
+            'descricao': None,
+            'arquivo_pdf': None,
             'url_editar': reverse('cadastros:editar_aditivo_parceria', args=[a.pk]),
             'url_excluir': reverse('cadastros:excluir_aditivo_parceria', args=[a.pk]),
             'modelo_origem': 'parceria',
         })
 
     for a in qs_aditivos_cooperacao:
+        termo_num = a.instrumento.numero if a.instrumento else 'Sem termo'
+        url_termo = '#'
+        if a.instrumento:
+            if hasattr(a.instrumento, 'convenio'):
+                url_termo = reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'convenios', 'pk': a.instrumento.pk})
+            elif hasattr(a.instrumento, 'acordodeparceria'):
+                url_termo = reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'acordos-parceria', 'pk': a.instrumento.pk})
+            elif hasattr(a.instrumento, 'termocooperacao'):
+                url_termo = reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'termos-cooperacao', 'pk': a.instrumento.pk})
+
+        parceiro_obj = None
+        if a.instrumento:
+            if hasattr(a.instrumento, 'convenio'):
+                parceiro_obj = a.instrumento.convenio.concedente
+            elif hasattr(a.instrumento, 'acordodeparceria'):
+                parceiro_obj = a.instrumento.acordodeparceria.concedente
+            elif hasattr(a.instrumento, 'termocooperacao'):
+                parceiro_obj = a.instrumento.termocooperacao.concedente
+
         aditivos.append({
             'id': a.pk,
             'numero': a.numero,
-            'tipo_aditivo_nome': a.get_tipo_aditivo_display(),
-            'tipo_aditivo_codigo': a.tipo_aditivo,
-            'instrumento_tipo': 'Termo de Cooperação',
-            'instrumento_numero': a.termo_cooperacao.numero,
-            'instrumento_url': reverse('cadastros:visualizar_termo', args=[a.termo_cooperacao_id]),
-            'parceiro': a.termo_cooperacao.concedente,
+            'tipo_aditivo_nome': 'Encerramento',
+            'tipo_aditivo_codigo': 'ENCERRAMENTO',
+            'instrumento_tipo': a.instrumento.get_tipo_instrumento_display() if a.instrumento else 'Instrumento',
+            'instrumento_numero': termo_num,
+            'instrumento_url': url_termo,
+            'parceiro': parceiro_obj,
             'data_assinatura': a.data_assinatura,
-            'nova_data_fim': a.nova_data_fim,
-            'valor_aditivo': a.valor_aditivo,
-            'numero_processo': a.numero_processo,
-            'descricao': a.descricao,
-            'arquivo_pdf': a.arquivo_pdf,
+            'nova_data_fim': None,
+            'valor_aditivo': None,
+            'numero_processo': None,
+            'descricao': None,
+            'arquivo_pdf': None,
             'url_editar': reverse('cadastros:editar_aditivo_cooperacao', args=[a.pk]),
             'url_excluir': reverse('cadastros:excluir_aditivo_cooperacao', args=[a.pk]),
             'modelo_origem': 'cooperacao',
