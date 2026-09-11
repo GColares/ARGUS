@@ -5,7 +5,8 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
             <li class="breadcrumb-item"><a href="{% url 'cadastros:home_cadastros' %}" class="text-decoration-none">Cadastros</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'cadastros:listar_termos_parceria' %}" class="text-decoration-none">Termos de Parceria</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:painel_instrumentos' %}" class="text-decoration-none">Instrumentos Jurídicos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cadastros:listar_termos_parceria' %}" class="text-decoration-none">{% if form.instance.pk %}{{ form.instance.nome_especie_plural }}{% else %}Parcerias{% endif %}</a></li>
             <li class="breadcrumb-item active" aria-current="page">{% if form.instance.pk %}Editar{% else %}Novo{% endif %}</li>
         </ol>
     </nav>
@@ -16,7 +17,7 @@
     <div class="card border-0 shadow-sm rounded-3">
         <div class="card-header bg-white border-bottom p-4">
             <h4 class="fw-bold mb-0 text-dark">
-                <i class="fas fa-file-contract text-danger me-2"></i> {% if form.instance.pk %}Editar Termo de Parceria{% else %}Novo Termo de Parceria{% endif %}
+                <i class="fas fa-file-contract text-danger me-2"></i> {% if form.instance.pk %}Editar {{ form.instance.nome_especie }}{% else %}Novo Instrumento de Parceria (AP / CV){% endif %}
             </h4>
         </div>
         <div class="card-body p-4">

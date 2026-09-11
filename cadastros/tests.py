@@ -2483,5 +2483,24 @@ class TermosAditivosTestCase(TestCase):
         self.assertContains(res_painel, "01/03/2026 a 28/02/2028")
         self.assertContains(res_painel, "Assinado em 15/02/2026")
 
+        # 4. Validação da dinâmica de nomenclatura das espécies documentais (Convênio vs Acordo de Parceria)
+        tp_conv = TermoDeParceria.objects.create(
+            tipo_instrumento='CONVENIO',
+            numero='CV 99/2026',
+            concedente=self.empresa,
+            convenente=self.ict,
+            interveniente=self.fundacao,
+        )
+        self.assertEqual(tp_conv.nome_especie, 'Convênio')
+        self.assertEqual(tp_conv.nome_especie_plural, 'Convênios')
+        self.assertEqual(tp_conv.sigla_especie, 'CV')
+
+        res_detail = self.client.get(reverse('cadastros:visualizar_termo_parceria', args=[tp_conv.pk]))
+        self.assertEqual(res_detail.status_code, 200)
+        self.assertContains(res_detail, "Convênios")
+        self.assertContains(res_detail, "[CV] Convênio")
+        self.assertContains(res_detail, "Detalhes do Convênio")
+
+
 
 

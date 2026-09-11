@@ -196,6 +196,39 @@ class TermoDeParceria(InstrumentoJuridicoBase):
         return f"{self.numero or 'Sem Número'} ({self.concedente.sigla or self.concedente.nome_fantasia or self.concedente.nome})"
 
     @property
+    def nome_especie(self):
+        """Retorna o nome canônico da espécie documental (Convênio vs. Acordo de Parceria)."""
+        if self.tipo_instrumento_fk:
+            return self.tipo_instrumento_fk.nome
+        if self.tipo_instrumento == 'CONVENIO':
+            return 'Convênio'
+        if self.tipo_instrumento == 'ACORDO_PARCERIA':
+            return 'Acordo de Parceria'
+        return self.get_tipo_instrumento_display()
+
+    @property
+    def nome_especie_plural(self):
+        """Retorna o plural da espécie documental para breadcrumbs e listas."""
+        if self.tipo_instrumento_fk:
+            return f"{self.tipo_instrumento_fk.nome}s"
+        if self.tipo_instrumento == 'CONVENIO':
+            return 'Convênios'
+        if self.tipo_instrumento == 'ACORDO_PARCERIA':
+            return 'Acordos de Parceria'
+        return 'Instrumentos Jurídicos'
+
+    @property
+    def sigla_especie(self):
+        """Retorna a sigla canônica oficial (CV vs. AP)."""
+        if self.tipo_instrumento_fk:
+            return self.tipo_instrumento_fk.sigla
+        if self.tipo_instrumento == 'CONVENIO':
+            return 'CV'
+        if self.tipo_instrumento == 'ACORDO_PARCERIA':
+            return 'AP'
+        return 'IJ'
+
+    @property
     def get_vigencia_inicio(self):
         if self.vigencia_inicio:
             return self.vigencia_inicio

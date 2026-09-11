@@ -6,9 +6,9 @@
             <div class="text-danger mb-4">
                 <i class="fas fa-exclamation-triangle fa-4x"></i>
             </div>
-            <h3 class="fw-bold mb-3">Excluir Termo de Parceria</h3>
-            <p class="text-muted mb-4">Tem certeza que deseja excluir o Termo de Parceria <strong>{{ object.numero|default:"Sem Número" }}</strong>?</p>
-            <p class="text-danger small fw-bold"><i class="fas fa-info-circle"></i> Atenção: Projetos de PDI que estiverem vinculados a este termo poderão perder a referência financeira caso não sejam migrados.</p>
+            <h3 class="fw-bold mb-3">Excluir {{ object.nome_especie }}</h3>
+            <p class="text-muted mb-4">Tem certeza que deseja excluir o {{ object.nome_especie }} <strong>{{ object.numero|default:"Sem Número" }}</strong>?</p>
+            <p class="text-danger small fw-bold"><i class="fas fa-info-circle"></i> Atenção: Projetos de PDI que estiverem vinculados a este {{ object.nome_especie|lower }} poderão perder a referência financeira caso não sejam migrados.</p>
 
             <form method="POST">
                 {% csrf_token %}
