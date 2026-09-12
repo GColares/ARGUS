@@ -133,9 +133,13 @@ class ConvenioForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         from .models import PessoaJuridica, ICT
         
+        current_year = datetime.datetime.now().year
+        year_choices = [(y, str(y)) for y in range(current_year + 5, 2009, -1)]
+        self.fields['ano'].widget = forms.Select(choices=year_choices, attrs={'class': 'form-select form-select-lg'})
+        
         # Preenche ano corrente em novos formulários se não definido
         if not self.instance.pk and 'ano' not in self.initial:
-            self.initial['ano'] = datetime.datetime.now().year
+            self.initial['ano'] = current_year
             
         self.fields['tipo_instrumento'].choices = [
             ('CONVENIO', 'Convênio de PD&I'),
@@ -435,9 +439,13 @@ class TermoCooperacaoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+        current_year = datetime.datetime.now().year
+        year_choices = [(y, str(y)) for y in range(current_year + 5, 2009, -1)]
+        self.fields['ano'].widget = forms.Select(choices=year_choices, attrs={'class': 'form-select'})
+        
         # Preenche ano corrente em novos formulários se não definido
         if not self.instance.pk and 'ano' not in self.initial:
-            self.initial['ano'] = datetime.datetime.now().year
+            self.initial['ano'] = current_year
 
         # Auto-selecionar IFAM como convenente padrão em novos cadastros
         from .models import ICT, PessoaJuridica
