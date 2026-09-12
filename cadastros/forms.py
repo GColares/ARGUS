@@ -145,9 +145,12 @@ class ConvenioForm(forms.ModelForm):
             ('CONVENIO', 'Convênio de PD&I'),
             ('ACORDO_PARCERIA', 'Acordo de Parceria para PD&I (Marco Legal CT&I)'),
         ]
-        # Excluir a ICT Executora (Sede/Polo) da lista de possíveis Concedentes/Parceiros
+        # Concedentes permitidos: ICT (não executora), EmpresaParceira, AgenciaFomento
+        from django.db.models import Q
         executoras_ids = ICT.objects.filter(is_executora=True).values_list('pessoajuridica_ptr_id', flat=True)
-        self.fields['concedente'].queryset = PessoaJuridica.objects.exclude(id__in=executoras_ids).order_by('nome')
+        self.fields['concedente'].queryset = PessoaJuridica.objects.filter(
+            Q(ict__isnull=False) | Q(empresaparceira__isnull=False) | Q(agenciafomento__isnull=False)
+        ).exclude(id__in=executoras_ids).order_by('nome')
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -457,9 +460,12 @@ class TermoCooperacaoForm(forms.ModelForm):
             if ifam:
                 self.fields['convenente'].initial = ifam.pk
 
-        # Excluir a ICT Executora da lista de possíveis Parceiros (concedente)
+        # Concedentes permitidos: ICT (não executora), EmpresaParceira, AgenciaFomento
+        from django.db.models import Q
         executoras_ids = ICT.objects.filter(is_executora=True).values_list('pessoajuridica_ptr_id', flat=True)
-        self.fields['concedente'].queryset = PessoaJuridica.objects.exclude(id__in=executoras_ids).order_by('nome')
+        self.fields['concedente'].queryset = PessoaJuridica.objects.filter(
+            Q(ict__isnull=False) | Q(empresaparceira__isnull=False) | Q(agenciafomento__isnull=False)
+        ).exclude(id__in=executoras_ids).order_by('nome')
 
 class ProgramaForm(forms.ModelForm):
     class Meta:
