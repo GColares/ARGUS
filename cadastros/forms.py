@@ -112,15 +112,14 @@ class TipoInstrumentoJuridicoForm(forms.ModelForm):
 
 
 class ConvenioForm(forms.ModelForm):
-    numero = forms.CharField(label='Número', required=True, widget=forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Ex: 001/2026'}))
-
     class Meta:
         model = Convenio
-        fields = ['tipo_instrumento_fk', 'tipo_instrumento', 'numero', 'objeto', 'concedente', 'convenente', 'interveniente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim']
+        fields = ['tipo_instrumento_fk', 'tipo_instrumento', 'numero', 'ano', 'objeto', 'concedente', 'convenente', 'interveniente', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim']
         widgets = {
             'tipo_instrumento_fk': forms.Select(attrs={'class': 'form-select form-select-lg'}),
             'tipo_instrumento': forms.Select(attrs={'class': 'form-select'}),
-            'numero': forms.TextInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Ex: 001/2026'}),
+            'numero': forms.NumberInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Ex: 1'}),
+            'ano': forms.NumberInput(attrs={'class': 'form-control form-control-lg', 'placeholder': 'Ex: 2026'}),
             'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Objeto do Termo de Parceria...'}),
             'concedente': forms.Select(attrs={'class': 'form-select form-select-lg'}),
             'convenente': forms.Select(attrs={'class': 'form-select form-select-lg'}),
@@ -133,7 +132,11 @@ class ConvenioForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from .models import PessoaJuridica, ICT
-        self.fields['numero'].required = False
+        
+        # Preenche ano corrente em novos formulários se não definido
+        if not self.instance.pk and 'ano' not in self.initial:
+            self.initial['ano'] = datetime.datetime.now().year
+            
         self.fields['tipo_instrumento'].choices = [
             ('CONVENIO', 'Convênio de PD&I'),
             ('ACORDO_PARCERIA', 'Acordo de Parceria para PD&I (Marco Legal CT&I)'),
@@ -412,21 +415,13 @@ class FornecedorForm(forms.ModelForm):
 import datetime
 
 class TermoCooperacaoForm(forms.ModelForm):
-    numero_sequencial = forms.CharField(
-        label="Número", 
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 17', 'style': 'text-align: right;'})
-    )
-    ano_termo = forms.ChoiceField(
-        label="Ano", 
-        choices=[], 
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-
     class Meta:
         model = TermoCooperacao
-        fields = ['tipo_instrumento_fk', 'concedente', 'convenente', 'objeto', 'valor_global', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim', 'arquivo_pdf', 'ativo']
+        fields = ['tipo_instrumento_fk', 'numero', 'ano', 'concedente', 'convenente', 'objeto', 'valor_global', 'data_assinatura', 'vigencia_inicio', 'vigencia_fim', 'arquivo_pdf', 'ativo']
         widgets = {
             'tipo_instrumento_fk': forms.HiddenInput(),
+            'numero': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 17', 'style': 'text-align: right;'}),
+            'ano': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 2026'}),
             'concedente': forms.Select(attrs={'class': 'form-select'}),
             'convenente': forms.Select(attrs={'class': 'form-select'}),
             'objeto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descreva o objeto do termo de cooperação'}),
@@ -439,15 +434,10 @@ class TermoCooperacaoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Populate year choices from 2010 to next year
-        current_year = datetime.datetime.now().year
-        self.fields['ano_termo'].choices = [(str(y), str(y)) for y in range(current_year + 1, 2009, -1)]
-
-        if self.instance and self.instance.numero:
-            parts = self.instance.numero.split('/')
-            if len(parts) == 2:
-                self.fields['numero_sequencial'].initial = parts[0]
-                self.fields['ano_termo'].initial = parts[1]
+        
+        # Preenche ano corrente em novos formulários se não definido
+        if not self.instance.pk and 'ano' not in self.initial:
+            self.initial['ano'] = datetime.datetime.now().year
 
         # Auto-selecionar IFAM como convenente padrão em novos cadastros
         from .models import ICT, PessoaJuridica
@@ -462,26 +452,6 @@ class TermoCooperacaoForm(forms.ModelForm):
         # Excluir a ICT Executora da lista de possíveis Parceiros (concedente)
         executoras_ids = ICT.objects.filter(is_executora=True).values_list('pessoajuridica_ptr_id', flat=True)
         self.fields['concedente'].queryset = PessoaJuridica.objects.exclude(id__in=executoras_ids).order_by('nome')
-
-    def clean(self):
-        cleaned_data = super().clean()
-        num = cleaned_data.get('numero_sequencial')
-        ano = cleaned_data.get('ano_termo')
-        if num and ano:
-            # We enforce exactly XX/YYYY format conceptually, but basically whatever user inputs for num
-            numero_concatenado = f"{num.strip()}/{ano}"
-            
-            # Check for uniqueness since we excluded it from fields
-            qs = TermoCooperacao.objects.filter(numero=numero_concatenado)
-            if self.instance and self.instance.pk:
-                qs = qs.exclude(pk=self.instance.pk)
-            
-            if qs.exists():
-                self.add_error('numero_sequencial', 'Já existe um Termo de Cooperação com este número/ano.')
-            else:
-                self.instance.numero = numero_concatenado
-                
-        return cleaned_data
 
 class ProgramaForm(forms.ModelForm):
     class Meta:

@@ -9,6 +9,7 @@ Oriente o usuário a executar `.\scripts\ate_amanha.ps1` no terminal. A IA não
 deve executar a rotina diretamente nem declarar sucesso sem confirmação.
 
 Sempre que o usuário enviar o comando "ate-amanha" (ex: "até amanhã", "ate amanha", "encerrar dia", "fechar a loja"), você deverá executar a rotina de empacotamento e envio do projeto para a nuvem.
+**RESTRIÇÃO CRÍTICA:** NUNCA inicie essa rotina caso o usuário informe apenas que fará uma pausa, que vai sair e voltar mais tarde (ex: "já volto", "vou dar uma saída", "volto mais tarde"). Execute esta rotina APENAS se houver a intenção explícita de encerramento total das atividades do dia.
 
 Siga os passos rigorosamente nesta ordem:
 

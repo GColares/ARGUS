@@ -24,14 +24,14 @@
                 <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4"><i class="fas fa-file-contract me-2"></i> Identificação</h5>
                 <div class="row g-3 mb-4">
                     <div class="col-md-2">
-                        <label class="form-label fw-bold text-muted small">{{ form.numero_sequencial.label }}</label>
-                        {{ form.numero_sequencial }}
-                        {% if form.numero_sequencial.errors %}<div class="text-danger small mt-1">{{ form.numero_sequencial.errors }}</div>{% endif %}
+                        <label class="form-label fw-bold text-muted small">{{ form.numero.label }}</label>
+                        {{ form.numero }}
+                        {% if form.numero.errors %}<div class="text-danger small mt-1">{{ form.numero.errors }}</div>{% endif %}
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label fw-bold text-muted small">{{ form.ano_termo.label }}</label>
-                        {{ form.ano_termo }}
-                        {% if form.ano_termo.errors %}<div class="text-danger small mt-1">{{ form.ano_termo.errors }}</div>{% endif %}
+                        <label class="form-label fw-bold text-muted small">{{ form.ano.label }}</label>
+                        {{ form.ano }}
+                        {% if form.ano.errors %}<div class="text-danger small mt-1">{{ form.ano.errors }}</div>{% endif %}
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold text-muted small">{{ form.concedente.label }}</label>

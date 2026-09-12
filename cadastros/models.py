@@ -162,9 +162,8 @@ class InstrumentoJuridicoBase(models.Model):
         related_name='%(class)ss',
         verbose_name="Tipo de Instrumento (Parametrizado)"
     )
-    sequencial = models.PositiveIntegerField(null=True, blank=True, verbose_name="Número Sequencial")
-    ano = models.PositiveIntegerField(null=True, blank=True, verbose_name="Ano de Emissão")
-    numero = models.CharField(max_length=50, unique=True, verbose_name="Número do Instrumento")
+    numero = models.PositiveIntegerField(verbose_name="Número")
+    ano = models.PositiveIntegerField(verbose_name="Ano")
     objeto = models.TextField(blank=True, null=True, verbose_name="Objeto / Descrição")
     data_assinatura = models.DateField(blank=True, null=True, verbose_name="Data de Assinatura")
     vigencia_inicio = models.DateField(blank=True, null=True, verbose_name="Início da Vigência")
@@ -174,13 +173,15 @@ class InstrumentoJuridicoBase(models.Model):
     class Meta:
         verbose_name = "Instrumento Jurídico Base"
         verbose_name_plural = "Instrumentos Jurídicos Base"
-        constraints = [
-            models.UniqueConstraint(
-                fields=['tipo_instrumento', 'sequencial', 'ano'],
-                condition=models.Q(sequencial__isnull=False, ano__isnull=False),
-                name='unique_seq_ano_por_tipo'
-            )
-        ]
+        unique_together = ('tipo_instrumento_fk', 'numero', 'ano')
+
+    @property
+    def numero_formatado(self):
+        return f"{self.numero}/{self.ano}"
+
+    def __str__(self):
+        sigla = self.tipo_instrumento_fk.sigla if self.tipo_instrumento_fk else self.get_tipo_instrumento_display()
+        return f"{sigla} nº {self.numero_formatado}"
 
 class Convenio(InstrumentoJuridicoBase):
     """Entidade macro jurídica que rege a parceria e união de interesses."""
