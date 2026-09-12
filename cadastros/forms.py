@@ -134,7 +134,7 @@ class ConvenioForm(forms.ModelForm):
         from .models import PessoaJuridica, ICT
         
         current_year = datetime.datetime.now().year
-        year_choices = [(y, str(y)) for y in range(current_year + 5, 2009, -1)]
+        year_choices = [(y, str(y)) for y in range(current_year, 2009, -1)]
         self.fields['ano'].widget = forms.Select(choices=year_choices, attrs={'class': 'form-select form-select-lg'})
         
         # Preenche ano corrente em novos formulários se não definido
@@ -440,7 +440,7 @@ class TermoCooperacaoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         current_year = datetime.datetime.now().year
-        year_choices = [(y, str(y)) for y in range(current_year + 5, 2009, -1)]
+        year_choices = [(y, str(y)) for y in range(current_year, 2009, -1)]
         self.fields['ano'].widget = forms.Select(choices=year_choices, attrs={'class': 'form-select'})
         
         # Preenche ano corrente em novos formulários se não definido
