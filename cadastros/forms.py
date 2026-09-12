@@ -145,6 +145,11 @@ class ConvenioForm(forms.ModelForm):
             ('CONVENIO', 'Convênio de PD&I'),
             ('ACORDO_PARCERIA', 'Acordo de Parceria para PD&I (Marco Legal CT&I)'),
         ]
+        
+        self.fields['concedente'].empty_label = "--- Selecione ---"
+        self.fields['convenente'].empty_label = "--- Selecione ---"
+        self.fields['interveniente'].empty_label = "--- Selecione ---"
+        self.fields['tipo_instrumento_fk'].empty_label = "--- Selecione ---"
         # Concedentes permitidos: ICT (não executora), EmpresaParceira, AgenciaFomento
         from django.db.models import Q
         executoras_ids = ICT.objects.filter(is_executora=True).values_list('pessoajuridica_ptr_id', flat=True)
@@ -449,6 +454,10 @@ class TermoCooperacaoForm(forms.ModelForm):
         # Preenche ano corrente em novos formulários se não definido
         if not self.instance.pk and 'ano' not in self.initial:
             self.initial['ano'] = current_year
+            
+        self.fields['concedente'].empty_label = "--- Selecione ---"
+        self.fields['convenente'].empty_label = "--- Selecione ---"
+        self.fields['tipo_instrumento_fk'].empty_label = "--- Selecione ---"
 
         # Auto-selecionar IFAM como convenente padrão em novos cadastros
         from .models import ICT, PessoaJuridica

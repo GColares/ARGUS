@@ -7,8 +7,9 @@ Todas as telas, templates HTML, estilos CSS e componentes de interface desenvolv
 Sempre que você criar, renomear ou excluir um aplicativo/módulo no projeto ARGUS, você deve obrigatoriamente editar a view `home_argus` localizada em `argus_core/views.py`. 
 O dicionário `modulos` dentro dessa view controla os painéis exibidos na tela principal (dashboard) do sistema. O novo módulo só ficará visível e acessível para o usuário final se for adicionado a essa lista.
 
-## Idioma
-Responda sempre em **Português do Brasil (pt-BR)**.
+## Idioma e Localização (pt-BR)
+Responda sempre em **Português do Brasil (pt-BR)**. 
+Além disso, **TODOS** os elementos de interface de usuário (UI), mensagens de erro, placeholders de formulários, opções padrão (ex: `empty_label` como "--- Selecione ---"), e bibliotecas frontend (ex: Select2, DataTables) devem ser estritamente gerados e configurados em **Português do Brasil**. É terminantemente proibido deixar textos "hardcoded" em inglês (ex: "Select an option", "Search", "Submit") no código-fonte.
 
 ## Telas de Listagem e Ações (CRUD Completo)
 Sempre que você criar, planejar ou modificar uma tela contendo uma **lista de registros** (DataTables ou tabelas padrão):
