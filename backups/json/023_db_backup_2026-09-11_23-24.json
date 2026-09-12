@@ -1,0 +1,357 @@
+[
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$4okWZb6OTnndbW2bAoXMdt$hZapR4xhqZBNgnV6UkeQ0TLdq1FHM17NjGBDyD42oIo=",
+    "last_login": "2026-09-11T20:48:06.851Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "admin@example.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-09-11T20:45:46.849Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "cadastros.pessoajuridica",
+  "pk": 1,
+  "fields": {
+    "nome": "Instituto Federal de Educação, Ciência e Tecnologia do Amazonas",
+    "natureza_juridica": "Autarquia Federal",
+    "cnpj": "10.792.928/0001-00",
+    "endereco": "Rua Ferreira Pena, 1109, Centro, Cidade: Manaus - AM CEP: 69025-010",
+    "representante_legal": "Jaime Cavalcante Alves",
+    "nacionalidade_representante": "Brasileira",
+    "estado_civil_representante": "Casado",
+    "cargo_representante": "Reitor",
+    "ato_nomeacao": "Decreto de 21 de junho de 2023, publicado em: 21/06/2023 | Edição: 116-A | Seção: 2 - Extra A | Página: 1"
+  }
+},
+{
+  "model": "cadastros.pessoajuridica",
+  "pk": 2,
+  "fields": {
+    "nome": "LC Indústria e Comercio de Frutas LTDA.",
+    "natureza_juridica": "Sociedade Empresária Limitada",
+    "cnpj": "60.369.979/0001-00",
+    "endereco": "Avenida Bom Jesus, no 888, Colônia Terra Nova, Manaus - AM, CEP: 69.015-300",
+    "representante_legal": "Letícia Castro Barreto",
+    "nacionalidade_representante": "Brasileira",
+    "estado_civil_representante": "Solteira",
+    "cargo_representante": "Representante",
+    "ato_nomeacao": ""
+  }
+},
+{
+  "model": "cadastros.pessoajuridica",
+  "pk": 3,
+  "fields": {
+    "nome": "Fundação de Apoio ao Ensino, Pesquisa, Extensão e Interiorização do IFAM",
+    "natureza_juridica": "Instituição de Direito Privado Sem Fins Lucrativos",
+    "cnpj": "04.623.300/0001-88",
+    "endereco": "Av. Borba, 144 - Cidade: Manaus-AM CEP: 69065-030",
+    "representante_legal": "Luana Marinho Monteiro",
+    "nacionalidade_representante": "Brasileira",
+    "estado_civil_representante": "Solteira",
+    "cargo_representante": "Diretora Executiva",
+    "ato_nomeacao": ""
+  }
+},
+{
+  "model": "cadastros.pessoajuridica",
+  "pk": 4,
+  "fields": {
+    "nome": "Empresa Brasileira de Pesquisa e Inovação Industrial",
+    "natureza_juridica": "Associação Civil de Direito Privado Sem Fins Lucrativos qualificada como Organização Social",
+    "cnpj": "18.234.613/0001-59",
+    "endereco": "Setor Bancário Norte, Quadra I, 14o Andar, Edifício Armando Monteiro Neto – Brasília/DF",
+    "representante_legal": "Alvaro Toubes Prata",
+    "nacionalidade_representante": null,
+    "estado_civil_representante": null,
+    "cargo_representante": "Diretor-Presidente",
+    "ato_nomeacao": null
+  }
+},
+{
+  "model": "cadastros.ict",
+  "pk": 1,
+  "fields": {
+    "sigla": "IFAM",
+    "campus_unidade": null,
+    "nome_nit": "Núcleo de Inovação Tecnológica",
+    "is_executora": true
+  }
+},
+{
+  "model": "cadastros.empresaparceira",
+  "pk": 2,
+  "fields": {
+    "nome_fantasia": "LC Frutas",
+    "porte": "MGE",
+    "segmento_atuacao": null
+  }
+},
+{
+  "model": "cadastros.fundacaoapoio",
+  "pk": 3,
+  "fields": {
+    "sigla": "FAEPI",
+    "registro_mec": null,
+    "validade_credenciamento": null
+  }
+},
+{
+  "model": "cadastros.agenciafomento",
+  "pk": 4,
+  "fields": {
+    "esfera": "PRIVADA",
+    "sigla": "EMBRAPII"
+  }
+},
+{
+  "model": "cadastros.historicaltipoinstrumentojuridico",
+  "pk": 1,
+  "fields": {
+    "id": 5,
+    "nome": "Convênio",
+    "sigla": "CV",
+    "fundamentacao_legal": null,
+    "descricao": "",
+    "exige_fundacao_apoio": false,
+    "ativo": true,
+    "history_date": "2026-09-11T21:35:37.469Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "cadastros.historicaltipoinstrumentojuridico",
+  "pk": 2,
+  "fields": {
+    "id": 5,
+    "nome": "Convênio",
+    "sigla": "CV",
+    "fundamentacao_legal": null,
+    "descricao": "",
+    "exige_fundacao_apoio": false,
+    "ativo": true,
+    "history_date": "2026-09-11T22:09:14.821Z",
+    "history_change_reason": null,
+    "history_type": "-",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.historicaltipoinstrumentojuridico",
+  "pk": 3,
+  "fields": {
+    "id": 1,
+    "nome": "Convênio",
+    "sigla": "CV",
+    "fundamentacao_legal": null,
+    "descricao": "Projetos legados executados antes da adoção de Acordos de Parceria.",
+    "exige_fundacao_apoio": false,
+    "ativo": true,
+    "history_date": "2026-09-11T22:09:14.826Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.historicaltipoinstrumentojuridico",
+  "pk": 4,
+  "fields": {
+    "id": 1,
+    "nome": "Convênio para PD&I",
+    "sigla": "CV",
+    "fundamentacao_legal": null,
+    "descricao": "Projetos legados executados antes da adoção de Acordos de Parceria.",
+    "exige_fundacao_apoio": false,
+    "ativo": true,
+    "history_date": "2026-09-11T22:16:50.114Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.historicaltipoinstrumentojuridico",
+  "pk": 5,
+  "fields": {
+    "id": 2,
+    "nome": "Acordo de Parceria para PD&I",
+    "sigla": "AP",
+    "fundamentacao_legal": null,
+    "descricao": "Novo modelo de parceria baseado no Marco Legal de CT&I.",
+    "exige_fundacao_apoio": false,
+    "ativo": true,
+    "history_date": "2026-09-11T22:16:50.163Z",
+    "history_change_reason": null,
+    "history_type": "~",
+    "history_user": null
+  }
+},
+{
+  "model": "cadastros.tipoinstrumentojuridico",
+  "pk": 1,
+  "fields": {
+    "nome": "Convênio para PD&I",
+    "sigla": "CV",
+    "fundamentacao_legal": null,
+    "descricao": "Projetos legados executados antes da adoção de Acordos de Parceria.",
+    "exige_fundacao_apoio": false,
+    "ativo": true
+  }
+},
+{
+  "model": "cadastros.tipoinstrumentojuridico",
+  "pk": 2,
+  "fields": {
+    "nome": "Acordo de Parceria para PD&I",
+    "sigla": "AP",
+    "fundamentacao_legal": null,
+    "descricao": "Novo modelo de parceria baseado no Marco Legal de CT&I.",
+    "exige_fundacao_apoio": false,
+    "ativo": true
+  }
+},
+{
+  "model": "cadastros.tipoinstrumentojuridico",
+  "pk": 3,
+  "fields": {
+    "nome": "Termo de Cooperação",
+    "sigla": "TC",
+    "fundamentacao_legal": null,
+    "descricao": "Termo guarda-chuva ou de cooperação mais amplo (Programa).",
+    "exige_fundacao_apoio": false,
+    "ativo": true
+  }
+},
+{
+  "model": "cadastros.tipoinstrumentojuridico",
+  "pk": 4,
+  "fields": {
+    "nome": "Protocolo de Intenções",
+    "sigla": "PI",
+    "fundamentacao_legal": null,
+    "descricao": "Manifestação de intenções sem obrigação financeira imediata.",
+    "exige_fundacao_apoio": false,
+    "ativo": true
+  }
+},
+{
+  "model": "cadastros.historicalplanodetrabalho",
+  "pk": 1,
+  "fields": {
+    "id": 1,
+    "status": "RASCUNHO",
+    "congelado": false,
+    "versao": 1,
+    "arquivo_pdf": "",
+    "motivacao": "",
+    "objetivo_geral": "",
+    "objetivos_especificos": "",
+    "escopo_geral": "",
+    "estrutura_analitica": "",
+    "tecnologias_utilizadas": "",
+    "vulnerabilidades": "",
+    "plano_riscos": "",
+    "estrategia": "",
+    "caracteristicas_inovadoras": "",
+    "resultados_esperados": "",
+    "desafios_tecnologicos": "",
+    "solucao_proposta": "",
+    "orcamento_descricao": "",
+    "data_inicio": null,
+    "data_fim": null,
+    "total_meses": 1,
+    "valor_global": "0.00",
+    "aporte_empresa": "0.00",
+    "aporte_embrapii": "0.00",
+    "aporte_sebrae": "0.00",
+    "aporte_contrapartida": "0.00",
+    "ativo": true,
+    "data_criacao": "2026-09-11T20:48:38.849Z",
+    "projeto": 1,
+    "termo_homologador": null,
+    "history_date": "2026-09-11T20:48:38.853Z",
+    "history_change_reason": null,
+    "history_type": "+",
+    "history_user": 1
+  }
+},
+{
+  "model": "cadastros.planodetrabalho",
+  "pk": 1,
+  "fields": {
+    "projeto": 1,
+    "termo_homologador": null,
+    "status": "RASCUNHO",
+    "congelado": false,
+    "versao": 1,
+    "arquivo_pdf": "",
+    "motivacao": "",
+    "objetivo_geral": "",
+    "objetivos_especificos": "",
+    "escopo_geral": "",
+    "estrutura_analitica": "",
+    "tecnologias_utilizadas": "",
+    "vulnerabilidades": "",
+    "plano_riscos": "",
+    "estrategia": "",
+    "caracteristicas_inovadoras": "",
+    "resultados_esperados": "",
+    "desafios_tecnologicos": "",
+    "solucao_proposta": "",
+    "orcamento_descricao": "",
+    "data_inicio": null,
+    "data_fim": null,
+    "total_meses": 1,
+    "valor_global": "0.00",
+    "aporte_empresa": "0.00",
+    "aporte_embrapii": "0.00",
+    "aporte_sebrae": "0.00",
+    "aporte_contrapartida": "0.00",
+    "ativo": true,
+    "data_criacao": "2026-09-11T20:48:38.849Z",
+    "indicadores": []
+  }
+},
+{
+  "model": "cadastros.projetopdi",
+  "pk": 1,
+  "fields": {
+    "fase": "PROSPECCAO",
+    "projeto": "Bio Caroço",
+    "nome": "[Bio Caroço] - Desenvolvimento de um Sistema de Gestão Inteligente de Coletas",
+    "concedente": null,
+    "convenente": null,
+    "interveniente": null,
+    "programa": null,
+    "processo": null,
+    "local_execucao": "Polo de Inovação Manaus",
+    "coordenador": null,
+    "termo_de_convenio": "",
+    "vigencia_inicio": null,
+    "vigencia_fim": null,
+    "vigencia_meses": 1,
+    "data_cadastro": "2026-09-11T20:48:38.844Z"
+  }
+},
+{
+  "model": "almoxarifado.cotadiariaia",
+  "pk": 1,
+  "fields": {
+    "data": "2026-09-11",
+    "requisicoes_feitas": 0,
+    "limite_diario": 100
+  }
+}
+]

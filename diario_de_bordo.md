@@ -1,5 +1,43 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-11] Sprint 2: Decomposição do Número do Instrumento Jurídico (Número + Ano com Unicidade), Governança de Concedentes, Localização pt-BR e Protótipo de Login Institucional Google
+
+### 1. Entregas Técnicas e Conformidade Regulatória (CT&I / Marco Legal):
+- **Decomposição Rigorosa do Número do Instrumento Jurídico (`numero` + `ano`):**
+  * Refatoração do modelo `InstrumentoJuridicoBase` (Migração 0005) dividindo o campo textual único em dois campos numéricos inteiros obrigatórios: `numero = PositiveIntegerField` e `ano = PositiveIntegerField`.
+  * Implementação da restrição de unicidade composta a nível de banco de dados: `unique_together = ('tipo_instrumento_fk', 'numero', 'ano')`, garantindo integridade e impossibilitando duplicidade de numeração no mesmo ano para o mesmo instrumento.
+  * Implementação da propriedade formatada `@property def numero_formatado(self): return f"{self.numero}/{self.ano}"` e atualização do `__str__` do modelo.
+- **Inteligência Temporal e Restrição Retroativa no Select de Ano:**
+  * Substituição da entrada de texto/numérica livre por um `Select` com Select2, auto-preenchido dinamicamente com o ano corrente (`datetime.now().year`).
+  * Restrição rígida de anos futuros: a lista de opções exibe estritamente o ano atual e retrocede até 2010 em ordem decrescente, impedindo registros com anos futuros não iniciados.
+- **Governança de Papéis na Concessão de Parcerias (`concedente`):**
+  * Restrição estrita da QuerySet de `concedente` nos formulários de Convênio, Acordo de Parceria e Termo de Cooperação.
+  * O seletor agora filtra exclusivamente as subclasses da Hélice Tríplice autorizadas a aportar recursos: `EmpresaParceira`, `AgenciaFomento` e `ICT` (excluindo a ICT Executora/IFAM), banindo expressamente `FundacaoApoio` (ex: FAEPI) do papel de concedente.
+- **Institucionalização da Regra Universal de Idioma e Localização (pt-BR):**
+  * Atualização do arquivo normativo `.agents/AGENTS.md` com a obrigatoriedade estrita de que todos os elementos de UI, formulários, placeholders, empty labels e mensagens sejam em Português do Brasil.
+  * Correção e padronização de `empty_label = "--- Selecione ---"` em todos os dropdowns de chaves estrangeiras.
+- **Arquitetura e Protótipo de Login Institucional Google Workspace (OAuth 2.0 / IdP):**
+  * Análise Crítica (Red Team) da autenticação unificada Google para `@ifam.edu.br` e bolsistas `@gmail.com` homologados nos editais (Edital FAEPI nº 072/2026 - Bio Caroço).
+  * Criação do protótipo canônico com Padrão-Ouro do ARGUS em `templates/autenticacao/login-google.html` e `login_google.html`, com simulador interativo de cenários (Aprovado, Não Homologado e Bolsa Expirada) e rota de teste `/login-google/`.
+
+---
+
+### 2. Lista Ostensiva e Específica de Alterações nos Templates HTML:
+1. **`templates/autenticacao/login-google.html` e `templates/autenticacao/login_google.html` [NOVOS]:**
+   - Estrutura completa de login institucional com padrão Glassmorphism, gradientes e backdrop blur.
+   - Botão de ação primária Google seguindo diretrizes oficiais de identidade visual com SVG vetorial da Google.
+   - Badges institucionais de conformidade (Polo de Inovação IFAM, FAEPI, EMBRAPII, SEBRAE).
+   - Acordeom colapsável (`#loginLocalCollapse`) para contingência e acesso administrativo local com usuário/senha.
+   - Modal de simulação (`#modalGoogleMock`) e painel de testes interativos com 3 cenários de segurança e validação de vínculo (Aprovado, Não Homologado e Bolsa Expirada).
+2. **`cadastros/templates/cadastros/convenio_form.html` [MODIFICADO]:**
+   - Decomposição da linha de número em duas colunas `col-md-3`: `{{ form.numero }}` (Número sequencial) e `{{ form.ano }}` (Select inteligente).
+   - Tradução e padronização dos labels de identificação.
+3. **`cadastros/templates/cadastros/termocooperacao_form.html` [MODIFICADO]:**
+   - Remoção dos campos legados `numero_sequencial` e `ano_termo`.
+   - Inserção e amarração direta dos campos canônicos `{{ form.numero }}` e `{{ form.ano }}` vinculados ao modelo base.
+
+---
+
 ## [2026-09-10] Sprint 2: Gestão Centralizada de Instrumentos Jurídicos, Termos Aditivos com Upload de PDF Assinado e Padronização Canônica de Vigência
 
 ### 1. Entregas Técnicas e Conformidade Regulatória (CT&I / Marco Legal):
