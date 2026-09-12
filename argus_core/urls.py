@@ -5,6 +5,7 @@ from django.urls import path, include
 from . import views
 # pyrefly: ignore [untyped-import]
 from django.contrib.auth import views as auth_views
+from django.views.generic import TemplateView
 # pyrefly: ignore [untyped-import]
 from django.conf import settings
 # pyrefly: ignore [untyped-import]
@@ -24,6 +25,8 @@ urlpatterns = [
         template_name='autenticacao/login.html',
         redirect_authenticated_user=True # Impede que quem já está logado veja a tela de login
     ), name='login'),
+    
+    path('login-google/', TemplateView.as_view(template_name='autenticacao/login-google.html'), name='login_google_prototype'),
     
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     

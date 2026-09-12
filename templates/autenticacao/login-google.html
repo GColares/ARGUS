@@ -1,0 +1,331 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Institucional - ARGUS | Polo de Inovação IFAM</title>
+
+    <!-- Bootstrap 5.3 & Design System ARGUS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/argus-design-system.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+
+    <!-- Tipografia Institucional (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background:
+                radial-gradient(circle at 10% 15%, rgba(var(--bs-success-rgb), 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 90% 85%, rgba(var(--bs-primary-rgb), 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(var(--bs-info-rgb), 0.05) 0%, transparent 60%),
+                #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(var(--bs-success-rgb), 0.25);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 1.25rem 3.5rem rgba(var(--bs-dark-rgb), 0.08);
+            border-top: 5px solid var(--bs-success);
+            border-radius: 1.25rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-google {
+            background-color: #ffffff;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+        }
+
+        .btn-google:hover {
+            background-color: #f8fafd;
+            border-color: #c2e7ff;
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.15);
+            color: #1f1f1f;
+            transform: translateY(-1px);
+        }
+
+        .btn-google:active {
+            background-color: #f1f3f4;
+            transform: translateY(0);
+        }
+
+        .domain-pill {
+            background: rgba(var(--bs-success-rgb), 0.1);
+            color: var(--bs-success);
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(var(--bs-success-rgb), 0.2);
+        }
+
+        .divider-label {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--bs-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 1.5rem 0;
+        }
+
+        .divider-label::before,
+        .divider-label::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(var(--bs-secondary-rgb), 0.25);
+        }
+
+        .divider-label:not(:empty)::before {
+            margin-right: .75em;
+        }
+
+        .divider-label:not(:empty)::after {
+            margin-left: .75em;
+        }
+    </style>
+</head>
+<body>
+
+<main class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
+
+            <!-- Card Principal de Acesso -->
+            <div class="card login-card p-4 p-md-5">
+
+                <!-- Cabeçalho com Identidade Visual -->
+                <header class="text-center mb-4">
+                    <img src="{% static 'img/ARGUS1-LOGO-editado.png' %}" alt="Logo ARGUS" height="65" class="mb-3 object-fit-contain">
+                    <h1 class="h4 fw-bold text-dark mb-1">Sistema ARGUS</h1>
+                    <p class="text-muted small mb-2">Polo de Inovação IFAM</p>
+                    <div class="d-flex justify-content-center align-items-center gap-1">
+                        <span class="domain-pill">
+                            <i class="fas fa-shield-alt me-1"></i> Acesso Seguro
+                        </span>
+                    </div>
+                </header>
+
+                <!-- Mensagens de Alerta (Feedback de Validação) -->
+                <div id="feedback-container">
+                    <div class="alert alert-info py-2 px-3 small rounded-3 border-0 d-flex align-items-center gap-2 mb-4" style="background-color: rgba(var(--bs-info-rgb), 0.12); color: var(--bs-info);">
+                        <i class="fas fa-info-circle fa-lg flex-shrink-0"></i>
+                        <span>Autenticação unificada via ecossistema Google institucional.</span>
+                    </div>
+                </div>
+
+                <!-- Botão de Ação Primária: Login Google -->
+                <div class="d-grid mb-3">
+                    <button type="button" class="btn btn-google shadow-sm" id="btn-login-google" onclick="simularAutenticacaoGoogle()">
+                        <!-- Google G SVG Icon Oficial -->
+                        <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                        </svg>
+                        <span>Entrar com a Conta Google</span>
+                    </button>
+                </div>
+
+                <div class="text-center mb-3">
+                    <small class="text-muted" style="font-size: 0.8rem;">
+                        Utilize seu e-mail funcional <strong>@ifam.edu.br</strong> ou o <strong>@gmail.com</strong> homologado pelo RH na Ficha da FAEPI.
+                    </small>
+                </div>
+
+                <!-- Divisor Sutil -->
+                <div class="divider-label">Ou acesso por credencial</div>
+
+                <!-- Acesso Alternativo (Colapsável para Administração/Contingência) -->
+                <div class="text-center mb-2">
+                    <button class="btn btn-link btn-sm text-decoration-none text-muted fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#loginLocalCollapse" aria-expanded="false">
+                        <i class="fas fa-key me-1"></i> Entrar com usuário e senha local
+                    </button>
+                </div>
+
+                <div class="collapse" id="loginLocalCollapse">
+                    <div class="p-3 bg-light rounded-3 border mt-2">
+                        <form method="POST" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <div class="mb-3 text-start">
+                                <label for="id_username" class="form-label text-muted small fw-bold">Usuário / SIAPE</label>
+                                <input type="text" name="username" id="id_username" class="form-control form-control-sm" placeholder="Digite seu usuário" required>
+                            </div>
+                            <div class="mb-3 text-start">
+                                <label for="id_password" class="form-label text-muted small fw-bold">Senha</label>
+                                <input type="password" name="password" id="id_password" class="form-control form-control-sm" placeholder="••••••••" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-secondary btn-sm fw-bold">
+                                    <i class="fas fa-sign-in-alt me-1"></i> Acessar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Rodapé Informativo e Conformidade FAEPI / IFAM -->
+                <footer class="text-center mt-4 pt-3 border-top">
+                    <div class="d-flex justify-content-center align-items-center gap-2 mb-2">
+                        <span class="badge bg-light text-secondary border">FAEPI</span>
+                        <span class="badge bg-light text-secondary border">EMBRAPII</span>
+                        <span class="badge bg-light text-secondary border">SEBRAE</span>
+                    </div>
+                    <small class="text-muted d-block" style="font-size: 0.72rem;">
+                        Acesso exclusivo para servidores, colaboradores e bolsistas com termos vigentes no Polo de Inovação.
+                    </small>
+                </footer>
+            </div>
+
+            <!-- Painel Demonstrativo de Cenários (Apenas para o Protótipo) -->
+            <div class="card mt-3 p-3 bg-white border-0 shadow-sm rounded-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small fw-bold text-muted"><i class="fas fa-flask me-1 text-warning"></i> Simulação de Cenários (Protótipo)</span>
+                    <span class="badge bg-secondary-subtle text-secondary small">RH & Segurança</span>
+                </div>
+                <div class="btn-group btn-group-sm w-100" role="group">
+                    <button type="button" class="btn btn-outline-success" onclick="testarCenario('sucesso')">
+                        1. Aprovado (IFAM/Bolsa)
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="testarCenario('nao_cadastrado')">
+                        2. Não Homologado
+                    </button>
+                    <button type="button" class="btn btn-outline-warning" onclick="testarCenario('expirado')">
+                        3. Bolsa Expirada
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- Modal de Simulação da Conta Google -->
+<div class="modal fade" id="modalGoogleMock" tabindex="-1" aria-labelledby="modalGoogleMockLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom-0 pb-0 justify-content-center">
+                <svg width="28" height="28" viewBox="0 0 24 24" class="mb-2">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                </svg>
+            </div>
+            <div class="modal-body text-center pt-1 px-4">
+                <h6 class="fw-bold text-dark mb-1">Fazer login com o Google</h6>
+                <p class="text-muted small mb-3">Escolha uma conta para continuar para o <strong>ARGUS</strong></p>
+                
+                <div class="list-group list-group-flush text-start border-top border-bottom mb-3">
+                    <button type="button" class="list-group-item list-group-item-action py-2 px-1 d-flex align-items-center gap-2" onclick="selecionarConta('wenndisson.souza@ifam.edu.br', 'Wenndisson da Silva Souza (Professor EBTT)', 'sucesso')">
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.85rem;">W</div>
+                        <div class="overflow-hidden">
+                            <div class="fw-semibold text-truncate small">Wenndisson Souza</div>
+                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">wenndisson.souza@ifam.edu.br</div>
+                        </div>
+                    </button>
+                    <button type="button" class="list-group-item list-group-item-action py-2 px-1 d-flex align-items-center gap-2" onclick="selecionarConta('bolsista.biocaroco@gmail.com', 'Aluno Bolsista Graduação (Bio Caroço)', 'sucesso')">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.85rem;">B</div>
+                        <div class="overflow-hidden">
+                            <div class="fw-semibold text-truncate small">Bolsista Bio Caroço</div>
+                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">bolsista.biocaroco@gmail.com</div>
+                        </div>
+                    </button>
+                    <button type="button" class="list-group-item list-group-item-action py-2 px-1 d-flex align-items-center gap-2" onclick="selecionarConta('desconhecido@gmail.com', 'Cidadão Não Homologado', 'nao_cadastrado')">
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.85rem;">?</div>
+                        <div class="overflow-hidden">
+                            <div class="fw-semibold text-truncate small">Conta Não Homologada</div>
+                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">desconhecido@gmail.com</div>
+                        </div>
+                    </button>
+                </div>
+                <button type="button" class="btn btn-light btn-sm w-100 text-muted" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function simularAutenticacaoGoogle() {
+        const modal = new bootstrap.Modal(document.getElementById('modalGoogleMock'));
+        modal.show();
+    }
+
+    function selecionarConta(email, nome, cenario) {
+        const modalEl = document.getElementById('modalGoogleMock');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        testarCenario(cenario, email, nome);
+    }
+
+    function testarCenario(tipo, emailParam, nomeParam) {
+        const container = document.getElementById('feedback-container');
+
+        if (tipo === 'sucesso') {
+            const email = emailParam || 'wenndisson.souza@ifam.edu.br';
+            const nome = nomeParam || 'Wenndisson da Silva Souza';
+            container.innerHTML = `
+                <div class="alert alert-success py-2 px-3 small rounded-3 border-0 d-flex align-items-center gap-2 mb-4 animate__animated animate__fadeIn">
+                    <i class="fas fa-check-circle fa-lg text-success flex-shrink-0"></i>
+                    <div>
+                        <strong>Autenticado com sucesso!</strong><br>
+                        Identidade: ${nome}<br>
+                        <span class="text-muted" style="font-size: 0.75rem;">${email} &bull; Redirecionando para o painel...</span>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => {
+                window.location.href = "{% url 'home_argus' %}";
+            }, 1800);
+        } else if (tipo === 'nao_cadastrado') {
+            const email = emailParam || 'candidato.externo@gmail.com';
+            container.innerHTML = `
+                <div class="alert alert-danger py-2 px-3 small rounded-3 border-0 d-flex align-items-start gap-2 mb-4 animate__animated animate__shakeX">
+                    <i class="fas fa-times-circle fa-lg text-danger mt-1 flex-shrink-0"></i>
+                    <div>
+                        <strong>Acesso Não Homologado</strong><br>
+                        A conta <code>${email}</code> foi confirmada pelo Google, mas <strong>não consta na base de bolsistas ou servidores homologados pelo RH</strong>.<br>
+                        <small class="d-block mt-1 text-muted">Caso tenha sido selecionado em edital recente, verifique se está utilizando o mesmo e-mail informado na Ficha Cadastral da FAEPI.</small>
+                    </div>
+                </div>
+            `;
+        } else if (tipo === 'expirado') {
+            container.innerHTML = `
+                <div class="alert alert-warning py-2 px-3 small rounded-3 border-0 d-flex align-items-start gap-2 mb-4 animate__animated animate__fadeIn">
+                    <i class="fas fa-exclamation-triangle fa-lg text-warning mt-1 flex-shrink-0"></i>
+                    <div>
+                        <strong>Vínculo de Bolsa Expirado</strong><br>
+                        Sua cota no projeto foi finalizada em <strong>02/06/2026</strong>. Para prorrogações de vigência ou emissão de declarações de encerramento, contate a coordenação do projeto ou o RH do Polo.
+                    </div>
+                </div>
+            `;
+        }
+    }
+</script>
+
+</body>
+</html>
