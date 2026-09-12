@@ -56,7 +56,7 @@ def home_argus(request):
             'nome': 'Recursos Humanos', 
             'url': 'recursos_humanos:home_rh', 
             'icone': 'fa-users-cog', 
-            'cor': 'success',
+            'cor': 'purple',
             'descricao': 'Gestão de Bolsistas, Termos FAEPI, Servidores e Folha de Bolsas de PD&I.'
         },
     ]
