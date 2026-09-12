@@ -1,0 +1,577 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Recursos Humanos - ARGUS | Polo de Inovação IFAM{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rh-kpi-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(var(--bs-dark-rgb), 0.08);
+        border-radius: 1rem;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.04);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .rh-kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
+    }
+    .kpi-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
+    .nav-tabs-custom .nav-link {
+        color: var(--bs-secondary);
+        font-weight: 600;
+        border: none;
+        border-bottom: 3px solid transparent;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0;
+        transition: all 0.2s ease;
+    }
+    .nav-tabs-custom .nav-link:hover {
+        color: var(--bs-primary);
+        border-bottom-color: rgba(var(--bs-primary-rgb), 0.3);
+    }
+    .nav-tabs-custom .nav-link.active {
+        color: var(--bs-primary);
+        background: transparent;
+        border-bottom-color: var(--bs-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+
+    <!-- 1. Breadcrumbs Semânticos -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{% url 'home_geral' %}" class="text-decoration-none">Início</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Recursos Humanos</li>
+        </ol>
+    </nav>
+
+    <!-- 2. Link Voltar Inteligente -->
+    <a href="javascript:history.back()" class="text-muted small fw-bold mb-3 d-inline-block text-decoration-none">
+        <i class="fas fa-arrow-left me-1"></i> Voltar
+    </a>
+
+    <!-- 3. Cabeçalho da Página (Título, Badges e Ações Globais) -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 fw-bold text-dark mb-0">Gestão de Recursos Humanos</h1>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                    {{ total_pessoas }} Pessoas
+                </span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">
+                Gestão de capital humano em PD&I, termos de concessão de bolsas FAEPI, conformidade de servidores e atestação mensal.
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <!-- Botão Revelar Gaveta de Filtros -->
+            <button class="btn btn-outline-secondary btn-sm fw-semibold shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#gavetaFiltros" aria-expanded="false">
+                <i class="fas fa-filter me-1"></i> Filtros Avançados
+            </button>
+            <!-- Ação Primária: Novo Cadastro de Pessoa Física -->
+            <a href="{% url 'cadastros:cadastrar_pessoa_fisica' %}" class="btn btn-primary btn-sm fw-bold shadow-sm">
+                <i class="fas fa-user-plus me-1"></i> Nova Pessoa Física
+            </a>
+        </div>
+    </div>
+
+    <!-- 4. Gaveta de Filtros Avançados (Padrão Almoxarifado / GET) -->
+    <div class="collapse {% if busca or status_filtro or projeto_filtro %}show{% endif %} mb-4" id="gavetaFiltros">
+        <div class="card card-body bg-light border-0 shadow-sm rounded-3">
+            <form method="GET" action="{% url 'recursos_humanos:home_rh' %}" class="row g-3 align-items-end">
+                <input type="hidden" name="tab" value="{{ aba_ativa }}">
+
+                <div class="col-md-5">
+                    <label for="id_q" class="form-label small fw-bold text-muted">Buscar por Nome, CPF ou E-mail</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                        <input type="text" name="q" id="id_q" value="{{ busca }}" class="form-control border-start-0" placeholder="Digite para pesquisar...">
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="id_status" class="form-label small fw-bold text-muted">Status do Termo de Bolsa</label>
+                    <select name="status" id="id_status" class="form-select form-select-sm">
+                        <option value="">--- Todos os Status ---</option>
+                        <option value="ATIVO" {% if status_filtro == 'ATIVO' %}selected{% endif %}>Ativo</option>
+                        <option value="ENCERRADO" {% if status_filtro == 'ENCERRADO' %}selected{% endif %}>Encerrado</option>
+                        <option value="SUBSTITUIDO" {% if status_filtro == 'SUBSTITUIDO' %}selected{% endif %}>Substituído</option>
+                        <option value="CANCELADO" {% if status_filtro == 'CANCELADO' %}selected{% endif %}>Cancelado</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="id_projeto" class="form-label small fw-bold text-muted">Filtrar por Projeto</label>
+                    <select name="projeto" id="id_projeto" class="form-select form-select-sm">
+                        <option value="">--- Todos os Projetos ---</option>
+                        {% for proj in projetos %}
+                            <option value="{{ proj.id }}" {% if projeto_filtro == proj.id|stringformat:"i" %}selected{% endif %}>
+                                {{ proj.nome|truncatechars:35 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-1 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold" title="Aplicar Filtros">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    {% if busca or status_filtro or projeto_filtro %}
+                        <a href="{% url 'recursos_humanos:home_rh' %}?tab={{ aba_ativa }}" class="btn btn-outline-secondary btn-sm" title="Limpar Filtros">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. Cards de Indicadores Estratégicos (KPIs com Glassmorphism) -->
+    <div class="row g-3 mb-4">
+        <!-- KPI 1: Total de Pessoas Cadastradas -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card rh-kpi-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase">Pessoas Físicas</span>
+                        <h3 class="h2 fw-bold text-dark mb-0 mt-1">{{ total_pessoas }}</h3>
+                        <small class="text-muted">Base de identidades civis</small>
+                    </div>
+                    <div class="kpi-icon-wrapper" style="background-color: rgba(var(--bs-primary-rgb), 0.12); color: var(--bs-primary);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 2: Bolsistas Ativos no Mês -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card rh-kpi-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase">Bolsistas Vigentes</span>
+                        <h3 class="h2 fw-bold text-success mb-0 mt-1">{{ total_bolsistas_ativos }}</h3>
+                        <small class="text-muted">Termos FAEPI em execução</small>
+                    </div>
+                    <div class="kpi-icon-wrapper" style="background-color: rgba(var(--bs-success-rgb), 0.12); color: var(--bs-success);">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 3: Servidores IFAM em PD&I -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card rh-kpi-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase">Servidores IFAM</span>
+                        <h3 class="h2 fw-bold text-info mb-0 mt-1">{{ total_servidores_ifam }}</h3>
+                        <small class="text-muted">Docentes e Técnicos SIAPE</small>
+                    </div>
+                    <div class="kpi-icon-wrapper" style="background-color: rgba(var(--bs-info-rgb), 0.12); color: var(--bs-info);">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 4: Folha Mensal Comprometida -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card rh-kpi-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small fw-bold text-uppercase">Folha Mensal (Bolsas)</span>
+                        <h3 class="h2 fw-bold text-warning mb-0 mt-1">R$ {{ folha_mensal_soma|intcomma }}</h3>
+                        <small class="text-muted">Comprometimento corrente</small>
+                    </div>
+                    <div class="kpi-icon-wrapper" style="background-color: rgba(var(--bs-warning-rgb), 0.12); color: var(--bs-warning);">
+                        <i class="fas fa-money-check-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Abas Operacionais do RH (Padrão Almoxarifado) -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+        <div class="card-header bg-white border-bottom px-4 pt-3 pb-0">
+            <ul class="nav nav-tabs nav-tabs-custom border-bottom-0" id="rhTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if aba_ativa == 'pessoas' %}active{% endif %}" id="pessoas-tab" data-bs-toggle="tab" data-bs-target="#pessoas" type="button" role="tab" aria-controls="pessoas" aria-selected="true">
+                        <i class="fas fa-id-card me-2"></i> Dossiê de Pessoas Físicas
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1">{{ pessoas|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if aba_ativa == 'bolsistas' %}active{% endif %}" id="bolsistas-tab" data-bs-toggle="tab" data-bs-target="#bolsistas" type="button" role="tab" aria-controls="bolsistas" aria-selected="false">
+                        <i class="fas fa-file-contract me-2"></i> Bolsistas & Termos FAEPI
+                        <span class="badge bg-success-subtle text-success rounded-pill ms-1">{{ termos_bolsa|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if aba_ativa == 'conformidade' %}active{% endif %}" id="conformidade-tab" data-bs-toggle="tab" data-bs-target="#conformidade" type="button" role="tab" aria-controls="conformidade" aria-selected="false">
+                        <i class="fas fa-balance-scale me-2"></i> Conformidade Regulatória (IFAM)
+                        <span class="badge bg-info-subtle text-info rounded-pill ms-1">{{ servidores|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if aba_ativa == 'folha' %}active{% endif %}" id="folha-tab" data-bs-toggle="tab" data-bs-target="#folha" type="button" role="tab" aria-controls="folha" aria-selected="false">
+                        <i class="fas fa-calendar-check me-2"></i> Folha Mensal & Atesto
+                        <span class="badge bg-warning-subtle text-warning rounded-pill ms-1">{{ parcelas_mes|length }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="tab-content" id="rhTabsContent">
+
+                <!-- ============================================================== -->
+                <!-- ABA 1: Dossiê de Pessoas Físicas                                -->
+                <!-- ============================================================== -->
+                <div class="tab-pane fade {% if aba_ativa == 'pessoas' %}show active{% endif %}" id="pessoas" role="tabpanel" aria-labelledby="pessoas-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center py-3" style="width: 140px;">CPF</th>
+                                    <th class="py-3">Nome Completo</th>
+                                    <th class="text-center py-3">Papel no Polo</th>
+                                    <th class="py-3">E-mail Institucional / Google</th>
+                                    <th class="text-center py-3">Dados Bancários</th>
+                                    <th class="text-center py-3" style="width: 160px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in pessoas %}
+                                    <tr>
+                                        <td class="text-center font-monospace small text-muted">{{ p.cpf }}</td>
+                                        <td>
+                                            <div class="fw-bold text-dark">{{ p.nome }}</div>
+                                            {% if p.user %}
+                                                <small class="text-success"><i class="fab fa-google me-1"></i> Acesso Google Ativo</small>
+                                            {% else %}
+                                                <small class="text-muted"><i class="fas fa-user-clock me-1"></i> Sem login associado</small>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if p.perfil_servidor %}
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                                    <i class="fas fa-chalkboard-teacher me-1"></i> Servidor (SIAPE: {{ p.perfil_servidor.siape }})
+                                                </span>
+                                            {% elif p.perfil_aluno %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                                    <i class="fas fa-graduation-cap me-1"></i> Aluno ({{ p.perfil_aluno.matricula }})
+                                                </span>
+                                            {% elif p.perfil_colaborador_externo %}
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                                                    <i class="fas fa-briefcase me-1"></i> Colaborador Externo
+                                                </span>
+                                            {% elif p.perfil_terceirizado %}
+                                                <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">
+                                                    <i class="fas fa-id-badge me-1"></i> Terceirizado
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-light text-muted border px-2 py-1">Sem Papel</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="small">{{ p.email|default:"Não informado" }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if p.dados_bancarios.exists %}
+                                                <span class="badge bg-success-subtle text-success small" title="Conta bancária cadastrada">
+                                                    <i class="fas fa-check-circle me-1"></i> Cadastrado
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning-subtle text-warning small" title="Pendente de inclusão de conta">
+                                                    <i class="fas fa-exclamation-circle me-1"></i> Pendente
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'cadastros:visualizar_pessoa_fisica' p.pk %}" class="btn btn-outline-secondary" title="Visualizar Dossiê">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'cadastros:editar_pessoa_fisica' p.pk %}" class="btn btn-outline-primary" title="Editar Cadastro">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'cadastros:excluir_pessoa_fisica' p.pk %}" class="btn btn-outline-danger" title="Excluir">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            <i class="fas fa-search me-1"></i> Nenhuma pessoa física encontrada com os filtros informados.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ============================================================== -->
+                <!-- ABA 2: Bolsistas & Termos de Concessão (FAEPI/Editais)          -->
+                <!-- ============================================================== -->
+                <div class="tab-pane fade {% if aba_ativa == 'bolsistas' %}show active{% endif %}" id="bolsistas" role="tabpanel" aria-labelledby="bolsistas-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center py-3" style="width: 140px;">Nº do Termo</th>
+                                    <th class="py-3">Beneficiário (Bolsista)</th>
+                                    <th class="py-3">Projeto / Edital Vinculado</th>
+                                    <th class="text-center py-3">Carga Horária</th>
+                                    <th class="text-center py-3">Período de Vigência</th>
+                                    <th class="text-end py-3">Valor da Parcela</th>
+                                    <th class="text-center py-3">Status</th>
+                                    <th class="text-center py-3" style="width: 120px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for termo in termos_bolsa %}
+                                    <tr>
+                                        <td class="text-center font-monospace fw-bold text-dark">
+                                            {{ termo.numero_termo }}
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark">{{ termo.pessoa.nome }}</div>
+                                            <small class="text-muted font-monospace">{{ termo.pessoa.cpf }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="small fw-semibold text-primary">
+                                                {{ termo.cota_pt.projeto.nome|truncatechars:45 }}
+                                            </div>
+                                            <small class="text-muted">Cota: {{ termo.cota_pt.modalidade }}</small>
+                                        </td>
+                                        <td class="text-center small">
+                                            {{ termo.carga_horaria_semanal }}h / semana
+                                        </td>
+                                        <td class="text-center small">
+                                            <span class="d-block fw-semibold">{{ termo.vigencia_inicio|date:"d/m/Y" }} a {{ termo.vigencia_fim|date:"d/m/Y" }}</span>
+                                            <span class="badge bg-light text-secondary border font-monospace" style="font-size: 0.7rem;">
+                                                {{ termo.quantidade_parcelas }} parcelas
+                                            </span>
+                                        </td>
+                                        <td class="text-end fw-bold text-dark font-monospace">
+                                            R$ {{ termo.valor_parcela|intcomma }}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if termo.status == 'ATIVO' %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Ativo</span>
+                                            {% elif termo.status == 'ENCERRADO' %}
+                                                <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Encerrado</span>
+                                            {% elif termo.status == 'SUBSTITUIDO' %}
+                                                <span class="badge bg-warning-subtle text-warning border px-2 py-1">Substituído</span>
+                                            {% else %}
+                                                <span class="badge bg-danger-subtle text-danger px-2 py-1">{{ termo.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'cadastros:visualizar_cota' termo.cota_pt.id %}" class="btn btn-outline-secondary btn-sm" title="Visualizar Cota do Projeto">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4 text-muted">
+                                            <i class="fas fa-search me-1"></i> Nenhum termo de bolsa registrado com os critérios informados.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ============================================================== -->
+                <!-- ABA 3: Conformidade Regulatória (Resolução nº 015/2023)        -->
+                <!-- ============================================================== -->
+                <div class="tab-pane fade {% if aba_ativa == 'conformidade' %}show active{% endif %}" id="conformidade" role="tabpanel" aria-labelledby="conformidade-tab">
+                    <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
+                        <div class="small text-muted">
+                            <i class="fas fa-info-circle text-primary me-1"></i> Monitoramento automático de cargos em comissão (CD-01 a CD-04) e restrições de acúmulo de bolsas no âmbito do IFAM.
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center py-3" style="width: 120px;">SIAPE</th>
+                                    <th class="py-3">Servidor</th>
+                                    <th class="py-3">Cargo Efetivo & Lotação</th>
+                                    <th class="text-center py-3">Cargo Comissionado</th>
+                                    <th class="text-center py-3">Projetos com Bolsa</th>
+                                    <th class="text-center py-3" style="width: 170px;">Conformidade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in servidores %}
+                                    <tr>
+                                        <td class="text-center font-monospace small fw-bold">{{ s.siape }}</td>
+                                        <td>
+                                            <div class="fw-bold text-dark">{{ s.pessoa.nome }}</div>
+                                            <small class="text-muted">{{ s.pessoa.email|default:"Sem e-mail" }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="small fw-semibold">{{ s.cargo }}</div>
+                                            <small class="text-muted">{{ s.lotacao }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if s.cargo_direcao == 'CD1' %}
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-bold">
+                                                    CD-01 (Direção Geral)
+                                                </span>
+                                            {% elif s.cargo_direcao in 'CD2,CD3,CD4' %}
+                                                <span class="badge bg-warning-subtle text-warning border px-2 py-1">
+                                                    {{ s.get_cargo_direcao_display }}
+                                                </span>
+                                            {% elif s.cargo_direcao == 'FG' %}
+                                                <span class="badge bg-info-subtle text-info px-2 py-1">Função Gratificada</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-muted border px-2 py-1">Nenhum</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary-subtle text-dark font-monospace px-2 py-1">
+                                                {{ s.pessoa.termos_bolsa.count }} Projeto(s)
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if s.cargo_direcao == 'CD1' and s.pessoa.termos_bolsa.exists %}
+                                                <span class="badge bg-danger text-white px-2 py-1" title="Vedação expressa pela Resolução 015/2023">
+                                                    <i class="fas fa-ban me-1"></i> Irregular (CD-01)
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                                    <i class="fas fa-check me-1"></i> Regular
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            Nenhum servidor IFAM cadastrado no módulo.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ============================================================== -->
+                <!-- ABA 4: Folha Mensal & Atesto de Parcelas                      -->
+                <!-- ============================================================== -->
+                <div class="tab-pane fade {% if aba_ativa == 'folha' %}show active{% endif %}" id="folha" role="tabpanel" aria-labelledby="folha-tab">
+                    <div class="p-3 bg-light border-bottom d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2">
+                        <div>
+                            <span class="fw-bold text-dark"><i class="fas fa-calendar-alt text-warning me-1"></i> Competência: {{ mes_atual }}/{{ ano_atual }}</span>
+                            <span class="text-muted small ms-2">Esteira de autorização para repasse financeiro pela FAEPI.</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-success btn-sm fw-bold shadow-sm" disabled title="Exportação de folha para FAEPI">
+                                <i class="fas fa-file-excel me-1"></i> Exportar Folha FAEPI
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center py-3" style="width: 80px;">Parcela</th>
+                                    <th class="py-3">Beneficiário (Bolsista)</th>
+                                    <th class="py-3">Projeto / Plano de Trabalho</th>
+                                    <th class="text-center py-3">Competência</th>
+                                    <th class="text-end py-3">Valor (R$)</th>
+                                    <th class="text-center py-3">Status Contábil</th>
+                                    <th class="text-center py-3" style="width: 140px;">Atesto / Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for parc in parcelas_mes %}
+                                    <tr>
+                                        <td class="text-center font-monospace fw-bold">
+                                            #{{ parc.numero }}
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark">{{ parc.termo_bolsa.pessoa.nome }}</div>
+                                            <small class="text-muted font-monospace">{{ parc.termo_bolsa.pessoa.cpf }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="small fw-semibold text-primary">
+                                                {{ parc.termo_bolsa.cota_pt.projeto.nome|truncatechars:40 }}
+                                            </div>
+                                            <small class="text-muted">{{ parc.termo_bolsa.numero_termo }}</small>
+                                        </td>
+                                        <td class="text-center small">
+                                            {{ parc.mes_competencia|date:"m/Y"|default:"Mês Corrente" }}
+                                        </td>
+                                        <td class="text-end fw-bold font-monospace text-dark">
+                                            R$ {{ parc.valor|intcomma }}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if parc.status == 'PAGO' %}
+                                                <span class="badge bg-success text-white px-2 py-1">Liquidado / Pago</span>
+                                            {% elif parc.status == 'APROVADO' %}
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">Apto para Repasse</span>
+                                            {% elif parc.status == 'EM_ANALISE' %}
+                                                <span class="badge bg-warning-subtle text-warning border px-2 py-1">RA em Análise</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Pendente</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if parc.status == 'APROVADO' %}
+                                                <span class="text-success small fw-bold"><i class="fas fa-check-circle me-1"></i> Atestado</span>
+                                            {% elif parc.status == 'PAGO' %}
+                                                <span class="text-muted small"><i class="fas fa-receipt me-1"></i> Liquidado</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-muted border">Aguardando RA</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">
+                                            <i class="fas fa-check-circle text-success me-1"></i> Nenhuma parcela pendente de liberação para a competência atual.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'almoxarifado',
     'gestao_projetos',
     'central_servicos',
+    'recursos_humanos',
 ]
 
 

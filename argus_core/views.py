@@ -52,6 +52,13 @@ def home_argus(request):
             'cor': 'info',
             'descricao': 'Gestão de infraestrutura, logística e serviços operacionais.'
         },
+        {
+            'nome': 'Recursos Humanos', 
+            'url': 'recursos_humanos:home_rh', 
+            'icone': 'fa-users-cog', 
+            'cor': 'success',
+            'descricao': 'Gestão de Bolsistas, Termos FAEPI, Servidores e Folha de Bolsas de PD&I.'
+        },
     ]
 
     # A ordenação alfabética (sorted) tratará de colocar "Cadastros" logo após "Almoxarifado" automaticamente!

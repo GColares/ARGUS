@@ -39,6 +39,7 @@ urlpatterns = [
     path('almoxarifado/', include('almoxarifado.urls', namespace='home_almoxarifado')),
     path('gestao_projetos/', include('gestao_projetos.urls', namespace='home_gestao_projetos')),
     path('central_servicos/', include('central_servicos.urls', namespace='central_servicos')),
+    path('recursos-humanos/', include('recursos_humanos.urls', namespace='recursos_humanos')),
 ]
 
 if settings.DEBUG:
