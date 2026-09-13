@@ -97,14 +97,13 @@ já derrubou botões Salvar/Avançar. Regras:
 
 ### Dois termos, dois conceitos
 
-- `TermoCooperacao`: acordo-mestre / guarda-chuva (opcional no projeto).
-- `TermoDeParceria`: termo operacional do projeto (vínculo esperado).
-- Não chame isso de “Convênio” em tela nova. O validador `validar_convenio` é
-  legado de nome; não propague o termo.
+- `TermoCooperacao`: instrumento jurídico formal pactuado com o parceiro financiador/concedente.
+- `TermoDeParceria`: instrumento operacional do projeto (vínculo esperado com interveniência da fundação de apoio).
+- Não chame isso de “Convênio” em tela nova. O termo é obsoleto; não propague o nome.
+- **Vedações Terminológicas Estritas:** É TERMINANTEMENTE PROIBIDO utilizar expressões metafóricas como "guarda-chuva", "acordo-mestre" ou "matriz". O vínculo oficial entre Projeto e Programa é denominado estritamente **"Programa Associado"**.
 
 Hierarquia de fomento: Termo de Cooperação → `Programa` → `ProjetoPDI`.
-Projeto guarda-chuva **não** aponta FK direto ao Termo de Cooperação; aponta
-ao Programa.
+O `ProjetoPDI` possui uma ForeignKey obrigatória apontando para o `Programa` (o "Programa Associado", e nunca diretamente para o Termo de Cooperação).
 
 ### Pessoa física vs User
 
@@ -203,6 +202,22 @@ Restore (`flush` / `DROP SCHEMA`) exige confirmação explícita dele.
 • Alertas, Riscos ou Débitos Técnicos: [Nenhum / Observações para o Arquiteto]
 ══════════════════════════════════════════════════════════════════════════════
 ```
+
+---
+
+## 8.1. Diretrizes de Usabilidade Steve Krug ("Não Me Faça Pensar")
+
+Sempre que desenvolver ou editar interfaces (HTML/CSS/JS):
+1. **Primeira Lei de Krug ("Não me faça pensar"):** Cada tela e componente deve ser óbvio e autoexplicativo. Evite ambiguidades em botões, links e títulos.
+2. **Economia Textual:** Corte palavras desnecessárias. Elimine textos prolixos abaixo de formulários. Use tooltips sutis (`<i class="fas fa-question-circle text-muted" data-bs-toggle="tooltip"></i>`) para ajudas pontuais.
+3. **Escaneabilidade Visual:** Use badges semânticos de status (`badge bg-success-subtle text-success`), cabeçalhos centralizados em tabelas e cards com boa hierarquia visual.
+4. **O Teste do Porta-Malas:** Toda tela deve conter:
+   - Breadcrumb no topo (`<nav aria-label="breadcrumb">`).
+   - Botão Voltar inteligente: `<a href="javascript:history.back()" class="text-muted small fw-bold mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Voltar</a>`.
+   - Título claro com contagem/badge à esquerda e botões de ação globais à direita.
+5. **Prevenção de Erros:** Validações com feedback imediato via Bootstrap (`needs-validation`).
+6. **Ergonomia Mobile:** Mínimo de 44px para áreas de clique/toque; colunas secundárias de tabelas colapsadas ou ocultas no mobile (`.d-none .d-md-table-cell`).
+7. **Padrão DataTables:** NUNCA usar `{% empty %}` dentro de `<tbody>` em tabelas DataTables.
 
 ---
 
