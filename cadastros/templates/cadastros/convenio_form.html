@@ -21,7 +21,7 @@
             </h4>
         </div>
         <div class="card-body p-4">
-            <form method="POST">
+            <form method="POST" class="needs-validation" novalidate>
                 {% csrf_token %}
                 
                 {% if form.errors %}
@@ -35,15 +35,18 @@
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Tipo de Instrumento</label>
                         {{ form.tipo_instrumento_fk }}
+                        <div class="invalid-feedback">Campo obrigatório.</div>
                         <div class="d-none">{{ form.tipo_instrumento }}</div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold">Número</label>
                         {{ form.numero }}
+                        <div class="invalid-feedback">Campo obrigatório.</div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold">Ano</label>
                         {{ form.ano }}
+                        <div class="invalid-feedback">Campo obrigatório.</div>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Data de Assinatura</label>

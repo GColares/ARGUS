@@ -17,7 +17,7 @@
             </h4>
         </div>
         <div class="card-body p-4">
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                     {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
                 {% csrf_token %}
                 
@@ -26,21 +26,25 @@
                     <div class="col-md-2">
                         <label class="form-label fw-bold text-muted small">{{ form.numero.label }}</label>
                         {{ form.numero }}
+                        <div class="invalid-feedback">Campo obrigatório.</div>
                         {% if form.numero.errors %}<div class="text-danger small mt-1">{{ form.numero.errors }}</div>{% endif %}
                     </div>
                     <div class="col-md-2">
                         <label class="form-label fw-bold text-muted small">{{ form.ano.label }}</label>
                         {{ form.ano }}
+                        <div class="invalid-feedback">Campo obrigatório.</div>
                         {% if form.ano.errors %}<div class="text-danger small mt-1">{{ form.ano.errors }}</div>{% endif %}
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold text-muted small">{{ form.concedente.label }}</label>
                         {{ form.concedente }}
+                        <div class="invalid-feedback">Campo obrigatório.</div>
                         {% if form.concedente.errors %}<div class="text-danger small mt-1">{{ form.concedente.errors }}</div>{% endif %}
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold text-muted small">{{ form.convenente.label }}</label>
                         {{ form.convenente }}
+                        <div class="invalid-feedback">Campo obrigatório.</div>
                         {% if form.convenente.errors %}<div class="text-danger small mt-1">{{ form.convenente.errors }}</div>{% endif %}
                     </div>
                 </div>
@@ -50,6 +54,7 @@
                     <div class="col-md-12">
                         <label class="form-label fw-bold text-muted small">{{ form.objeto.label }}</label>
                         {{ form.objeto }}
+                        <div class="invalid-feedback">Campo obrigatório.</div>
                         {% if form.objeto.errors %}<div class="text-danger small mt-1">{{ form.objeto.errors }}</div>{% endif %}
                     </div>
                     <div class="col-md-4">

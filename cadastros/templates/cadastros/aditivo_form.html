@@ -51,7 +51,7 @@
         <div class="col-lg-9 col-xl-8">
             <div class="card shadow-sm border-0 border-top border-primary border-4 mb-4">
                 <div class="card-body p-4">
-                    <form method="post" enctype="multipart/form-data" novalidate>
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                         {% csrf_token %}
 
                         {% if form.non_field_errors %}
@@ -73,6 +73,7 @@
                                     {% if form.termo_parceria.errors %}
                                         <div class="text-danger small mt-1">{{ form.termo_parceria.errors.0 }}</div>
                                     {% endif %}
+                                    <div class="invalid-feedback">Campo obrigatório.</div>
                                 {% elif form.termo_cooperacao %}
                                     <label for="{{ form.termo_cooperacao.id_for_label }}" class="form-label fw-bold small text-muted">
                                         Termo de Cooperação Vinculado <span class="text-danger">*</span>
@@ -81,6 +82,7 @@
                                     {% if form.termo_cooperacao.errors %}
                                         <div class="text-danger small mt-1">{{ form.termo_cooperacao.errors.0 }}</div>
                                     {% endif %}
+                                    <div class="invalid-feedback">Campo obrigatório.</div>
                                 {% endif %}
                                 <div class="form-text text-xs">Instrumento jurídico principal ao qual este termo aditivo fica vinculado.</div>
                             </div>
@@ -94,6 +96,7 @@
                                 {% if form.numero.errors %}
                                     <div class="text-danger small mt-1">{{ form.numero.errors.0 }}</div>
                                 {% endif %}
+                                <div class="invalid-feedback">Campo obrigatório.</div>
                                 <div class="form-text text-xs">Ex: 1º Termo Aditivo, TA 02/2026</div>
                             </div>
 
@@ -106,6 +109,7 @@
                                 {% if form.tipo_aditivo.errors %}
                                     <div class="text-danger small mt-1">{{ form.tipo_aditivo.errors.0 }}</div>
                                 {% endif %}
+                                <div class="invalid-feedback">Campo obrigatório.</div>
                                 <div class="form-text text-xs">Finalidade primordial da celebração.</div>
                             </div>
 
@@ -130,6 +134,7 @@
                                 {% if form.data_assinatura.errors %}
                                     <div class="text-danger small mt-1">{{ form.data_assinatura.errors.0 }}</div>
                                 {% endif %}
+                                <div class="invalid-feedback">Campo obrigatório.</div>
                                 <div class="form-text text-xs">Data formal de celebração das partes.</div>
                             </div>
 
@@ -166,6 +171,7 @@
                                 {% if form.descricao.errors %}
                                     <div class="text-danger small mt-1">{{ form.descricao.errors.0 }}</div>
                                 {% endif %}
+                                <div class="invalid-feedback">Campo obrigatório.</div>
                                 <div class="form-text text-xs">Detalhamento dos motivos da alteração, motivação técnica e disposições aditadas.</div>
                             </div>
 
