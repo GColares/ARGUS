@@ -100,9 +100,9 @@
                     <tr>
                         <th class="text-center">Patrimônio IFAM / Doador</th>
                         <th class="text-center">Descrição do Bem</th>
-                        <th class="text-center">Valor (R$)</th>
-                        <th class="text-center">Localização / Ambiente</th>
-                        <th class="text-center">Estado</th>
+                        <th class="text-center d-none d-sm-table-cell">Valor (R$)</th>
+                        <th class="text-center d-none d-md-table-cell">Localização / Ambiente</th>
+                        <th class="text-center d-none d-lg-table-cell">Estado</th>
                         <th class="text-center">Ações</th>
                     </tr>
                 </thead>
@@ -113,9 +113,9 @@
                             {{ bem.patrimonio_ifam|default:bem.patrimonio_doador|default:"-" }}
                         </td>
                         <td>{{ bem.descricao }}</td>
-                        <td class="text-end">R$ {{ bem.valor|floatformat:2 }}</td>
-                        <td class="text-center">{{ bem.ambiente|default:"-" }}</td>
-                        <td class="text-center">{{ bem.get_estado_conservacao_display }}</td>
+                        <td class="text-end d-none d-sm-table-cell">R$ {{ bem.valor|floatformat:2 }}</td>
+                        <td class="text-center d-none d-md-table-cell">{{ bem.ambiente|default:"-" }}</td>
+                        <td class="text-center d-none d-lg-table-cell">{{ bem.get_estado_conservacao_display }}</td>
                         <td class="text-center">
                             <a href="#" class="btn btn-sm btn-outline-info" title="Visualizar bem" aria-label="Visualizar {{ bem.descricao }}">
                                 <i class="fas fa-eye"></i>
