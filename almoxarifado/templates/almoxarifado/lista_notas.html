@@ -145,7 +145,7 @@
         </div>
 
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="min-width: 1300px;">
+            <table class="table table-hover align-middle mb-0 w-100">
                 <thead class="thead-argus">
                     <tr>
                         <th style="width: 40px;" class="border-0 text-center"></th>
@@ -162,7 +162,7 @@
                             </a>
                         </th>
                         
-                        <th class="py-3 border-0 text-center" style="width: 10%;">
+                        <th class="py-3 border-0 text-center d-none d-xl-table-cell" style="width: 10%;">
                             <a href="?sort={% if current_sort == 'projeto_vinculado__convenio' %}-projeto_vinculado__convenio{% else %}projeto_vinculado__convenio{% endif %}&q={{ busca|urlencode }}" class="text-decoration-none text-muted d-flex align-items-center">
                                 C.Custo <i class="fas fa-sort{% if current_sort == 'projeto_vinculado__convenio' %}-up text-primary{% elif current_sort == '-projeto_vinculado__convenio' %}-down text-primary{% endif %} ms-2"></i>
                             </a>
@@ -170,25 +170,25 @@
                         
                         <th class="py-3 border-0 text-center" style="width: 8%;">RME</th>
                         
-                        <th class="py-3 text-center border-0" style="width: 8%;">
+                        <th class="py-3 text-center border-0 d-none d-md-table-cell" style="width: 8%;">
                             <a href="?sort={% if current_sort == 'data_emissao' %}-data_emissao{% else %}data_emissao{% endif %}&q={{ busca|urlencode }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
                                 Emissão <i class="fas fa-sort{% if current_sort == 'data_emissao' %}-up text-primary{% elif current_sort == '-data_emissao' %}-down text-primary{% endif %} ms-2"></i>
                             </a>
                         </th>
 
-                        <th class="py-3 text-center border-0" style="width: 10%;">
+                        <th class="py-3 text-center border-0 d-none d-lg-table-cell" style="width: 10%;">
                             <a href="?sort={% if current_sort == 'data_importacao' %}-data_importacao{% else %}data_importacao{% endif %}&q={{ busca|urlencode }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
                                 <i class="fas fa-clock me-1"></i>Processada <i class="fas fa-sort{% if current_sort == 'data_importacao' %}-up text-primary{% elif current_sort == '-data_importacao' %}-down text-primary{% endif %} ms-2"></i>
                             </a>
                         </th>
                         
-                        <th class="py-3 text-center border-0" style="width: 8%;">
+                        <th class="py-3 text-center border-0 d-none d-md-table-cell" style="width: 8%;">
                             <a href="?sort={% if current_sort == 'data_recebimento' %}-data_recebimento{% else %}data_recebimento{% endif %}&q={{ busca|urlencode }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
                                 Recebido <i class="fas fa-sort{% if current_sort == 'data_recebimento' %}-up text-primary{% elif current_sort == '-data_recebimento' %}-down text-primary{% endif %} ms-2"></i>
                             </a>
                         </th>
                         
-                        <th class="py-3 text-center border-0" style="width: 6%;">
+                        <th class="py-3 text-center border-0 d-none d-sm-table-cell" style="width: 6%;">
                             <a href="?sort={% if current_sort == 'num_itens' %}-num_itens{% else %}num_itens{% endif %}&q={{ busca|urlencode }}" class="text-decoration-none text-muted d-flex align-items-center justify-content-center">
                                 Itens <i class="fas fa-sort{% if current_sort == 'num_itens' %}-up text-primary{% elif current_sort == '-num_itens' %}-down text-primary{% endif %} ms-2"></i>
                             </a>
@@ -218,7 +218,7 @@
                             </div>
                             <span class="text-muted font-monospace small" style="font-size: 0.75rem;">CNPJ: {{ nota.fornecedor.cnpj|default:"--" }}</span>
                         </td>
-                        <td>
+                        <td class="d-none d-xl-table-cell">
                             <div class="text-truncate text-secondary fw-semibold w-100" style="max-width: 150px; font-size: 0.85rem;" title="{{ nota.projeto_vinculado.convenio|default:'Nenhum' }}">
                                 {{ nota.projeto_vinculado.convenio|default:'--' }}
                             </div>
@@ -236,15 +236,15 @@
                             {% endif %}
                         </td>
 
-                        <td class="text-center text-muted fw-semibold small">{{ nota.data_emissao|date:"d/m/Y" }}</td>
+                        <td class="text-center text-muted fw-semibold small d-none d-md-table-cell">{{ nota.data_emissao|date:"d/m/Y" }}</td>
                         
-                        <td class="text-center text-secondary small fw-medium" title="Data em que o sistema leu o PDF">
+                        <td class="text-center text-secondary small fw-medium d-none d-lg-table-cell" title="Data em que o sistema leu o PDF">
                             {{ nota.data_importacao|date:"d/m/Y" }}<br>
                             <span style="font-size: 0.7rem;">às {{ nota.data_importacao|date:"H:i" }}</span>
                         </td>
 
-                        <td class="text-center text-muted fw-semibold small">{{ nota.data_recebimento|date:"d/m/Y"|default:"--" }}</td>
-                        <td class="text-center">
+                        <td class="text-center text-muted fw-semibold small d-none d-md-table-cell">{{ nota.data_recebimento|date:"d/m/Y"|default:"--" }}</td>
+                        <td class="text-center d-none d-sm-table-cell">
                             <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ nota.produtos.count }}</span>
                         </td>
                         <td class="text-center pe-4 fw-bold text-success text-nowrap">R$ {{ nota.valor_total_nota|floatformat:2 }}</td>
