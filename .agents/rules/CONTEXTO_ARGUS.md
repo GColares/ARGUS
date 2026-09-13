@@ -30,6 +30,7 @@ A arquitetura de negócios do ARGUS baseia-se em um **ecossistema interdependent
   - *Arquitetura de Ativos:* Utiliza o modelo normalizado (TipoAtivo + Instância Física) para permitir relatórios analíticos, separando o "O que é" do "Onde/Qual é".
   - *UX/UI Padrão:* Para seleções em massa de ambientes, utiliza componentes customizados de seleção hierárquica em árvore (Prédio -> Andar -> Ambiente) ao invés de listas ou Select2 genéricos.
 - **Módulo `gestao_projetos`:** Consome os `cadastros` para formar equipes e gerenciar orçamentos/planos de trabalho.
+- **Módulo `recursos_humanos`:** Centraliza a governança de pessoas físicas, termos de bolsas da FAEPI, atestos de folha mensal e conformidade de servidores públicos (Resolução nº 015/2023-CONSUP), com arquitetura Anti Split-Brain vinculada a `cadastros`.
 
 ## 4. Como a IA deve se comportar perante esta regra
 Sempre que o usuário solicitar o desenvolvimento de uma nova funcionalidade, a IA deve automaticamente consultar esta estrutura e perguntar a si mesma:

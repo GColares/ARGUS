@@ -1,6 +1,64 @@
 # Diário de Bordo — ARGUS
 
-## [2026-09-11] Sprint 2: Decomposição do Número do Instrumento Jurídico (Número + Ano com Unicidade), Governança de Concedentes, Localização pt-BR e Protótipo de Login Institucional Google
+## [2026-09-12 / 2026-09-13] Sprint 2: Usabilidade Steve Krug ("Não Me Faça Pensar"), Responsividade Mobile/Tablet, Wizard de Projetos PDI e Esteira PWA (Progressive Web App)
+
+### 1. Entregas Técnicas e Conformidade Regulatória (CT&I / Marco Legal):
+- **Criação do Módulo de Recursos Humanos (`recursos_humanos`):**
+  * Criação do app Django seguindo a arquitetura Anti Split-Brain, consumindo as entidades canônicas `PessoaFisica`, `PerfilServidor`, `PerfilAluno`, `TermoBolsa`, `DadoBancario` e `Parcela`.
+  * Dashboard operacional no Padrão Almoxarifado com 4 KPIs em tempo real, gaveta de filtros avançados e 4 abas: Dossiê de Pessoas Físicas, Bolsistas & Termos FAEPI, Conformidade Regulatória (Resolução nº 015/2023-CONSUP com auditoria de cargos CD/FG e bolsas ativas) e Folha Mensal.
+  * Integração na home geral (`home_argus`) com card ordenado alfabeticamente.
+- **Harmonização da Identidade Visual & Navbar Dupla (`[INOVA] | [ARGUS]`):**
+  * Integração do logotipo do Polo de Inovação IFAM ao lado da marca do ARGUS no `navbar-brand` de todas as telas (`base.html`, `login.html`, `login_google.html`), com divisor vertical sutil e dimensionamento responsivo.
+- **Auditoria Heurística e Radar de Usabilidade Steve Krug:**
+  * Diagnóstico completo de usabilidade com pontuação 8.4/10 e mapeamento de atritos cognitivos (reloads de página desnecessários, larguras mínimas engessadas e falta de validação imediata no navegador).
+- **Pacote de Responsividade Mobile e Eliminação da Trava de Viewport:**
+  * Remoção de travas fixas em pixels (`style="min-width: 1300px;"`) no Almoxarifado (`lista_notas.html`) e ajuste das 5 colunas entre cabeçalho `<th>` e células `<td>`.
+  * Aplicação de visibilidade responsiva (`d-none d-md-table-cell`) e badges compactos para telas móveis nas tabelas de Instrumentos Jurídicos, Patrimônio, Projetos PDI e Indicadores EMBRAPII.
+- **Validação Client-Side Inteligente no Wizard de Projetos PDI (`form_projeto.html`):**
+  * Ativação de `class="needs-validation" novalidate` no formulário mestre.
+  * Preservação da dualidade: "Salvar Rascunho" livre de travas parciais vs. "Publicar Projeto" com validação integral.
+  * Mapeamento dinâmico de erros nas 4 abas (Instrumento, Plano Técnico, Orçamento, Governança) com injeção de badges numéricos vermelhos nos botões das abas.
+  * Navegação automática via Bootstrap Tab para a primeira aba com pendência e auto-focus no primeiro campo inválido com scroll suave.
+  * Compatibilidade plena com os editores Quill (sincronização prévia e foco no `.ql-editor`) e Select2 (`.select2-selection`).
+  * Preservação estrita do rótulo oficial "Programa Associado", cálculos dinâmicos, tabelas de macroentregas/rubricas e busca AJAX.
+- **Esteira Completa de Progressive Web App (PWA):**
+  * Criação do manifesto oficial `static/manifest.json` com identidade do Polo de Inovação IFAM, ícones 192x192 e 512x512, tema Bootstrap e modo standalone.
+  * Implementação do Service Worker seguro `templates/sw.js` servido na rota raiz `/sw.js` com `@never_cache`: política de Network-Only para navegação HTML (zero risco de cache de sessões ou CSRF token), pré-cache de ativos estáticos (CSS, JS, logos) e isolamento de POST/PUT/DELETE.
+  * Criação da rota e tela de contingência `/offline/` (`templates/offline.html`) para perda de sinal de rede.
+  * Metadados no `templates/base.html` para suporte nativo em Android (Chrome) e iOS (Safari).
+
+---
+
+### 2. Lista Ostensiva e Específica de Alterações nos Templates HTML:
+1. **`templates/base.html` [MODIFICADO]:**
+   - Inserção do logotipo `logo-inova-para-fundo-branco-editado.png` acompanhado da logomarca `ARGUS1-LOGO-editado.png` com divisor vertical no `navbar-brand`.
+   - Inclusão dos links e meta tags PWA: `<link rel="manifest">`, `<meta name="theme-color">`, `<meta name="apple-mobile-web-app-capable">`, `<meta name="apple-mobile-web-app-status-bar-style">`.
+   - Inclusão de script global de validação Bootstrap e listener de inicialização do Service Worker `/sw.js`.
+2. **`templates/autenticacao/login.html` e `templates/autenticacao/login_google.html` [MODIFICADOS]:**
+   - Aplicação da identidade dupla `[INOVA] | [ARGUS]` no topo dos cards de login com suporte responsivo para smartphones.
+3. **`cadastros/templates/cadastros/form_projeto.html` [MODIFICADO]:**
+   - Tag `<form>` enriquecida com `class="needs-validation" novalidate`.
+   - Adição das funções JS: `sincronizarEditoresQuill()`, `obterAlvoDeFoco(campo)`, `focarCampoInvalido(campo)`, `atualizarBadgeDaAba(botaoAba, quantidade)` e `mostrarPrimeiraPendencia(aba, campo)`.
+   - Listener de submit diferenciado que mapeia `:invalid` por aba, renderiza badges e ativa a primeira aba inválida ao clicar em "Publicar Projeto".
+4. **`cadastros/templates/cadastros/painel_instrumentos.html` [MODIFICADO]:**
+   - Adição de classes responsivas `d-none d-md-table-cell` e `d-none d-lg-table-cell` nas tabelas de Instrumentos Jurídicos e Ocorrências, com badge móvel para o campo "Número".
+5. **`almoxarifado/templates/almoxarifado/lista_notas.html` [MODIFICADO]:**
+   - Remoção de `style="min-width: 1300px;"` da tabela de Notas Fiscais.
+   - Reclassificação de visibilidade responsiva alinhando estritamente os 5 pares de cabeçalhos `<th>` e células `<td>`.
+6. **`patrimonio/templates/patrimonio/conferir_bens_projeto.html` e `patrimonio/templates/patrimonio/home_patrimonio.html` [MODIFICADOS]:**
+   - Classes `d-none d-md-table-cell` aplicadas para colunas secundárias de localização e valor contábil, mantendo integridade com tabelas vazias.
+7. **`cadastros/templates/cadastros/listar_projetos.html` e `gestao_projetos/templates/gestao_projetos/painel_indicadores_embrapii.html` [MODIFICADOS]:**
+   - Aplicação de visibilidade responsiva e adição de subtítulo com concedente parceiro na célula do nome do projeto para visualização mobile.
+8. **`templates/sw.js` [NOVO]:**
+   - Service Worker com pré-cache estático seletivo, isolamento de mutações e fallback para `/offline/`.
+9. **`templates/offline.html` [NOVO]:**
+   - Tela institucional de contingência para dispositivos sem conexão de rede.
+10. **`static/manifest.json` [NOVO]:**
+    - Manifesto PWA para instalação como aplicativo nativo.
+
+---
+
+
 
 ### 1. Entregas Técnicas e Conformidade Regulatória (CT&I / Marco Legal):
 - **Decomposição Rigorosa do Número do Instrumento Jurídico (`numero` + `ano`):**
