@@ -138,6 +138,14 @@ body.theme-dark .navbar-institucional .nav-link.active {
     background-color: rgba(26, 26, 26, 0.1);
 }
 
+/* TEMA: RECURSOS HUMANOS (Purple / Roxo Institucional) */
+body.theme-purple .navbar-institucional { border-bottom-color: #6f42c1; }
+body.theme-purple .navbar-institucional .nav-link:hover { color: #6f42c1; }
+body.theme-purple .navbar-institucional .nav-link.active {
+    color: #6f42c1 !important;
+    background-color: rgba(111, 66, 193, 0.1);
+}
+
 /* =========================================
    RODAPÉ INSTITUCIONAL
    ========================================= */

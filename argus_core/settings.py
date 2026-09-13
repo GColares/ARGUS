@@ -27,7 +27,7 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Permite conexões dinâmicas baseadas no ambiente Docker/Produção ou local
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = ['*'] if DEBUG else os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 
 # ==============================================================================
