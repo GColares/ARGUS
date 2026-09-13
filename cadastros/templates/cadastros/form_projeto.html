@@ -202,7 +202,7 @@
     {% endif %}
 
     <!-- 4. Formulário Mestre -->
-    <form method="post" id="formProjetoMaster" enctype="multipart/form-data">
+    <form method="post" id="formProjetoMaster" class="needs-validation" novalidate enctype="multipart/form-data">
         {% csrf_token %}
 
         <!-- Navegação em 4 Abas Canônicas Superiores -->
@@ -1014,7 +1014,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // 2. Sincronização Universal antes do Submit do Formulário
-    form.addEventListener("submit", function(e) {
+    function sincronizarEditoresQuill() {
         for (const key in quillInstances) {
             const item = quillInstances[key];
             const html = item.quill.root.innerHTML;
@@ -1024,6 +1024,89 @@ document.addEventListener("DOMContentLoaded", function() {
                 item.textarea.value = html;
             }
         }
+    }
+
+    function obterAlvoDeFoco(campo) {
+        if (campo.classList.contains('richtext')) {
+            const containerQuill = campo.nextElementSibling;
+            if (containerQuill && containerQuill.classList.contains('richtext-quill-container')) {
+                return containerQuill.querySelector('.ql-editor');
+            }
+        }
+
+        if (campo.classList.contains('select2-hidden-accessible')) {
+            const containerSelect2 = campo.nextElementSibling;
+            if (containerSelect2 && containerSelect2.classList.contains('select2-container')) {
+                return containerSelect2.querySelector('.select2-selection');
+            }
+        }
+        return campo;
+    }
+
+    function focarCampoInvalido(campo) {
+        const alvo = obterAlvoDeFoco(campo);
+        if (!alvo) return;
+
+        alvo.focus({ preventScroll: true });
+        alvo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function atualizarBadgeDaAba(botaoAba, quantidade) {
+        const badgeExistente = botaoAba.querySelector('.tab-error-badge');
+        if (badgeExistente) badgeExistente.remove();
+
+        if (quantidade > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-danger rounded-pill ms-1 tab-error-badge';
+            badge.textContent = quantidade;
+            botaoAba.appendChild(badge);
+        }
+    }
+
+    function mostrarPrimeiraPendencia(aba, campo) {
+        const botaoAba = document.querySelector(`#${aba.id}-btn`);
+        if (!botaoAba) return;
+
+        const focar = () => focarCampoInvalido(campo);
+        if (botaoAba.classList.contains('active')) {
+            window.setTimeout(focar, 0);
+        } else {
+            botaoAba.addEventListener('shown.bs.tab', focar, { once: true });
+            new bootstrap.Tab(botaoAba).show();
+        }
+    }
+
+    form.addEventListener("submit", function(e) {
+        sincronizarEditoresQuill();
+
+        const submitter = e.submitter || form.querySelector('button[type="submit"]:focus');
+        const acao = submitter ? submitter.value : '';
+        if (acao !== 'publicar') return;
+
+        const abas = [
+            document.getElementById('tab-instrumento'),
+            document.getElementById('tab-plano'),
+            document.getElementById('tab-orcamento'),
+            document.getElementById('tab-governanca')
+        ].filter(Boolean);
+
+        const pendenciasPorAba = abas.map(aba => ({
+            aba,
+            campos: Array.from(aba.querySelectorAll(':invalid'))
+        }));
+
+        pendenciasPorAba.forEach(({ aba, campos }) => {
+            const botaoAba = document.querySelector(`#${aba.id}-btn`);
+            if (botaoAba) atualizarBadgeDaAba(botaoAba, campos.length);
+        });
+
+        const primeiraPendencia = pendenciasPorAba.find(({ campos }) => campos.length > 0);
+        if (!primeiraPendencia) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        form.classList.add('was-validated');
+        mostrarPrimeiraPendencia(primeiraPendencia.aba, primeiraPendencia.campos[0]);
     });
 
     // 3. Controle de Navegação entre as 4 Abas (Próxima / Anterior)
