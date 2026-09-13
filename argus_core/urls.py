@@ -17,6 +17,8 @@ urlpatterns = [
     # ==========================================
     path('admin/', admin.site.urls),
     path('', views.home_argus, name='home_geral'), # Rota raiz
+    path('sw.js', views.service_worker, name='service_worker'),
+    path('offline/', TemplateView.as_view(template_name='offline.html'), name='pwa_offline'),
 
     # ==========================================
     # ROTAS DE AUTENTICAÇÃO INSTITUCIONAL

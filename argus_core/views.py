@@ -2,6 +2,8 @@
 from django.shortcuts import render
 # pyrefly: ignore [untyped-import]
 from django.contrib.auth.decorators import login_required
+# pyrefly: ignore [untyped-import]
+from django.views.decorators.cache import never_cache
 
 @login_required
 def home_argus(request):
@@ -65,3 +67,8 @@ def home_argus(request):
     modulos_ordenados = sorted(modulos, key=lambda x: x['nome'])
 
     return render(request, 'home_geral.html', {'modulos': modulos_ordenados})
+
+
+@never_cache
+def service_worker(request):
+    return render(request, 'sw.js', content_type='application/javascript')

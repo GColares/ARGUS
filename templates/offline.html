@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0d6efd">
+    <title>ARGUS — Sem conexão</title>
+    <link rel="stylesheet" href="{% static 'css/argus-design-system.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+</head>
+<body class="bg-light">
+    <main class="container py-5">
+        <div class="card border-0 shadow-sm mx-auto text-center p-4" style="max-width: 30rem;">
+            <div class="mb-3 text-primary">
+                <i class="fas fa-wifi-slash fa-3x" aria-hidden="true"></i>
+            </div>
+            <h1 class="h3 fw-bold text-dark">Sem conexão</h1>
+            <p class="text-muted mb-4">O dispositivo está sem sinal. Reconecte-se à internet e tente novamente.</p>
+            <button type="button" class="btn btn-primary fw-bold" onclick="window.location.reload()">
+                <i class="fas fa-sync-alt me-2" aria-hidden="true"></i> Tentar novamente
+            </button>
+        </div>
+    </main>
+</body>
+</html>
