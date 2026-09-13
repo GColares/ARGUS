@@ -125,9 +125,9 @@
                 <table class="table table-hover align-middle mb-0" id="tabelaProjetosPDI">
                     <thead class="thead-argus">
                         <tr>
-                            <th class="ps-4 text-center">Termo / Instrumento</th>
+                            <th class="ps-4 text-center d-none d-sm-table-cell">Termo / Instrumento</th>
                             <th class="text-center">Título do Projeto</th>
-                            <th class="text-center">Empresa Concedente</th>
+                            <th class="text-center d-none d-md-table-cell">Empresa Concedente</th>
                             <th class="text-center">Fase / Status</th>
                             <th class="text-center">Ações</th>
                         </tr>
@@ -135,7 +135,7 @@
                     <tbody>
                         {% for projeto in projetos %}
                         <tr>
-                            <td class="ps-4 fw-bold text-center">
+                            <td class="ps-4 fw-bold text-center d-none d-sm-table-cell">
                                 {% if projeto.termo_parceria %}
                                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">
                                         {{ projeto.termo_parceria.numero|default:"S/N" }}
@@ -144,8 +144,13 @@
                                     <span class="text-muted small">Sem Termo</span>
                                 {% endif %}
                             </td>
-                            <td class="fw-bold">{{ projeto.nome }}</td>
-                            <td class="text-center">
+                            <td class="fw-bold">
+                                {{ projeto.nome }}
+                                <div class="d-md-none text-muted text-xs mt-1">
+                                    <i class="fas fa-building me-1"></i>{{ projeto.termo_parceria.concedente.nome|default:"-" }}
+                                </div>
+                            </td>
+                            <td class="text-center d-none d-md-table-cell">
                                 {{ projeto.termo_parceria.concedente.nome|default:"-" }}
                             </td>
                             <td class="text-center">

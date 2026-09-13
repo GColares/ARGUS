@@ -31,8 +31,8 @@
             <p class="text-muted small mb-0">Consolidação estratégica de alavancagem de recursos privados, aportes e Fundo de Reserva.</p>
         </div>
         <div>
-            <a href="{% url 'gestao_projetos:home_gestao_projetos' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-arrow-left me-1"></i>Voltar
+            <a href="javascript:history.back()" class="text-muted small fw-bold mb-2 d-inline-block text-decoration-none">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
             </a>
         </div>
     </div>
@@ -232,11 +232,11 @@
                         <tr>
                             <th class="ps-3">Projeto</th>
                             <th>Empresa Parceira</th>
-                            <th class="text-end">Valor Global</th>
-                            <th class="text-end">Aporte Empresa</th>
+                            <th class="text-end d-none d-md-table-cell">Valor Global</th>
+                            <th class="text-end d-none d-sm-table-cell">Aporte Empresa</th>
                             <th class="text-center">Alavancagem</th>
-                            <th class="text-end">Fundo de Reserva</th>
-                            <th class="text-center">TRL / Entregas</th>
+                            <th class="text-end d-none d-lg-table-cell">Fundo de Reserva</th>
+                            <th class="text-center d-none d-md-table-cell">TRL / Entregas</th>
                             <th class="text-center pe-3">Ações</th>
                         </tr>
                     </thead>
@@ -248,18 +248,18 @@
                                 <div class="small text-muted">{{ item.projeto.nome|truncatechars:40 }}</div>
                             </td>
                             <td>{{ item.projeto.concedente.nome|default:"-"|truncatechars:30 }}</td>
-                            <td class="text-end fw-bold">R$ {{ item.v_global|floatformat:2 }}</td>
-                            <td class="text-end text-success fw-bold">R$ {{ item.v_empresa|floatformat:2 }}</td>
+                            <td class="text-end fw-bold d-none d-md-table-cell">R$ {{ item.v_global|floatformat:2 }}</td>
+                            <td class="text-end text-success fw-bold d-none d-sm-table-cell">R$ {{ item.v_empresa|floatformat:2 }}</td>
                             <td class="text-center">
                                 <span class="badge {% if item.alavancagem >= 33 %}bg-success{% elif item.alavancagem >= 10 %}bg-primary{% else %}bg-warning text-dark{% endif %}">
                                     {{ item.alavancagem|floatformat:1 }}%
                                 </span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end d-none d-lg-table-cell">
                                 R$ {{ item.overhead|floatformat:2 }}
                                 <div class="small text-muted">({{ item.pct_overhead|floatformat:1 }}%)</div>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center d-none d-md-table-cell">
                                 {% if item.trl_max %}
                                     <span class="badge bg-dark">TRL {{ item.trl_max }}</span>
                                 {% else %}
