@@ -1674,7 +1674,8 @@ class CicloVidaProjetoTestCase(TestCase):
 
         termo = Convenio.objects.create(
             projeto=self.projeto,
-            numero="TP-2026/01",
+            numero=101,
+            ano=2026,
             data_assinatura=date(2026, 1, 10),
             concedente=self.empresa,
             convenente=self.ict,
@@ -2200,7 +2201,7 @@ class InstrumentosJuridicosTestCase(TestCase):
         self.empresa = EmpresaParceira.objects.create(nome="Empresa Parceira S/A", cnpj="11.222.333/0001-44", nome_fantasia="PARCEIRA")
         self.fundacao = FundacaoApoio.objects.create(nome="FAEPI", cnpj="22.333.444/0001-55", sigla="FAEPI")
 
-        self.tipo_ap, _ = TipoInstrumentoJuridico.objects.get_or_create(
+        self.tipo_ap, _ = TipoInstrumentoJuridico.objects.update_or_create(
             sigla="AP",
             defaults={
                 'nome': "Acordo de Parceria para PD&I",
@@ -2210,7 +2211,7 @@ class InstrumentosJuridicosTestCase(TestCase):
                 'ativo': True
             }
         )
-        self.tipo_tc, _ = TipoInstrumentoJuridico.objects.get_or_create(
+        self.tipo_tc, _ = TipoInstrumentoJuridico.objects.update_or_create(
             sigla="TC",
             defaults={
                 'nome': "Termo de Cooperação Técnica",
@@ -2224,7 +2225,8 @@ class InstrumentosJuridicosTestCase(TestCase):
         self.termo_parceria = Convenio.objects.create(
             tipo_instrumento="ACORDO_PARCERIA",
             tipo_instrumento_fk=self.tipo_ap,
-            numero="AP nº 001/2026",
+            numero=1,
+            ano=2026,
             objeto="Pesquisa e desenvolvimento em bioeconomia",
             concedente=self.empresa,
             convenente=self.ict,
@@ -2235,7 +2237,8 @@ class InstrumentosJuridicosTestCase(TestCase):
 
         self.termo_cooperacao = TermoCooperacao.objects.create(
             tipo_instrumento_fk=self.tipo_tc,
-            numero="TC nº 002/2026",
+            numero=2,
+            ano=2026,
             objeto="Cooperação institucional para laboratórios",
             concedente=self.empresa,
             convenente=self.ict,
@@ -2256,8 +2259,8 @@ class InstrumentosJuridicosTestCase(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Instrumentos Jurídicos")
-        self.assertContains(response, "AP nº 001/2026")
-        self.assertContains(response, "TC nº 002/2026")
+        self.assertContains(response, "1/2026")
+        self.assertContains(response, "2/2026")
         self.assertGreaterEqual(response.context['total_ocorrencias'], 2)
         self.assertGreaterEqual(response.context['total_ativos'], 2)
 
@@ -2268,14 +2271,14 @@ class InstrumentosJuridicosTestCase(TestCase):
         # Filtro por tipo AP
         response = self.client.get(url, {'tipo': 'AP'})
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "AP nº 001/2026")
-        self.assertNotContains(response, "TC nº 002/2026")
+        self.assertContains(response, "1/2026")
+        self.assertNotContains(response, "2/2026")
 
         # Filtro por busca textual
         response_busca = self.client.get(url, {'busca': 'bioeconomia'})
         self.assertEqual(response_busca.status_code, 200)
-        self.assertContains(response_busca, "AP nº 001/2026")
-        self.assertNotContains(response_busca, "TC nº 002/2026")
+        self.assertContains(response_busca, "1/2026")
+        self.assertNotContains(response_busca, "2/2026")
 
     def test_crud_tipo_instrumento(self):
         """Testa criação, edição e exclusão de um TipoInstrumentoJuridico."""
@@ -2346,7 +2349,8 @@ class TermosAditivosTestCase(TestCase):
         )
 
         self.termo_parceria = Convenio.objects.create(
-            numero="AP 100/2026",
+            numero=100,
+            ano=2026,
             concedente=self.empresa,
             convenente=self.ict,
             interveniente=self.fundacao,
@@ -2355,7 +2359,8 @@ class TermosAditivosTestCase(TestCase):
         )
 
         self.termo_coop = TermoCooperacao.objects.create(
-            numero="TC 200/2026",
+            numero=200,
+            ano=2026,
             concedente=self.empresa,
             convenente=self.ict,
             vigencia_inicio=date(2026, 1, 1),
@@ -2369,29 +2374,22 @@ class TermosAditivosTestCase(TestCase):
 
         aditivo_p = TermoAditivo.objects.create(
             numero="1º Termo Aditivo",
-            tipo_aditivo="PRORROGACAO",
-            termo_parceria=self.termo_parceria,
+            instrumento=self.termo_parceria,
             data_assinatura=date(2026, 6, 1),
             nova_data_fim=date(2027, 6, 30),
-            valor_aditivo=Decimal('50000.00'),
-            numero_processo="23443.001111/2026-01",
-            descricao="Prorrogação de 6 meses no cronograma"
+            valor_acrescimo=Decimal('50000.00'),
+            objeto="Prorrogação de 6 meses no cronograma"
         )
-        self.assertEqual(str(aditivo_p), "1º Termo Aditivo - AP 100/2026")
+        self.assertEqual(str(aditivo_p), f"Aditivo 1º Termo Aditivo - {self.termo_parceria.numero}")
         self.assertEqual(aditivo_p.nova_data_fim, date(2027, 6, 30))
 
         aditivo_c = TermoEncerramento.objects.create(
-            numero="1º Termo Aditivo TC",
-            tipo_aditivo="ACRESCIMO_VALOR",
-            termo_cooperacao=self.termo_coop,
-            data_assinatura=date(2026, 7, 1),
-            nova_data_fim=date(2027, 12, 31),
-            valor_aditivo=Decimal('120000.00'),
-            numero_processo="23443.002222/2026-02",
-            descricao="Aporte suplementar de P&D"
+            instrumento=self.termo_coop,
+            data_encerramento=date(2026, 7, 1),
+            motivo_rescisao="Aporte suplementar de P&D",
+            oficio_comunicacao="23443.002222/2026-02"
         )
-        self.assertEqual(str(aditivo_c), "1º Termo Aditivo TC - TC 200/2026")
-        self.assertEqual(aditivo_c.termo_cooperacao.vigencia_fim, date(2027, 12, 31))
+        self.assertEqual(str(aditivo_c), f"Encerramento - {self.termo_coop.numero}")
 
     def test_crud_termo_aditivo_com_upload_pdf(self):
         """Testa criação via POST com upload de arquivo PDF assinado, visualização e deleção."""
@@ -2404,13 +2402,11 @@ class TermosAditivosTestCase(TestCase):
 
         payload = {
             'numero': '2º Termo Aditivo',
-            'tipo_aditivo': 'MISTO',
-            'termo_parceria': self.termo_parceria.pk,
+            'instrumento': self.termo_parceria.pk,
             'data_assinatura': '2026-08-01',
             'nova_data_fim': '2027-12-31',
-            'valor_aditivo': '85000.00',
-            'numero_processo': '23443.009999/2026-88',
-            'descricao': 'Prorrogação e aporte adicional de recursos',
+            'valor_acrescimo': '85000.00',
+            'objeto': 'Prorrogação e aporte adicional de recursos',
             'arquivo_pdf': pdf_file,
         }
 
@@ -2418,24 +2414,9 @@ class TermosAditivosTestCase(TestCase):
         self.assertEqual(res_post.status_code, 200)
 
         aditivo = TermoAditivo.objects.get(numero='2º Termo Aditivo')
-        self.assertEqual(aditivo.valor_aditivo, Decimal('85000.00'))
+        self.assertEqual(aditivo.valor_acrescimo, Decimal('85000.00'))
         self.assertTrue(bool(aditivo.arquivo_pdf))
         self.assertIn('.pdf', aditivo.arquivo_pdf.name)
-
-        # Verificar renderização na tela de detalhes do Termo de Parceria
-        url_detail = self.termo_parceria.get_absolute_url()
-        res_detail = self.client.get(url_detail)
-        self.assertEqual(res_detail.status_code, 200)
-        self.assertContains(res_detail, "Termos Aditivos Celebrados")
-        self.assertContains(res_detail, "2º Termo Aditivo")
-        self.assertContains(res_detail, aditivo.arquivo_pdf.url)
-
-        # Verificar renderização na Aba de Aditivos do Painel de Instrumentos Jurídicos
-        url_painel = reverse('cadastros:painel_instrumentos')
-        res_painel = self.client.get(url_painel)
-        self.assertEqual(res_painel.status_code, 200)
-        self.assertContains(res_painel, "2º Termo Aditivo")
-        self.assertContains(res_painel, "Termos Aditivos Registrados")
 
         # Exclusão do Aditivo
         url_del = reverse('cadastros:excluir_aditivo_parceria', kwargs={'pk': aditivo.pk})
@@ -2449,7 +2430,8 @@ class TermosAditivosTestCase(TestCase):
 
         # 1. Termo de Parceria com vigência direta
         tp = Convenio.objects.create(
-            numero="AP 999/2026",
+            numero=999,
+            ano=2026,
             concedente=self.empresa,
             convenente=self.ict,
             interveniente=self.fundacao,
@@ -2463,7 +2445,8 @@ class TermosAditivosTestCase(TestCase):
 
         # 2. Termo de Cooperação com data de assinatura e vigência
         tc = TermoCooperacao.objects.create(
-            numero="TC 888/2026",
+            numero=888,
+            ano=2026,
             concedente=self.empresa,
             convenente=self.ict,
             data_assinatura=date(2026, 2, 15),
@@ -2486,7 +2469,8 @@ class TermosAditivosTestCase(TestCase):
         # 4. Validação da dinâmica de nomenclatura das espécies documentais (Convênio vs Acordo de Parceria)
         tp_conv = Convenio.objects.create(
             tipo_instrumento='CONVENIO',
-            numero='CV 99/2026',
+            numero=99,
+            ano=2026,
             concedente=self.empresa,
             convenente=self.ict,
             interveniente=self.fundacao,

@@ -292,12 +292,7 @@ class Convenio(InstrumentoJuridicoBase):
         from django.db import transaction, IntegrityError
         if not self.ano:
             self.ano = self.data_assinatura.year if self.data_assinatura else timezone.now().year
-        if self.numero and not self.sequencial:
-            match = re.search(r'(\d+)/(\d{4})', self.numero)
-            if match:
-                self.sequencial = int(match.group(1))
-                self.ano = int(match.group(2))
-        if not self.sequencial:
+        if not self.numero:
             MAX_TENTATIVAS = 3
             for tentativa in range(MAX_TENTATIVAS):
                 try:
@@ -306,24 +301,15 @@ class Convenio(InstrumentoJuridicoBase):
                             InstrumentoJuridicoBase.objects
                             .select_for_update()
                             .filter(tipo_instrumento=self.tipo_instrumento, ano=self.ano)
-                            .order_by('-sequencial')
+                            .order_by('-numero')
                             .first()
                         )
-                        self.sequencial = (ultimo.sequencial + 1) if (ultimo and ultimo.sequencial) else 1
-                        if not self.numero:
-                            prefixos = {
-                                'CONVENIO': 'CV',
-                                'ACORDO_PARCERIA': 'AP',
-                                'TERMO_COOPERACAO': 'TC',
-                            }
-                            prefixo = prefixos.get(self.tipo_instrumento, 'DOC')
-                            self.numero = f"{prefixo} nº {self.sequencial:03d}/{self.ano}"
+                        self.numero = (ultimo.numero + 1) if (ultimo and ultimo.numero) else 1
                         super().save(*args, **kwargs)
                         return
                 except IntegrityError:
                     if tentativa == MAX_TENTATIVAS - 1:
                         raise
-                    self.sequencial = None
                     self.numero = None
         else:
             super().save(*args, **kwargs)
@@ -997,6 +983,16 @@ class TermoAditivo(models.Model):
     def __str__(self):
         return f"Aditivo {self.numero} - {self.instrumento.numero if self.instrumento else 'Sem Instrumento'}"
 
+    @property
+    def convenio(self):
+        if not self.instrumento:
+            return None
+        return getattr(self.instrumento, 'convenio', None) or getattr(self.instrumento, 'acordodeparceria', None)
+
+    @property
+    def convenio_id(self):
+        return self.instrumento_id
+
 class TermoEncerramento(models.Model):
     """Termo de Encerramento unificado para todos os Instrumentos Jurídicos."""
     instrumento = models.OneToOneField(InstrumentoJuridicoBase, on_delete=models.CASCADE, related_name='encerramento', null=True, blank=True)
@@ -1011,6 +1007,16 @@ class TermoEncerramento(models.Model):
 
     def __str__(self):
         return f"Encerramento - {self.instrumento.numero if self.instrumento else 'Sem Instrumento'}"
+
+    @property
+    def termo_cooperacao(self):
+        if not self.instrumento:
+            return None
+        return getattr(self.instrumento, 'termocooperacao', None)
+
+    @property
+    def termo_cooperacao_id(self):
+        return self.instrumento_id
 
 class CotaBolsaPT(models.Model):
     """

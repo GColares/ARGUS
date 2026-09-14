@@ -1801,7 +1801,7 @@ def painel_instrumentos(request):
         is_prorrogado = p.aditivos.filter(nova_data_fim__isnull=False).exists()
         ocorrencias.append({
             'id': p.pk,
-            'numero': p.numero or f"Sem número (#{p.pk})",
+            'numero': p.numero_formatado if hasattr(p, 'numero_formatado') and p.numero else (p.numero or f"Sem número (#{p.pk})"),
             'tipo_nome': tipo_nome,
             'tipo_sigla': tipo_sigla,
             'tipo_id': p.tipo_instrumento_fk_id,
@@ -1815,9 +1815,9 @@ def painel_instrumentos(request):
             'is_prorrogado': is_prorrogado,
             'total_aditivos': total_aditivos,
             'ativo': p.ativo,
-            'url_visualizar': reverse('cadastros:visualizar_convenio', args=[p.pk]),
-            'url_editar': reverse('cadastros:editar_convenio', args=[p.pk]),
-            'url_excluir': reverse('cadastros:excluir_convenio', args=[p.pk]),
+            'url_visualizar': reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'acordos-parceria', 'pk': p.pk}),
+            'url_editar': reverse('cadastros:editar_instrumento', kwargs={'especie': 'acordos-parceria', 'pk': p.pk}),
+            'url_excluir': reverse('cadastros:excluir_instrumento', kwargs={'especie': 'acordos-parceria', 'pk': p.pk}),
             'url_novo_aditivo': reverse('cadastros:cadastrar_aditivo_parceria') + f"?convenio_id={p.pk}",
             'modelo_origem': 'parceria',
             'projeto': p.projeto,
@@ -1830,7 +1830,7 @@ def painel_instrumentos(request):
         is_prorrogado = c.aditivos.filter(nova_data_fim__isnull=False).exists()
         ocorrencias.append({
             'id': c.pk,
-            'numero': c.numero or f"Sem número (#{c.pk})",
+            'numero': c.numero_formatado if hasattr(c, 'numero_formatado') and c.numero else (c.numero or f"Sem número (#{c.pk})"),
             'tipo_nome': tipo_nome,
             'tipo_sigla': tipo_sigla,
             'tipo_id': c.tipo_instrumento_fk_id,
@@ -1844,9 +1844,9 @@ def painel_instrumentos(request):
             'is_prorrogado': is_prorrogado,
             'ativo': c.ativo,
             'total_aditivos': total_aditivos,
-            'url_visualizar': reverse('cadastros:visualizar_termo', args=[c.pk]),
-            'url_editar': reverse('cadastros:editar_termo', args=[c.pk]),
-            'url_excluir': reverse('cadastros:excluir_termo', args=[c.pk]),
+            'url_visualizar': reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'termos-cooperacao', 'pk': c.pk}),
+            'url_editar': reverse('cadastros:editar_instrumento', kwargs={'especie': 'termos-cooperacao', 'pk': c.pk}),
+            'url_excluir': reverse('cadastros:excluir_instrumento', kwargs={'especie': 'termos-cooperacao', 'pk': c.pk}),
             'url_novo_aditivo': reverse('cadastros:cadastrar_aditivo_cooperacao') + f"?termo_cooperacao_id={c.pk}",
             'modelo_origem': 'cooperacao',
             'projeto': None,
@@ -2026,8 +2026,8 @@ class TermoAditivoCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView
         return context
 
     def get_success_url(self):
-        if self.object.convenio_id:
-            return reverse('cadastros:visualizar_convenio', kwargs={'pk': self.object.convenio_id})
+        if self.object.instrumento_id:
+            return reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'acordos-parceria', 'pk': self.object.instrumento_id})
         return reverse('cadastros:painel_instrumentos')
 
 
@@ -2044,8 +2044,8 @@ class TermoAditivoUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView
         return context
 
     def get_success_url(self):
-        if self.object.convenio_id:
-            return reverse('cadastros:visualizar_convenio', kwargs={'pk': self.object.convenio_id})
+        if self.object.instrumento_id:
+            return reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'acordos-parceria', 'pk': self.object.instrumento_id})
         return reverse('cadastros:painel_instrumentos')
 
 
@@ -2055,8 +2055,8 @@ class TermoAditivoDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView
     success_message = "Termo Aditivo excluído com sucesso!"
 
     def get_success_url(self):
-        if self.object.convenio_id:
-            return reverse('cadastros:visualizar_convenio', kwargs={'pk': self.object.convenio_id})
+        if self.object.instrumento_id:
+            return reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'acordos-parceria', 'pk': self.object.instrumento_id})
         return reverse('cadastros:painel_instrumentos')
 
 
@@ -2082,8 +2082,8 @@ class TermoEncerramentoCreateView(LoginRequiredMixin, SuccessMessageMixin, Creat
         return context
 
     def get_success_url(self):
-        if self.object.termo_cooperacao_id:
-            return reverse('cadastros:visualizar_termo', kwargs={'pk': self.object.termo_cooperacao_id})
+        if self.object.instrumento_id:
+            return reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'termos-cooperacao', 'pk': self.object.instrumento_id})
         return reverse('cadastros:painel_instrumentos')
 
 
@@ -2100,8 +2100,8 @@ class TermoEncerramentoUpdateView(LoginRequiredMixin, SuccessMessageMixin, Updat
         return context
 
     def get_success_url(self):
-        if self.object.termo_cooperacao_id:
-            return reverse('cadastros:visualizar_termo', kwargs={'pk': self.object.termo_cooperacao_id})
+        if self.object.instrumento_id:
+            return reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'termos-cooperacao', 'pk': self.object.instrumento_id})
         return reverse('cadastros:painel_instrumentos')
 
 
@@ -2111,8 +2111,8 @@ class TermoEncerramentoDeleteView(LoginRequiredMixin, SuccessMessageMixin, Delet
     success_message = "Termo Aditivo de Cooperação excluído com sucesso!"
 
     def get_success_url(self):
-        if self.object.termo_cooperacao_id:
-            return reverse('cadastros:visualizar_termo', kwargs={'pk': self.object.termo_cooperacao_id})
+        if self.object.instrumento_id:
+            return reverse('cadastros:visualizar_instrumento', kwargs={'especie': 'termos-cooperacao', 'pk': self.object.instrumento_id})
         return reverse('cadastros:painel_instrumentos')
 
 
