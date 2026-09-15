@@ -1,0 +1,15 @@
+Option Explicit
+
+Public Sub AbrirSistemaAlmoxarifado()
+    On Error Resume Next
+    Application.DisplayFormulaBar = False
+    ActiveWindow.DisplayHeadings = False
+    ActiveWindow.DisplayGridlines = False
+    FrmArgusBalcao.Show vbModeless
+End Sub
+
+Public Sub RestaurarExcel()
+    Application.DisplayFormulaBar = True
+    ActiveWindow.DisplayHeadings = True
+    ActiveWindow.DisplayGridlines = True
+End Sub

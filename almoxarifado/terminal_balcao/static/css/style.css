@@ -1,0 +1,1328 @@
+/* ==========================================================================
+   ARGUS Design System - Módulo Almoxarifado (Terminal de Balcão)
+   Padrão Oficial: Tema Almoxarifado (Danger / Vermelho Inova #B72D25)
+   Identidade Híbrida: ARGUS Azul (#0D3B66) + Inova Vermelho (#B72D25)
+   ========================================================================== */
+
+:root {
+  /* Cores Nativas ARGUS (Software Identity) */
+  --argus-azul: #0D3B66;
+  --argus-teal: #1AA3A8;
+
+  /* Cores Inova Nativas (Institucional) */
+  --inova-verde: #7EC247;
+  --inova-vermelho: #B72D25;
+  --inova-grafite: #1A1A1A;
+  --inova-cinza-claro: #F1F1F2;
+  --inova-ouro: #D48806;
+
+  /* Sobrescrevendo o Bootstrap 5 nativamente */
+  /* Primary = ARGUS Azul */
+  --bs-primary: #0D3B66;
+  --bs-primary-rgb: 13, 59, 102;
+  --bs-primary-dark: #07223b;
+  --bs-primary-light: #e8f1f8;
+  
+  /* Danger = Inova Vermelho (Tema Canônico do Almoxarifado no ARGUS) */
+  --bs-danger: #B72D25;
+  --bs-danger-rgb: 183, 45, 37;
+  --bs-danger-dark: #98221c;
+  --bs-danger-light: #fee2e2;
+
+  /* Almoxarifado Theme Tokens */
+  --cor-almoxarifado: #B72D25;
+  --cor-almoxarifado-rgb: 183, 45, 37;
+  --cor-almoxarifado-light: #fee2e2;
+
+  /* Success = Inova Verde */
+  --bs-success: #7EC247;
+  --bs-success-rgb: 126, 194, 71;
+
+  /* Warning = Inova Ouro */
+  --bs-warning: #D48806;
+  --bs-warning-rgb: 212, 136, 6;
+
+  /* Info = ARGUS Teal */
+  --bs-info: #1AA3A8;
+  --bs-info-rgb: 26, 163, 168;
+
+  /* Dark = Inova Grafite */
+  --bs-dark: #1A1A1A;
+  --bs-dark-rgb: 26, 26, 26;
+
+  --bs-secondary: #64748B;
+  --bs-secondary-rgb: 100, 116, 139;
+
+  /* Superfícies e Backgrounds Canônicos */
+  --argus-bg: #f8fafc;
+  --argus-card-bg: #ffffff;
+  --argus-card-border: #e2e8f0;
+  --argus-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --argus-header-bg: #1e293b;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ==========================================================================
+   TELA CHEIA DE LOGIN / GATEKEEPER DE ACESSO OFICIAL ARGUS
+   ========================================================================== */
+.login-screen-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #071E34 0%, #0D3B66 50%, #8B1E17 100%);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 560px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border-top: 4px solid var(--inova-vermelho, #B72D25);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.3);
+  padding: 30px 34px;
+  animation: fadeInLogin 0.3s ease-out;
+}
+
+@keyframes fadeInLogin {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.login-card .form-row-group {
+  margin-bottom: 13px !important;
+}
+
+.login-card .form-label {
+  margin-bottom: 5px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  display: block;
+}
+
+.login-card .form-input,
+.login-card .form-select {
+  height: 42px !important;
+  padding: 8px 12px !important;
+  font-size: 0.88rem !important;
+  border-radius: 8px !important;
+  border: 1px solid #D1D5DB !important;
+  background: #FFFFFF !important;
+  width: 100%;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.login-card .form-input:focus,
+.login-card .form-select:focus {
+  border-color: var(--inova-vermelho, #B72D25) !important;
+  box-shadow: 0 0 0 3px rgba(183, 45, 37, 0.15) !important;
+  outline: none;
+}
+
+
+.login-tab-pill {
+  flex: 1;
+  padding: 9px 12px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid #D1D5DB;
+  background: #F3F4F6;
+  color: #4B5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.login-tab-pill.active {
+  background: var(--inova-vermelho, #B72D25) !important;
+  color: #FFFFFF !important;
+  border-color: var(--inova-vermelho, #B72D25) !important;
+  box-shadow: 0 3px 8px rgba(183, 45, 37, 0.3);
+}
+
+#btnScreenSubmitLogin, #btnScreenSubmitCadastro {
+  background: linear-gradient(180deg, #B72D25 0%, #98221c 100%) !important;
+  color: #FFFFFF !important;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0.2px !important;
+  padding: 10px 24px !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+  border: 1px solid #7d1a15 !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  box-shadow: 0 3px 8px rgba(183, 45, 37, 0.25) !important;
+  transition: all 0.18s ease-in-out !important;
+}
+
+#btnScreenSubmitLogin *, #btnScreenSubmitCadastro * {
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+}
+
+#btnScreenSubmitLogin:hover, #btnScreenSubmitCadastro:hover {
+  background: linear-gradient(180deg, #ca352d 0%, #a8241e 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(183, 45, 37, 0.35) !important;
+}
+
+#btnScreenSubmitLogin:active, #btnScreenSubmitCadastro:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(183, 45, 37, 0.2) !important;
+}
+
+
+
+body {
+  background-color: var(--argus-bg);
+  background-image: radial-gradient(at 0% 0%, rgba(var(--bs-primary-rgb), 0.03) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(var(--bs-danger-rgb), 0.02) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: var(--bs-dark);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+/* Container Principal Corporativo ARGUS (Fluido Full-Width) */
+.app-container {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-bottom: 46px; /* Compensa o rodapé fixo de ~46px */
+}
+
+.container-fluid {
+  width: 100%;
+  padding-right: 1.5rem;
+  padding-left: 1.5rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Sistema de Grid Responsivo 12 Colunas */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -0.75rem;
+  margin-left: -0.75rem;
+}
+.row > * {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
+  padding-right: 0.75rem;
+  padding-left: 0.75rem;
+}
+
+.col-12 { flex: 0 0 auto; width: 100%; }
+.col-6 { flex: 0 0 auto; width: 50% !important; }
+.col-md-6 { flex: 0 0 auto; width: 100%; }
+.col-lg-3 { flex: 0 0 auto; width: 100%; }
+.col-lg-4 { flex: 0 0 auto; width: 100%; }
+.col-lg-5 { flex: 0 0 auto; width: 100%; }
+.col-lg-6 { flex: 0 0 auto; width: 100%; }
+.col-lg-7 { flex: 0 0 auto; width: 100%; }
+.col-lg-8 { flex: 0 0 auto; width: 100%; }
+.col-xl-3 { flex: 0 0 auto; width: 100%; }
+
+@media (min-width: 768px) {
+  .col-md-6 { width: 50%; }
+}
+
+@media (min-width: 992px) {
+  .col-lg-3 { width: 25%; }
+  .col-lg-4 { width: 33.333333%; }
+  .col-lg-5 { width: 41.666667%; }
+  .col-lg-6 { width: 50%; }
+  .col-lg-7 { width: 58.333333%; }
+  .col-lg-8 { width: 66.666667%; }
+}
+
+@media (min-width: 1200px) {
+  .col-xl-3 { width: 25%; }
+}
+
+.d-flex { display: flex !important; }
+.flex-column { flex-direction: column !important; }
+.justify-content-start { justify-content: flex-start !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.justify-content-between { justify-content: space-between !important; }
+.align-items-center { align-items: center !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.gap-1 { gap: 0.25rem !important; }
+.gap-2 { gap: 0.5rem !important; }
+.gap-3 { gap: 1rem !important; }
+.w-100 { width: 100% !important; }
+.p-2 { padding: 0.5rem !important; }
+.p-3 { padding: 1rem !important; }
+.px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+.px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.px-4 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+.py-1 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+.py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+.rounded { border-radius: 8px !important; }
+.rounded-pill { border-radius: 50rem !important; }
+.border { border: 1px solid #e2e8f0 !important; }
+.shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important; }
+.bg-light { background-color: #f8fafc !important; }
+.text-start { text-align: left !important; }
+.text-center { text-align: center !important; }
+.text-end { text-align: right !important; }
+.text-muted { color: var(--bs-secondary) !important; }
+.small { font-size: 0.8125rem !important; }
+.fw-bold { font-weight: 700 !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.me-1 { margin-right: 0.25rem !important; }
+.me-2 { margin-right: 0.5rem !important; }
+.ms-1 { margin-left: 0.25rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.d-inline-block { display: inline-block !important; }
+.text-decoration-none { text-decoration: none !important; }
+
+
+/* --------------------------------------------------------------------------
+   NAVBAR INSTITUCIONAL ARGUS (TEMA ALMOXARIFADO / THEME-DANGER)
+   -------------------------------------------------------------------------- */
+.navbar-institucional {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 4px solid var(--inova-vermelho, #B72D25);
+  padding: 10px 18px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo-inova {
+  height: 32px;
+  object-fit: contain;
+}
+
+.brand-divider {
+  height: 28px;
+  width: 1px;
+  background-color: rgba(0, 0, 0, 0.18);
+}
+
+.brand-logo-argus {
+  height: 36px;
+  object-fit: contain;
+}
+
+.badge-modulo-argus {
+  background: rgba(183, 45, 37, 0.1);
+  color: var(--inova-vermelho, #B72D25);
+  font-size: 0.70rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 50rem;
+  border: 1px solid rgba(183, 45, 37, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--bs-secondary);
+}
+
+.header-status .status-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--inova-verde, #7EC247);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--inova-verde, #7EC247);
+}
+
+/* Breadcrumbs ARGUS */
+.argus-breadcrumb {
+  font-size: 0.72rem;
+  color: #6B7280;
+  padding: 10px 18px 4px 18px;
+}
+.argus-breadcrumb a {
+  color: var(--inova-vermelho, #B72D25);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   NAVEGAÇÃO DAS 4 ETAPAS (PILLS OFICIAIS DO ARGUS ALMOXARIFADO)
+   -------------------------------------------------------------------------- */
+.nav-argus-pills {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.nav-pill-btn {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--bs-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-pill-btn:hover {
+  background: rgba(183, 45, 37, 0.08);
+  color: var(--inova-vermelho, #B72D25);
+  border-color: rgba(183, 45, 37, 0.2);
+}
+
+.nav-pill-btn.active {
+  background: var(--inova-vermelho, #B72D25);
+  color: #ffffff;
+  border-color: var(--inova-vermelho, #B72D25);
+  box-shadow: 0 3px 8px rgba(183, 45, 37, 0.28);
+}
+
+.nav-pill-btn i {
+  font-size: 1rem;
+}
+
+/* Sub-Abas do ARGUS */
+.sub-tabs-bar {
+  display: flex;
+  gap: 6px;
+  background: rgba(243, 244, 246, 0.85);
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.sub-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--bs-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.sub-tab-btn:hover {
+  color: var(--bs-dark);
+}
+
+.sub-tab-btn.active {
+  background: white;
+  color: var(--inova-vermelho, #B72D25);
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   GLASSMORPHISM CANÔNICO DO ARGUS (.cs-card)
+   -------------------------------------------------------------------------- */
+.cs-card {
+  background: var(--argus-card-bg);
+  border: 1px solid var(--argus-card-border);
+  border-radius: 0.85rem;
+  box-shadow: var(--argus-card-shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 16px;
+  margin-bottom: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cs-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.cs-card__title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--bs-dark);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Área de Conteúdo das Abas */
+.content-body {
+  padding: 14px 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.tab-view {
+  display: none;
+}
+.tab-view.active {
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   INDICADORES KPI (.card-kpi-argus / PADRÃO DASHBOARD ARGUS ALMOXARIFADO)
+   -------------------------------------------------------------------------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.card-kpi-argus, .kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-kpi-argus:hover, .kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+}
+
+.kpi-card-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-number {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--inova-vermelho, #B72D25);
+  line-height: 1.1;
+}
+.kpi-number.blue { color: var(--argus-azul, #0D3B66); }
+.kpi-number.warn { color: var(--inova-ouro, #D48806); }
+.kpi-number.orange { color: var(--argus-teal, #1AA3A8); }
+
+.kpi-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+.kpi-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  background: rgba(183, 45, 37, 0.1);
+  color: var(--inova-vermelho, #B72D25);
+}
+.kpi-card-icon.blue {
+  background: rgba(13, 59, 102, 0.1);
+  color: var(--argus-azul, #0D3B66);
+}
+.kpi-card-icon.warn {
+  background: rgba(212, 136, 6, 0.12);
+  color: var(--inova-ouro, #D48806);
+}
+.kpi-card-icon.orange {
+  background: rgba(26, 163, 168, 0.12);
+  color: var(--argus-teal, #1AA3A8);
+}
+
+/* --------------------------------------------------------------------------
+   TABELA CORPORATIVA ARGUS (.thead-argus COM CABEÇALHOS CENTRALIZADOS SLATE 800)
+   -------------------------------------------------------------------------- */
+.argus-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.argus-table-card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.argus-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.argus-table {
+  width: 100%;
+  margin-bottom: 0;
+  border-collapse: collapse;
+}
+
+.thead-argus,
+.thead-argus tr,
+.thead-argus th,
+.argus-table thead th {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 11px 14px !important;
+  border-color: #334155 !important;
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+.argus-table thead th.text-center,
+.argus-table tbody td.text-center {
+  text-align: center !important;
+}
+
+.argus-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.15s ease;
+}
+
+.argus-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.argus-table tbody td {
+  padding: 12px 14px;
+  font-size: 0.82rem;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.badge-cat {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+.badge-cat-consumo {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+.badge-cat-ferramenta {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.badge-wms-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #F3F4F6;
+  border: 1px solid #E5E7EB;
+  color: #374151;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   FORMULÁRIOS & INPUTS (BOOTSTRAP 5 UTILITIES)
+   -------------------------------------------------------------------------- */
+.form-group {
+  margin-bottom: 10px;
+}
+
+.form-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 3px;
+  display: block;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  color: var(--bs-dark);
+  background: white;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.12);
+}
+
+/* Botões Oficiais ARGUS Almoxarifado */
+.btn-argus-primary {
+  background: linear-gradient(180deg, var(--inova-vermelho, #B72D25) 0%, #98221c 100%);
+  color: white;
+  border: 1px solid #7d1a15;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 3px 8px rgba(183, 45, 37, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-argus-primary:hover {
+  background: linear-gradient(180deg, #ca352d 0%, #a8241e 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(183, 45, 37, 0.35);
+}
+
+.btn-argus-blue {
+  background: linear-gradient(180deg, var(--argus-azul, #0D3B66) 0%, #092c4d 100%);
+  color: white;
+  border: 1px solid #07223b;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 3px 8px rgba(13, 59, 102, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-argus-blue:hover {
+  background: linear-gradient(180deg, #154c82 0%, #0d3b66 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(13, 59, 102, 0.35);
+}
+
+.btn-argus-secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+  text-transform: none !important;
+}
+
+.btn-argus-secondary:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.btn-aux {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-aux:hover {
+  background: #f8fafc;
+  border-color: #9ca3af;
+  color: #111827;
+  transform: translateY(-1px);
+}
+
+/* -----------------------------------------------------
+   MATRIZ CANÔNICA DE BADGES DE STATUS (DESIGN SYSTEM ARGUS)
+   ----------------------------------------------------- */
+.badge-status-success,
+.badge-status-warning,
+.badge-status-danger,
+.badge-status-secondary,
+.badge-status-info {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 6px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.badge-status-success {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1px solid #bbf7d0 !important;
+}
+
+.badge-status-warning {
+  background-color: #fef3c7 !important;
+  color: #b45309 !important;
+  border: 1px solid #fde68a !important;
+}
+
+.badge-status-danger {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca !important;
+}
+
+.badge-status-secondary {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.badge-status-info {
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
+  border: 1px solid #bae6fd !important;
+}
+
+/* --------------------------------------------------------------------------
+   CARDS DE LISTA & REGISTROS
+   -------------------------------------------------------------------------- */
+.list-item-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.list-item-card:hover {
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+  transform: translateY(-1px);
+}
+
+/* Badges e Tags */
+.badge-saldo {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+.badge-regular { background: #D1FAE5; color: #065F46; }
+.badge-baixo { background: #FEE2E2; color: #991B1B; }
+
+.badge-pao {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.box-wms {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-size: 0.68rem;
+  color: #1E40AF;
+  font-weight: 600;
+  margin-top: 3px;
+  display: inline-block;
+}
+
+/* Botões de Frações (Quadrantes de Latas) */
+.grid-fracoes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-fracao {
+  background: #F9FAFB;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-fracao:hover, .btn-fracao.selected {
+  border-color: var(--bs-primary);
+  background: var(--bs-primary-light);
+}
+
+.btn-fracao .frac-val {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--bs-primary);
+}
+
+.btn-fracao .frac-desc {
+  font-size: 0.68rem;
+  color: #6B7280;
+  margin-top: 2px;
+}
+
+.btn-etiqueta {
+  background: #F3F4F6;
+  border: 1px solid #D1D5DB;
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #374151;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.btn-etiqueta:hover {
+  background: #E5E7EB;
+}
+
+.btn-crud-edit {
+  background: #EBF5FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+  border-radius: 5px;
+  padding: 3px 7px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-crud-delete {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+  border-radius: 5px;
+  padding: 3px 7px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   RODAPÉ CORPORATIVO ARGUS (LINHA ÚNICA ULTRA COMPACTA)
+   -------------------------------------------------------------------------- */
+.app-footer {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid #e2e8f0;
+  padding: 4px 16px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.app-footer-bar {
+  display: flex;
+  flex-direction: row !important;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.footer-logo-ifam {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.footer-divider {
+  width: 1px;
+  height: 20px;
+  background: #cbd5e1;
+}
+
+.footer-text-group {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.footer-system-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.footer-copyright {
+  font-size: 0.64rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.footer-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-footer-action {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+  text-transform: none !important;
+  white-space: nowrap;
+}
+
+.btn-footer-action:hover {
+  background: #f8fafc;
+  border-color: #9ca3af;
+  color: #111827;
+  transform: translateY(-1px);
+}
+
+.btn-footer-closing {
+  background: linear-gradient(180deg, var(--argus-azul, #0D3B66) 0%, #082846 100%);
+  color: #ffffff;
+  border: 1px solid #07223b;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 5px rgba(13, 59, 102, 0.2);
+  transition: all 0.15s ease;
+  text-transform: none !important;
+  white-space: nowrap;
+}
+
+.btn-footer-closing:hover {
+  background: linear-gradient(180deg, #154c82 0%, #0d3b66 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(13, 59, 102, 0.3);
+}
+
+/* Quadro do Operador Ativo no Topo */
+.operador-badge-pill {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 50rem;
+  padding: 5px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.operador-badge-pill:hover {
+  background: #f8fafc;
+  border-color: var(--argus-azul, #0D3B66);
+  box-shadow: 0 2px 8px rgba(13, 59, 102, 0.12);
+}
+
+.operador-badge-icon {
+  color: var(--argus-azul, #0D3B66);
+  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.operador-badge-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.operador-badge-nome {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.operador-badge-cargo {
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.operador-badge-logout {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: all 0.15s ease;
+}
+
+.operador-badge-logout:hover {
+  background: #fca5a5;
+  color: #7f1d1d;
+  transform: scale(1.08);
+}
+
+button, .btn, .btn-argus-primary, .btn-argus-blue, .btn-aux, .btn-argus-secondary {
+  text-transform: none !important;
+}
+
+/* Utilitários complementares */
+.flex-column { flex-direction: column !important; }
+.rounded-pill { border-radius: 50rem !important; }
+.gap-1 { gap: 0.25rem !important; }
+.gap-2 { gap: 0.5rem !important; }
+.gap-3 { gap: 1rem !important; }
+
+/* --------------------------------------------------------------------------
+   ARGUS SORTER — Cabeçalhos Ordenáveis das Tabelas
+   -------------------------------------------------------------------------- */
+.th-sort {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.th-sort:hover {
+  background: rgba(var(--bs-primary-rgb, 13, 59, 102), 0.08) !important;
+  color: var(--bs-primary, #0D3B66);
+}
+
+.th-sort--active {
+  background: rgba(var(--bs-primary-rgb, 13, 59, 102), 0.12) !important;
+  color: var(--bs-primary, #0D3B66) !important;
+}
+
+.sort-icon {
+  display: inline-block;
+  font-size: 0.72rem;
+  opacity: 0.5;
+  margin-left: 4px;
+  vertical-align: middle;
+  font-style: normal;
+  transition: opacity 0.12s ease;
+}
+
+.th-sort:hover .sort-icon,
+.th-sort--active .sort-icon {
+  opacity: 1;
+  color: var(--bs-primary, #0D3B66);
+}
+
+/* --------------------------------------------------------------------------
+   MODAIS DO SISTEMA
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--bs-dark);
+}
+
+.modal-close {
+  background: #E5E7EB;
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4B5563;
+}
+
+.modal-body {
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.success-box {
+  text-align: center;
+  padding: 20px 10px;
+}
+.success-icon { font-size: 2.5rem; margin-bottom: 6px; }

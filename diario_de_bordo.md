@@ -1,5 +1,67 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-14] Sprint — Terminal de Balcão (Almoxarifado): UI/UX, Identidade Visual e Ordenação de Tabelas
+
+### 1. Entregas Técnicas do Dia
+
+- **Normalização Visual do Quadro do Operador Ativo (Navbar):**
+  * Substituição do layout plano inline por componente dedicado `.operador-badge-pill` com disposição em coluna (duas linhas: Nome em destaque + Cargo/Vínculo em subtítulo).
+  * Botão circular de logout `.operador-badge-logout` com efeito hover avermelhado suave, separado do clique no badge para evitar saída acidental.
+  * CSS dedicado com classes: `.operador-badge-pill`, `.operador-badge-icon`, `.operador-badge-info`, `.operador-badge-nome`, `.operador-badge-cargo`, `.operador-badge-logout`.
+
+- **Rodapé Institucional com Logo IFAM e Copyright:**
+  * Copiado o arquivo `logo-ifam.png` para `static/img/logo-ifam.png` e sincronizado para `dist/`.
+  * Inserida identidade institucional completa no rodapé: logotipo oficial (28px), divisor vertical, título do sistema e copyright `© 2026 Instituto Federal do Amazonas • Todos os direitos reservados`.
+  * Rodapé reestruturado em **linha única horizontal** via `.app-footer-bar` (sem empilhamento em mobile) com `flex-wrap: nowrap`.
+  * Removida duplicação de classes CSS (bloco legacy `.footer-brand` apagado).
+
+- **Rodapé Fixo no Viewport (`position: fixed`):**
+  * Alterado `position: sticky` → `position: fixed; bottom: 0; left: 0; right: 0` para o `.app-footer`, fazendo o rodapé se comportar como barra de tarefas em todas as abas e telas.
+  * Adicionado `padding-bottom: 46px` no `.app-container` para compensar a sobreposição do rodapé fixo e evitar que o último conteúdo fique escondido.
+
+- **Motor de Ordenação Client-Side — `ArgusSorter`:**
+  * Implementado módulo IIFE `ArgusSorter` puro (sem dependências externas) no final de `app.js`.
+  * Suporte a 3 tabelas: `theadSaldos` (8 col), `theadExtrato` (7 col), `theadGerenciar` (9 col).
+  * Ordenação por clique no `<th>`: 1º clique crescente `↓`, 2º clique decrescente `↑`, demais colunas resetam para `↕`.
+  * Tipos suportados: `data-type="num"` (numérico real, ex: SKU, Saldo, Quantidade) e `data-type="str"` (texto case-insensitive).
+  * Colunas não-sortáveis (Ações, Embalagem, Unid. Base) sem ícone e sem cursor pointer.
+  * CSS de interação: `.th-sort`, `.th-sort:hover`, `.th-sort--active`, `.sort-icon` com transição suave.
+
+---
+
+### 2. Lista Ostensiva e Específica de Alterações nos Arquivos
+
+**`almoxarifado/terminal_balcao/static/index.html` [MODIFICADO]:**
+- Linhas 177–189: Substituição do `#btnOperadorAtivo` com inline styles por markup semântico com classes `.operador-badge-pill`, `.operador-badge-icon`, `.operador-badge-info`, `.operador-badge-nome`, `.operador-badge-cargo`, `.operador-badge-logout`.
+- Linhas 771–801: Substituição do conteúdo do `<footer class="app-footer">`: div container trocado de `container-fluid d-flex flex-column...` para `app-footer-bar`; identidade institucional inserida como `.footer-brand` com `img.footer-logo-ifam`, `.footer-divider`, `.footer-text-group`, `.footer-system-title`, `.footer-copyright`; grupo de botões trocado de `d-flex gap-2 flex-wrap` para `.footer-actions-group`.
+- Linhas 626–637 (thead `#theadSaldos`): adicionados `id="theadSaldos"`, atributos `data-col`, `data-type`, classes `.th-sort` e `<span class="sort-icon">↕</span>` nas colunas SKU, Material, Categoria, Localização, Saldo, Situação.
+- Linhas 652–662 (thead `#theadExtrato`): adicionados `id="theadExtrato"`, atributos e classes de sort nas colunas Data, Tipo, Material, Responsável, Projeto, Quantidade.
+- Linhas 703–714 (thead `#theadGerenciar`): adicionados `id="theadGerenciar"`, atributos e classes de sort nas colunas SKU, CATMAT, Descrição, Categoria, Localização WMS, Saldo.
+
+**`almoxarifado/terminal_balcao/static/css/style.css` [MODIFICADO]:**
+- Seção `RODAPÉ CORPORATIVO ARGUS`: `position: sticky` → `position: fixed; left: 0; right: 0`; padding reduzido para `4px 16px`; nova classe `.app-footer-bar` (flex row, nowrap, space-between).
+- Novas classes adicionadas: `.footer-brand`, `.footer-logo-ifam`, `.footer-divider`, `.footer-text-group`, `.footer-system-title`, `.footer-copyright`, `.footer-actions-group`.
+- `.btn-footer-action` e `.btn-footer-closing`: padding e font-size reduzidos, `white-space: nowrap`.
+- Seção `ARGUS SORTER` adicionada: `.th-sort`, `.th-sort:hover`, `.th-sort--active`, `.sort-icon`, regras de hover/active para o ícone.
+- `.app-container`: adicionado `padding-bottom: 46px` para compensar o rodapé fixo.
+- Bloco duplicado de `.footer-brand` / `.footer-logo-ifam` (legacy) removido.
+- Utilitários complementares adicionados: `.flex-column`, `.rounded-pill`, `.gap-1`, `.gap-2`, `.gap-3`.
+- Classes do operador adicionadas: `.operador-badge-pill`, `.operador-badge-icon`, `.operador-badge-info`, `.operador-badge-nome`, `.operador-badge-cargo`, `.operador-badge-logout`.
+
+**`almoxarifado/terminal_balcao/static/js/app.js` [MODIFICADO]:**
+- Final do arquivo: inserção do módulo `ArgusSorter` (IIFE) com funções `textoCell()`, `comparar()`, `ordenar()`, `inicializar()`, `inicializarTodos()` e listener `DOMContentLoaded`.
+
+**`almoxarifado/terminal_balcao/static/img/logo-ifam.png` [NOVO]:**
+- Copiado do arquivo oficial `static/img/logo ifam.png` (raiz do ARGUS) para o diretório estático do Terminal de Balcão.
+- Sincronizado em `dist/ARGUS_Almoxarifado/_internal/static/img/logo-ifam.png`.
+
+---
+
+### 3. Pendências e Próximos Passos
+- Verificar se a ordenação da coluna "Saldo" na tabela Saldos trata corretamente valores com vírgula decimal.
+- Avaliar a adição de ordenação padrão (ex: por SKU crescente) ao carregar a tabela pela primeira vez.
+- Analisar possível integração do Terminal de Balcão com o módulo central de `tb_pessoas` (PessoaFisica) para busca de Solicitantes por CPF.
+
 ## [2026-09-12 / 2026-09-13] Sprint 2: Usabilidade Steve Krug ("Não Me Faça Pensar"), Responsividade Mobile/Tablet, Wizard de Projetos PDI e Esteira PWA (Progressive Web App)
 
 ### 1. Entregas Técnicas e Conformidade Regulatória (CT&I / Marco Legal):

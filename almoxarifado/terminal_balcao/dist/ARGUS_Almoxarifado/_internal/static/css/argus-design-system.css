@@ -1,0 +1,126 @@
+/* ARGUS Design System - Tokens Canônicos */
+:root {
+    --argus-card-bg: rgba(255, 255, 255, 0.85);
+    --argus-card-border: rgba(var(--bs-primary-rgb), 0.12);
+    --argus-card-shadow: 0 0.5rem 1.5rem rgba(var(--bs-dark-rgb), 0.06);
+}
+
+.cs-card,
+.glass-card {
+    background: var(--argus-card-bg);
+    border: 1px solid var(--argus-card-border);
+    border-radius: 0.75rem;
+    box-shadow: var(--argus-card-shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@supports not ((-webkit-backdrop-filter: blur(10px)) or (backdrop-filter: blur(10px))) {
+    .cs-card,
+    .glass-card {
+        background: #ffffff;
+    }
+}
+
+.sticky-actions-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 1020;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 0.85rem 1.5rem;
+    box-shadow: 0 -0.25rem 1rem rgba(0, 0, 0, 0.04);
+}
+
+.ql-editor-fluid {
+    min-height: 160px;
+    height: auto;
+    font-size: 0.95rem;
+}
+
+.wizard-sidebar-nav {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.12);
+    border-radius: 0.75rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(var(--bs-dark-rgb), 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 0.75rem;
+}
+
+.vertical-wizard .nav-link {
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.vertical-wizard .nav-link:hover {
+    background-color: rgba(13, 59, 102, 0.04);
+    transform: translateX(2px);
+}
+
+.vertical-wizard .nav-link.active {
+    background: linear-gradient(135deg, rgba(13, 59, 102, 0.95), rgba(26, 163, 168, 0.9));
+    box-shadow: 0 0.5rem 1rem rgba(13, 59, 102, 0.15);
+}
+
+.wizard-content-panel {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.12);
+    border-radius: 0.75rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(var(--bs-dark-rgb), 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.vertical-wizard {
+    position: sticky;
+    top: 1rem;
+    align-self: flex-start;
+}
+
+#v-pills-tab {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: visible;
+    overflow-x: hidden;
+    flex-wrap: nowrap;
+    padding-right: 0;
+    width: 100%;
+}
+
+.custom-scrollbar {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    overflow-y: visible;
+    overflow-x: hidden;
+}
+
+.wizard-step > .border-top,
+.wizard-step > .d-flex.border-top,
+.sticky-actions-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 -0.25rem 1rem rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 991.98px) {
+    .wizard-content-panel {
+        padding: 1rem !important;
+    }
+
+    .vertical-wizard {
+        position: static;
+    }
+}

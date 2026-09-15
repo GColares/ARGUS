@@ -1,0 +1,7 @@
+Private Sub Workbook_Open()
+    On Error Resume Next
+    Application.DisplayFormulaBar = False
+    ActiveWindow.DisplayHeadings = False
+    ActiveWindow.DisplayGridlines = False
+    FrmArgusBalcao.Show vbModeless
+End Sub

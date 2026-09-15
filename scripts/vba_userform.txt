@@ -1,0 +1,354 @@
+Option Explicit
+
+Private Sub UserForm_Initialize()
+    On Error Resume Next
+    CarregarListas
+    CarregarEstoque ""
+    CarregarCautelasAbertas
+End Sub
+
+Private Sub CarregarListas()
+    On Error Resume Next
+    Dim wsP As Worksheet, wsM As Worksheet, wsTI As Worksheet
+    Set wsP = ThisWorkbook.Sheets("TB_PARAMETROS")
+    Set wsM = ThisWorkbook.Sheets("TB_CATALOGO_MATERIAIS")
+    Set wsTI = ThisWorkbook.Sheets("TB_TI_DISPONIVEL")
+    
+    Dim r As Long, ultLin As Long
+    
+    ' Solicitantes
+    cboSolicitanteS.Clear
+    cboSolicitanteC.Clear
+    ultLin = wsP.Cells(wsP.Rows.Count, "E").End(xlUp).Row
+    For r = 2 To ultLin
+        If Trim(CStr(wsP.Cells(r, "E").Text)) <> "" Then
+            cboSolicitanteS.AddItem CStr(wsP.Cells(r, "E").Text)
+            cboSolicitanteC.AddItem CStr(wsP.Cells(r, "E").Text)
+        End If
+    Next r
+    
+    ' Projetos
+    cboProjetoS.Clear
+    cboProjetoC.Clear
+    ultLin = wsP.Cells(wsP.Rows.Count, "A").End(xlUp).Row
+    For r = 2 To ultLin
+        If Trim(CStr(wsP.Cells(r, "A").Text)) <> "" Then
+            cboProjetoS.AddItem CStr(wsP.Cells(r, "A").Text)
+            cboProjetoC.AddItem CStr(wsP.Cells(r, "A").Text)
+        End If
+    Next r
+    cboProjetoS.Value = "MANUTENÇÃO PREDIAL / POLO GERAL"
+    cboProjetoC.Value = "MANUTENÇÃO PREDIAL / POLO GERAL"
+    
+    ' Ambientes
+    cboAmbienteS.Clear
+    ultLin = wsP.Cells(wsP.Rows.Count, "C").End(xlUp).Row
+    For r = 2 To ultLin
+        If Trim(CStr(wsP.Cells(r, "C").Text)) <> "" Then
+            cboAmbienteS.AddItem CStr(wsP.Cells(r, "C").Text)
+        End If
+    Next r
+    cboAmbienteS.Value = "ALMOXARIFADO CENTRAL"
+    
+    ' Itens de Consumo
+    cboItemS.Clear
+    ultLin = wsM.Cells(wsM.Rows.Count, "A").End(xlUp).Row
+    For r = 4 To ultLin
+        If Trim(CStr(wsM.Cells(r, "B").Text)) <> "" Then
+            cboItemS.AddItem CStr(wsM.Cells(r, "B").Text)
+        End If
+    Next r
+    
+    ' Itens para Cautela (Ferramentas e Notebooks TI)
+    cboItemC.Clear
+    For r = 4 To ultLin
+        If Trim(CStr(wsM.Cells(r, "C").Text)) = "FERRAMENTA" Then
+            cboItemC.AddItem CStr(wsM.Cells(r, "B").Text)
+        End If
+    Next r
+    ultLin = wsTI.Cells(wsTI.Rows.Count, "A").End(xlUp).Row
+    For r = 4 To ultLin
+        If Trim(CStr(wsTI.Cells(r, "G").Text)) = "DISPONÍVEL" Then
+            cboItemC.AddItem CStr(wsTI.Cells(r, "B").Text) & " | " & CStr(wsTI.Cells(r, "D").Text)
+        End If
+    Next r
+End Sub
+
+Public Sub CarregarEstoque(filtro As String)
+    On Error Resume Next
+    Dim wsM As Worksheet
+    Set wsM = ThisWorkbook.Sheets("TB_CATALOGO_MATERIAIS")
+    
+    lstEstoque.Clear
+    Dim r As Long, ultLin As Long
+    ultLin = wsM.Cells(wsM.Rows.Count, "A").End(xlUp).Row
+    
+    For r = 4 To ultLin
+        Dim desc As String, cod As String, cat As String, saldo As String, st As String
+        cod = CStr(wsM.Cells(r, "A").Text)
+        desc = CStr(wsM.Cells(r, "B").Text)
+        cat = CStr(wsM.Cells(r, "C").Text)
+        
+        If IsError(wsM.Cells(r, "H").Value) Then
+            saldo = "0"
+        Else
+            saldo = CStr(wsM.Cells(r, "H").Text)
+        End If
+        
+        If IsError(wsM.Cells(r, "J").Value) Then
+            st = "REGULAR"
+        Else
+            st = CStr(wsM.Cells(r, "J").Text)
+        End If
+        
+        If cod <> "" And (filtro = "" Or InStr(1, UCase(desc), UCase(filtro)) > 0 Or InStr(1, UCase(cod), UCase(filtro)) > 0) Then
+            lstEstoque.AddItem cod
+            Dim idx As Long
+            idx = lstEstoque.ListCount - 1
+            lstEstoque.List(idx, 1) = desc
+            lstEstoque.List(idx, 2) = cat
+            lstEstoque.List(idx, 3) = saldo
+            lstEstoque.List(idx, 4) = st
+        End If
+    Next r
+End Sub
+
+Public Sub CarregarCautelasAbertas()
+    On Error Resume Next
+    Dim wsC As Worksheet
+    Set wsC = ThisWorkbook.Sheets("TB_CAUTELAS")
+    cboCautelasAbertas.Clear
+    
+    Dim r As Long, ultLin As Long
+    ultLin = wsC.Cells(wsC.Rows.Count, "A").End(xlUp).Row
+    For r = 4 To ultLin
+        If Trim(CStr(wsC.Cells(r, "I").Text)) = "EM USO" Then
+            cboCautelasAbertas.AddItem CStr(wsC.Cells(r, "A").Text) & " | " & CStr(wsC.Cells(r, "B").Text) & " | " & CStr(wsC.Cells(r, "E").Text)
+        End If
+    Next r
+End Sub
+
+Private Sub txtBuscaEstoque_Change()
+    On Error Resume Next
+    CarregarEstoque txtBuscaEstoque.Text
+End Sub
+
+Private Sub cboItemC_Change()
+    If InStr(1, cboItemC.Value, "|") > 0 Then
+        Dim partes() As String
+        partes = Split(cboItemC.Value, "|")
+        txtSerieC.Text = Trim(partes(1))
+    Else
+        txtSerieC.Text = "S/N"
+    End If
+End Sub
+
+Private Sub btnRegistrarSaida_Click()
+    Dim solic As String, item As String, qtd As Double
+    solic = Trim(cboSolicitanteS.Value)
+    item = Trim(cboItemS.Value)
+    qtd = Val(txtQtdS.Text)
+    
+    If solic = "" Then
+        MsgBox "Selecione o Solicitante!", vbExclamation, "ARGUS"
+        cboSolicitanteS.SetFocus
+        Exit Sub
+    End If
+    If item = "" Then
+        MsgBox "Selecione o Material!", vbExclamation, "ARGUS"
+        cboItemS.SetFocus
+        Exit Sub
+    End If
+    If qtd <= 0 Then
+        MsgBox "Quantidade invalida!", vbExclamation, "ARGUS"
+        txtQtdS.SetFocus
+        Exit Sub
+    End If
+    
+    Dim wsS As Worksheet, wsM As Worksheet, wsR As Worksheet
+    Set wsS = ThisWorkbook.Sheets("TB_HISTORICO_SAIDAS")
+    Set wsM = ThisWorkbook.Sheets("TB_CATALOGO_MATERIAIS")
+    Set wsR = ThisWorkbook.Sheets("RECIBO_IMPRESSAO")
+    
+    Dim proxLin As Long
+    proxLin = wsS.Cells(wsS.Rows.Count, "A").End(xlUp).Row + 1
+    
+    Dim idSaida As String, numRecibo As String
+    idSaida = "SAI-" & Year(Date) & "-" & Format(proxLin - 3, "0000")
+    numRecibo = "REC-" & Year(Date) & "/" & Format(proxLin - 3, "0000")
+    
+    Dim codItem As String, catItem As String, unidItem As String
+    codItem = "MAT-0001": catItem = "CONSUMO": unidItem = "UN"
+    Dim r As Long, ultLinM As Long
+    ultLinM = wsM.Cells(wsM.Rows.Count, "A").End(xlUp).Row
+    For r = 4 To ultLinM
+        If UCase(Trim(wsM.Cells(r, "B").Value)) = UCase(item) Then
+            codItem = wsM.Cells(r, "A").Value
+            catItem = wsM.Cells(r, "C").Value
+            unidItem = wsM.Cells(r, "D").Value
+            Exit For
+        End If
+    Next r
+    
+    wsS.Cells(proxLin, 1).Value = idSaida
+    wsS.Cells(proxLin, 2).Value = Now
+    wsS.Cells(proxLin, 3).Value = codItem
+    wsS.Cells(proxLin, 4).Value = item
+    wsS.Cells(proxLin, 5).Value = qtd
+    wsS.Cells(proxLin, 6).Value = unidItem
+    wsS.Cells(proxLin, 7).Value = solic
+    wsS.Cells(proxLin, 8).Value = cboProjetoS.Value
+    wsS.Cells(proxLin, 9).Value = cboAmbienteS.Value
+    wsS.Cells(proxLin, 10).Value = txtFinalidadeS.Text
+    wsS.Cells(proxLin, 11).Value = numRecibo
+    
+    ' Monta Recibo
+    wsR.Range("B4").Value = "COMPROVANTE DE RETIRADA / TERMO DE CAUTELA Nº: " & numRecibo
+    wsR.Range("C6").Value = Format(Now, "dd/mm/yyyy hh:mm")
+    wsR.Range("C7").Value = solic
+    wsR.Range("C8").Value = txtSiapeS.Text
+    wsR.Range("C9").Value = cboProjetoS.Value
+    wsR.Range("C10").Value = cboAmbienteS.Value
+    wsR.Range("C11").Value = "SAIDA DE CONSUMO"
+    wsR.Range("B14").Value = codItem
+    wsR.Range("C14").Value = item
+    wsR.Range("D14").Value = catItem
+    wsR.Range("E14").Value = qtd
+    wsR.Range("F14").Value = unidItem
+    wsR.Range("G14").Value = "CONSUMO IMEDIATO"
+    
+    Dim caminhoPdf As String, nomePdf As String
+    caminhoPdf = ThisWorkbook.Path & "\comprovantes_pdf\"
+    nomePdf = Replace(numRecibo, "/", "-") & "_" & Replace(solic, " ", "_") & ".pdf"
+    
+    On Error Resume Next
+    wsR.ExportAsFixedFormat Type:=xlTypePDF, Filename:=caminhoPdf & nomePdf, Quality:=xlQualityStandard
+    On Error GoTo 0
+    
+    MsgBox "Saida Registrada com Sucesso!" & vbCrLf & _
+           "• Recibo Gerado: " & numRecibo & vbCrLf & _
+           "• PDF Salvo em: comprovantes_pdf\" & nomePdf, vbInformation, "ARGUS Almoxarifado"
+           
+    CarregarEstoque ""
+End Sub
+
+Private Sub btnRegistrarCautela_Click()
+    Dim solic As String, item As String
+    solic = Trim(cboSolicitanteC.Value)
+    item = Trim(cboItemC.Value)
+    
+    If solic = "" Then
+        MsgBox "Selecione o Solicitante!", vbExclamation, "ARGUS"
+        cboSolicitanteC.SetFocus
+        Exit Sub
+    End If
+    If item = "" Then
+        MsgBox "Selecione o Equipamento / Ferramenta!", vbExclamation, "ARGUS"
+        cboItemC.SetFocus
+        Exit Sub
+    End If
+    
+    Dim wsC As Worksheet, wsR As Worksheet
+    Set wsC = ThisWorkbook.Sheets("TB_CAUTELAS")
+    Set wsR = ThisWorkbook.Sheets("RECIBO_IMPRESSAO")
+    
+    Dim proxLin As Long
+    proxLin = wsC.Cells(wsC.Rows.Count, "A").End(xlUp).Row + 1
+    
+    Dim idCaut As String, numRecibo As String
+    idCaut = "CAUT-" & Year(Date) & "/" & Format(proxLin - 3, "0000")
+    numRecibo = "REC-" & Year(Date) & "/" & Format(proxLin - 3, "0000")
+    
+    wsC.Cells(proxLin, 1).Value = idCaut
+    wsC.Cells(proxLin, 2).Value = item
+    wsC.Cells(proxLin, 3).Value = txtSerieC.Text
+    wsC.Cells(proxLin, 4).Value = cboProjetoC.Value
+    wsC.Cells(proxLin, 5).Value = solic
+    wsC.Cells(proxLin, 6).Value = "ALMOXARIFADO"
+    wsC.Cells(proxLin, 7).Value = Date
+    wsC.Cells(proxLin, 8).Value = txtDataDevC.Text
+    wsC.Cells(proxLin, 9).Value = "EM USO"
+    wsC.Cells(proxLin, 10).Value = ""
+    wsC.Cells(proxLin, 11).Value = txtFinalidadeC.Text & " (" & numRecibo & ")"
+    
+    ' Monta Recibo de Cautela
+    wsR.Range("B4").Value = "COMPROVANTE DE RETIRADA / TERMO DE CAUTELA Nº: " & numRecibo
+    wsR.Range("C6").Value = Format(Now, "dd/mm/yyyy hh:mm")
+    wsR.Range("C7").Value = solic
+    wsR.Range("C8").Value = txtSiapeC.Text
+    wsR.Range("C9").Value = cboProjetoC.Value
+    wsR.Range("C10").Value = "POLO DE INOVACAO"
+    wsR.Range("C11").Value = "CAUTELA DE EQUIPAMENTO / FERRAMENTA"
+    wsR.Range("B14").Value = idCaut
+    wsR.Range("C14").Value = item
+    wsR.Range("D14").Value = "CAUTELA"
+    wsR.Range("E14").Value = 1
+    wsR.Range("F14").Value = "UN"
+    wsR.Range("G14").Value = txtDataDevC.Text
+    
+    Dim caminhoPdf As String, nomePdf As String
+    caminhoPdf = ThisWorkbook.Path & "\comprovantes_pdf\"
+    nomePdf = Replace(numRecibo, "/", "-") & "_" & Replace(solic, " ", "_") & ".pdf"
+    
+    On Error Resume Next
+    wsR.ExportAsFixedFormat Type:=xlTypePDF, Filename:=caminhoPdf & nomePdf, Quality:=xlQualityStandard
+    On Error GoTo 0
+    
+    MsgBox "Cautela Registrada com Sucesso!" & vbCrLf & _
+           "• Termo Cautela: " & idCaut & vbCrLf & _
+           "• PDF Salvo em: comprovantes_pdf\" & nomePdf, vbInformation, "ARGUS Almoxarifado"
+           
+    CarregarCautelasAbertas
+End Sub
+
+Private Sub btnConfirmarDevolucao_Click()
+    If cboCautelasAbertas.Value = "" Then
+        MsgBox "Selecione a Cautela que esta sendo devolvida!", vbExclamation, "ARGUS"
+        cboCautelasAbertas.SetFocus
+        Exit Sub
+    End If
+    
+    Dim partes() As String
+    partes = Split(cboCautelasAbertas.Value, "|")
+    Dim idCaut As String
+    idCaut = Trim(partes(0))
+    
+    Dim wsC As Worksheet
+    Set wsC = ThisWorkbook.Sheets("TB_CAUTELAS")
+    
+    Dim r As Long, ultLin As Long, achou As Boolean
+    ultLin = wsC.Cells(wsC.Rows.Count, "A").End(xlUp).Row
+    achou = False
+    
+    For r = 4 To ultLin
+        If Trim(wsC.Cells(r, "A").Value) = idCaut Then
+            If optSemAvaria.Value = True Then
+                wsC.Cells(r, "I").Value = "DEVOLVIDO"
+                wsC.Cells(r, "J").Value = Date
+                wsC.Cells(r, "K").Value = "Devolvido sem avarias em " & Format(Now, "dd/mm/yyyy hh:mm")
+            Else
+                wsC.Cells(r, "I").Value = "AVARIADO"
+                wsC.Cells(r, "J").Value = Date
+                wsC.Cells(r, "K").Value = "Devolvido com avaria: " & txtObsDevolucao.Text
+            End If
+            achou = True
+            Exit For
+        End If
+    Next r
+    
+    If achou Then
+        MsgBox "Devolucao registrada com sucesso no sistema!", vbInformation, "ARGUS"
+        txtObsDevolucao.Text = ""
+        CarregarCautelasAbertas
+    End If
+End Sub
+
+Private Sub btnAbrirPasta_Click()
+    Dim caminhoPdf As String
+    caminhoPdf = ThisWorkbook.Path & "\comprovantes_pdf"
+    Shell "explorer.exe " & caminhoPdf, vbNormalFocus
+End Sub
+
+Private Sub btnFechar_Click()
+    Unload Me
+End Sub

@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARGUS | Terminal de Balcão do Almoxarifado</title>
+  
+  <!-- Tipografia Inter Oficial do ARGUS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 Offline Local -->
+  <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+  
+  <!-- Design System & Tokens Canônicos ARGUS -->
+  <link rel="stylesheet" href="/static/css/argus-design-system.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       TELA CHEIA DE LOGIN & PRIMEIRO ACESSO (GATEKEEPER DE ACESSO OFICIAL ARGUS)
+       ========================================================================= -->
+  <div id="loginScreen" class="login-screen-wrapper">
+    <div class="login-card">
+      
+      <!-- Logos Oficiais do Polo e ARGUS -->
+      <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+        <img src="/static/img/logo-inova-para-fundo-branco-editado.png" alt="Polo de Inovação IFAM" style="height:34px; object-fit:contain;">
+        <div style="width:1px; height:26px; background:#D1D5DB;"></div>
+        <img src="/static/img/ARGUS1-LOGO-editado.png" alt="Logo ARGUS" style="height:30px; object-fit:contain;">
+      </div>
+
+      <div class="text-center mb-3">
+        <h4 class="fw-bold mb-0" style="color:var(--argus-azul, #0D3B66); font-size:1.15rem;">
+          <i class="fas fa-dolly-flatbed text-danger me-2"></i>Terminal de Balcão
+        </h4>
+        <p class="text-muted small mb-0">Almoxarifado • Polo de Inovação IFAM</p>
+      </div>
+
+      <!-- Seletor de Abas (Entrar vs Cadastrar Usuário) -->
+      <div class="d-flex gap-2 mb-3">
+        <button type="button" id="tabBtnLogin" class="login-tab-pill active" onclick="mostrarAbaLogin('login')">
+          <i class="fas fa-key me-1"></i> 1. Acessar com Senha
+        </button>
+        <button type="button" id="tabBtnCadastro" class="login-tab-pill" onclick="mostrarAbaLogin('cadastro')">
+          <i class="fas fa-user-plus me-1"></i> 2. Cadastrar Usuário
+        </button>
+      </div>
+
+      <!-- FORMULÁRIO 1: LOGIN -->
+      <div id="secFormLogin" class="mt-2">
+        <form id="formTelaLogin" onsubmit="event.preventDefault(); executarLoginScreen();">
+          <div class="form-row-group">
+            <label class="form-label text-dark">CPF ou Login:</label>
+            <input type="text" id="screenLoginIdentificador" class="form-input" placeholder="Digite seu CPF (11 dígitos) ou login" required autofocus>
+          </div>
+          <div class="form-row-group">
+            <label class="form-label text-dark">Senha de Acesso:</label>
+            <input type="password" id="screenLoginSenha" class="form-input" placeholder="Digite sua senha cadastrada" required>
+          </div>
+
+          <div class="mt-3 pt-1">
+            <button type="submit" class="btn shadow-sm" id="btnScreenSubmitLogin">
+              <i class="fas fa-arrow-right-to-bracket text-white"></i> <span>Entrar no Sistema</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- FORMULÁRIO 2: AUTO-CADASTRO CANÔNICO -->
+      <div id="secFormCadastro" style="display:none;" class="mt-2">
+        <form id="formTelaCadastro" onsubmit="event.preventDefault(); executarCadastroScreen();">
+          <!-- 1. Nome Completo -->
+          <div class="form-row-group">
+            <label class="form-label text-secondary">Nome Completo *</label>
+            <input type="text" id="screenCadNome" class="form-input" placeholder="Nome civil completo" required>
+          </div>
+
+          <!-- 2. CPF -->
+          <div class="form-row-group">
+            <label class="form-label text-secondary">CPF *</label>
+            <input type="text" id="screenCadCpf" class="form-input" placeholder="000.000.000-00" maxlength="14" required>
+          </div>
+
+          <!-- 3. E-mail -->
+          <div class="form-row-group">
+            <label class="form-label text-secondary">E-mail *</label>
+            <input type="email" id="screenCadEmail" class="form-input" placeholder="seu.e-mail@ifam.edu.br" required>
+          </div>
+
+          <!-- 4. Telefone -->
+          <div class="form-row-group">
+            <label class="form-label text-secondary">Telefone / WhatsApp</label>
+            <input type="text" id="screenCadTelefone" class="form-input" placeholder="(00) 00000-0000" maxlength="15">
+          </div>
+
+          <!-- 5. Vínculo Institucional e Matrícula SIAPE / Empresa (Mesma Linha) -->
+          <div class="form-row-group">
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label text-secondary">Vínculo Institucional *</label>
+                <select id="screenCadTipoVinculo" class="form-select" onchange="alternarCamposVinculoScreen(this.value)" required>
+                  <option value="SERVIDOR" selected>Servidor Público Efetivo (IFAM)</option>
+                  <option value="TERCEIRIZADO">Funcionário Terceirizado (Apoio)</option>
+                  <option value="BOLSISTA">Bolsista de Projeto PD&I</option>
+                  <option value="COLABORADOR_EXTERNO">Colaborador Externo / Outro</option>
+                </select>
+              </div>
+              <div class="col-6" id="screenColVinculoDinamico">
+                <div id="screenDivSiape">
+                  <label class="form-label text-secondary">Matrícula SIAPE *</label>
+                  <input type="text" id="screenCadSiape" class="form-input" placeholder="Digite sua matrícula SIAPE">
+                </div>
+                <div id="screenDivEmpresaTerc" style="display:none;">
+                  <label class="form-label text-secondary">Empresa Contratada</label>
+                  <input type="text" id="screenCadEmpresaTerc" class="form-input" placeholder="Nome da empresa terceirizada">
+                </div>
+                <div id="screenDivOutroVinculo" style="display:none;">
+                  <label class="form-label text-secondary">Identificador (opcional)</label>
+                  <input type="text" id="screenCadOutroDoc" class="form-input" placeholder="SIAPE / Matrícula">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. Cargo / Função (Desceu para linha abaixo) -->
+          <div class="form-row-group">
+            <label class="form-label text-secondary">Cargo / Função *</label>
+            <input type="text" id="screenCadCargo" class="form-input" placeholder="Informe seu cargo ou função exercida" required>
+          </div>
+
+          <!-- 7. Senha e Confirmação -->
+          <div class="form-row-group">
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label text-secondary">Senha de Acesso *</label>
+                <input type="password" id="screenCadSenha" class="form-input" placeholder="Mínimo 4 caracteres" minlength="4" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label text-secondary">Confirmar Senha *</label>
+                <input type="password" id="screenCadSenhaConfirma" class="form-input" placeholder="Repita a senha" minlength="4" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8. Botão Cadastrar -->
+          <div class="mt-3 pt-1">
+            <button type="submit" class="btn shadow-sm" id="btnScreenSubmitCadastro">
+              <i class="fas fa-user-check text-white"></i> <span>Cadastrar e Entrar no Sistema</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+
+
+
+    </div>
+  </div>
+
+  <div class="app-container" id="appContainer" style="display:none;">
+
+    
+    <!-- Header Institucional Oficial ARGUS (Idêntico ao base.html do sistema) -->
+    <header class="navbar-institucional">
+      <div class="container-fluid d-flex justify-content-between align-items-center">
+        <div class="brand-wrapper">
+          <img src="/static/img/logo-inova-para-fundo-branco-editado.png" alt="Polo de Inovação IFAM" class="brand-logo-inova">
+          <div class="brand-divider"></div>
+          <img src="/static/img/ARGUS1-LOGO-editado.png" alt="Logo ARGUS" class="brand-logo-argus">
+          <span class="badge-modulo-argus ms-1">Almoxarifado Balcão</span>
+        </div>
+        
+        <div class="d-flex align-items-center gap-2">
+          <!-- Widget Operador(a) Ativo(a) -->
+          <div id="btnOperadorAtivo" class="operador-badge-pill" onclick="abrirModalAuth()" title="Clique para trocar de operador ou ver perfil">
+            <div class="operador-badge-icon">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="operador-badge-info">
+              <span id="txtOperadorNome" class="operador-badge-nome">Identificar Operador</span>
+              <span id="txtOperadorPapel" class="operador-badge-cargo">Não autenticado</span>
+            </div>
+            <button type="button" class="operador-badge-logout" title="Encerrar Sessão / Trocar" onclick="event.stopPropagation(); fazerLogout();">
+              <i class="fas fa-right-from-bracket"></i>
+            </button>
+          </div>
+
+          <div class="header-status d-none d-sm-flex">
+            <span class="status-dot"></span>
+            <span id="txtStatusMsg" class="d-none d-md-inline">Online</span>
+            <span class="text-muted small">|</span>
+            <span id="txtHora">--:--</span>
+          </div>
+          <button class="btn-aux" style="padding:5px 10px; font-size:0.75rem;" onclick="abrirModal('modalConfig')">
+            <i class="fas fa-gear me-1"></i> Configurações
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Container Fluido Principal Widescreen (Padrão Almoxarifado ARGUS) -->
+    <div class="container-fluid px-4 py-3">
+
+      <!-- Breadcrumbs Canônicos e Botão Voltar Dinâmico -->
+      <div class="mb-2">
+        <a href="javascript:history.back()" class="text-muted small fw-bold mb-2 d-inline-block text-decoration-none">
+          <i class="fas fa-arrow-left me-1"></i> Voltar
+        </a>
+        <nav class="argus-breadcrumb p-0" aria-label="breadcrumb">
+          <span class="text-muted"><i class="fas fa-home me-1"></i> Início</span> / 
+          <span class="text-muted">Almoxarifado</span> / 
+          <span class="fw-bold" style="color:var(--bs-primary-dark);">Terminal de Balcão (Precursor ARGUS)</span>
+        </nav>
+      </div>
+
+      <!-- Cabeçalho Padrão Almoxarifado (Row de Título e Ações Globais) -->
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <h1 class="h3 fw-bold mb-0 text-dark" style="font-size:1.5rem;">
+              <i class="fas fa-dolly-flatbed text-danger me-2"></i>Gestão de Balcão & Materiais
+            </h1>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill shadow-sm py-1.5 px-3" style="font-size:0.80rem; font-weight:700;">
+              <span id="badgeTotalGeral">--</span> Itens Catalogados
+            </span>
+          </div>
+          <p class="text-muted small mb-0 mt-1">
+            Precursor Operacional do ARGUS: Recebimentos, Consumo Fracionado com Régua PAO, Cautelas e Controle Físico WMS 3D.
+          </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn-aux" onclick="fecharExpediente()">
+            <i class="fas fa-cloud-arrow-up text-primary me-1"></i> Salvar no Drive
+          </button>
+          <button class="btn-aux" onclick="abrirPasta('planilhas')">
+            <i class="fas fa-file-excel text-success me-1"></i> Planilha Excel
+          </button>
+          <button class="btn-aux" onclick="abrirPasta('comprovantes')">
+            <i class="fas fa-file-pdf text-danger me-1"></i> Recibos PDF
+          </button>
+          <button class="btn-argus-primary" style="padding:7px 16px; font-size:0.82rem;" onclick="abrirModal('modalNovaEntrada')">
+            <i class="fas fa-plus me-1"></i> Nova Entrada (NF)
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Indicadores KPI Globais (Glassmorphism Padrão ARGUS) -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-card-info">
+            <span class="kpi-number" id="numItens">--</span>
+            <span class="kpi-label">Total de Materiais Ativos</span>
+          </div>
+          <div class="kpi-card-icon">
+            <i class="fas fa-boxes-stacked"></i>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-info">
+            <span class="kpi-number blue" id="numFerramentasEmprestadas">--</span>
+            <span class="kpi-label">Ferramentas Cauteladas</span>
+          </div>
+          <div class="kpi-card-icon blue">
+            <i class="fas fa-screwdriver-wrench"></i>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-info">
+            <span class="kpi-number warn" id="numBaixo">--</span>
+            <span class="kpi-label">Estoque Mínimo / Crítico</span>
+          </div>
+          <div class="kpi-card-icon warn">
+            <i class="fas fa-triangle-exclamation"></i>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-info">
+            <span class="kpi-number orange" id="numLatasAbertas">--</span>
+            <span class="kpi-label">Latas Abertas (Controle PAO)</span>
+          </div>
+          <div class="kpi-card-icon orange">
+            <i class="fas fa-fill-drip"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Navegação das 4 Etapas Canônicas (Pills ARGUS) -->
+      <nav class="nav-argus-pills mb-3">
+        <button class="nav-pill-btn active" onclick="trocarAbaPrincipal('tabEntradas')">
+          <i class="fas fa-dolly-flatbed"></i>
+          <span>1. Entradas (Recebimento)</span>
+        </button>
+        <button class="nav-pill-btn" onclick="trocarAbaPrincipal('tabSaidas')">
+          <i class="fas fa-boxes-packing"></i>
+          <span>2. Saídas & Cautelas</span>
+        </button>
+        <button class="nav-pill-btn" onclick="trocarAbaPrincipal('tabSaldos')">
+          <i class="fas fa-chart-pie"></i>
+          <span>3. Saldos & Extrato</span>
+        </button>
+        <button class="nav-pill-btn" onclick="trocarAbaPrincipal('tabGerenciar')">
+          <i class="fas fa-sliders"></i>
+          <span>4. Gerenciar Catálogo & WMS</span>
+        </button>
+      </nav>
+
+      <!-- Container do Conteúdo Principal das Abas -->
+      <main class="content-body p-0">
+
+      <!-- ========================================================================= -->
+      <!-- ETAPA 1: ENTRADAS (Recebimento de Compras / NFs / Doações) -->
+      <!-- ========================================================================= -->
+      <section id="tabEntradas" class="tab-view active">
+        <button class="btn-argus-primary mb-3" onclick="abrirModal('modalNovaEntrada')">
+          <i class="fas fa-file-invoice-dollar"></i>
+          <span>Registrar Nova Entrada de Material (NF)</span>
+        </button>
+
+        <div class="row">
+          <!-- Painel Esquerdo: Operação de Entrada (7 colunas) -->
+          <div class="col-lg-7 mb-3">
+            <article class="cs-card h-100">
+              <div class="cs-card__header">
+                <h2 class="cs-card__title">
+                  <i class="fas fa-truck-ramp-box text-success me-1"></i> Recebimento & Entrada de Materiais
+                </h2>
+              </div>
+              <div class="p-1">
+                <p class="text-muted small mb-3">
+                  Registre compras, entregas de fornecedores ou notas fiscais. O sistema converte automaticamente a embalagem comercial para a menor unidade física de estoque (metros, litros, unidades) e gera a etiqueta com endereçamento WMS 3D.
+                </p>
+                
+                <button class="btn-argus-primary w-100 py-3 mb-3" onclick="abrirModal('modalNovaEntrada')">
+                  <i class="fas fa-file-invoice-dollar me-2"></i>
+                  <span class="fw-bold">Registrar Nova Entrada de Material (NF-e / Compra)</span>
+                </button>
+
+                <div style="background:rgba(var(--bs-primary-rgb),0.04); border:1px dashed rgba(var(--bs-primary-rgb),0.25); border-radius:10px; padding:16px;">
+                  <h4 class="small fw-bold text-dark mb-2"><i class="fas fa-circle-info text-primary me-1"></i> Diretrizes de Recebimento no Polo:</h4>
+                  <ul class="small text-muted mb-0 ps-3" style="line-height:1.7;">
+                    <li><b>Dupla Unidade Automática:</b> Entradas de bobinas/rolos (ex: 100m) e latas (ex: 18L) são convertidas para a unidade base para permitir saídas fracionadas.</li>
+                    <li><b>Endereçamento WMS 3D:</b> Toda entrada atualiza a localização física (Ambiente &gt; Estrutura &gt; Posição).</li>
+                    <li><b>Etiqueta Imediata:</b> Após salvar, imprima a etiqueta gerada para afixação na prateleira ou na embalagem.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Painel Direito: Histórico de Entradas Recentes (5 colunas) -->
+          <div class="col-lg-5 mb-3">
+            <article class="cs-card h-100">
+              <div class="cs-card__header">
+                <h2 class="cs-card__title">
+                  <i class="fas fa-clock-rotate-left text-success me-1"></i> Entradas Recentes
+                </h2>
+                <button class="btn-aux" onclick="carregarHistoricoEntradas()">
+                  <i class="fas fa-rotate me-1"></i> Atualizar
+                </button>
+              </div>
+              <div id="listaEntradasRecentes" style="display:flex; flex-direction:column; gap:8px; max-height:480px; overflow-y:auto;"></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- ETAPA 2: SAÍDAS & GESTÃO DE SOBRAS / FERRAMENTAS (WIDESCREEN 2 COLUNAS) -->
+      <!-- ========================================================================= -->
+      <section id="tabSaidas" class="tab-view">
+        <div class="row">
+          <!-- Coluna Esquerda: Balcão de Atendimento e Saídas (7 colunas) -->
+          <div class="col-lg-7 mb-3">
+            <div class="cs-card">
+              <!-- Sub-Abas -->
+              <div class="sub-tabs-bar mb-3">
+                <button class="sub-tab-btn active" onclick="trocarSubAbaSaidas('subSaidaConsumo')">
+                  <i class="fas fa-box-open me-1"></i> 1. Consumo Imediato
+                </button>
+                <button class="sub-tab-btn" onclick="trocarSubAbaSaidas('subEmprestimo')">
+                  <i class="fas fa-screwdriver-wrench me-1"></i> 2. Cautela de Ferramenta
+                </button>
+                <button class="sub-tab-btn" onclick="trocarSubAbaSaidas('subRetornoSobra')">
+                  <i class="fas fa-fill-drip me-1"></i> 3. Devolução de Sobras
+                </button>
+              </div>
+
+              <!-- Sub 2.1: Saída de Consumo -->
+              <div id="subSaidaConsumo">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <h2 class="cs-card__title mb-0">
+                    <i class="fas fa-hand-holding-box text-success"></i> Registrar Saída para Aplicação
+                  </h2>
+                </div>
+                <form id="formSaidaConsumo" onsubmit="salvarSaidaConsumo(event)">
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label mb-0">Solicitante / Responsável *</label>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none small text-primary fw-semibold" onclick="abrirModalNovoSolicitante('saidaSolicitante')">➕ Novo</button>
+                      </div>
+                      <select id="saidaSolicitante" class="form-select" onchange="aoSelecionarSolicitante('saida', this.value)" required></select>
+                    </div>
+                    <div class="col-md-6 form-group">
+                      <label class="form-label">Matrícula SIAPE ou CPF</label>
+                      <input type="text" id="saidaSiape" class="form-input" placeholder="Preenchido automaticamente pelo solicitante">
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="form-label">Projeto Financiador *</label>
+                      <select id="saidaProjeto" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-6 form-group">
+                      <label class="form-label">Ambiente / Local Destino *</label>
+                      <select id="saidaAmbiente" class="form-select" required></select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Item / Material de Consumo *</label>
+                    <select id="saidaItem" class="form-select" onchange="aoSelecionarItemConsumo(this.value)" required></select>
+                    <div id="infoUnidadeConsumo" style="font-size:0.75rem; color:#4B5563; margin-top:3px;"></div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="form-label">Quantidade a Retirar (<span id="lblUnidadeConsumo">UN</span>) *</label>
+                      <input type="number" id="saidaQtd" class="form-input" value="1" min="0.01" step="any" required>
+                    </div>
+                    <div class="col-md-6 form-group">
+                      <label class="form-label">Finalidade / Justificativa</label>
+                      <input type="text" id="saidaFinalidade" class="form-input" placeholder="Ex: Manutenção predial ou bancada P&amp;D">
+                    </div>
+                  </div>
+
+                  <div class="form-group" id="boxPaoConsumo" style="display:none; background:#FFFBEB; border:1px solid #FCD34D; border-radius:8px; padding:12px; margin-top:8px;">
+                    <label style="font-size:0.8rem; font-weight:700; color:#92400E; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                      <input type="checkbox" id="saidaAbrirLata" checked>
+                      <span>🥫 Abrir nova lata/galão (Emitir Etiqueta Lateral PAO com Régua de Nível)</span>
+                    </label>
+                    <p style="font-size:0.72rem; color:#B45309; margin-top:4px; margin-bottom:0;">
+                      Gera etiqueta física com as faixas de nível para riscar a cada devolução e validade após aberta.
+                    </p>
+                  </div>
+
+                  <button type="submit" class="btn-argus-primary w-100 mt-3 py-2">
+                    <i class="fas fa-check me-1"></i> Confirmar Saída &amp; Gerar Recibo (PDF)
+                  </button>
+                </form>
+              </div>
+
+              <!-- Sub 2.2: Empréstimo de Ferramenta -->
+              <div id="subEmprestimo" style="display:none;">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <h2 class="cs-card__title mb-0">
+                    <i class="fas fa-screwdriver-wrench text-primary"></i> Empréstimo Temporário de Ferramenta
+                  </h2>
+                </div>
+                <form id="formEmprestimo" onsubmit="salvarEmprestimoFerramenta(event)">
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label mb-0">Solicitante / Responsável *</label>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none small text-primary fw-semibold" onclick="abrirModalNovoSolicitante('empSolicitante')">➕ Novo</button>
+                      </div>
+                      <select id="empSolicitante" class="form-select" onchange="aoSelecionarSolicitante('emp', this.value)" required></select>
+                    </div>
+                    <div class="col-md-6 form-group">
+                      <label class="form-label">Matrícula SIAPE ou CPF</label>
+                      <input type="text" id="empSiape" class="form-input" placeholder="Preenchido automaticamente pelo solicitante">
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Projeto Vinculado *</label>
+                    <select id="empProjeto" class="form-select" required></select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Ferramenta a Emprestar *</label>
+                    <select id="empFerramenta" class="form-select" required></select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Previsão de Retorno / Devolução</label>
+                    <input type="date" id="empDataPrev" class="form-input">
+                  </div>
+
+                  <button type="submit" class="btn-argus-blue w-100 mt-3 py-2">
+                    <i class="fas fa-file-signature me-1"></i> Confirmar Empréstimo &amp; Gerar Termo de Cautela
+                  </button>
+                </form>
+              </div>
+
+              <!-- Sub 2.4: Devolução de Sobras Fracionadas -->
+              <div id="subRetornoSobra" style="display:none;">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <h2 class="cs-card__title mb-0" style="color:#065F46;">
+                    <i class="fas fa-recycle"></i> Retorno de Sobras de Obra ao Estoque
+                  </h2>
+                </div>
+                <form id="formRetornoSobra" onsubmit="salvarRetornoSobra(event)">
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="form-label">Quem está devolvendo a sobra? *</label>
+                      <select id="sobraSolicitante" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-6 form-group">
+                      <label class="form-label">Projeto de Origem *</label>
+                      <select id="sobraProjeto" class="form-select" required></select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Lata ou Material em Devolução *</label>
+                    <select id="sobraMaterial" class="form-select" onchange="aoSelecionarMaterialSobra(this.value)" required></select>
+                  </div>
+
+                  <!-- Controle de Nível Tátil para Latas -->
+                  <div id="boxNivelLata" style="display:none; flex-direction:column; gap:6px; margin-bottom:12px;">
+                    <label class="form-label">Nível Remanescente (Conforme régua lateral riscada): *</label>
+                    <div class="grid-fracoes">
+                      <div class="btn-fracao" onclick="selecionarFracao(0.75, '75% (3/4)', this)">
+                        <div class="frac-val">75%</div>
+                        <div class="frac-desc">Três Quartos (3/4)</div>
+                      </div>
+                      <div class="btn-fracao" onclick="selecionarFracao(0.50, '50% (1/2)', this)">
+                        <div class="frac-val">50%</div>
+                        <div class="frac-desc">Metade (1/2)</div>
+                      </div>
+                      <div class="btn-fracao" onclick="selecionarFracao(0.25, '25% (1/4)', this)">
+                        <div class="frac-val">25%</div>
+                        <div class="frac-desc">Fundo de Lata (1/4)</div>
+                      </div>
+                      <div class="btn-fracao" onclick="selecionarFracao(0.00, '0% (Esgotada)', this)">
+                        <div class="frac-val">0%</div>
+                        <div class="frac-desc">Esgotada / Vazia</div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="sobraFracao" value="">
+                    <div id="txtSobraCalculada" style="font-size:0.75rem; font-weight:700; color:var(--bs-primary); text-align:center; margin-top:4px;"></div>
+                  </div>
+
+                  <!-- Campo Numérico para Cabos -->
+                  <div id="boxQtdManualSobra" style="display:none;" class="form-group">
+                    <label class="form-label">Quantidade de Sobra a Devolver (<span id="lblUnidadeSobra">m</span>) *</label>
+                    <input type="number" id="sobraQtdManual" class="form-input" min="0.1" step="any" placeholder="Ex: 35 metros que sobraram">
+                  </div>
+
+                  <button type="submit" class="btn-argus-primary w-100 mt-2 py-2">
+                    <i class="fas fa-rotate-left me-1"></i> Confirmar Retorno ao Estoque
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Painéis Vivos Contínuos (Latas Abertas & Ferramentas em Cautela) (5 colunas) -->
+          <div class="col-lg-5 mb-3">
+            <!-- Monitor 1: Latas Abertas (Controle PAO) -->
+            <article class="cs-card mb-3">
+              <div class="cs-card__header">
+                <h2 class="cs-card__title">
+                  <i class="fas fa-paint-roller text-warning me-1"></i> Latas &amp; Químicos Abertos (PAO)
+                  <span class="badge ms-1" style="background:#FEF3C7; color:#B45309; font-size:0.7rem;" id="countLatasAbertas">0</span>
+                </h2>
+                <button class="btn-aux" onclick="carregarLatasAbertas()">
+                  <i class="fas fa-rotate"></i>
+                </button>
+              </div>
+              <p class="text-muted small mb-2" style="font-size:0.72rem;">
+                Latas abertas em uso. Priorize consumir antes de abrir novas embalagens:
+              </p>
+              <div id="listaLatasAbertas" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;"></div>
+            </article>
+
+            <!-- Monitor 2: Ferramentas em Cautela -->
+            <article class="cs-card">
+              <div class="cs-card__header">
+                <h2 class="cs-card__title">
+                  <i class="fas fa-wrench text-info me-1"></i> Ferramentas em Cautela
+                  <span class="badge ms-1" style="background:#EFF6FF; color:#1D4ED8; font-size:0.7rem;" id="countEmpUso">0</span>
+                </h2>
+                <button class="btn-aux" onclick="carregarFerramentasEmUso()">
+                  <i class="fas fa-rotate"></i>
+                </button>
+              </div>
+              <p class="text-muted small mb-2" style="font-size:0.72rem;">
+                Ferramentas emprestadas. Clique em "Devolver" para registrar vistoria:
+              </p>
+              <div id="listaFerramentasEmUso" style="display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto;"></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- ETAPA 3: SALDOS & EXTRATOS (TABELA CORPORATIVA WIDESCREEN) -->
+      <!-- ========================================================================= -->
+      <section id="tabSaldos" class="tab-view">
+        <!-- Barra de Ações e Filtros de Saldos -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width:550px;">
+            <input type="text" id="txtBuscaSaldo" class="form-input mb-0" placeholder="🔍 Buscar material, SKU ou endereço WMS..." oninput="filtrarSaldos(this.value)">
+          </div>
+          <div class="d-flex gap-2">
+            <button class="sub-tab-btn active" id="btnSaldosGrid" onclick="trocarSubAbaSaldos('subSaldosEstoque')">
+              <i class="fas fa-boxes-stacked me-1"></i> Saldo Físico
+            </button>
+            <button class="sub-tab-btn" id="btnExtratoGrid" onclick="trocarSubAbaSaldos('subExtrato')">
+              <i class="fas fa-receipt me-1"></i> Extrato Kardex
+            </button>
+          </div>
+        </div>
+
+        <div id="subSaldosEstoque">
+          <div class="argus-table-card">
+            <div class="argus-table-responsive">
+              <table class="argus-table">
+                <thead id="theadSaldos">
+                  <tr>
+                    <th class="text-center th-sort" data-col="0" data-type="num" style="width:80px;">SKU <span class="sort-icon">↕</span></th>
+                    <th class="th-sort" data-col="1" data-type="str">Material (Descrição PDM) <span class="sort-icon">↕</span></th>
+                    <th class="text-center th-sort" data-col="2" data-type="str" style="width:110px;">Categoria <span class="sort-icon">↕</span></th>
+                    <th class="th-sort" data-col="3" data-type="str">Localização WMS 3D <span class="sort-icon">↕</span></th>
+                    <th class="text-center th-sort" data-col="4" data-type="num" style="width:130px;">Saldo Atual <span class="sort-icon">↕</span></th>
+                    <th class="text-center" style="width:140px;">Embalagem Compra</th>
+                    <th class="text-center th-sort" data-col="6" data-type="str" style="width:110px;">Situação <span class="sort-icon">↕</span></th>
+                    <th class="text-center" style="width:120px;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelaSaldosBody">
+                  <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">Carregando catálogo de saldos...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="subExtrato" style="display:none;">
+          <div class="argus-table-card">
+            <div class="argus-table-responsive">
+              <table class="argus-table">
+                <thead id="theadExtrato">
+                  <tr>
+                    <th class="text-center th-sort" data-col="0" data-type="str" style="width:140px;">Data / Hora <span class="sort-icon">↕</span></th>
+                    <th class="text-center th-sort" data-col="1" data-type="str" style="width:100px;">Tipo <span class="sort-icon">↕</span></th>
+                    <th class="th-sort" data-col="2" data-type="str">Material <span class="sort-icon">↕</span></th>
+                    <th class="th-sort" data-col="3" data-type="str">Responsável / Fornecedor <span class="sort-icon">↕</span></th>
+                    <th class="th-sort" data-col="4" data-type="str">Projeto <span class="sort-icon">↕</span></th>
+                    <th class="text-center th-sort" data-col="5" data-type="num" style="width:120px;">Quantidade <span class="sort-icon">↕</span></th>
+                    <th class="text-center" style="width:110px;">Documento</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelaExtratoBody">
+                  <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">Carregando extrato de movimentações...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- ETAPA 4: GERENCIAR (CRUD COMPLETO DO CATÁLOGO & PARÂMETROS WMS) -->
+      <!-- ========================================================================= -->
+      <section id="tabGerenciar" class="tab-view">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="d-flex gap-2">
+            <button class="sub-tab-btn active" id="btnSubCat" onclick="trocarSubAbaGerenciar('subGerenciarCatalogo')">
+              <i class="fas fa-boxes-packing me-1"></i> Catálogo de Materiais
+            </button>
+            <button class="sub-tab-btn" id="btnSubParam" onclick="trocarSubAbaGerenciar('subGerenciarParametros')">
+              <i class="fas fa-sliders me-1"></i> Cadastros Base &amp; WMS
+            </button>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn-argus-primary" style="padding:7px 16px; font-size:0.82rem;" onclick="abrirModalNovoMaterial()">
+              <i class="fas fa-plus me-1"></i> CADASTRAR NOVO MATERIAL
+            </button>
+          </div>
+        </div>
+
+        <!-- 4.1 CRUD Catálogo em Tabela Widescreen -->
+        <div id="subGerenciarCatalogo">
+          <div class="mb-3">
+            <input type="text" id="txtBuscaGerenciar" class="form-input mb-0" placeholder="🔍 Filtrar itens por SKU, CATMAT ou descrição para editar..." oninput="filtrarGerenciarMateriais(this.value)">
+          </div>
+
+          <div class="argus-table-card">
+            <div class="argus-table-responsive">
+              <table class="argus-table">
+                <thead id="theadGerenciar">
+                  <tr>
+                    <th class="text-center th-sort" data-col="0" data-type="num" style="width:80px;">SKU <span class="sort-icon">↕</span></th>
+                    <th class="text-center th-sort" data-col="1" data-type="str" style="width:90px;">CATMAT <span class="sort-icon">↕</span></th>
+                    <th class="th-sort" data-col="2" data-type="str">Descrição PDM / Especificação <span class="sort-icon">↕</span></th>
+                    <th class="text-center th-sort" data-col="3" data-type="str" style="width:100px;">Categoria <span class="sort-icon">↕</span></th>
+                    <th class="text-center" style="width:80px;">Unid. Base</th>
+                    <th class="text-center" style="width:130px;">Embalagem Compra</th>
+                    <th class="th-sort" data-col="6" data-type="str">Localização WMS 3D <span class="sort-icon">↕</span></th>
+                    <th class="text-center th-sort" data-col="7" data-type="num" style="width:90px;">Saldo <span class="sort-icon">↕</span></th>
+                    <th class="text-center" style="width:140px;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelaGerenciarBody">
+                  <tr>
+                    <td colspan="9" class="text-center py-4 text-muted">Carregando catálogo de materiais...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4.2 CRUD Parâmetros (Domínios Agrupados) -->
+        <div id="subGerenciarParametros" style="display:none;">
+          <div class="row">
+            <!-- Ambientes / WMS -->
+            <div class="col-lg-4 mb-3">
+              <article class="cs-card h-100">
+                <div class="cs-card__header">
+                  <h3 class="cs-card__title"><i class="fas fa-door-open text-primary me-1"></i> Ambientes / Salas</h3>
+                  <button class="btn-aux" onclick="abrirModalNovoParametro('AMBIENTE')">➕ Adicionar</button>
+                </div>
+                <p class="text-muted small mb-2" style="font-size:0.72rem;">Salas físicas e laboratórios cadastrados:</p>
+                <div id="listaParamsAmbientes" style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+              </article>
+            </div>
+
+            <!-- Projetos Financiadores -->
+            <div class="col-lg-4 mb-3">
+              <article class="cs-card h-100">
+                <div class="cs-card__header">
+                  <h3 class="cs-card__title"><i class="fas fa-diagram-project text-success me-1"></i> Projetos Financiadores</h3>
+                  <button class="btn-aux" onclick="abrirModalNovoParametro('PROJETO')">➕ Adicionar</button>
+                </div>
+                <p class="text-muted small mb-2" style="font-size:0.72rem;">Projetos de P&amp;D e contas de custeio:</p>
+                <div id="listaParamsProjetos" style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+              </article>
+            </div>
+
+            <!-- Solicitantes / Pessoas -->
+            <div class="col-lg-4 mb-3">
+              <article class="cs-card h-100">
+                <div class="cs-card__header">
+                  <h3 class="cs-card__title"><i class="fas fa-user-check text-info me-1"></i> Solicitantes / Pesquisadores</h3>
+                  <button class="btn-aux" onclick="abrirModalNovoSolicitante()">➕ Adicionar</button>
+                </div>
+                <p class="text-muted small mb-2" style="font-size:0.72rem;">Pessoas habilitadas a retirar materiais (Nome + CPF):</p>
+                <div id="listaParamsSolicitantes" style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      </main>
+    </div> <!-- Fim container-fluid -->
+
+    <!-- Rodapé Corporativo com Fechamento Diário (Linha Única) -->
+    <footer class="app-footer">
+      <div class="app-footer-bar">
+        <div class="footer-brand">
+          <img src="/static/img/logo-ifam.png" alt="Instituto Federal do Amazonas" class="footer-logo-ifam">
+          <div class="footer-divider"></div>
+          <div class="footer-text-group">
+            <span class="footer-system-title">
+              <i class="fas fa-dolly-flatbed text-danger me-1"></i> Terminal de Balcão • Almoxarifado Polo de Inovação IFAM
+            </span>
+            <span class="footer-copyright">
+              © 2026 Instituto Federal do Amazonas • Todos os direitos reservados
+            </span>
+          </div>
+        </div>
+        <div class="footer-actions-group">
+          <button type="button" class="btn-footer-action" onclick="abrirPasta('comprovantes')">
+            <i class="fas fa-file-pdf text-danger me-1"></i> Recibos PDF
+          </button>
+          <button type="button" class="btn-footer-action" onclick="abrirPasta('planilhas')">
+            <i class="fas fa-file-excel text-success me-1"></i> Planilha Excel
+          </button>
+          <button type="button" class="btn-footer-action" onclick="abrirModal('modalConfig')">
+            <i class="fas fa-gear text-secondary me-1"></i> Configurações
+          </button>
+          <button type="button" class="btn-footer-closing" onclick="fecharExpediente()">
+            <i class="fas fa-cloud-arrow-up me-1"></i> Salvar e Encerrar Expediente
+          </button>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAIS DO SISTEMA -->
+  <!-- ========================================================================= -->
+
+  <!-- MODAL: REGISTRAR NOVA ENTRADA -->
+  <div id="modalNovaEntrada" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-file-invoice text-success me-1"></i> Entrada de Material (Compra/NF)</h3>
+        <button class="modal-close" onclick="fecharModal('modalNovaEntrada')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="formEntrada" onsubmit="salvarNovaEntrada(event)">
+          <div class="form-group">
+            <label class="form-label">Material a Receber *</label>
+            <select id="entMaterial" class="form-select" onchange="aoSelecionarMaterialEntrada(this.value)" required></select>
+            <div id="infoEmbalagemEntrada" style="font-size:0.7rem; color:#4B5563; margin-top:3px;"></div>
+          </div>
+
+          <div class="form-group" style="background:#F9FAFB; padding:8px 10px; border-radius:8px; border:1px solid #E5E7EB;">
+            <label class="form-label">Tipo de Lançamento:</label>
+            <label style="font-size:0.78rem; display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="radio" name="radTipoEntrada" id="radEntEmb" value="EMB" checked onchange="atualizarPreviewEntrada()">
+              <span>📦 Na Embalagem Comercial (<span id="txtNomeEmb">Embalagem</span>)</span>
+            </label>
+            <label style="font-size:0.78rem; display:flex; align-items:center; gap:6px; cursor:pointer; margin-top:4px;">
+              <input type="radio" name="radTipoEntrada" id="radEntBase" value="BASE" onchange="atualizarPreviewEntrada()">
+              <span>📏 Direto na Unidade Base (<span id="txtNomeUnidBase">UN</span>)</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Quantidade Recebida *</label>
+            <input type="number" id="entQtd" class="form-input" min="0.1" step="any" oninput="atualizarPreviewEntrada()" required>
+            <div id="txtPreviewCreditoBase" style="font-size:0.75rem; font-weight:700; color:var(--bs-primary); margin-top:3px;"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Número da Nota Fiscal (NF-e)</label>
+            <input type="text" id="entNf" class="form-input" placeholder="Ex: NF 12345">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fornecedor / Razão Social</label>
+            <input type="text" id="entFornecedor" class="form-input" placeholder="Ex: Ferramentas Manaus Ltda">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valor Unitário (R$)</label>
+            <input type="number" id="entValorUnit" class="form-input" min="0" step="0.01" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Projeto / Fonte Financiadora *</label>
+            <select id="entProjeto" class="form-select" required></select>
+          </div>
+          <button type="submit" class="btn-argus-primary mt-2">Confirmar Entrada no Estoque</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR / CADASTRAR MATERIAL (CRUD COMPLETO COM PDM & WMS 3D) -->
+  <div id="modalFormMaterial" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="titModalMaterial"><i class="fas fa-pen-to-square text-primary me-1"></i> Cadastrar Material</h3>
+        <button class="modal-close" onclick="fecharModal('modalFormMaterial')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="formMaterialCrud" onsubmit="salvarMaterialCrud(event)">
+          <input type="hidden" id="matCrudId">
+
+          <!-- PDM / CATMAT -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div class="form-group">
+              <label class="form-label">Código CATMAT</label>
+              <input type="text" id="matCrudCatmat" class="form-input" placeholder="Ex: 454823">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Categoria *</label>
+              <select id="matCrudCat" class="form-select" required>
+                <option value="CONSUMO">CONSUMO (Insumo aplicável)</option>
+                <option value="FERRAMENTA">FERRAMENTA (Reutilizável)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nome Básico (PDM) *</label>
+            <input type="text" id="matCrudNomeBasico" class="form-input" required placeholder="Ex: CABO ELETRICO, TINTA, ALICATE">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nome Modificador / Atributos *</label>
+            <input type="text" id="matCrudNomeModificador" class="form-input" placeholder="Ex: FLEXIVEL 1X2.5MM VERDE 100MT">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descrição Completa</label>
+            <input type="text" id="matCrudDesc" class="form-input" placeholder="Descrição comercial detalhada">
+          </div>
+
+          <!-- Unidades e Fator de Conversão -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; background:#F9FAFB; padding:8px; border-radius:8px;">
+            <div class="form-group">
+              <label class="form-label">Unid. Base *</label>
+              <select id="matCrudUnidBase" class="form-select" required>
+                <option value="UN">UN</option>
+                <option value="m">m (Metro)</option>
+                <option value="L">L (Litro)</option>
+                <option value="kg">kg (Quilo)</option>
+                <option value="PAR">PAR</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Embalagem *</label>
+              <input type="text" id="matCrudEmbCompra" class="form-input" placeholder="ROLO 100M" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fator Conv. *</label>
+              <input type="number" id="matCrudFator" class="form-input" min="0.1" step="any" value="1.0" required>
+            </div>
+          </div>
+
+          <!-- Validade PAO e Estoques -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
+            <div class="form-group">
+              <label class="form-label">Saldo Inicial</label>
+              <input type="number" id="matCrudEstoqueIni" class="form-input" min="0" step="any" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Est. Mínimo</label>
+              <input type="number" id="matCrudEstoqueMin" class="form-input" min="0" step="any" value="2" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">PAO (Dias)</label>
+              <input type="number" id="matCrudPao" class="form-input" min="0" value="0" placeholder="0 = N/A">
+            </div>
+          </div>
+
+          <!-- Endereçamento WMS 3D -->
+          <div style="background:#EFF6FF; border:1px solid #BFDBFE; padding:10px; border-radius:8px; margin-top:10px; margin-bottom:16px;">
+            <label class="form-label" style="color:#1E40AF; margin-bottom:6px;"><i class="fas fa-map-location-dot me-1"></i> Endereçamento Físico WMS 3D:</label>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
+              <input type="text" id="matCrudAmbiente" class="form-input" placeholder="1. Sala / Ambiente (ex: ALMOXARIFADO CENTRAL)">
+              <input type="text" id="matCrudEstrutura" class="form-input" placeholder="2. Estrutura (ex: ESTANTE 01 (ELETRICA), PALETE 01)">
+              <input type="text" id="matCrudPosicao" class="form-input" placeholder="3. Posição (ex: PRATELEIRA 02, GAVETA 01)">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:16px; margin-bottom:20px;">
+            <label class="form-label" style="margin-bottom:6px;">Motivo do Ajuste / Observação</label>
+            <input type="text" id="matCrudMotivo" class="form-input" placeholder="Ex: Padronização PDM e WMS">
+          </div>
+
+          <button type="submit" class="btn-argus-primary" style="margin-top:6px;" id="btnSalvarMatCrud">Salvar Material</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CHECKLIST DEVOLUÇÃO FERRAMENTA -->
+  <div id="modalChecklistDev" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-clipboard-check text-success me-1"></i> Vistoria de Retorno de Ferramenta</h3>
+        <button class="modal-close" onclick="fecharModal('modalChecklistDev')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="devEmpId">
+        <div style="background:#F9FAFB; padding:12px; border-radius:10px; border:1px solid #E5E7EB;">
+          <h4 id="devEmpFerramenta" style="font-size:0.9rem; margin-bottom:4px; font-weight:700;">-</h4>
+          <p id="devEmpSolicitante" style="font-size:0.75rem; color:#6B7280;">-</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Condição Física da Ferramenta:</label>
+          <label style="font-size:0.85rem; display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="radio" name="radCondicao" value="OK" checked onchange="toggleObsDev(false)">
+            <span>🟢 Em perfeito estado (Sem avarias)</span>
+          </label>
+          <label style="font-size:0.85rem; display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:6px;">
+            <input type="radio" name="radCondicao" value="AVARIA" onchange="toggleObsDev(true)">
+            <span>🔴 Com avaria / quebra</span>
+          </label>
+        </div>
+        <div class="form-group" id="boxObsDev" style="display:none;">
+          <label class="form-label">Descreva o defeito/avaria:</label>
+          <textarea id="devEmpObs" class="form-textarea" rows="2" placeholder="Ex: Cabo solto, ponta desgastada..."></textarea>
+        </div>
+        <button class="btn-argus-primary mt-2" onclick="confirmarDevolucaoFerramenta()">Confirmar Retorno ao Estoque</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CADASTRAR / EDITAR SOLICITANTE (CANÔNICO PESSOAFISICA: NOME + CPF) -->
+  <div id="modalNovoSolicitante" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 id="titModalSolicitante"><i class="fas fa-user-plus text-primary me-1"></i> Cadastrar Solicitante</h3>
+        <button class="modal-close" onclick="fecharModal('modalNovoSolicitante')">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px 24px;">
+        <form id="formNovoSolicitante" onsubmit="salvarNovoSolicitante(event)">
+          <input type="hidden" id="solicTargetSelectId" value="">
+          <input type="hidden" id="solicEditId" value="">
+          
+          <div class="form-group mb-3">
+            <label class="form-label fw-bold text-dark" style="margin-bottom:6px;">Nome Completo *</label>
+            <input type="text" id="solicNome" class="form-input" required placeholder="Nome civil completo do pesquisador/colaborador">
+          </div>
+          
+          <div class="form-group mb-3">
+            <label class="form-label fw-bold text-dark" style="margin-bottom:6px;">CPF (somente números) *</label>
+            <input type="text" id="solicCpf" class="form-input" required placeholder="000.000.000-00" maxlength="14" oninput="aplicarMascaraCpf(this)">
+            <small class="text-muted d-block mt-1" style="font-size:0.72rem; line-height:1.3;">
+              <i class="fas fa-info-circle text-primary me-1"></i> O CPF individualiza a pessoa física para futura integração ao banco geral do ARGUS.
+            </small>
+          </div>
+          
+          <div class="d-flex justify-content-end align-items-center gap-2" style="margin-top:16px; padding-top:14px; border-top:1px solid #e2e8f0;">
+            <button type="button" class="btn-argus-secondary" onclick="fecharModal('modalNovoSolicitante')">
+              <i class="fas fa-xmark me-1"></i> Cancelar
+            </button>
+            <button type="submit" class="btn-argus-primary px-4 py-2">
+              <i class="fas fa-check me-1"></i> Salvar Solicitante
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PARÂMETRO CRUD -->
+  <div id="modalParamCrud" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="titModalParam">Adicionar Parâmetro</h3>
+        <button class="modal-close" onclick="fecharModal('modalParamCrud')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="paramTipo">
+        <input type="hidden" id="paramId">
+        <div class="form-group">
+          <label class="form-label">Nome / Descrição *</label>
+          <input type="text" id="paramValor" class="form-input" required placeholder="Digite o novo valor...">
+        </div>
+        <button class="btn-argus-primary mt-2" onclick="salvarParametroCrud()">Salvar Parâmetro</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SUCESSO / COMPROVANTE -->
+  <div id="modalSucesso" class="modal-overlay" style="z-index:3000;">
+    <div class="modal-content">
+      <div class="modal-body success-box">
+        <div class="success-icon">✅</div>
+        <h3 id="sucTitulo" style="font-size:1.1rem; margin-bottom:6px; font-weight:800; color:var(--bs-primary);">Operação Realizada!</h3>
+        <p id="sucTexto" style="font-size:0.82rem; color:#4B5563; margin-bottom:14px; white-space:pre-line;">-</p>
+        
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <a id="btnVerPdf" href="#" target="_blank" class="btn-argus-primary" style="text-decoration:none;">
+            <i class="fas fa-print"></i> Abrir / Imprimir Comprovante (PDF)
+          </a>
+          <button class="btn-aux" style="padding:10px; font-weight:700;" onclick="fecharModal('modalSucesso')">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURAÇÕES & BACKUP GOOGLE DRIVE -->
+  <div id="modalConfig" class="modal-overlay">
+    <div class="modal-content" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-gear text-secondary me-2"></i> Configurações do Balcão & Google Drive</h3>
+        <button class="modal-close" onclick="fecharModal('modalConfig')">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px 24px;">
+        <div style="margin-bottom:18px;">
+          <label class="form-label fw-bold text-dark" style="margin-bottom:6px;">
+            <i class="fab fa-google-drive text-primary me-1"></i> Pasta do Google Drive no Computador:
+          </label>
+          <div class="d-flex gap-2">
+            <input type="text" id="cfgDrivePath" class="form-input" style="flex:1; font-family:monospace; font-size:0.85rem;" placeholder="Ex: G:\Meu Drive\Almoxarifado">
+            <button type="button" class="btn-footer-action px-3" onclick="selecionarPastaDriveWindows()" id="btnBuscarDrive">
+              <i class="fas fa-folder-open text-primary"></i> <span>Procurar no Computador...</span>
+            </button>
+          </div>
+          <small class="text-muted d-block mt-2" style="font-size:0.75rem; line-height:1.4; padding-left:2px;">
+            <i class="fas fa-info-circle text-primary me-1"></i> 
+            Clique em <strong>"Procurar no Computador..."</strong> para abrir a janela nativa do <strong>Windows Explorer</strong> e selecionar a unidade virtual do seu Google Drive (ex: <code>G:</code>, <code>H:</code>, <code>I:</code>, <code>J:</code>) ou pasta local no <code>C:</code>.
+          </small>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 18px; margin-bottom:18px;">
+          <div style="font-weight:700; font-size:0.82rem; color:#334155; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-shield-alt text-primary"></i> <span>O que é sincronizado no encerramento do dia:</span>
+          </div>
+          <ul style="margin:0; padding-left:22px; font-size:0.8rem; color:#64748b; line-height:1.7;">
+            <li>Planilha Consolidada Oficial (<code>Almoxarifado_ARGUS_Consolidado.xlsx</code>)</li>
+            <li>Cópia Histórica carimbada com data e hora (<code>Backup_Almoxarifado_AAAA-MM-DD.xlsx</code>)</li>
+            <li>Cópia de Segurança do Banco SQL Relacional (<code>Backup_Banco_AAAA-MM-DD.db</code>)</li>
+          </ul>
+        </div>
+
+        <div class="d-flex justify-content-end align-items-center gap-2" style="margin-top:10px; padding-top:14px; border-top:1px solid #e2e8f0;">
+          <button type="button" class="btn-argus-secondary" onclick="fecharModal('modalConfig')">
+            <i class="fas fa-xmark me-1"></i> Cancelar
+          </button>
+          <button type="button" class="btn-argus-primary px-4 py-2" onclick="salvarConfig()">
+            <i class="fas fa-save me-1"></i> Salvar Configurações
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+
+

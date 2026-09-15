@@ -1,0 +1,16 @@
+{
+  "porta": 5500,
+  "titulo_sistema": "ARGUS | Almoxarifado Polo de Inovação IFAM",
+  "pasta_google_drive": "",
+  "nome_colaboradora": "Colaboradora Almoxarifado",
+  "operador_ativo": {
+    "id": 1,
+    "cpf": "83403876268",
+    "nome_completo": "GEZIEL SENA COLARES",
+    "login": "83403876268",
+    "email": "geziel.colares@ifam.edu.br",
+    "telefone": "(92) 99177-4977",
+    "tipo_vinculo": "SERVIDOR",
+    "cargo_funcao": "ASSISTENTE EM ADMINISTRAÇÃO"
+  }
+}
