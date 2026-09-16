@@ -2,11 +2,11 @@
 
 
 a = Analysis(
-    ['C:/ARGUS/almoxarifado/terminal_balcao/app_desktop.py'],
+    ['app_desktop.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:/ARGUS/almoxarifado/terminal_balcao/static', 'static'), ('C:/ARGUS/almoxarifado/terminal_balcao/banco_almoxarifado.db', '.'), ('C:/ARGUS/almoxarifado/terminal_balcao/config.json', '.')],
-    hiddenimports=['reportlab', 'reportlab.lib', 'reportlab.platypus', 'openpyxl', 'sqlite3'],
+    datas=[('static', 'static')],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -32,6 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['static/img/icone_almoxarifado.ico'],
 )
 coll = COLLECT(
     exe,

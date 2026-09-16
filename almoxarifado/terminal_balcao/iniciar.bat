@@ -1,21 +1,19 @@
-@echo off
+﻿@echo off
 chcp 65001 > nul
 title ARGUS Almoxarifado
 
-cd /d "C:\ARGUS\almoxarifado\terminal_balcao"
+cd /d "%~dp0"
 
-:: 1. Tenta usar o executável standalone compilado se existir
+set PYTHONW_EXE=C:\ARGUS\.venv\Scripts\pythonw.exe
+if exist "%PYTHONW_EXE%" (
+    start "" "%PYTHONW_EXE%" app_desktop.py
+    exit
+)
+
 if exist "dist\ARGUS_Almoxarifado\ARGUS_Almoxarifado.exe" (
     start "" "dist\ARGUS_Almoxarifado\ARGUS_Almoxarifado.exe"
     exit
 )
 
-:: 2. Fallback: roda via Python
-set PYTHON_EXE=C:\ARGUS\.venv\Scripts\python.exe
-if not exist "%PYTHON_EXE%" (
-    set PYTHON_EXE=python.exe
-)
-
-start "" "%PYTHON_EXE%" app_desktop.py
+start "" pythonw.exe app_desktop.py
 exit
-

@@ -1,5 +1,73 @@
 # Diário de Bordo — ARGUS
 
+## [2026-09-15] Sprint — Estabilização de Desktop, Otimização UI e Gestão de Diretores
+
+### 1. Entregas Técnicas do Dia
+
+- **Estabilização da Arquitetura Desktop Portable (.exe):**
+  * Correção da _race condition_ de fechamento de portas travadas do MS Edge.
+  * Ajuste do mecanismo Heartbeat para suportar o _throttling_ de tabs minimizadas no Chromium, estendendo o timeout de morte do servidor para 30 segundos e eliminando fechamentos indesejados (pp_desktop.py, pp.js).
+  * Injeção assertiva do favicon estático e do script Batch WSH que gera automaticamente o atalho da Área de Trabalho sempre referenciando o ícone vermelho oficial (Criar_Atalho.bat).
+
+- **CRUD de Autoridades de Assinatura (Diretores):**
+  * Criação da tabela 	b_diretores em SQLite com migração que pré-cadastra os dois diretores titulares fixos (is_titular=1).
+  * Implementação da rota REST /api/diretores (POST) para gerenciar as ações CRIAR, EDITAR e EXCLUIR de diretores substitutos, com validação e blindagem de segurança para não deletar titulares.
+  * Adição das lógicas de fetch e re-renderização (carregarParametros) em JS.
+  * Resolução de bug crítico de sintaxe Javascript nas funções injetadas.
+
+- **Refatorações de HTML/Interface (Limpeza Visual e UX):**
+  * Remoção de botões redundantes (Gerar Recibo, Excel, Drive) no topo da 	abEntradas, centralizando-os restritamente no footer e simplificando o processo de entrada de NFs.
+  * Criação da modal HTML modalDiretor (Cadastro de Diretores Substitutos).
+  * Criação de um card widescreen de largura total (col-lg-12) no subGerenciarParametros para a lista de autoridades de assinatura. 
+  * Badge condicional: selos de "Titular Fixo" (g-primary) inativando os botões de edição/lixeira quando a pessoa possui um vínculo fixo injetado.
+
+### 2. Próximos Passos (Backlog e Pendências)
+
+- Testes de ponta a ponta para homologar todos os fluxos de Saída e Empréstimos.
+
+
+
+## [2026-09-15] Sprint — Terminal de Balcão (Almoxarifado): Geração de Termo de Cautela (.docx) com Injeção Dinâmica
+
+### 1. Entregas Técnicas do Dia
+
+- **Geração de Termo de Cautela em Formato Word (.docx):**
+  * Injeção de dados dinâmica na matriz oficial `C:\ARGUS\cadastros\modelos\proposta-termo-cautela-equipamento.docx`.
+  * Criação do módulo `gerador_cautela.py` utilizando `python-docx` para substituição inteligente de placeholders (`{{ ... }}`) e tratamento dos blocos condicionais de Servidor do IFAM vs. Colaborador Externo sem corromper o cabeçalho ou estilos da matriz.
+  * Tabela dinâmica de equipamentos: substituição das linhas estáticas de exemplo por 1 a N linhas dinâmicas, com formatação institucional e alinhamento padronizado.
+  * Auto-formatação de data por extenso em português (ex: `15 de setembro de 2026`) e numeração sequencial anual (`001/2026`, `002/2026`, etc.).
+
+- **Expansão da Entidade Canônica `tb_solicitantes` e Nova Tabela `tb_cautelas`:**
+  * Migração de schema segura com `PRAGMA table_info` e `ALTER TABLE` adicionando: `tipo_vinculo`, `cargo`, `funcao_projeto`, `siape`, `unidade_origem`, `projeto_padrao`.
+  * Criação da tabela `tb_cautelas` no SQLite para registro de auditoria, metadados e histórico completo dos termos gerados.
+  * Função `get_proximo_numero_cautela(ano)` para auto-incremento automático por ano de referência.
+  * Parâmetros persistentes para Unidade Outorgante (Direção do Polo) e Coordenação de Vinculação salvos em `tb_parametros`.
+
+- **API REST no Backend do Terminal de Balcão (`servidor.py`):**
+  * `GET /api/termo_cautela/parametros` & `POST /api/termo_cautela/parametros`: carregamento e salvamento de dados institucionais padrão.
+  * `GET /api/termo_cautela/proximo_numero?ano=...`: cálculo dinâmico da numeração sequencial.
+  * `GET /api/termo_cautela/solicitante/<id>`: ficha cadastral completa com vínculo e SIAPE.
+  * `POST /api/termo_cautela/gerar`: validação, salvamento no banco, geração do `.docx` e retorno da URL de download.
+  * `GET /api/termo_cautela/download?arquivo=...`: download binário do arquivo Word (`application/vnd.openxmlformats-officedocument.wordprocessingml.document`).
+  * `GET /api/termo_cautela/historico`: consulta aos termos emitidos com download direto.
+
+- **Interface no Frontend (`index.html`, `style.css` e `app.js`):**
+  * Botão de acesso rápido no rodapé fixo do balcão: `Termo de Cautela (.docx)`.
+  * Modal responsivo `#modalCautelaDocx` organizado em 5 abas (`Termo & SIPAC`, `Cautelado`, `Direção & Coordenação`, `Equipamentos Cautelados`, `Histórico`).
+  * Seleção inteligente de Solicitante com auto-preenchimento e opção de atualizar cadastro base.
+  * Tabela dinâmica com datalist conectado ao catálogo do almoxarifado, controle de número de série, estado de conservação e acessórios.
+  * Download imediato do arquivo gerado no navegador ao concluir a emissão.
+
+- **Solução Definitiva do Ciclo de Vida Desktop (Fechar no "X" e Reabrir Instantaneamente):**
+  * **Diagnóstico da Causa Raiz:** O Microsoft Edge rodava com perfil compartilhado. Em aberturas subsequentes após fechar a janela, o Edge gerava silenciosamente o erro `[ERROR:chrome\browser\process_singleton_win.cc:941] Lock file can not be created! Error code: 32` e abortava para evitar corrupção de perfil (`Failed to create a ProcessSingleton... Aborting now`). Além disso, processos em segundo plano do Edge seguravam instâncias antigas devido ao *Background Mode* do Chromium.
+  * **Perfil Dedicado e Isolado:** Configurado diretório exclusivo de perfil `--user-data-dir=%TEMP%\argus_edge_profile` acompanhado de `--no-first-run --no-default-browser-check --disable-background-mode --disable-features=BackgroundMode --disable-extensions`, garantindo independência total do Edge pessoal do usuário.
+  * **Limpeza Ativa Preventiva:** Criada função `limpar_processos_residuais_edge()` em `app_desktop.py` que remove arquivos de lock (`lockfile`, `SingletonLock`) e finaliza qualquer processo zumbi do perfil antes da inicialização e após o encerramento.
+  * **Sincronização de Encerramento (Beacon + Heartbeat):** Frontend (`app.js`) envia heartbeat a cada 2s via `/api/heartbeat` e notifica o encerramento no evento `beforeunload` da janela via `navigator.sendBeacon('/api/encerrar_sessao')`. O backend encerra o processo Python imediatamente e libera o lock, permitindo reaberturas imediatas e sucessivas.
+  * **Execução Silenciosa com `pythonw.exe`:** `iniciar.bat` atualizado para invocar `C:\ARGUS\.venv\Scripts\pythonw.exe`, eliminando qualquer prompt de comando cmd residual.
+  * **Validação de Ciclo Completo:** Testado e validado em tempo real o ciclo de abertura, fechamento por evento de janela e reabertura com resposta HTTP 200 e reconexão instantânea.
+
+---
+
 ## [2026-09-14] Sprint — Terminal de Balcão (Almoxarifado): UI/UX, Identidade Visual e Ordenação de Tabelas
 
 ### 1. Entregas Técnicas do Dia

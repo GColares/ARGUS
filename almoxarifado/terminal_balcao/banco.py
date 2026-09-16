@@ -141,8 +141,39 @@ def init_db(db_path=DB_PATH):
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         cpf TEXT UNIQUE,                           -- CPF 11 dígitos para unicidade e integração com ARGUS
         nome_completo TEXT NOT NULL,                -- Nome civil para filtro e visualização
+        tipo_vinculo TEXT DEFAULT 'Servidor do IFAM', -- Servidor do IFAM, Colaborador Externo, etc.
+        cargo TEXT DEFAULT '',                     -- Cargo / Ocupação
+        funcao_projeto TEXT DEFAULT '',            -- Função desempenhada no projeto
+        siape TEXT DEFAULT '',                     -- Matrícula SIAPE (se servidor)
+        unidade_origem TEXT DEFAULT '',            -- Lotação / Origem
+        projeto_padrao TEXT DEFAULT '',            -- Projeto associado padrão
         ativo INTEGER DEFAULT 1,
         data_cadastro TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS tb_cautelas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        numero TEXT NOT NULL,                      -- Ex: '001'
+        ano INTEGER NOT NULL,                      -- Ex: 2026
+        data_emissao TEXT NOT NULL,                -- Ex: '15/09/2026'
+        processo_sipac TEXT DEFAULT '',            -- Ex: '23000.000123/2026-00'
+        solicitante_id INTEGER,                    -- FK tb_solicitantes
+        solicitante_nome TEXT NOT NULL,
+        solicitante_cpf TEXT DEFAULT '',
+        solicitante_siape TEXT DEFAULT '',
+        solicitante_cargo TEXT DEFAULT '',
+        solicitante_vinculo TEXT DEFAULT '',
+        solicitante_origem TEXT DEFAULT '',
+        solicitante_funcao TEXT DEFAULT '',
+        projeto TEXT DEFAULT '',
+        vigencia_inicio TEXT DEFAULT '',           -- Ex: '15/09/2026'
+        vigencia_fim TEXT DEFAULT '',              -- Ex: '15/03/2027'
+        direcao_dados TEXT DEFAULT '{}',           -- JSON com nome, cargo, ato
+        coordenacao_dados TEXT DEFAULT '{}',       -- JSON com nome, locus, siape, ato
+        itens_json TEXT DEFAULT '[]',              -- JSON com lista de equipamentos
+        arquivo_gerado TEXT DEFAULT '',            -- Nome do arquivo .docx gerado
+        data_hora TEXT NOT NULL,                   -- Registro de emissão
+        operador_nome TEXT DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS tb_fechamentos (
@@ -154,14 +185,41 @@ def init_db(db_path=DB_PATH):
         arquivo_backup TEXT,
         caminho_drive TEXT
     );
+    CREATE TABLE IF NOT EXISTS tb_diretores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        cargo TEXT NOT NULL,
+        nome TEXT NOT NULL,
+        portaria TEXT NOT NULL,
+        is_titular INTEGER DEFAULT 0
+    );
     """)
 
     conn.commit()
     conn.close()
 
+    migrar_schema_cautelas_e_solicitantes(db_path=db_path)
     migrar_solicitantes_legados(db_path=db_path)
+    migrar_diretores_iniciais(db_path=db_path)
+
+
+def migrar_diretores_iniciais(db_path=DB_PATH):
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM tb_diretores WHERE is_titular = 1")
+    count = cur.fetchone()[0]
+    if count == 0:
+        cur.executemany("""
+            INSERT INTO tb_diretores (cargo, nome, portaria, is_titular) 
+            VALUES (?, ?, ?, 1)
+        """, [
+            ('Diretor-Geral', 'Alyson de Jesus dos Santos', 'PORTARIA No 061/GR/IFAM, DE 09 DE JANEIRO DE 2026.'),
+            ('Diretor Administrativo e Financeiro', 'Alexandre Lopes Martiniano', 'PORTARIA No 010/2026-INOVA/IFAM, DE 11 DE FEVEREIRO DE 2026.')
+        ])
+        conn.commit()
+    conn.close()
 
 # ---------------------------------------------------------------------------
+
 # INDICADORES E PAINEL
 # ---------------------------------------------------------------------------
 def get_indicadores(db_path=DB_PATH):
@@ -759,6 +817,62 @@ def get_extrato(material_id=None, limite=50, db_path=DB_PATH):
 # ---------------------------------------------------------------------------
 # GESTÃO DE SOLICITANTES (CANÔNICO PESSOAFISICA: NOME + CPF)
 # ---------------------------------------------------------------------------
+def migrar_schema_cautelas_e_solicitantes(db_path=DB_PATH):
+    """
+    Garante migração segura e idempotente para as colunas extras de tb_solicitantes
+    e criação da tabela tb_cautelas.
+    """
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+
+    # 1. Verifica colunas de tb_solicitantes
+    cur.execute("PRAGMA table_info(tb_solicitantes)")
+    colunas_solic = [c['name'] for c in cur.fetchall()]
+
+    novas_colunas = [
+        ("tipo_vinculo", "TEXT DEFAULT 'Servidor do IFAM'"),
+        ("cargo", "TEXT DEFAULT ''"),
+        ("funcao_projeto", "TEXT DEFAULT ''"),
+        ("siape", "TEXT DEFAULT ''"),
+        ("unidade_origem", "TEXT DEFAULT ''"),
+        ("projeto_padrao", "TEXT DEFAULT ''")
+    ]
+
+    for col_nome, col_tipo in novas_colunas:
+        if col_nome not in colunas_solic:
+            try:
+                cur.execute(f"ALTER TABLE tb_solicitantes ADD COLUMN {col_nome} {col_tipo}")
+            except Exception:
+                pass
+
+    # 2. Verifica colunas de tb_cautelas
+    cur.execute("PRAGMA table_info(tb_cautelas)")
+    colunas_caut = [c['name'] for c in cur.fetchall()]
+
+    novas_colunas_caut = [
+        ("solicitante_nome", "TEXT NOT NULL DEFAULT ''"),
+        ("solicitante_cpf", "TEXT DEFAULT ''"),
+        ("solicitante_siape", "TEXT DEFAULT ''"),
+        ("solicitante_cargo", "TEXT DEFAULT ''"),
+        ("solicitante_vinculo", "TEXT DEFAULT 'Servidor do IFAM'"),
+        ("solicitante_origem", "TEXT DEFAULT ''"),
+        ("solicitante_funcao", "TEXT DEFAULT ''"),
+        ("direcao_dados", "TEXT DEFAULT '{}'"),
+        ("coordenacao_dados", "TEXT DEFAULT '{}'"),
+        ("itens_json", "TEXT DEFAULT '[]'"),
+        ("operador_nome", "TEXT DEFAULT ''")
+    ]
+
+    for col_nome, col_tipo in novas_colunas_caut:
+        if col_nome not in colunas_caut:
+            try:
+                cur.execute(f"ALTER TABLE tb_cautelas ADD COLUMN {col_nome} {col_tipo}")
+            except Exception:
+                pass
+
+    conn.commit()
+    conn.close()
+
 def formatar_cpf(cpf):
     if not cpf:
         return ""
@@ -819,7 +933,11 @@ def migrar_solicitantes_legados(db_path=DB_PATH):
 def get_solicitantes(apenas_ativos=True, db_path=DB_PATH):
     conn = get_connection(db_path)
     cur = conn.cursor()
-    query = "SELECT id, cpf, nome_completo, ativo, data_cadastro FROM tb_solicitantes"
+    query = """
+    SELECT id, cpf, nome_completo, tipo_vinculo, cargo, funcao_projeto, siape,
+           unidade_origem, projeto_padrao, ativo, data_cadastro
+    FROM tb_solicitantes
+    """
     if apenas_ativos:
         query += " WHERE ativo = 1"
     query += " ORDER BY nome_completo ASC"
@@ -847,12 +965,35 @@ def get_solicitantes(apenas_ativos=True, db_path=DB_PATH):
             "cpf_formatado": cpf_fmt,
             "nome_completo": nome,
             "rotulo": rotulo,
+            "tipo_vinculo": r['tipo_vinculo'] or "Servidor do IFAM",
+            "cargo": r['cargo'] or "",
+            "funcao_projeto": r['funcao_projeto'] or "",
+            "siape": r['siape'] or "",
+            "unidade_origem": r['unidade_origem'] or "",
+            "projeto_padrao": r['projeto_padrao'] or "",
             "ativo": r['ativo'],
             "data_cadastro": r['data_cadastro']
         })
     return resultado
 
-def cadastrar_solicitante(nome, cpf, db_path=DB_PATH):
+def get_solicitante_por_id(id_solic, db_path=DB_PATH):
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+    cur.execute("""
+    SELECT id, cpf, nome_completo, tipo_vinculo, cargo, funcao_projeto, siape,
+           unidade_origem, projeto_padrao, ativo, data_cadastro
+    FROM tb_solicitantes
+    WHERE id = ?
+    """, (id_solic,))
+    row = cur.fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    d["cpf_formatado"] = formatar_cpf(d.get("cpf") or "")
+    return d
+
+def cadastrar_solicitante(nome, cpf, dados_extras=None, db_path=DB_PATH):
     nome_limpo = str(nome or "").strip().upper()
     if not nome_limpo:
         raise ValueError("O Nome Completo do Solicitante é obrigatório.")
@@ -871,10 +1012,23 @@ def cadastrar_solicitante(nome, cpf, db_path=DB_PATH):
         raise ValueError(f"Este CPF já pertence ao solicitante cadastrado: {existe['nome_completo']}.")
 
     agora = datetime.now().strftime("%d/%m/%Y %H:%M")
+    extras = dados_extras or {}
     cur.execute("""
-    INSERT INTO tb_solicitantes (cpf, nome_completo, ativo, data_cadastro)
-    VALUES (?, ?, 1, ?)
-    """, (cpf_limpo, nome_limpo, agora))
+    INSERT INTO tb_solicitantes (
+        cpf, nome_completo, tipo_vinculo, cargo, funcao_projeto, siape,
+        unidade_origem, projeto_padrao, ativo, data_cadastro
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+    """, (
+        cpf_limpo,
+        nome_limpo,
+        extras.get("tipo_vinculo", "Servidor do IFAM"),
+        extras.get("cargo", ""),
+        extras.get("funcao_projeto", ""),
+        extras.get("siape", ""),
+        extras.get("unidade_origem", ""),
+        extras.get("projeto_padrao", ""),
+        agora
+    ))
     novo_id = cur.lastrowid
 
     # Sincroniza em tb_parametros para compatibilidade plena
@@ -911,6 +1065,52 @@ def editar_solicitante(id_solic, nome, cpf, db_path=DB_PATH):
     conn.close()
     return True
 
+def atualizar_dados_completos_solicitante(id_solic, dados, db_path=DB_PATH):
+    """
+    Atualiza todos os dados do solicitante (nome, cpf, vínculo, cargo, siape, etc).
+    """
+    nome_limpo = str(dados.get("nome_completo") or "").strip().upper()
+    if not nome_limpo:
+        raise ValueError("O Nome Completo é obrigatório.")
+
+    cpf_limpo = "".join(c for c in str(dados.get("cpf") or "") if c.isdigit())
+
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+
+    if cpf_limpo and len(cpf_limpo) == 11:
+        cur.execute("SELECT id FROM tb_solicitantes WHERE cpf = ? AND id != ?", (cpf_limpo, id_solic))
+        if cur.fetchone():
+            conn.close()
+            raise ValueError("Já existe outro solicitante com este mesmo CPF.")
+
+    cur.execute("""
+    UPDATE tb_solicitantes
+    SET nome_completo = ?,
+        cpf = COALESCE(NULLIF(?, ''), cpf),
+        tipo_vinculo = ?,
+        cargo = ?,
+        funcao_projeto = ?,
+        siape = ?,
+        unidade_origem = ?,
+        projeto_padrao = ?
+    WHERE id = ?
+    """, (
+        nome_limpo,
+        cpf_limpo,
+        dados.get("tipo_vinculo", "Servidor do IFAM"),
+        dados.get("cargo", ""),
+        dados.get("funcao_projeto", ""),
+        dados.get("siape", ""),
+        dados.get("unidade_origem", ""),
+        dados.get("projeto_padrao", ""),
+        id_solic
+    ))
+
+    conn.commit()
+    conn.close()
+    return True
+
 def excluir_solicitante(id_solic, db_path=DB_PATH):
     conn = get_connection(db_path)
     cur = conn.cursor()
@@ -918,6 +1118,187 @@ def excluir_solicitante(id_solic, db_path=DB_PATH):
     conn.commit()
     conn.close()
     return True
+
+# ---------------------------------------------------------------------------
+# GESTÃO DE CAUTELAS DE EQUIPAMENTO (TERMO EM .DOCX)
+# ---------------------------------------------------------------------------
+def get_cautela_parametros(db_path=DB_PATH):
+    """
+    Retorna os parâmetros de Direção, Coordenação e numeração da Cautela.
+    """
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+    cur.execute("SELECT tipo, valor FROM tb_parametros WHERE tipo LIKE 'CAUTELA_%'")
+    rows = cur.fetchall()
+    conn.close()
+
+    params = {r['tipo']: r['valor'] for r in rows}
+
+    # Valores padrão canônicos se ainda não configurados
+    return {
+        "direcao_nome": params.get("CAUTELA_DIRECAO_NOME", ""),
+        "direcao_cargo": params.get("CAUTELA_DIRECAO_CARGO", "Diretor Geral do Polo de Inovação Manaus"),
+        "direcao_ato_tipo": params.get("CAUTELA_DIRECAO_ATO_TIPO", "Portaria"),
+        "direcao_ato_numero": params.get("CAUTELA_DIRECAO_ATO_NUMERO", ""),
+        "direcao_ato_origem": params.get("CAUTELA_DIRECAO_ATO_ORIGEM", "GR/IFAM"),
+        "direcao_ato_data": params.get("CAUTELA_DIRECAO_ATO_DATA", ""),
+        "coord_nome": params.get("CAUTELA_COORD_NOME", ""),
+        "coord_locus": params.get("CAUTELA_COORD_LOCUS", "Laboratório / Setor"),
+        "coord_siape": params.get("CAUTELA_COORD_SIAPE", ""),
+        "coord_ato": params.get("CAUTELA_COORD_ATO", ""),
+        "cautela_contador": params.get("CAUTELA_CONTADOR", "0"),
+        "cautela_ano_ref": params.get("CAUTELA_ANO_REF", str(datetime.now().year))
+    }
+
+def salvar_cautela_parametros(dados, db_path=DB_PATH):
+    """
+    Salva ou atualiza os parâmetros de Direção e Coordenação em tb_parametros.
+    """
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+
+    mapa = {
+        "CAUTELA_DIRECAO_NOME": dados.get("direcao_nome", "").strip(),
+        "CAUTELA_DIRECAO_CARGO": dados.get("direcao_cargo", "").strip(),
+        "CAUTELA_DIRECAO_ATO_TIPO": dados.get("direcao_ato_tipo", "").strip(),
+        "CAUTELA_DIRECAO_ATO_NUMERO": dados.get("direcao_ato_numero", "").strip(),
+        "CAUTELA_DIRECAO_ATO_ORIGEM": dados.get("direcao_ato_origem", "").strip(),
+        "CAUTELA_DIRECAO_ATO_DATA": dados.get("direcao_ato_data", "").strip(),
+        "CAUTELA_COORD_NOME": dados.get("coord_nome", "").strip(),
+        "CAUTELA_COORD_LOCUS": dados.get("coord_locus", "").strip(),
+        "CAUTELA_COORD_SIAPE": dados.get("coord_siape", "").strip(),
+        "CAUTELA_COORD_ATO": dados.get("coord_ato", "").strip()
+    }
+
+    for chave, valor in mapa.items():
+        cur.execute("DELETE FROM tb_parametros WHERE tipo = ?", (chave,))
+        if valor:
+            cur.execute("INSERT INTO tb_parametros (tipo, valor) VALUES (?, ?)", (chave, valor))
+
+    conn.commit()
+    conn.close()
+    return True
+
+def get_proximo_numero_cautela(ano=None, db_path=DB_PATH):
+    """
+    Calcula o próximo número sequencial de cautela para o ano informado (ex: '001').
+    """
+    ano_atual = int(ano) if ano else datetime.now().year
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+
+    # Verifica o maior número já emitido no ano em tb_cautelas
+    cur.execute("SELECT numero FROM tb_cautelas WHERE ano = ?", (ano_atual,))
+    numeros = []
+    for r in cur.fetchall():
+        num_str = str(r[0]).strip()
+        digitos = "".join(c for c in num_str if c.isdigit())
+        if digitos:
+            numeros.append(int(digitos))
+
+    conn.close()
+
+    proximo = (max(numeros) + 1) if numeros else 1
+    return f"{proximo:03d}"
+
+def salvar_registro_cautela(dados, db_path=DB_PATH):
+    """
+    Registra um termo de cautela emitido no banco de dados.
+    """
+    import json
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+
+    numero = str(dados.get("numero") or "001").strip()
+    ano = int(dados.get("ano") or datetime.now().year)
+    data_emissao = dados.get("data_emissao") or datetime.now().strftime("%d/%m/%Y")
+    agora = datetime.now().strftime("%d/%m/%Y %H:%M")
+
+    direcao_json = json.dumps(dados.get("direcao", {}), ensure_ascii=False)
+    coordenacao_json = json.dumps(dados.get("coordenacao", {}), ensure_ascii=False)
+    itens_json = json.dumps(dados.get("itens", []), ensure_ascii=False)
+
+    cur.execute("""
+    INSERT INTO tb_cautelas (
+        numero, ano, data_emissao, processo_sipac,
+        solicitante_id, solicitante_nome, solicitante_cpf, solicitante_siape,
+        solicitante_cargo, solicitante_vinculo, solicitante_origem, solicitante_funcao,
+        projeto, vigencia_inicio, vigencia_fim,
+        direcao_dados, coordenacao_dados, itens_json, arquivo_gerado,
+        data_hora, operador_nome
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        numero,
+        ano,
+        data_emissao,
+        dados.get("processo_sipac", ""),
+        dados.get("solicitante_id"),
+        dados.get("solicitante_nome", ""),
+        dados.get("solicitante_cpf", ""),
+        dados.get("solicitante_siape", ""),
+        dados.get("solicitante_cargo", ""),
+        dados.get("solicitante_vinculo", "Servidor do IFAM"),
+        dados.get("solicitante_origem", ""),
+        dados.get("solicitante_funcao", ""),
+        dados.get("projeto", ""),
+        dados.get("vigencia_inicio", ""),
+        dados.get("vigencia_fim", ""),
+        direcao_json,
+        coordenacao_json,
+        itens_json,
+        dados.get("arquivo_gerado", ""),
+        agora,
+        dados.get("operador_nome", "")
+    ))
+
+    cautela_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return cautela_id
+
+def listar_cautelas(limite=50, db_path=DB_PATH):
+    """
+    Lista os termos de cautela emitidos.
+    """
+    import json
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+    cur.execute("""
+    SELECT id, numero, ano, data_emissao, processo_sipac,
+           solicitante_nome, solicitante_cpf, projeto,
+           vigencia_inicio, vigencia_fim, arquivo_gerado, data_hora, itens_json
+    FROM tb_cautelas
+    ORDER BY id DESC
+    LIMIT ?
+    """, (limite,))
+    rows = cur.fetchall()
+    conn.close()
+
+    res = []
+    for r in rows:
+        itens = []
+        try:
+            itens = json.loads(r['itens_json'] or "[]")
+        except Exception:
+            pass
+        res.append({
+            "id": r['id'],
+            "numero": r['numero'],
+            "ano": r['ano'],
+            "codigo_cautela": f"{r['numero']}/{r['ano']}",
+            "data_emissao": r['data_emissao'],
+            "processo_sipac": r['processo_sipac'],
+            "solicitante_nome": r['solicitante_nome'],
+            "solicitante_cpf": formatar_cpf(r['solicitante_cpf']),
+            "projeto": r['projeto'],
+            "vigencia_inicio": r['vigencia_inicio'],
+            "vigencia_fim": r['vigencia_fim'],
+            "arquivo_gerado": r['arquivo_gerado'],
+            "total_equipamentos": len(itens),
+            "data_hora": r['data_hora']
+        })
+    return res
+
 
 # ---------------------------------------------------------------------------
 # PARÂMETROS GERAIS (PROJETO, AMBIENTE, ESTRUTURA)
@@ -1131,3 +1512,32 @@ def listar_operadores(db_path=DB_PATH):
     conn.close()
     return [dict(r) for r in rows]
 
+
+def get_diretores(db_path=DB_PATH):
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM tb_diretores ORDER BY is_titular DESC, id ASC")
+    res = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return res
+
+def salvar_diretor(cargo, nome, portaria, db_path=DB_PATH):
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO tb_diretores (cargo, nome, portaria, is_titular) VALUES (?, ?, ?, 0)", (cargo, nome, portaria))
+    conn.commit()
+    conn.close()
+    
+def editar_diretor(id_dir, cargo, nome, portaria, db_path=DB_PATH):
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+    cur.execute("UPDATE tb_diretores SET cargo=?, nome=?, portaria=? WHERE id=? AND is_titular=0", (cargo, nome, portaria, id_dir))
+    conn.commit()
+    conn.close()
+
+def excluir_diretor(id_dir, db_path=DB_PATH):
+    conn = get_connection(db_path)
+    cur = conn.cursor()
+    cur.execute("DELETE FROM tb_diretores WHERE id = ? AND is_titular = 0", (id_dir,))
+    conn.commit()
+    conn.close()

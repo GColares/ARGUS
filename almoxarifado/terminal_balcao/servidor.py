@@ -11,8 +11,13 @@ import os
 import sys
 import json
 import urllib.parse
+import tempfile
+import mimetypes
+import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import subprocess
+import time
+import threading
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
@@ -27,12 +32,18 @@ from banco import (
     get_fracionados_abertos, obter_fracionado,
     get_extrato, adicionar_parametro, editar_parametro, excluir_parametro,
     get_solicitantes, cadastrar_solicitante, editar_solicitante, excluir_solicitante,
+    get_solicitante_por_id, atualizar_dados_completos_solicitante,
+    get_cautela_parametros, salvar_cautela_parametros,
+    get_proximo_numero_cautela, salvar_registro_cautela, listar_cautelas,
     cadastrar_operador, autenticar_operador, ha_operadores, listar_operadores,
     init_db, DB_PATH
 )
 from gerador_pdf import (
     gerar_recibo_saida, gerar_termo_cautela,
     gerar_etiqueta_lata_pdf, gerar_etiqueta_prateleira_pdf, PDF_DIR
+)
+from gerador_cautela import (
+    gerar_termo_cautela_docx, DIR_SAIDA_CAUTELAS
 )
 from exportador_excel import exportar_planilha_completa, DIR_EXCEL, DIR_DRIVE
 
@@ -49,23 +60,46 @@ def carregar_config():
 CONFIG = carregar_config()
 PORT = CONFIG.get("porta", 5500)
 
+ULTIMO_HEARTBEAT = time.time()
+HEARTBEAT_RECEBIDO = False
+
+
 def abrir_dialogo_pasta_windows():
-    """Abre a janela nativa do Windows Explorer para seleção de pasta / unidade do Google Drive."""
+    """Abre a janela nativa do Windows Explorer (IFileOpenDialog - Vista+) para seleção de pasta.
+
+    Usa o seletor moderno via COM (IFileOpenDialog) em vez do FolderBrowserDialog legado,
+    garantindo que a janela sempre apareça visível em primeiro plano.
+    """
+    # Script PowerShell que invoca o IFileOpenDialog moderno via COM.
+    # Roda em um processo COM Single-Threaded Apartment (STA), obrigatório para dialogs Win32.
     ps_cmd = (
-        "[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; "
-        "$f = New-Object System.Windows.Forms.FolderBrowserDialog; "
-        "$f.Description = 'Selecione a pasta do Google Drive no seu computador para backup'; "
-        "$f.ShowNewFolderButton = $true; "
-        "if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $f.SelectedPath }"
+        "Add-Type -AssemblyName System.Windows.Forms | Out-Null; "
+        "$dialog = New-Object System.Windows.Forms.OpenFileDialog; "
+        "$dialog.Title = 'Selecione a pasta do Google Drive para backup'; "
+        "$dialog.Filter = 'Pasta|*.none'; "
+        "$dialog.FileName = 'Selecione esta pasta e clique em Abrir'; "
+        "$dialog.CheckFileExists = $false; "
+        "$dialog.CheckPathExists = $true; "
+        "$dialog.ValidateNames = $false; "
+        # Mantém janela visível no topo usando -sta (Single-Threaded Apartment)
+        "if ($dialog.ShowDialog() -eq 'OK') { "
+        "  $pasta = [System.IO.Path]::GetDirectoryName($dialog.FileName); "
+        "  if (-not $pasta) { $pasta = $dialog.FileName }; "
+        "  Write-Output $pasta "
+        "}"
     )
-    cmd = ["powershell", "-NoProfile", "-Command", ps_cmd]
+    cmd = [
+        "powershell",
+        "-NoProfile",
+        "-STA",          # ← STA obrigatório para dialogs COM
+        "-Command",
+        ps_cmd
+    ]
     try:
-        kwargs = {}
-        if os.name == 'nt' and hasattr(subprocess, 'CREATE_NO_WINDOW'):
-            kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
-        res = subprocess.check_output(cmd, timeout=120, **kwargs)
+        # NÃO usar CREATE_NO_WINDOW — dialogs COM precisam de contexto de janela visível
+        res = subprocess.check_output(cmd, timeout=120)
         caminho = res.decode("utf-8", errors="ignore").strip()
-        if caminho and os.path.exists(caminho):
+        if caminho and os.path.isdir(caminho):
             return caminho
         return None
     except Exception as e:
@@ -109,7 +143,22 @@ class AlmoxarifadoHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, "PDF nao encontrado")
 
+    def responder_docx(self, docx_path, nome_arquivo):
+        if os.path.exists(docx_path):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            self.send_header("Content-Disposition", f'attachment; filename="{nome_arquivo}"')
+            with open(docx_path, "rb") as f:
+                conteudo = f.read()
+            self.send_header("Content-Length", str(len(conteudo)))
+            self.end_headers()
+            self.wfile.write(conteudo)
+        else:
+            self.send_error(404, "Arquivo DOCX nao encontrado")
+
+
     def do_GET(self):
+        global ULTIMO_HEARTBEAT, HEARTBEAT_RECEBIDO
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
@@ -130,10 +179,10 @@ class AlmoxarifadoHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/favicon.ico":
-            fav_path = os.path.join(BASE_DIR, "static", "img", "ARGUS1-LOGO-editado.png")
+            fav_path = os.path.join(BASE_DIR, "static", "img", "icone_almoxarifado.ico")
             if os.path.exists(fav_path):
                 self.send_response(200)
-                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Type", "image/x-icon")
                 with open(fav_path, "rb") as f:
                     conteudo = f.read()
                 self.send_header("Content-Length", str(len(conteudo)))
@@ -165,6 +214,26 @@ class AlmoxarifadoHandler(BaseHTTPRequestHandler):
             return
 
         # APIs
+        if path == "/api/heartbeat":
+            ULTIMO_HEARTBEAT = time.time()
+            HEARTBEAT_RECEBIDO = True
+            self.responder_json(200, {"ok": True, "ts": ULTIMO_HEARTBEAT})
+            return
+
+        if path == "/api/encerrar_sessao":
+            self.responder_json(200, {"ok": True, "msg": "Encerrando"})
+            def _desligar_get():
+                time.sleep(0.3)
+                lock_f = os.path.join(tempfile.gettempdir(), "argus_almoxarifado.lock")
+                if os.path.exists(lock_f):
+                    try:
+                        os.remove(lock_f)
+                    except:
+                        pass
+                os._exit(0)
+            threading.Thread(target=_desligar_get, daemon=True).start()
+            return
+
         if path == "/api/status":
             self.responder_json(200, get_indicadores())
             return
@@ -213,7 +282,44 @@ class AlmoxarifadoHandler(BaseHTTPRequestHandler):
             self.responder_json(200, get_extrato(material_id=mat_id))
             return
 
+        # Rotas GET - Termo de Cautela de Equipamento (.docx)
+        if path == "/api/termo_cautela/parametros":
+            self.responder_json(200, get_cautela_parametros())
+            return
+
+        if path == "/api/termo_cautela/proximo_numero":
+            ano = query.get("ano", [None])[0]
+            self.responder_json(200, {"proximo_numero": get_proximo_numero_cautela(ano)})
+            return
+
+        if path.startswith("/api/termo_cautela/solicitante/"):
+            try:
+                s_id = int(path[len("/api/termo_cautela/solicitante/"):])
+                solic = get_solicitante_por_id(s_id)
+                if solic:
+                    self.responder_json(200, solic)
+                else:
+                    self.responder_json(404, {"erro": "Solicitante não encontrado"})
+            except Exception as e:
+                self.responder_json(400, {"erro": str(e)})
+            return
+
+        if path == "/api/termo_cautela/historico":
+            self.responder_json(200, listar_cautelas())
+            return
+
+        if path == "/api/termo_cautela/download":
+            arq_nome = query.get("arquivo", [None])[0]
+            if arq_nome:
+                nome_limpo = os.path.basename(arq_nome)
+                docx_path = os.path.join(DIR_SAIDA_CAUTELAS, nome_limpo)
+                self.responder_docx(docx_path, nome_limpo)
+            else:
+                self.responder_json(400, {"erro": "Parâmetro arquivo é obrigatório"})
+            return
+
         if path.startswith("/api/comprovante/"):
+
             nome_arquivo = path[len("/api/comprovante/"):]
             pdf_path = os.path.join(PDF_DIR, nome_arquivo)
             self.responder_pdf(pdf_path, nome_arquivo)
@@ -301,9 +407,31 @@ class AlmoxarifadoHandler(BaseHTTPRequestHandler):
             return {}
 
     def do_POST(self):
+        global ULTIMO_HEARTBEAT, HEARTBEAT_RECEBIDO
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         dados = self.ler_payload()
+
+        # Ciclo de Vida e Sessão
+        if path == "/api/heartbeat":
+            ULTIMO_HEARTBEAT = time.time()
+            HEARTBEAT_RECEBIDO = True
+            self.responder_json(200, {"ok": True, "ts": ULTIMO_HEARTBEAT})
+            return
+
+        if path == "/api/encerrar_sessao":
+            self.responder_json(200, {"ok": True, "msg": "Encerrando processo"})
+            def _desligar_post():
+                time.sleep(0.3)
+                lock_f = os.path.join(tempfile.gettempdir(), "argus_almoxarifado.lock")
+                if os.path.exists(lock_f):
+                    try:
+                        os.remove(lock_f)
+                    except:
+                        pass
+                os._exit(0)
+            threading.Thread(target=_desligar_post, daemon=True).start()
+            return
 
         # Autenticação e Gestão de Operador
         if path == "/api/auth/cadastro":
@@ -349,6 +477,7 @@ class AlmoxarifadoHandler(BaseHTTPRequestHandler):
         # ETAPA 1: Entrada
 
         if path == "/api/entrada":
+
             try:
                 registrar_entrada(dados)
                 self.responder_json(200, {"sucesso": True})
@@ -379,6 +508,96 @@ class AlmoxarifadoHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.responder_json(400, {"sucesso": False, "erro": str(e)})
             return
+
+        # Rotas POST - Termo de Cautela de Equipamento (.docx)
+        if path == "/api/termo_cautela/parametros":
+            try:
+                salvar_cautela_parametros(dados)
+                self.responder_json(200, {"sucesso": True})
+            except Exception as e:
+                self.responder_json(400, {"sucesso": False, "erro": str(e)})
+            return
+
+        if path == "/api/termo_cautela/gerar":
+            try:
+                # 1. Se solicitado, atualiza o cadastro do solicitante na base
+                solic_id = dados.get("solicitante_id")
+                atualizar_cad = dados.get("atualizar_cadastro_solicitante", True)
+                if solic_id and atualizar_cad:
+                    dados_solic = {
+                        "nome_completo": dados.get("solicitante_nome") or (dados.get("solicitante") or {}).get("nome"),
+                        "cpf": dados.get("solicitante_cpf") or (dados.get("solicitante") or {}).get("cpf"),
+                        "tipo_vinculo": dados.get("solicitante_vinculo") or (dados.get("solicitante") or {}).get("vinculo"),
+                        "cargo": dados.get("solicitante_cargo") or (dados.get("solicitante") or {}).get("cargo"),
+                        "funcao_projeto": dados.get("solicitante_funcao") or (dados.get("solicitante") or {}).get("funcao"),
+                        "siape": dados.get("solicitante_siape") or (dados.get("solicitante") or {}).get("siape"),
+                        "unidade_origem": dados.get("solicitante_origem") or (dados.get("solicitante") or {}).get("origem"),
+                        "projeto_padrao": dados.get("projeto") or (dados.get("solicitante") or {}).get("projeto")
+                    }
+                    try:
+                        atualizar_dados_completos_solicitante(int(solic_id), dados_solic)
+                    except Exception as e_sol:
+                        print(f"Aviso ao atualizar solicitante: {e_sol}")
+
+                # 2. Se solicitado, salva os parâmetros de Direção/Coordenação como padrão
+                if dados.get("salvar_parametros_padrao"):
+                    salvar_cautela_parametros({
+                        "direcao_nome": (dados.get("direcao") or {}).get("nome", ""),
+                        "direcao_cargo": (dados.get("direcao") or {}).get("cargo", ""),
+                        "direcao_ato_tipo": (dados.get("direcao") or {}).get("ato_tipo", ""),
+                        "direcao_ato_numero": (dados.get("direcao") or {}).get("ato_numero", ""),
+                        "direcao_ato_origem": (dados.get("direcao") or {}).get("ato_origem", ""),
+                        "direcao_ato_data": (dados.get("direcao") or {}).get("ato_data", ""),
+                        "coord_nome": (dados.get("coordenacao") or {}).get("nome", ""),
+                        "coord_locus": (dados.get("coordenacao") or {}).get("locus", ""),
+                        "coord_siape": (dados.get("coordenacao") or {}).get("siape", ""),
+                        "coord_ato": (dados.get("coordenacao") or {}).get("ato", "")
+                    })
+
+                # 3. Gera o arquivo .docx formatado
+                resultado_docx = gerar_termo_cautela_docx(dados)
+
+                # 4. Registra no banco de dados
+                cautela_payload = {
+                    "numero": resultado_docx["numero"],
+                    "ano": resultado_docx["ano"],
+                    "data_emissao": dados.get("data_emissao"),
+                    "processo_sipac": dados.get("processo_sipac", ""),
+                    "solicitante_id": solic_id,
+                    "solicitante_nome": (dados.get("solicitante") or {}).get("nome") or dados.get("solicitante_nome", ""),
+                    "solicitante_cpf": (dados.get("solicitante") or {}).get("cpf") or dados.get("solicitante_cpf", ""),
+                    "solicitante_siape": (dados.get("solicitante") or {}).get("siape") or dados.get("solicitante_siape", ""),
+                    "solicitante_cargo": (dados.get("solicitante") or {}).get("cargo") or dados.get("solicitante_cargo", ""),
+                    "solicitante_vinculo": (dados.get("solicitante") or {}).get("vinculo") or dados.get("solicitante_vinculo", "Servidor do IFAM"),
+                    "solicitante_origem": (dados.get("solicitante") or {}).get("origem") or dados.get("solicitante_origem", ""),
+                    "solicitante_funcao": (dados.get("solicitante") or {}).get("funcao") or dados.get("solicitante_funcao", ""),
+                    "projeto": dados.get("projeto", ""),
+                    "vigencia_inicio": dados.get("vigencia_inicio", ""),
+                    "vigencia_fim": dados.get("vigencia_fim", ""),
+                    "direcao": dados.get("direcao", {}),
+                    "coordenacao": dados.get("coordenacao", {}),
+                    "itens": dados.get("itens", []),
+                    "arquivo_gerado": resultado_docx["nome_arquivo"],
+                    "operador_nome": (CONFIG.get("operador_ativo") or {}).get("nome", "")
+                }
+                cautela_id = salvar_registro_cautela(cautela_payload)
+
+                self.responder_json(200, {
+                    "sucesso": True,
+                    "id": cautela_id,
+                    "numero": resultado_docx["numero"],
+                    "ano": resultado_docx["ano"],
+                    "codigo_cautela": resultado_docx["codigo_cautela"],
+                    "nome_arquivo": resultado_docx["nome_arquivo"],
+                    "caminho_arquivo": resultado_docx["caminho_arquivo"],
+                    "download_url": f"/api/termo_cautela/download?arquivo={resultado_docx['nome_arquivo']}"
+                })
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.responder_json(400, {"sucesso": False, "erro": str(e)})
+            return
+
 
         # ETAPA 2: Devolução de Ferramenta
         if path == "/api/devolver_ferramenta" or path == "/api/devolucao":
@@ -419,6 +638,22 @@ class AlmoxarifadoHandler(BaseHTTPRequestHandler):
             return
 
         # ETAPA 4: Cadastrar Parâmetro
+
+        # API DIRETORES
+        if path == "/api/diretores":
+            try:
+                acao = dados.get("acao")
+                if acao == "CRIAR":
+                    salvar_diretor(dados["cargo"], dados["nome"], dados["portaria"])
+                elif acao == "EDITAR":
+                    editar_diretor(dados["id"], dados["cargo"], dados["nome"], dados["portaria"])
+                elif acao == "EXCLUIR":
+                    excluir_diretor(dados["id"])
+                self.responder_json(200, {"sucesso": True})
+            except Exception as e:
+                self.responder_json(400, {"sucesso": False, "erro": str(e)})
+            return
+            
         if path == "/api/parametro":
             try:
                 novo_id = adicionar_parametro(dados['tipo'], dados['valor'])

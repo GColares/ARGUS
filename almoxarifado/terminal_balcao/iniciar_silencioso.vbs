@@ -1,3 +1,6 @@
+Set fso = CreateObject("Scripting.FileSystemObject")
+currentPath = fso.GetParentFolderName(WScript.ScriptFullName)
 Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run chr(34) & "C:\ARGUS\almoxarifado\terminal_balcao\iniciar.bat" & Chr(34), 0
+WshShell.CurrentDirectory = currentPath
+WshShell.Run chr(34) & currentPath & "\iniciar.bat" & Chr(34), 0
 Set WshShell = Nothing
