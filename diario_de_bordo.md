@@ -1,6 +1,45 @@
 # Diário de Bordo — ARGUS
 
-## [2026-09-15] Sprint — Estabilização de Desktop, Otimização UI e Gestão de Diretores
+## [2026-10-05] Gestão Financeira, Ofícios FAEPI e Planilha de Dispêndios (Projeto Bio Caroço)
+
+### 1. Entregas Técnicas do Dia
+
+- **Elaboração e Emissão do Ofício nº 016/2026 (Pagamento dos Bolsistas):**
+  * Levantamento e consolidação das 16 parcelas da equipe de bolsistas do Projeto Bio Caroço (Convênio nº 002/2026 - INOVA/IFAM-FAEPI) referente à competência Setembro/2026.
+  * Rateio automatizado por contas bancárias das fontes de recurso:
+    - Conta Empresa (15.334-6): 1 parcela (Geziel Sena Colares) — R$ 2.800,00.
+    - Conta SEBRAE (15.335-4): 6 parcelas (Bruno César, Liane parc 3, Rafael Freire parc 3 e 4, Gabriel Clávila parc 3, Sandro Haiden parc 3) — R$ 21.000,00.
+    - Conta EMBRAPII (15.338-9): 9 parcelas (Gabriel Silveira, Nobuyuki, José Mário, Gabriel Nogueira, Eduardo Palhares, Liane parc 4, Cairo José, Gabriel Clávila parc 4, Sandro Haiden parc 4) — R$ 34.125,00.
+    - Total do Ofício 16: R$ 57.925,00.
+  * Segregação de Funções (SoD): Coordenador do Projeto segregado do ofício da equipe, assinado pelo Prof. Wenndisson da Silva Souza e gerado no formato `.docx` institucional em `gestao_projetos/modelos/`.
+
+- **Perenização de Regras de Governança (`/learn`):**
+  * Criação do guardrail operacional `.agents/rules/OFICIOS_PAGAMENTO_BOLSAS.md`.
+  * Atualização do manual canônico `.agents/AGENTS.md` definindo que o pagamento do Coordenador é submetido diretamente à Direção-Geral (DG), cabendo ao fluxo padrão cuidar dos demais bolsistas, tendo como fonte canônica de dados o arquivo `gestao_projetos/modelos/relatorios-atividades-cabecalhos.xlsx`.
+
+- **Conciliação e Preenchimento da Aba `Pagamento RH` (`DISPÊNDIOS`):**
+  * Backup preventivo criado em `DISPENDIOS - CV_002-2026 - BIO CAROCO 2026_BACKUP.xlsx`.
+  * Cadastro dos 12 bolsistas de RH Direto e 1 de RH Indireto na planilha de dispêndios.
+  * Mapeamento e conciliação dos 34 pagamentos de bolsas constantes na aba `extrato_bancario` da planilha `execucao_financeira.xlsx` (Total pago: R$ 142.650,00 de R$ 480.400,00 previstos).
+
+- **Lançamento do Fluxo de Caixa Executado (`DISPÊNDIOS`):**
+  * Lançamento dos desembolsos efetivamente pagos mês a mês nas rubricas correspondentes:
+    - Julho/2026: R$ 19.034,28 (RH Direto R$ 12.000,00 + RH Indireto R$ 2.800,00 + ISS R$ 4.125,00 + Tarifas/Impostos R$ 109,28).
+    - Agosto/2026: R$ 67.363,40 (RH Direto R$ 64.125,00 + RH Indireto R$ 2.800,00 + Outros/Internet R$ 438,40).
+    - Setembro/2026: R$ 61.440,33 (RH Direto R$ 58.125,00 + RH Indireto R$ 2.800,00 + Outros/Internet R$ 515,33).
+    - Total Executado Conciliado: R$ 147.838,01 (100% de paridade com o extrato bancário).
+  * Inserção dos tetos orçamentários do Plano de Trabalho Retificado 3 (`PT - Bio Caroço_19_08_26_RETIFICADO 3 .docx`) na Coluna B (R$ 569.000,00 financeiro) para cálculo dinâmico de `% Executado`.
+
+- **Alterações em Telas HTML:**
+  * *Nenhuma alteração de template HTML nesta sessão* (atividades focadas em governança documental, conciliação contábil/financeira em planilhas e regras de agentes).
+
+### 2. Próximos Passos (Backlog e Pendências)
+
+- Acompanhar a liquidação bancária do Ofício 16/2026 junto à FAEPI.
+- Validar se haverá necessidade de emissão de ofício específico do Coordenador junto à Direção-Geral para a competência de setembro.
+- Prosseguir com a esteira dos módulos do ARGUS.
+
+
 
 ### 1. Entregas Técnicas do Dia
 

@@ -1,0 +1,35 @@
+Defeito (Causa Raiz):
+
+É a imperfeição física ou o erro de fabricação/projeto oculto no sistema.
+
+Existe antes mesmo do sistema parar de funcionar.
+
+Exemplos: uma peça trincada, um erro no código de um software ou uma fiação gasta.
+
+
+Falha (O Evento de Parada):
+
+É o momento exato em que o sistema perde a capacidade de realizar sua função.
+
+Ocorre quando o defeito se manifesta e impede a operação normal.
+
+Exemplos: o motor parou de rodar, o software travou ou a luz se apagou.
+
+
+Sintoma (O Sinal Visível):
+
+É a evidência física ou o aviso perceptível gerado pela falha.
+
+Serve como pista para o técnico identificar o que aconteceu.
+
+Exemplos: barulho estranho, fumaça, luz de alerta no painel ou mensagem de erro.
+
+
+
+Exemplo Prático da Linha do Tempo
+
+Defeito: Uma mangueira de radiador de um carro está ressecada e com um microfuro (imperfeição).
+
+Falha: A mangueira rompe de vez durante o uso e o líquido de arrefecimento vaza por completo (perda de função).
+
+Sintoma: O ponteiro da temperatura sobe até a faixa vermelha e sai fumaça do capô (sinais visíveis).

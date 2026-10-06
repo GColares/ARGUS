@@ -395,3 +395,8 @@ Sempre que uma tarefa envolver alterações profundas, volumosas ou complexas na
 1. O agente deve realizar o backup por conta própria via linha de comando (ex: copiando o db.sqlite3 ou utilizando ferramentas de dump para o banco atual).
 2. O backup deve garantir a recuperação tanto da estrutura (schema) quanto do conteúdo (dados).
 3. Somente após a confirmação do backup bem-sucedido o agente poderá prosseguir com as alterações destrutivas ou de alto risco.
+
+
+## Elaboração de Ofícios de Pagamento de Bolsas (FAEPI)
+1. **Segregação do Coordenador:** O pagamento do Coordenador do Projeto é objeto de ofício elaborado por ele mesmo e submetido diretamente à Direção-Geral (DG). O fluxo de trabalho padrão do ARGUS concentra-se exclusivamente no pagamento de todos os demais membros da equipe (bolsistas, pesquisadores, técnicos e apoio).
+2. **Fonte Canônica de Dados:** Toda consolidação de parcelas a pagar, rateio entre contas bancárias (Empresa, SEBRAE, EMBRAPII) e dados de bolsas deve ser extraída estritamente da planilha `gestao_projetos/modelos/relatorios-atividades-cabecalhos.xlsx` (vide regra detalhada em `.agents/rules/OFICIOS_PAGAMENTO_BOLSAS.md`).
