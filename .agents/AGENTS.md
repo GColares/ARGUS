@@ -399,4 +399,9 @@ Sempre que uma tarefa envolver alterações profundas, volumosas ou complexas na
 
 ## Elaboração de Ofícios de Pagamento de Bolsas (FAEPI)
 1. **Segregação do Coordenador:** O pagamento do Coordenador do Projeto é objeto de ofício elaborado por ele mesmo e submetido diretamente à Direção-Geral (DG). O fluxo de trabalho padrão do ARGUS concentra-se exclusivamente no pagamento de todos os demais membros da equipe (bolsistas, pesquisadores, técnicos e apoio).
-2. **Fonte Canônica de Dados:** Toda consolidação de parcelas a pagar, rateio entre contas bancárias (Empresa, SEBRAE, EMBRAPII) e dados de bolsas deve ser extraída estritamente da planilha `gestao_projetos/modelos/relatorios-atividades-cabecalhos.xlsx` (vide regra detalhada em `.agents/rules/OFICIOS_PAGAMENTO_BOLSAS.md`).
+2. **Fonte Canônica de Dados:** Toda consolidação de parcelas a pagar, rateio entre contas bancárias (Empresa, SEBRAE, EMBRAPII) e dados de bolsas deve ser extraída estritamente da planilha `gestao_projetos/modelos/relatorios-atividades-cabecalhos.xlsx` (vide regra detalhada em `.agents/rules/OFICIOS_PAGAMENTO_BOLSAS.md`).
+
+
+## Sugestão Proativa de Mensagem de Commit em Rotinas de Script
+Sempre que o agente orientar o usuário a executar `.\scripts\ate_amanha.ps1` ou `.\scripts\salvar.ps1` (ou qualquer rotina de commit/push), é **TERMINANTEMENTE OBRIGATÓRIO** fornecer imediatamente, **na mesma resposta**, a mensagem sugerida de commit formatada em Conventional Commits, pronta para ser copiada e colada no terminal interativo. É vedado aguardar o usuário solicitar a mensagem.
+

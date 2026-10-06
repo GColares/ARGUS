@@ -8,7 +8,10 @@ description: "Rotina completa de encerramento do dia (Saída). Faz o backup do b
 Oriente o usuário a executar `.\scripts\ate_amanha.ps1` no terminal. A IA não
 deve executar a rotina diretamente nem declarar sucesso sem confirmação.
 
+**REGRA INVIOLÁVEL DE CO-OCORRÊNCIA:** Sempre que você sugerir a execução de `.\scripts\ate_amanha.ps1`, é **TERMINANTEMENTE OBRIGATÓRIO** incluir **NA MESMA RESPOSTA** uma sugestão semântica de mensagem de commit (bloco de código com Conventional Commits) pronta para cópia e cola. O usuário NUNCA deve ter que perguntar qual é a mensagem de commit.
+
 Sempre que o usuário enviar o comando "ate-amanha" (ex: "até amanhã", "ate amanha", "encerrar dia", "fechar a loja"), você deverá executar a rotina de empacotamento e envio do projeto para a nuvem.
+
 **RESTRIÇÃO CRÍTICA:** NUNCA inicie essa rotina caso o usuário informe apenas que fará uma pausa, que vai sair e voltar mais tarde (ex: "já volto", "vou dar uma saída", "volto mais tarde"). Execute esta rotina APENAS se houver a intenção explícita de encerramento total das atividades do dia.
 
 Siga os passos rigorosamente nesta ordem:
