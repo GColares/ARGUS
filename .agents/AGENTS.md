@@ -404,4 +404,10 @@ Sempre que uma tarefa envolver alterações profundas, volumosas ou complexas na
 
 ## Sugestão Proativa de Mensagem de Commit em Rotinas de Script
 Sempre que o agente orientar o usuário a executar `.\scripts\ate_amanha.ps1` ou `.\scripts\salvar.ps1` (ou qualquer rotina de commit/push), é **TERMINANTEMENTE OBRIGATÓRIO** fornecer imediatamente, **na mesma resposta**, a mensagem sugerida de commit formatada em Conventional Commits, pronta para ser copiada e colada no terminal interativo. É vedado aguardar o usuário solicitar a mensagem.
+
+
+## Classificação do Auxiliar Administrativo em Relatórios vs Execução Financeira
+Em todos os relatórios gerenciais, apresentações de acompanhamento (PowerPoint), dashboards e planilhas de dispêndios do ARGUS:
+1. **Despesa de Suporte Operacional:** O Auxiliar Administrativo deve ser alocado obrigatoriamente na rubrica **Despesa de Suporte Operacional** (Suporte Operacional / DOA), jamais em "RH-Indireto".
+2. **Exceção Estrita:** Apenas os extratos e conciliações financeiras brutas da FAEPI registram esse pagamento sob RH por questões operacionais de folha da Fundação de Apoio.
 
