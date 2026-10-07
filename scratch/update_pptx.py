@@ -121,12 +121,12 @@ def update_slide2(xml_content):
     if '252' in shapes_by_id: set_shape_text(shapes_by_id['252'], "1.375,00")
     if '253' in shapes_by_id: set_shape_text(shapes_by_id['253'], "75,0%")
 
-    # Row 5: Tarifas Bancárias
-    if '255' in shapes_by_id: set_shape_text(shapes_by_id['255'], "Outros Correlatos (Tarifas Bancárias)")
-    if '256' in shapes_by_id: set_shape_text(shapes_by_id['256'], "1.900,00")
-    if '257' in shapes_by_id: set_shape_text(shapes_by_id['257'], "366,18")
-    if '258' in shapes_by_id: set_shape_text(shapes_by_id['258'], "1.533,82")
-    if '259' in shapes_by_id: set_shape_text(shapes_by_id['259'], "19,3%")
+    # Row 5: Tarifas Bancárias (Dotação exclusiva da Conta SEBRAE no PT)
+    if '255' in shapes_by_id: set_shape_text(shapes_by_id['255'], "Tarifas Bancárias (Conta SEBRAE)")
+    if '256' in shapes_by_id: set_shape_text(shapes_by_id['256'], "1.000,00")
+    if '257' in shapes_by_id: set_shape_text(shapes_by_id['257'], "141,68")
+    if '258' in shapes_by_id: set_shape_text(shapes_by_id['258'], "858,32")
+    if '259' in shapes_by_id: set_shape_text(shapes_by_id['259'], "14,2%")
 
     # Row 6: Despesa de Suporte Operacional (DOA) - Absorve os R$ 8.400,00 do Aux. Administrativo
     if '262' in shapes_by_id: set_shape_text(shapes_by_id['262'], "Despesa de Suporte Operacional (DOA)")
@@ -144,14 +144,14 @@ def update_slide2(xml_content):
 
     # Total Row
     if '275' in shapes_by_id: set_shape_text(shapes_by_id['275'], "TOTAL DO PROJETO")
-    if '276' in shapes_by_id: set_shape_text(shapes_by_id['276'], "569.000,00")
-    if '277' in shapes_by_id: set_shape_text(shapes_by_id['277'], "147.398,33")
-    if '278' in shapes_by_id: set_shape_text(shapes_by_id['278'], "421.601,67")
+    if '276' in shapes_by_id: set_shape_text(shapes_by_id['276'], "568.100,00")
+    if '277' in shapes_by_id: set_shape_text(shapes_by_id['277'], "147.173,83")
+    if '278' in shapes_by_id: set_shape_text(shapes_by_id['278'], "420.926,17")
     if '279' in shapes_by_id: set_shape_text(shapes_by_id['279'], "25,9%")
 
     # Footnote
     if '280' in shapes_by_id:
-        set_shape_text(shapes_by_id['280'], "* Execução financeira acumulada em 30/09/2026. Aportado: R$ 280.500,00. Rendimentos líquidos: R$ 4.722,14. Saldo em caixa: R$ 137.823,81.")
+        set_shape_text(shapes_by_id['280'], "* Posição em 30/09/2026. Aporte: R$ 280.500,00. Rendimentos líq.: R$ 4.722,14. Saldo em caixa: R$ 137.823,81. Tarifas Empresa/EMBRAPII (R$ 224,50) pagas c/ rendimentos.")
 
     return ET.tostring(root, encoding='utf-8')
 
@@ -275,10 +275,10 @@ def update_slide4(xml_content):
     if '386' in shapes_by_id: set_shape_text(shapes_by_id['386'], "75,0%")
     if '388' in shapes_by_id: set_shape_width(shapes_by_id['388'], int(MAX_BAR_CX * 0.7500))
 
-    # Row 4: Tarifas Bancárias (19,27%)
-    if '389' in shapes_by_id: set_shape_text(shapes_by_id['389'], "Tarifas Bancárias")
-    if '390' in shapes_by_id: set_shape_text(shapes_by_id['390'], "19,3%")
-    if '392' in shapes_by_id: set_shape_width(shapes_by_id['392'], int(MAX_BAR_CX * 0.1927))
+    # Row 4: Tarifas Bancárias (14,17% - Conta SEBRAE)
+    if '389' in shapes_by_id: set_shape_text(shapes_by_id['389'], "Tarifas Bancárias (SEBRAE)")
+    if '390' in shapes_by_id: set_shape_text(shapes_by_id['390'], "14,2%")
+    if '392' in shapes_by_id: set_shape_width(shapes_by_id['392'], int(MAX_BAR_CX * 0.1417))
 
     # Row 5: Serviços Terceiros PJ (2,88%)
     if '393' in shapes_by_id: set_shape_text(shapes_by_id['393'], "Serviços Terceiros PJ (Rateio)")
@@ -321,7 +321,14 @@ with zipfile.ZipFile(pristine_pptx, 'r') as src_zip, zipfile.ZipFile(temp_zip, '
             print("Updated slide 4")
         dst_zip.writestr(item, data)
 
-if os.path.exists(target_pptx):
-    os.remove(target_pptx)
-os.rename(temp_zip, target_pptx)
-print(f"Successfully re-generated updated PPTX: {target_pptx}")
+try:
+    if os.path.exists(target_pptx):
+        os.remove(target_pptx)
+    os.rename(temp_zip, target_pptx)
+    print(f"Successfully re-generated updated PPTX: {target_pptx}")
+except PermissionError:
+    alt_target = os.path.join(base_dir, "2026-09_Acompanhamento_Conv002_2026_BioCaroco_Setembro_2026-teste-v2.pptx")
+    if os.path.exists(alt_target):
+        os.remove(alt_target)
+    os.rename(temp_zip, alt_target)
+    print(f"Arquivo principal aberto no PowerPoint. Nova versão salva com sucesso em: {alt_target}")

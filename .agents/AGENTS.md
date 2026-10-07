@@ -309,6 +309,9 @@ Sempre que modelar o plano de trabalho e as rubricas financeiras de um projeto q
    - **PROIBIDO** utilizar recursos do SEBRAE para pagamento de **Capital e Equipamentos** (assim como a restrição padrão da EMBRAPII).
    - **PROIBIDO** utilizar recursos do SEBRAE para pagamento de **Suporte Operacional / Administrativo (Overhead)**. Esta rubrica continua sendo de responsabilidade exclusiva dos recursos diretos da Empresa (caixa) ou da Contrapartida da ICT.
    - O recurso SEBRAE deve ser destinado majoritariamente a Despesas de Custeio direto da pesquisa (ex: Recursos Humanos Diretos e Consumo).
+4. **Tarifas Bancárias e Rendimentos (Regra Específica SEBRAE vs Outras Fontes):**
+   - **SEBRAE:** Proibido pagar tarifas bancárias com rendimentos da conta de aplicação. O valor previsto no Plano de Trabalho para tarifas bancárias (ex: R$ 1.000,00) destina-se exclusivamente à conta SEBRAE.
+   - **Empresa e EMBRAPII:** As tarifas bancárias são custeadas diretamente pelos rendimentos auferidos na aplicação financeira, sem consumir a dotação orçamentária do Plano de Trabalho.
 
 ## Padronização Tipográfica e Hierarquia Visual (Design System)
 Para manter a consistência estética e profissional em todas as telas do ARGUS, evite variações injustificadas de tamanho de fonte e siga uma hierarquia tipográfica estrita usando apenas as classes utilitárias do Bootstrap 5:
