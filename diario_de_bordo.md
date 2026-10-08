@@ -1,5 +1,38 @@
 # Diário de Bordo — ARGUS
 
+## [2026-10-07] Modelagem Orçamentária, Dashboards Dinâmicos no Excel e Alinhamento Executivo do Bio Caroço
+
+### 1. Entregas Técnicas do Dia
+
+- **Padronização de Regras de Negócio e Governança Orçamentária (/learn):**
+  * **Reclassificação do Auxiliar Administrativo:** Estabelecido formalmente que o Auxiliar Administrativo não deve constar em RH Indireto (cujo valor consolidado passa a ser R$ 0,00), mas sim alocado em Despesa de Suporte Operacional (DOA). Embora no lançamento contábil/financeiro da FAEPI conste sob a natureza de bolsa, em todos os relatórios orçamentários e gerenciais consolidados do ARGUS deve figurar sob Suporte Operacional. Regra perenizada em `.agents/rules/CLASSIFICACAO_RUBRICAS_RELATORIOS.md`.
+  * **Regra de Tarifas Bancárias por Fonte de Recursos:** Definição canônica de que, em termos de Plano de Trabalho, apenas os recursos do SEBRAE possuem dotação orçamentária para tarifas bancárias (R$ 1.000,00 previstos). As tarifas das contas Empresa e EMBRAPII são amortizadas com os rendimentos de aplicação financeira das respectivas contas. Regra perenizada em `.agents/rules/TARIFAS_BANCARIAS_FONTES_RECURSO.md`.
+
+- **Criação dos Dashboards Executivos em `relatorio_mensal_recursos.xlsx`:**
+  * Implementação de 3 abas dedicadas e formatadas no padrão ARGUS Executive (`#1E3A8A`, Segoe UI, `R$ #.##0,00`, `0,0%`), desenhadas especificamente para cópia e colagem direta na apresentação mensal:
+    - `Slide 2 - Saude do Projeto`: Tabela de execução orçamentária por rubrica (RH Direto, RH Indireto, Serviços Terceiros/Internet, Tributos/ISS, Tarifas SEBRAE, Suporte Operacional/DOA) e 5 KPI Cards no topo (Saldo Disponível, Receitas Recebidas, Total Executado, Rendimento Financeiro, Sprints Acompanhadas).
+    - `Slide 3 - Desembolso e Contas`: Tabela de parcelas recebidas e pendentes, Resumo Financeiro Consolidado de setembro e Rendimentos de Aplicação Financeira.
+    - `Slide 4 - Analise e Atencao`: Tabela de % de execução por rubrica orçamentária, Cards de Execução Acumulada Geral e Saldo em Caixa, além dos 4 Pontos de Atenção gerenciais.
+
+- **Automação e Vinculação Dinâmica 100% Nativa do Excel:**
+  * Superação de limitação de bibliotecas de terceiros (openpyxl que causava corrupção de schemas XML em planilhas com gráficos/tabelas pré-existentes), adotando automação nativa via Microsoft Excel COM (`build_dashboards_linked.ps1`).
+  * Construção de arquitetura em cascata: interligação da tabela `det_execucao_orcamentaria` (que puxa de `execucao_orcamentaria.xlsx` e `DISPÊNDIOS - CV_002-2026 - BIO CAROCO 2026.xlsx`) e de `execucao_financeira.xlsx` (extrato bancário e conciliação).
+  * Solução para compatibilidade cross-workbook externa fechada utilizando referências de células diretas e funções `SUM`, eliminando erros de `#VALOR!` causados por `SUMIFS` em arquivos externos.
+  * Verificação e validação automatizada: ZERO erros de fórmula (`#REF!`, `#VALOR!`, `#NOME?`). Preservação 100% íntegra dos gráficos nativos e do cálculo automático de saldos e percentuais.
+  * Validação de portabilidade de pastas compactadas (ZIP) e garantia do cache de valores salvos para visualização em outras máquinas.
+
+- **Atualização das Apresentações em PowerPoint (`.pptx`):**
+  * Atualização dos slides das apresentações `2026-09_Acompanhamento_Conv002_2026_BioCaroco_Setembro_2026-teste.pptx` e `-teste-v2.pptx` com a nova estrutura de dados, segregação de DOA e saldos conciliados.
+
+- **Alterações em Telas HTML:**
+  * *Nenhuma alteração de template HTML nesta sessão* (foco integral em inteligência de dados orçamentários, planilhas gerenciais de recursos, apresentações executivas e regras de negócio para relatórios).
+
+### 2. Próximos Passos (Backlog e Pendências)
+
+- Utilizar os dashboards dinâmicos de `relatorio_mensal_recursos.xlsx` para a montagem final da apresentação mensal aos partícipes.
+- Validar se a FAEPI emitiu os comprovantes de liquidação bancária do Ofício nº 016/2026 para conciliação no próximo fechamento.
+- Prosseguir com a esteira de desenvolvimento dos módulos do ARGUS.
+
 ## [2026-10-05] Gestão Financeira, Ofícios FAEPI e Planilha de Dispêndios (Projeto Bio Caroço)
 
 ### 1. Entregas Técnicas do Dia
