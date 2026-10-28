@@ -74,8 +74,17 @@ def gerar_relatorios(excel_path=None, template_path=None, output_dir=None):
         if not bolsista_nome:
             continue
 
+        # Garantir diretório do bolsista de forma idempotente
+        chars_proibidos = ['\\', '/', '*', '?', ':', '"', '<', '>', '|']
+        bolsista_pasta = bolsista_nome
+        for ch in chars_proibidos:
+            bolsista_pasta = bolsista_pasta.replace(ch, '_')
+            
+        bolsista_dir = os.path.join(output_dir, bolsista_pasta)
+        os.makedirs(bolsista_dir, exist_ok=True)
+
         out_filename = f'Relatorio_de_Atividades_{bolsista_nome}_-_Parcela_{p_n}_de_{p_tot}.docx'
-        out_path = os.path.join(output_dir, out_filename)
+        out_path = os.path.join(bolsista_dir, out_filename)
         
         # Processamento seguro com docxtpl preservando todo o XML/Word
         doc = DocxTemplate(template_path)
@@ -83,7 +92,7 @@ def gerar_relatorios(excel_path=None, template_path=None, output_dir=None):
         doc.save(out_path)
                         
         relatorios_gerados.append(out_path)
-        print(f"Gerado com sucesso (docxtpl): {out_filename}")
+        print(f"Gerado com sucesso (docxtpl): {bolsista_pasta}/{out_filename}")
 
     return relatorios_gerados
 
