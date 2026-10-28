@@ -413,4 +413,11 @@ Sempre que o agente orientar o usuário a executar `.\scripts\ate_amanha.ps1` ou
 Em todos os relatórios gerenciais, apresentações de acompanhamento (PowerPoint), dashboards e planilhas de dispêndios do ARGUS:
 1. **Despesa de Suporte Operacional:** O Auxiliar Administrativo deve ser alocado obrigatoriamente na rubrica **Despesa de Suporte Operacional** (Suporte Operacional / DOA), jamais em "RH-Indireto".
 2. **Exceção Estrita:** Apenas os extratos e conciliações financeiras brutas da FAEPI registram esse pagamento sob RH por questões operacionais de folha da Fundação de Apoio.
-
+
+
+
+## Escopo e Numeração de Atividades no Relatório de Atividades (RA)
+O ARGUS adota arquitetura multi-projeto onde as atividades de cada RA derivam estritamente do Plano de Trabalho (PT) do respectivo projeto:
+1. **Coordenador do Projeto:** Relata a totalidade das atividades do Plano de Trabalho (1 a N).
+2. **Demais Colaboradores e Bolsistas:** Relatam estritamente as atividades vinculadas à sua cota de bolsa / papel no Plano de Trabalho (`CotaBolsaPT.atividades_vinculadas`).
+3. **Numeração Contextual Pura (1..N):** As atividades atribuídas a um colaborador devem ser exibidas e geradas de forma contínua e sequencial iniciando em 1 (1, 2, 3...), sem saltos e sem menção aos índices originais do PT na apresentação ao bolsista (vide detalhes e o estudo de caso do Bio Caroço em `.agents/rules/ESCOPO_E_NUMERACAO_ATIVIDADES_RA.md`).
