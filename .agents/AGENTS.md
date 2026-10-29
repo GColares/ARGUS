@@ -423,8 +423,12 @@ O ARGUS adota arquitetura multi-projeto onde as atividades de cada RA derivam es
 3. **Numeração Contextual Pura (1..N):** As atividades atribuídas a um colaborador devem ser exibidas e geradas de forma contínua e sequencial iniciando em 1 (1, 2, 3...), sem saltos e sem menção aos índices originais do PT na apresentação ao bolsista (vide detalhes e o estudo de caso do Bio Caroço em `.agents/rules/ESCOPO_E_NUMERACAO_ATIVIDADES_RA.md`).
 
 
-## Organização e Criação Idempotente da Pasta de Documentos do Bolsista
-Todo bolsista participante de um projeto PDI possui um repositório individualizado de arquivos no sistema:
-1. **Momento da Criação (Gatilho de Cadastro):** As pastas dos bolsistas devem ser criadas preventivamente no momento em que ele for cadastrado/vinculado à equipe do projeto, e não tardiamente na emissão do primeiro relatório.
-2. **Idempotência Estrita:** Uma vez criada a pasta do bolsista no projeto (exist_ok=True), a rotina não deve recriá-la nem duplicá-la. Ela serve como repositório perene para todos os seus documentos (Termo de Bolsa, RAs de todas as parcelas, etc.).
-3. **Escopo por Projeto e Sanitização:** As pastas são organizadas por projeto ({base_storage}/projetos/{projeto}/bolsistas/{nome_bolsista}/), com sanitização obrigatória de caracteres proibidos pelo SO. Relatórios de Atividades (RAs) gerados devem ser salvos diretamente na subpasta do bolsista, vedado o despejo de arquivos soltos na raiz (vide .agents/rules/ORGANIZACAO_ARQUIVOS_RA.md).
+## Requisito de Sistema: Estrutura Canônica de Armazenamento por Projeto
+O ARGUS adota organização física de arquivos estruturada e autocontida por projeto:
+1. **Segregação Estrita de Modelos:** A pasta gestao_projetos/media/modelos/ é destinada exclusivamente a templates e gabaritos em branco. É terminantemente proibido salvar arquivos gerados ou preenchidos dentro dela.
+2. **Repositório Autocontido do Projeto (gestao_projetos/projetos/<projeto_slug>/):** Cada projeto concentra seus próprios arquivos em pastas dedicadas:
+   - documentos/: Planos de Trabalho, Termos de Parceria e Aditivos;
+   - oficios/: Ofícios expedidos à Direção-Geral e FAEPI;
+   - execucao_financeira/: Conciliações, demonstrativos e extratos bancários;
+   - olsistas/<Nome_Bolsista>/: Subpastas individuais de cada membro da equipe contendo seus RAs e comprovantes.
+3. **Criação Preventiva e Idempotente:** A infraestrutura de diretórios do projeto e dos bolsistas deve nascer no momento do cadastro do projeto e da alocação da equipe, com verificação de existência (exist_ok=True), sem duplicações ao longo do ciclo de vida (vide .agents/rules/ESTRUTURA_ARQUIVOS_PROJETOS.md).

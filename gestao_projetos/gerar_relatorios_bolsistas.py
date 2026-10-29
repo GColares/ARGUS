@@ -10,12 +10,13 @@ import datetime
 import openpyxl
 from docxtpl import DocxTemplate
 
-def gerar_relatorios(excel_path=None, template_path=None, output_dir=None):
+def gerar_relatorios(excel_path=None, template_path=None, output_dir=None, projeto_slug='bio_caroco'):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     modelos_dir = os.path.join(base_dir, 'media', 'modelos')
     
     if not output_dir:
-        output_dir = modelos_dir
+        output_dir = os.path.join(base_dir, 'projetos', projeto_slug, 'bolsistas')
+    os.makedirs(output_dir, exist_ok=True)
         
     if not excel_path:
         excel_path = os.path.join(modelos_dir, 'parcela1-b-2.xlsx')
